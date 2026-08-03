@@ -1,0 +1,21 @@
+const ACHIEVEMENTS = [
+  { id: 'first_blood', name: 'First Blood', desc: 'Win your first battle', icon: 'F', check: function() { return (G.state.zoneProgress && Object.values(G.state.zoneProgress).some(v => v > 0)); } },
+  { id: 'zone_explorer', name: 'Zone Explorer', desc: 'Complete 1 zone at 100%', icon: 'Z', check: function() { return Object.values(G.state.zoneProgress || {}).filter(v => v >= 100).length >= 1; } },
+  { id: 'world_traveler', name: 'World Traveler', desc: 'Complete 3 zones at 100%', icon: 'W', check: function() { return Object.values(G.state.zoneProgress || {}).filter(v => v >= 100).length >= 3; } },
+  { id: 'fishmonger', name: 'Fishmonger', desc: 'Catch 20 fish', icon: 'F', check: function() { return (G.state.fishCaught || 0) >= 20; } },
+  { id: 'master_fisher', name: 'Master Fisher', desc: 'Catch 100 fish', icon: 'M', check: function() { return (G.state.fishCaught || 0) >= 100; } },
+  { id: 'alchemist', name: 'Alchemist', desc: 'Craft 10 alchemy items', icon: 'A', check: function() { return (G.state.flags && G.state.flags.itemsCrafted || 0) >= 10; } },
+  { id: 'master_alchemist', name: 'Master Alchemist', desc: 'Craft 50 alchemy items', icon: 'M', check: function() { return (G.state.flags && G.state.flags.itemsCrafted || 0) >= 50; } },
+  { id: 'spirit_master', name: 'Spirit Master', desc: 'Collect 3 spirit beasts', icon: 'S', check: function() { return (G.state.spiritBeasts || []).length >= 3; } },
+  { id: 'beast_tamer', name: 'Beast Tamer', desc: 'Reach tier 5 on any spirit beast', icon: 'B', check: function() { return G.state.spiritBeasts && G.state.spiritBeasts.some(b => b.tier >= 5); } },
+  { id: 'wealthy', name: 'Wealthy Soul', desc: 'Accumulate 5000 gold', icon: 'G', check: function() { return (G.state.gold || 0) >= 5000; } },
+  { id: 'millionaire', name: 'Millionaire', desc: 'Accumulate 20000 gold', icon: '$', check: function() { return (G.state.gold || 0) >= 20000; } },
+  { id: 'breakthrough', name: 'First Breakthrough', desc: 'Perform your first breakthrough', icon: 'B', check: function() { return (G.state.realmStage || 0) > 1 || G.state.realm !== 'manushya'; } },
+  { id: 'enlightened', name: 'Enlightened', desc: 'Reach Mukta realm', icon: 'E', check: function() { return G.state.realm === 'mukta'; } },
+  { id: 'reincarnated', name: 'Reincarnated', desc: 'Perform Punarjanma (Rebirth)', icon: 'R', check: function() { return (G.state.rebirthCount || 0) >= 1; } },
+  { id: 'tournament_champ', name: 'Tournament Champ', desc: 'Win 10 tournament matches', icon: 'T', check: function() { return (G.state.tournamentWins || 0) >= 10; } },
+  { id: 'boss_slayer', name: 'Boss Slayer', desc: 'Defeat 5 bosses', icon: 'B', check: function() { return (G.state.flags && G.state.flags.bossesDefeated || 0) >= 5; } },
+  { id: 'collector', name: 'Collector', desc: 'Own 20 unique items', icon: 'C', check: function() { return (G.state.inventory || []).length >= 20; } },
+  { id: 'max_level', name: 'Peak Mortal', desc: 'Reach level 50 with any hero', icon: 'L', check: function() { return G.state.party && G.state.party.some(h => h.level >= 50); } },
+  { id: 'samsara_master', name: 'Samsara Master', desc: 'Rebirth 5 times', icon: 'S', check: function() { return (G.state.rebirthCount || 0) >= 5; } }
+];
