@@ -108,6 +108,8 @@ const Fade = {
 
 const G = {
   W: 400, H: 720,
+  SCROLL_SPEED: 0.8,
+  CONTENT_TOP: 116,
   canvas: null, ctx: null,
   state: {
     scene: 'title',
@@ -176,6 +178,7 @@ function gLoop(time) {
     }
   }
   Fade.update(G.dt);
+  if (UI.Modal.active) UI.updateButtons(UI.Modal.active._buttonList, G.dt);
   if (G.currentScene && G.currentScene.update) G.currentScene.update(G.dt);
   G.ctx.clearRect(0, 0, G.W, G.H);
   G.ctx.save();
@@ -186,6 +189,13 @@ function gLoop(time) {
   R.renderProjectiles(G.ctx);
   R.renderEffects(G.ctx);
   R.renderLevelUp(G.ctx);
+  if (G.state.enlightenmentTimer > 0) {
+    const mins = Math.floor(G.state.enlightenmentTimer / 60);
+    const secs = Math.floor(G.state.enlightenmentTimer % 60);
+    const timeStr = 'ENLIGHTENED ' + mins + ':' + (secs < 10 ? '0' : '') + secs;
+    R.roundRect(G.ctx, G.W - 140, 4, 136, 18, 4, 'rgba(232,160,48,0.85)');
+    R.textCenter(G.ctx, timeStr, G.W - 72, 16, '#0a0a1a', R.fonts.sm);
+  }
   Fade.render(G.ctx);
   Notify.render(G.ctx);
   requestAnimationFrame(gLoop);

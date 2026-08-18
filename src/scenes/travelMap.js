@@ -17,7 +17,7 @@ const travelMapScene = Scene.create({
     this.buildZoneButtons();
   },
 
-  getContentTop: function() { return 116; },
+  getContentTop: function() { return G.CONTENT_TOP; },
   getContentHeight: function() { return G.H - this.getContentTop(); },
 
   clampScroll: function() {
@@ -161,7 +161,13 @@ const travelMapScene = Scene.create({
     R.text(ctx, zone.desc, 22, iy + 20, R.colors.textDim, R.fonts.sm);
     R.text(ctx, 'Progress: ' + pct + '%  |  Req Level: ' + (zone.reqLevel || 1), 22, iy + 38, R.colors.text, R.fonts.sm);
 
-    const pb = UI.ProgressBar(22, iy + 50, G.W - 64, 8, R.colors.gold, '#2a1510');
+    if (zone.enemies && zone.enemies.length > 0) {
+      const enemyNames = zone.enemies.slice(0, 3).map(e => e.charAt(0).toUpperCase() + e.slice(1)).join(', ');
+      const suffix = zone.enemies.length > 3 ? '...' : '';
+      R.text(ctx, 'Enemies: ' + enemyNames + suffix, 22, iy + 54, R.colors.textDim, R.fonts.sm);
+    }
+
+    const pb = UI.ProgressBar(22, iy + 66, G.W - 64, 8, R.colors.gold, '#2a1510');
     pb.setProgress(pct, 100);
     pb.render(ctx);
   },
@@ -169,7 +175,7 @@ const travelMapScene = Scene.create({
   update: function(dt) {
     const sd = Input.getScrollDelta();
     if (sd) {
-      this.data.scrollY += sd * 0.8;
+      this.data.scrollY += sd * G.SCROLL_SPEED;
       this.clampScroll();
     }
     UI.updateButtons(this.data.buttons, dt);
@@ -181,6 +187,18 @@ const travelMapScene = Scene.create({
     ctx.strokeStyle = 'rgba(232,160,48,0.12)';
     ctx.lineWidth = 1;
     ctx.strokeRect(10.5, 6.5, G.W - 21, 103);
+
+    const backBtn = UI.Button(14, 10, 60, 24, '\u2190 Back', R.colors.btn);
+    backBtn.onClick = function() {
+      if (travelMapScene.data.selectedZone) {
+        travelMapScene.data.selectedZone = null;
+        travelMapScene.data.scrollY = 0;
+        travelMapScene.buildZoneButtons();
+      } else {
+        gScene('ashram', true);
+      }
+    };
+    backBtn.render(ctx);
 
     R.textCenter(ctx, 'Travel Map', G.W / 2, 24, R.colors.gold, R.fonts.lg);
     const diffLabel = Progression.difficultyModifiers[G.state.difficulty || 'normal'].label;

@@ -54,8 +54,10 @@ const combatScene = Scene.create({
     turnState: 'start',
     log: [],
     selectedSkill: null,
+    selectedEnemy: null,
     buttons: [],
     actionButtons: [],
+    enemyButtons: [],
     result: null,
     fleeAttempted: false,
     animTimer: 0,
@@ -64,7 +66,8 @@ const combatScene = Scene.create({
     encounterStory: '',
     beastSkillUsed: false,
     beastCooldown: 0,
-    scrollY: 0
+    scrollY: 0,
+    comboDisplay: 0
   },
 
   enter: function() {
@@ -87,7 +90,11 @@ const combatScene = Scene.create({
     this.data.showEnlightenment = false;
     this.data.autoBattle = false;
     this.data.scrollY = 0;
+    this.data.selectedEnemy = null;
+    this.data.enemyButtons = [];
     Combat.startBattle(this.data.heroes, this.data.enemies);
+    const firstAlive = this.data.enemies.find(e => e.hp > 0);
+    if (firstAlive) this.data.selectedEnemy = firstAlive;
     const firstActor = Combat.getCurrentActor();
     if (firstActor && firstActor.type === 'hero') {
       this.data.turnState = 'playerTurn';
@@ -163,6 +170,23 @@ const combatScene = Scene.create({
         const flee = UI.Button(G.W / 2 + 3, y, (G.W - 40) / 2 - 3, 26, 'Flee');
         flee.onClick = function() { combatScene.doFlee(); };
         this.data.actionButtons.push(flee);
+
+        this.data.enemyButtons = [];
+        let ey = 6;
+        for (const enemy of this.data.enemies) {
+          if (enemy.hp <= 0) continue;
+          const isSelected = this.data.selectedEnemy === enemy;
+          const btn = UI.Button(G.W - 62, ey, 56, 28, enemy.name.substring(0, 5), isSelected ? R.colors.btnGold : R.colors.btn);
+          btn._enemyRef = enemy;
+          btn.onClick = (function(e) {
+            return function() {
+              combatScene.data.selectedEnemy = e;
+              combatScene.buildActionButtons();
+            };
+          })(enemy);
+          this.data.enemyButtons.push(btn);
+          ey += 32;
+        }
       }
     } else if (this.data.turnState === 'result') {
       const btn = UI.BtnGold(100, 10, 200, 36, 'Continue');
@@ -204,7 +228,8 @@ const combatScene = Scene.create({
         break;
 
       case 'Venom Bite': {
-        const t = Combat.getRandomEnemy();
+        let t = this.data.selectedEnemy;
+        if (!t || t.hp <= 0) t = Combat.getRandomEnemy();
         if (t) { Combat.applyAilment(t, 'visha', 3); this.data.log.push('Beast: Venom Bite — ' + t.name + ' poisoned!'); }
         break;
       }
@@ -224,7 +249,8 @@ const combatScene = Scene.create({
         break;
 
       case 'Spirit Flame': {
-        const t = Combat.getRandomEnemy();
+        let t = this.data.selectedEnemy;
+        if (!t || t.hp <= 0) t = Combat.getRandomEnemy();
         if (t) {
           const dmg = Math.max(1, Math.floor(25 * (1 + (beast.mag || 1) * 0.1)));
           t.hp -= dmg;
@@ -270,7 +296,8 @@ const combatScene = Scene.create({
       }
 
       case 'Rending Claw': {
-        const t = Combat.getRandomEnemy();
+        let t = this.data.selectedEnemy;
+        if (!t || t.hp <= 0) t = Combat.getRandomEnemy();
         if (t) {
           const dmg = Math.max(1, Math.floor(30 * (1 + (beast.str || 1) * 0.1)));
           t.hp -= dmg;
@@ -282,7 +309,8 @@ const combatScene = Scene.create({
       }
 
       case 'Mirage': {
-        const t = Combat.getRandomEnemy();
+        let t = this.data.selectedEnemy;
+        if (!t || t.hp <= 0) t = Combat.getRandomEnemy();
         if (t) {
           Combat.applyAilment(t, 'confuse', 1);
           this.data.log.push('Beast: Mirage — ' + t.name + ' confused!');
@@ -308,7 +336,10 @@ const combatScene = Scene.create({
       if (hero.mp < skill.cost) return;
       hero.mp -= skill.cost;
     }
-    const target = Combat.getRandomEnemy();
+    let target = this.data.selectedEnemy;
+    if (!target || target.hp <= 0) {
+      target = Combat.getRandomEnemy();
+    }
     if (!target) return;
 
     if (skill && skill.heal) {
@@ -529,14 +560,17 @@ const combatScene = Scene.create({
 
   update: function(dt) {
     if (this.data.damageFlash > 0) this.data.damageFlash -= dt;
+    if (this.data.comboDisplay > 0) this.data.comboDisplay -= dt;
     const sd = Input.getScrollDelta();
     if (sd) {
       this.data.scrollY += sd * 0.8;
       this.clampScroll();
     }
     UI.updateButtons(this.data.actionButtons, dt);
+    UI.updateButtons(this.data.enemyButtons, dt);
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.actionButtons, this.getActionAreaTop() - 6 - this.data.scrollY);
+    UI.handleButtons(this.data.enemyButtons);
     if (this.data.buttons.length > 0) UI.handleButtons(this.data.buttons);
   },
 
@@ -559,6 +593,10 @@ const combatScene = Scene.create({
       if (currentActor && currentActor.ref) {
         R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, 4, 'rgba(48,200,48,0.2)');
         R.textCenter(ctx, '\u25B6 ' + currentActor.ref.name + '\'s Turn', G.W / 2, 88, R.colors.green, R.fonts.sm);
+      }
+      if (Combat.comboCount >= 2) {
+        const multiplier = 1.0 + Math.min(10, Combat.comboCount - 1) * 0.1;
+        R.textCenter(ctx, 'COMBO x' + Combat.comboCount + ' (' + multiplier.toFixed(1) + 'x DMG)', G.W / 2, 104, R.colors.red, R.fonts.sm);
       }
     } else if (this.data.turnState === 'enemyTurn') {
       R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, 4, 'rgba(200,48,48,0.2)');

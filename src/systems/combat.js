@@ -295,10 +295,11 @@ Combat.awardBeastXP = function() {
   if (!beast) return;
   const xpGain = Math.floor(10 + Math.random() * 20);
   beast.xp = (beast.xp || 0) + xpGain;
-  const needed = beast.level * 30;
+  let needed = beast.level * 30;
   while (beast.xp >= needed && beast.level < 30) {
     beast.xp -= needed;
     beast.level++;
+    needed = beast.level * 30;
     beast.maxHp += 2;
     beast.str += 1;
     beast.agi += 1;

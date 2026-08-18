@@ -111,20 +111,27 @@ Input.getScrollDelta = function() {
 };
 
 Input.isLongPressing = function() {
-  if (!this._touchStart || !this._touchCurrent) return false;
-  const elapsed = Date.now() - this._touchStartTime;
-  const dx = Math.abs(this._touchCurrent.x - this._touchStart.x);
-  const dy = Math.abs(this._touchCurrent.y - this._touchStart.y);
-  if (elapsed > this._longPressThreshold && dx < 10 && dy < 10) {
-    this._longPressActive = true;
-    return true;
+  if (this._touchStart && this._touchCurrent) {
+    const elapsed = Date.now() - this._touchStartTime;
+    const dx = Math.abs(this._touchCurrent.x - this._touchStart.x);
+    const dy = Math.abs(this._touchCurrent.y - this._touchStart.y);
+    if (elapsed > this._longPressThreshold && dx < 10 && dy < 10) {
+      this._longPressActive = true;
+      return true;
+    }
+  } else if (this._pressPos) {
+    const elapsed = Date.now() - this._touchStartTime;
+    if (elapsed > this._longPressThreshold) {
+      this._longPressActive = true;
+      return true;
+    }
   }
   return false;
 };
 
 Input.getLongPressPos = function() {
   if (!this._longPressActive) return null;
-  return this._touchStart;
+  return this._touchStart || this._pressPos;
 };
 
 Input.clear = function() {

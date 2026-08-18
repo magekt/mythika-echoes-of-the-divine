@@ -21,7 +21,7 @@ const ashramScene = Scene.create({
   },
 
   navBarHeight: 44,
-  getContentTop: function() { return 116; },
+  getContentTop: function() { return G.CONTENT_TOP; },
   getContentHeight: function() { return G.H - this.getContentTop() - this.navBarHeight; },
 
   clampScroll: function() {
@@ -62,6 +62,23 @@ const ashramScene = Scene.create({
         const col = active ? R.colors.gold : R.colors.textDim;
         R.textCenter(ctx, this._icon, bx + bw / 2, by + 18, col, R.fonts.lg);
         R.textCenter(ctx, this._text, bx + bw / 2, by + 34, col, R.fonts.sm);
+
+        let badge = 0;
+        if (this._text === 'Map') {
+          for (const [id, zone] of Object.entries(ZONES)) {
+            const pct = G.state.zoneProgress[id] || 0;
+            const reqProgress = !zone.reqZone || (G.state.zoneProgress[zone.reqZone] || 0) >= 100;
+            const reqLevel = (G.state.party || []).some(h => h.level >= (zone.reqLevel || 1));
+            if (pct < 100 && reqProgress && reqLevel) badge++;
+          }
+        } else if (this._text === 'Party') {
+          const hero = G.state.player;
+          if (hero && hero.skillPoints && hero.skillPoints > 0) badge = hero.skillPoints;
+        }
+        if (badge > 0) {
+          R.roundRect(ctx, bx + bw - 18, by + 2, 16, 14, 7, R.colors.red);
+          R.textCenter(ctx, badge.toString(), bx + bw - 10, by + 12, R.colors.white, R.fonts.sm);
+        }
       };
       btn.onClick = function() {
         if (this._scene === '') {
@@ -204,7 +221,7 @@ const ashramScene = Scene.create({
     }
     const sd = Input.getScrollDelta();
     if (sd) {
-      this.data.scrollY += sd * 0.8;
+      this.data.scrollY += sd * G.SCROLL_SPEED;
       this.clampScroll();
     }
     const swipe = Input.getSwipe();
@@ -261,6 +278,12 @@ const ashramScene = Scene.create({
     R.textCenter(ctx, '\u26A1 ' + Math.floor(G.state.gold || 0) + ' Gold', G.W / 2 - 95, 97, R.colors.gold, R.fonts.sm);
     R.textCenter(ctx, '\u2727 ' + Math.floor(G.state.karma || 0) + ' Karma', G.W / 2, 97, R.colors.blueLight, R.fonts.sm);
     R.textCenter(ctx, '\u2606 ' + (G.state.divineFragments || 0) + ' DF', G.W / 2 + 95, 97, R.colors.orange, R.fonts.sm);
+
+    if (G.state.currentZone) {
+      const zoneName = ZONES[G.state.currentZone] ? ZONES[G.state.currentZone].name : G.state.currentZone;
+      const zonePct = G.state.zoneProgress[G.state.currentZone] || 0;
+      R.textCenter(ctx, 'Zone: ' + zoneName + ' (' + zonePct + '%)', G.W / 2, 110, R.colors.textDim, R.fonts.sm);
+    }
 
     const top = this.getContentTop();
     const contentH = this.getContentHeight();

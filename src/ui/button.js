@@ -44,18 +44,6 @@ UI.Button = function(x, y, w, h, text, color, hoverColor, textColor) {
              py >= this.y && py <= this.y + this.h;
     },
 
-    handleInput: function() {
-      if (!this.enabled || !this.visible) return false;
-      const tap = Input.getTap();
-      if (!tap) return false;
-      if (this.contains(tap.x, tap.y - this.scrollY)) {
-        Audio.click();
-        if (this.onClick) this.onClick(this.data);
-        return true;
-      }
-      return false;
-    },
-
     update: function(dt) {
       if (this._pressTimer > 0) {
         this._pressTimer -= dt;
