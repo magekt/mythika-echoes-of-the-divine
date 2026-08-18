@@ -98,12 +98,42 @@ const spiritBeastScene = Scene.create({
     R.roundRect(G.ctx, 10, y, G.W - 20, infoH, 6, R.colors.panel);
     let iy = y + 12;
     R.text(G.ctx, beast.name + ' (Tier ' + beast.tier + ' Lv.' + beast.level + ')', 22, iy, R.colors.gold, R.fonts.md);
-    R.text(G.ctx, 'Skill: ' + (beastData ? beastData.skill : '?'), 22, iy + 20, R.colors.text, R.fonts.sm);
+    R.text(G.ctx, 'Skill: ' + (beast.skill || '?'), 22, iy + 20, R.colors.text, R.fonts.sm);
     const bonus = getBeastBonus(beast);
     R.text(G.ctx, 'HP:' + bonus.hp + ' STR:' + bonus.str + ' AGI:' + bonus.agi + ' MAG:' + bonus.mag + ' DEF:' + bonus.def, 22, iy + 38, R.colors.textDim, R.fonts.sm);
-    R.text(G.ctx, 'Active: ' + (beast.active ? 'Yes' : 'No'), 22, iy + 56, beast.active ? R.colors.green : R.colors.textDim, R.fonts.sm);
+    if (beast.passiveDesc) {
+      R.text(G.ctx, 'Passive: ' + beast.passiveDesc, 22, iy + 56, R.colors.green, R.fonts.sm);
+    } else {
+      R.text(G.ctx, 'Active: ' + (beast.active ? 'Yes' : 'No'), 22, iy + 56, beast.active ? R.colors.green : R.colors.textDim, R.fonts.sm);
+    }
 
     y += infoH + 8;
+
+    if (canEvolve(beast)) {
+      const evo = getBeastEvolution(beast.id, beast.level);
+      if (evo) {
+        R.roundRect(G.ctx, 14, y, G.W - 28, 60, 6, R.colors.panel);
+        ctx.strokeStyle = R.colors.gold;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(15, y + 1, G.W - 30, 58);
+        R.text(G.ctx, 'EVOLUTION AVAILABLE:', 22, y + 14, R.colors.gold, R.fonts.sm);
+        R.text(G.ctx, evo.name, 22, y + 30, R.colors.orange, R.fonts.md);
+        R.text(G.ctx, evo.desc, 22, y + 46, R.colors.text, R.fonts.sm);
+        y += 66;
+        
+        const evolveBtn = UI.Button(14, y, G.W - 28, 32, 'Evolve to ' + evo.name + '!', R.colors.btnGold);
+        evolveBtn.onClick = function() {
+          const result = evolveBeast(beast);
+          if (result) {
+            Notify.show(beast.name + ' evolved!', 3, R.colors.gold);
+            Audio.levelUp();
+            spiritBeastScene.buildDetail();
+          }
+        };
+        this.data.buttons.push(evolveBtn);
+        y += 38;
+      }
+    }
 
     const pranaCost = beast.level * 50;
     const fishCost = beast.tier * 5;
