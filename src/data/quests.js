@@ -1,3 +1,135 @@
+const QUEST_CHAINS = {
+  aryavarta: [
+    {
+      id: 'chain_ary_beginner',
+      name: 'Aryavarta Initiation',
+      desc: 'Prove your worth in the grasslands',
+      steps: [
+        { id: 'ary_step1', name: 'First Blood', desc: 'Defeat 3 bandits', type: 'kill', target: 'bandit', count: 3, reward: { gold: 20, xp: 30 } },
+        { id: 'ary_step2', name: 'Wolf Pack', desc: 'Defeat 5 wolves', type: 'kill', target: 'wolf', count: 5, reward: { gold: 40, xp: 60 } },
+        { id: 'ary_step3', name: 'Spider Nest', desc: 'Defeat 3 giant spiders', type: 'kill', target: 'giantSpider', count: 3, reward: { gold: 60, xp: 100 } }
+      ],
+      finalReward: { gold: 100, xp: 200, karma: 2, item: 'uncommon_weapon' }
+    },
+    {
+      id: 'chain_ary_hunter',
+      name: 'Grassland Hunter',
+      desc: 'Master the hunt in Aryavarta',
+      prerequisite: 'chain_ary_beginner',
+      steps: [
+        { id: 'ary_hunt1', name: 'Boar Hunt', desc: 'Defeat 4 wild boars', type: 'kill', target: 'wildBoar', count: 4, reward: { gold: 50, xp: 80 } },
+        { id: 'ary_hunt2', name: 'Serpent Clearing', desc: 'Defeat 5 snakes', type: 'kill', target: 'snake', count: 5, reward: { gold: 60, xp: 100 } },
+        { id: 'ary_hunt3', name: 'Chieftain Challenge', desc: 'Defeat the Rakshasa Chieftain', type: 'boss', target: 'rakshasa', count: 1, reward: { gold: 150, xp: 250 } }
+      ],
+      finalReward: { gold: 200, xp: 400, karma: 3, item: 'rare_weapon' }
+    }
+  ],
+  dandaka: [
+    {
+      id: 'chain_dan_explorer',
+      name: 'Forest Explorer',
+      desc: 'Navigate the dangers of Dandaka',
+      prerequisite: 'chain_ary_hunter',
+      steps: [
+        { id: 'dan_exp1', name: 'Wraith Watch', desc: 'Defeat 3 wraiths', type: 'kill', target: 'wraith', count: 3, reward: { gold: 60, xp: 100 } },
+        { id: 'dan_exp2', name: 'Elf Trouble', desc: 'Defeat 4 dark elves', type: 'kill', target: 'darkElf', count: 4, reward: { gold: 80, xp: 140 } },
+        { id: 'dan_exp3', name: 'Shadow Mage', desc: 'Defeat 3 shadow mages', type: 'kill', target: 'shadowMage', count: 3, reward: { gold: 100, xp: 180 } }
+      ],
+      finalReward: { gold: 250, xp: 500, karma: 3, item: 'rare_armor' }
+    },
+    {
+      id: 'chain_dan_guardian',
+      name: 'Forest Guardian',
+      desc: 'Become protector of Dandaka',
+      prerequisite: 'chain_dan_explorer',
+      steps: [
+        { id: 'dan_guard1', name: 'Treant Trial', desc: 'Defeat 3 treants', type: 'kill', target: 'treant', count: 3, reward: { gold: 100, xp: 200 } },
+        { id: 'dan_guard2', name: 'Naga Hunt', desc: 'Defeat 4 nagas', type: 'kill', target: 'naga', count: 4, reward: { gold: 120, xp: 240 } },
+        { id: 'dan_guard3', name: 'Prince Falls', desc: 'Defeat the Dark Elf Prince', type: 'boss', target: 'darkElf', count: 1, reward: { gold: 250, xp: 400 } }
+      ],
+      finalReward: { gold: 400, xp: 800, karma: 4, item: 'rare_accessory' }
+    }
+  ],
+  meru: [
+    {
+      id: 'chain_mer_ascend',
+      name: 'Meru Ascension',
+      desc: 'Climb the cosmic peak',
+      prerequisite: 'chain_dan_guardian',
+      steps: [
+        { id: 'mer_asc1', name: 'Asura Assault', desc: 'Defeat 5 asura warriors', type: 'kill', target: 'asuraWarrior', count: 5, reward: { gold: 150, xp: 300 } },
+        { id: 'mer_asc2', name: 'Orc Siege', desc: 'Defeat 4 orcs', type: 'kill', target: 'orc', count: 4, reward: { gold: 180, xp: 350 } },
+        { id: 'mer_asc3', name: 'Ogre Slayer', desc: 'Defeat 3 ogres', type: 'kill', target: 'ogre', count: 3, reward: { gold: 200, xp: 400 } }
+      ],
+      finalReward: { gold: 500, xp: 1000, karma: 5, item: 'legendary_weapon' }
+    },
+    {
+      id: 'chain_mer_elemental',
+      name: 'Elemental Mastery',
+      desc: 'Conquer the elemental trials',
+      prerequisite: 'chain_mer_ascend',
+      steps: [
+        { id: 'mer_elem1', name: 'Frost Challenge', desc: 'Defeat 3 ice elementals', type: 'kill', target: 'iceElemental', count: 3, reward: { gold: 200, xp: 400 } },
+        { id: 'mer_elem2', name: 'Fire Trial', desc: 'Defeat 3 fire elementals', type: 'kill', target: 'fireElemental', count: 3, reward: { gold: 220, xp: 450 } },
+        { id: 'mer_elem3', name: 'Dragon\'s End', desc: 'Defeat the Emerald Dragon', type: 'boss', target: 'dragonEmerald', count: 1, reward: { gold: 500, xp: 800 } }
+      ],
+      finalReward: { gold: 800, xp: 1500, karma: 6, item: 'legendary_armor' }
+    }
+  ],
+  patala: [
+    {
+      id: 'chain_pat_descent',
+      name: 'Underworld Descent',
+      desc: 'Brave the depths of Patala',
+      prerequisite: 'chain_mer_elemental',
+      steps: [
+        { id: 'pat_desc1', name: 'Asura Purge', desc: 'Defeat 4 asura lords', type: 'kill', target: 'asura', count: 4, reward: { gold: 250, xp: 500 } },
+        { id: 'pat_desc2', name: 'Hellhound Hunt', desc: 'Defeat 5 hell hounds', type: 'kill', target: 'hellHound', count: 5, reward: { gold: 280, xp: 550 } },
+        { id: 'pat_desc3', name: 'Succubus Slaying', desc: 'Defeat 3 succubi', type: 'kill', target: 'succubus', count: 3, reward: { gold: 300, xp: 600 } }
+      ],
+      finalReward: { gold: 1000, xp: 2000, karma: 7, item: 'legendary_accessory' }
+    },
+    {
+      id: 'chain_pat_serpent',
+      name: 'Serpent King',
+      desc: 'Challenge the ruler of Patala',
+      prerequisite: 'chain_pat_descent',
+      steps: [
+        { id: 'pat_serp1', name: 'Naga purge', desc: 'Defeat 4 nagas', type: 'kill', target: 'naga', count: 4, reward: { gold: 350, xp: 700 } },
+        { id: 'pat_serp2', name: 'Rakshasa Elite', desc: 'Defeat 3 elite rakshasa', type: 'kill', target: 'rakshasa', count: 3, reward: { gold: 400, xp: 800 } },
+        { id: 'pat_serp3', name: 'Kaliya\'s Fall', desc: 'Defeat Kaliya, the Serpent King', type: 'boss', target: 'kaliya', count: 1, reward: { gold: 800, xp: 1500 } }
+      ],
+      finalReward: { gold: 1500, xp: 3000, karma: 10, item: 'legendary_weapon' }
+    }
+  ],
+  svarga: [
+    {
+      id: 'chain_svg_celestial',
+      name: 'Celestial Ascent',
+      desc: 'Enter the realm of the devas',
+      prerequisite: 'chain_pat_serpent',
+      steps: [
+        { id: 'svg_asc1', name: 'Guardian Trial', desc: 'Defeat 5 celestial guardians', type: 'kill', target: 'celestialGuardian', count: 5, reward: { gold: 500, xp: 1000 } },
+        { id: 'svg_asc2', name: 'Deva Downfall', desc: 'Defeat 4 fallen devas', type: 'kill', target: 'fallenDeva', count: 4, reward: { gold: 600, xp: 1200 } },
+        { id: 'svg_asc3', name: 'Apsara Ascension', desc: 'Defeat 3 dark apsaras', type: 'kill', target: 'darkApsara', count: 3, reward: { gold: 700, xp: 1400 } }
+      ],
+      finalReward: { gold: 2000, xp: 5000, karma: 15, item: 'legendary_weapon' }
+    },
+    {
+      id: 'chain_svg_godslayer',
+      name: 'Godslayer',
+      desc: 'Challenge Indra himself',
+      prerequisite: 'chain_svg_celestial',
+      steps: [
+        { id: 'svg_god1', name: 'Seraphim Slaying', desc: 'Defeat 3 seraphim', type: 'kill', target: 'seraphim', count: 3, reward: { gold: 800, xp: 1800 } },
+        { id: 'svg_god2', name: 'Vishnu\'s Test', desc: 'Defeat 2 vishnu duta', type: 'kill', target: 'vishnuDuta', count: 2, reward: { gold: 1000, xp: 2000 } },
+        { id: 'svg_god3', name: 'Storm Lord Falls', desc: 'Defeat Indra, the Storm Lord', type: 'boss', target: 'indra', count: 1, reward: { gold: 2000, xp: 5000 } }
+      ],
+      finalReward: { gold: 5000, xp: 10000, karma: 25, item: 'legendary_accessory' }
+    }
+  ]
+};
+
 const QUESTS = {
   aryavarta: [
     { id: 'ary_kill_bandits', name: 'Bandit Bane', desc: 'Defeat 5 bandits in Aryavarta', type: 'kill', target: 'bandit', count: 5, reward: { gold: 30, xp: 50, karma: 1 } },
