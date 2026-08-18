@@ -200,6 +200,7 @@ R.updateEffects = function(dt) {
     R.shakeY = (Math.random() - 0.5) * R.shakeIntensity * 2 * (R.shakeTimer / 0.3);
     if (R.shakeTimer <= 0) { R.shakeX = 0; R.shakeY = 0; }
   }
+  if (R.comboFlash > 0) R.comboFlash -= dt;
 };
 
 R.renderEffects = function(ctx) {
@@ -209,6 +210,14 @@ R.renderEffects = function(ctx) {
     R.textCenter(ctx, d.value.toString(), d.x + R.shakeX, d.y + R.shakeY, d.color, R.fonts.lg);
   }
   ctx.globalAlpha = 1;
+  
+  if (R.comboFlash > 0) {
+    const alpha = R.comboFlash * 0.4;
+    ctx.fillStyle = R.comboFlashColor;
+    ctx.globalAlpha = alpha;
+    ctx.fillRect(0, 0, G.W, G.H);
+    ctx.globalAlpha = 1;
+  }
 };
 
 R.zoneBgColor = function(zoneId) {
@@ -306,6 +315,9 @@ R.renderProjectiles = function(ctx) {
 
 R.levelUpFlash = 0;
 R.levelUpParticles = [];
+R.enlightenmentAura = 0;
+R.comboFlash = 0;
+R.comboFlashColor = '#e8a030';
 
 R.triggerLevelUp = function() {
   R.levelUpFlash = 0.5;
@@ -320,6 +332,14 @@ R.triggerLevelUp = function() {
       color: Math.random() < 0.5 ? R.colors.gold : R.colors.goldLight
     });
   }
+};
+
+R.triggerComboFlash = function(level) {
+  R.comboFlash = 0.3;
+  if (level >= 5) R.comboFlashColor = '#c83030';
+  else if (level >= 3) R.comboFlashColor = '#e8a030';
+  else R.comboFlashColor = '#30c830';
+  Audio.comboMilestone(level);
 };
 
 R.updateLevelUp = function(dt) {
@@ -346,6 +366,29 @@ R.renderLevelUp = function(ctx) {
     R.rect(ctx, p.x, p.y, p.size, p.size, p.color);
   }
   ctx.globalAlpha = 1;
+};
+
+R.renderEnlightenmentAura = function(ctx, dt) {
+  if (G.state.enlightenmentTimer > 0 && G.state.enlightenmentBuff) {
+    R.enlightenmentAura += dt * 2;
+    const pulse = 0.3 + Math.sin(R.enlightenmentAura) * 0.15;
+    const buff = G.state.enlightenmentBuff;
+    const color = buff >= 1.0 ? 'rgba(200, 180, 80,' : 'rgba(180, 100, 60,';
+    
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    
+    for (let i = 0; i < 3; i++) {
+      const radius = 180 + i * 40 + Math.sin(R.enlightenmentAura + i) * 20;
+      const alpha = pulse * (0.1 - i * 0.03);
+      ctx.fillStyle = color + alpha + ')';
+      ctx.beginPath();
+      ctx.arc(G.W / 2, G.H / 2, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    ctx.restore();
+  }
 };
 
 R.drawZoneBackground = function(ctx, zoneId) {

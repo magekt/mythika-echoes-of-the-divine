@@ -218,10 +218,14 @@ Combat.performAttack = function(attacker, defender, skill) {
         h.hp = Math.min(h.maxHp, h.hp + healAmt);
       }
     }
+    Audio.heal();
+  } else if (isCrit) {
+    Audio.crit();
+  } else if (skill) {
+    Audio.skill();
+  } else {
+    Audio.hit();
   }
-
-  if (isCrit) Audio.attack();
-  else Audio.hit();
 
   this.checkCombo(attacker);
   this.checkBattleEnd();
@@ -236,10 +240,11 @@ Combat.checkCombo = function(actor) {
     this.comboCount = 1;
   }
   this.comboTimer = now;
+  if (this.comboCount >= 3 && this.comboCount % 2 === 1) {
+    R.triggerComboFlash(this.comboCount);
+  }
   if (this.comboCount >= 3) {
     Audio.combo();
-    this.comboCount = 0;
-    this.comboTimer = 0;
   }
 };
 

@@ -42,9 +42,21 @@ Audio.beep = function(freq, duration, type) {
 Audio.click = function() { Audio.beep(800, 0.05, 'square'); };
 Audio.menuSwoosh = function() { Audio.beep(400, 0.1, 'sine'); Audio.beep(600, 0.1, 'sine'); };
 Audio.attack = function() { Audio.beep(200, 0.08, 'sawtooth'); };
+Audio.crit = function() { 
+  Audio.beep(300, 0.06, 'square'); 
+  setTimeout(() => Audio.beep(500, 0.08, 'sawtooth'), 30); 
+  setTimeout(() => Audio.beep(800, 0.12, 'square'), 60); 
+};
+Audio.skill = function() { 
+  Audio.beep(400, 0.1, 'sine'); 
+  setTimeout(() => Audio.beep(600, 0.1, 'sine'), 50); 
+  setTimeout(() => Audio.beep(900, 0.15, 'sine'), 100); 
+};
 Audio.magic = function() { Audio.beep(600, 0.15, 'sine'); Audio.beep(900, 0.1, 'sine'); };
 Audio.hit = function() { Audio.beep(150, 0.1, 'square'); };
 Audio.heal = function() { Audio.beep(500, 0.1, 'sine'); Audio.beep(700, 0.15, 'sine'); };
+Audio.dodge = function() { Audio.beep(1200, 0.05, 'sine'); };
+Audio.shield = function() { Audio.beep(250, 0.08, 'square'); Audio.beep(350, 0.08, 'square'); };
 Audio.levelUp = function() {
   Audio.beep(400, 0.1, 'sine'); setTimeout(() => Audio.beep(600, 0.1, 'sine'), 100);
   setTimeout(() => Audio.beep(800, 0.15, 'sine'), 200);
@@ -53,6 +65,12 @@ Audio.combo = function() {
   Audio.beep(300, 0.05, 'square'); setTimeout(() => Audio.beep(500, 0.05, 'square'), 50);
   setTimeout(() => Audio.beep(700, 0.05, 'square'), 100);
   setTimeout(() => Audio.beep(900, 0.1, 'square'), 150);
+};
+Audio.comboMilestone = function(level) {
+  const base = 400 + level * 100;
+  for (let i = 0; i < Math.min(level, 5); i++) {
+    setTimeout(() => Audio.beep(base + i * 150, 0.08, 'square'), i * 40);
+  }
 };
 Audio.error = function() { Audio.beep(200, 0.3, 'sawtooth'); };
 

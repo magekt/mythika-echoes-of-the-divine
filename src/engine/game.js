@@ -189,6 +189,7 @@ function gLoop(time) {
   R.renderProjectiles(G.ctx);
   R.renderEffects(G.ctx);
   R.renderLevelUp(G.ctx);
+  R.renderEnlightenmentAura(G.ctx, G.dt);
   if (G.state.enlightenmentTimer > 0) {
     const mins = Math.floor(G.state.enlightenmentTimer / 60);
     const secs = Math.floor(G.state.enlightenmentTimer % 60);
