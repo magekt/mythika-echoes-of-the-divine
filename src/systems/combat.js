@@ -282,9 +282,51 @@ Combat.enemyAI = function(enemy) {
       return null;
     }
   }
+  
   const target = this.getRandomHero();
   if (!target) return null;
+  
+  if (enemy.abilities && enemy.abilities.length > 0 && Math.random() < 0.4) {
+    const abilityId = enemy.abilities[Math.floor(Math.random() * enemy.abilities.length)];
+    const ability = ENEMY_ABILITIES[abilityId];
+    if (ability) {
+      const result = this.performEnemyAbility(enemy, target, ability);
+      return result;
+    }
+  }
+  
   return this.performAttack(enemy, target, null);
+};
+
+Combat.performEnemyAbility = function(enemy, target, ability) {
+  const atk = _getEffectiveAtk(enemy, null) * ability.dmg;
+  const def = _getEffectiveDef(target);
+  const base = Math.max(1, atk - def * 0.5);
+  const variance = 0.85 + Math.random() * 0.3;
+  let dmg = Math.floor(base * variance);
+  dmg = _applyShield(target, dmg);
+  dmg = Math.max(1, dmg);
+  
+  target.hp -= dmg;
+  if (target.hp < 0) target.hp = 0;
+  
+  if (ability.ailment && target.hp > 0) {
+    this.applyAilment(target, ability.ailment, 2);
+  }
+  
+  if (ability.heal) {
+    const healAmt = Math.floor(enemy.maxHp * ability.heal);
+    enemy.hp = Math.min(enemy.maxHp, enemy.hp + healAmt);
+  }
+  
+  if (ability.buff) {
+    this.applyBuff(enemy, ability.buff, ability.value, 3);
+  }
+  
+  Audio.hit();
+  this.checkCombo(enemy);
+  this.checkBattleEnd();
+  return { dmg: dmg, ability: ability.name, isCrit: false };
 };
 
 Combat.getLoot = function() {

@@ -426,7 +426,8 @@ const combatScene = Scene.create({
     if (result) {
       const target = Combat.getRandomHero();
       if (target) {
-        this.data.log.push(enemy.name + ' attacks ' + target.name + ' for ' + result.dmg);
+        const abilityText = result.ability ? ' uses ' + result.ability : ' attacks';
+        this.data.log.push(enemy.name + abilityText + ' ' + target.name + ' for ' + result.dmg);
         const enemyIdx = this.data.enemies.indexOf(enemy);
         const enemyX = 370 - enemyIdx * 70;
         const enemyY = 50;
