@@ -18,6 +18,7 @@
   registerScene('fishing', fishingScene);
   registerScene('settings', settingsScene);
   registerScene('achievements', achievementsScene);
+  registerScene('equipment', equipmentScene);
   registerScene('welcome', welcomeScene);
   registerScene('debug', debugScene);
 

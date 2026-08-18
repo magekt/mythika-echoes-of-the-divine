@@ -136,6 +136,9 @@ Combat.applyAilment = function(target, ailmentId, duration) {
 
 function _getEffectiveAtk(attacker, skill) {
   let atk = (attacker.str || 1) + (attacker.equipAtk || 0);
+  if (attacker.weaponEquipped && attacker.weaponEquipped.atk) {
+    atk += attacker.weaponEquipped.atk;
+  }
   if (attacker.buffs && attacker.buffs.atkBuff) {
     atk = Math.floor(atk * attacker.buffs.atkBuff.value);
   }
@@ -144,6 +147,15 @@ function _getEffectiveAtk(attacker, skill) {
 
 function _getEffectiveMag(attacker, skill) {
   let mag = (attacker.mag || 1) + (attacker.equipAccMag || 0) + (attacker.equipArmorMag || 0);
+  if (attacker.weaponEquipped && attacker.weaponEquipped.mag) {
+    mag += attacker.weaponEquipped.mag;
+  }
+  if (attacker.armorEquipped && attacker.armorEquipped.mag) {
+    mag += attacker.armorEquipped.mag;
+  }
+  if (attacker.accessoryEquipped && attacker.accessoryEquipped.mag) {
+    mag += attacker.accessoryEquipped.mag;
+  }
   if (attacker.buffs && attacker.buffs.atkBuff) {
     mag = Math.floor(mag * attacker.buffs.atkBuff.value);
   }
@@ -155,6 +167,12 @@ function _getEffectiveMag(attacker, skill) {
 
 function _getEffectiveDef(defender) {
   let def = (defender.def || 0) + (defender.equipDef || 0) + (defender.equipAccDef || 0);
+  if (defender.armorEquipped && defender.armorEquipped.def) {
+    def += defender.armorEquipped.def;
+  }
+  if (defender.accessoryEquipped && defender.accessoryEquipped.def) {
+    def += defender.accessoryEquipped.def;
+  }
   if (defender.buffs && defender.buffs.defBuff) {
     def = Math.floor(def * defender.buffs.defBuff.value);
   }

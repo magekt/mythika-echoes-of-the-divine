@@ -132,6 +132,7 @@ const ashramScene = Scene.create({
         label: 'SERVICES', color: R.colors.green,
         items: [
           { text: 'Bazaar', scene: 'bazaar', icon: '\u2699' },
+          { text: 'Equipment', scene: 'equipment', icon: '\u2694' },
           { text: 'Tourney', scene: 'tournament', icon: '\u2605' },
           { text: 'Quests', scene: 'questLog', icon: '\u2713' },
           { text: 'Achieve', scene: 'achievements', icon: '\u2605' }

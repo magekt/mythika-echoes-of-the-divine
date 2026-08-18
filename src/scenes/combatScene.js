@@ -464,6 +464,21 @@ const combatScene = Scene.create({
         if (e.hp <= 0) QuestSystem.trackKill(e.id, G.state.currentZone);
       }
       this.data.log.push('Victory! Gained ' + loot.gold + ' gold, ' + xpPerHero + ' XP each');
+      
+      const droppedLoot = [];
+      for (const e of this.data.enemies) {
+        if (e.hp <= 0) {
+          const items = generateLoot(G.state.currentZone, e.level);
+          droppedLoot.push(...items);
+        }
+      }
+      if (droppedLoot.length > 0) {
+        if (!G.state.inventory) G.state.inventory = [];
+        for (const item of droppedLoot) {
+          G.state.inventory.push(item);
+          this.data.log.push('Found: ' + item.name + ' (' + item.rarityName + ')');
+        }
+      }
       if (G.state.isBossFight) {
         Economy.addKarma(1);
         if (!G.state.flags) G.state.flags = {};
