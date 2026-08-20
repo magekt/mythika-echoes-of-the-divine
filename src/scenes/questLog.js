@@ -232,9 +232,9 @@ const questLogScene = Scene.create({
     let y = this.getContentTop();
 
     R.roundRect(G.ctx, 10, y, G.W - 20, 70, 6, R.colors.panel);
-    ctx.strokeStyle = R.colors.orange;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(11, y + 1, G.W - 22, 68);
+    G.ctx.strokeStyle = R.colors.orange;
+    G.ctx.lineWidth = 2;
+    G.ctx.strokeRect(11, y + 1, G.W - 22, 68);
     R.text(G.ctx, chain.name, 22, y + 18, R.colors.orange, R.fonts.lg);
     R.text(G.ctx, chain.desc, 22, y + 38, R.colors.text, R.fonts.sm);
     R.text(G.ctx, 'Step ' + (prog.currentStep + 1) + ' of ' + chain.steps.length, 22, y + 56, R.colors.textDim, R.fonts.sm);

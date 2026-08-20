@@ -48,7 +48,7 @@ const equipmentScene = Scene.create({
     if (this.data.tab === 'inventory') {
       const items = (G.state.inventory || []).filter(i => i.type === 'weapon' || i.type === 'armor' || i.type === 'accessory');
       if (items.length === 0) {
-        R.textCenter(ctx, 'No equipment found', G.W / 2, y + 20, R.colors.textDim, R.fonts.sm);
+        R.textCenter(G.ctx, 'No equipment found', G.W / 2, y + 20, R.colors.textDim, R.fonts.sm);
       }
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
@@ -122,7 +122,7 @@ const equipmentScene = Scene.create({
           ['Level', hero.level]
         ];
         for (const [label, value] of stats) {
-          R.text(ctx, label + ': ' + value, 22, y + 12, R.colors.text, R.fonts.md);
+          R.text(G.ctx, label + ': ' + value, 22, y + 12, R.colors.text, R.fonts.md);
           y += 20;
         }
       }
