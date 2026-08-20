@@ -22,25 +22,57 @@ Progression.xpForLevel = function(lvl) {
   return Math.floor(180 * Math.pow(lvl, 1.55));
 };
 
-Progression.difficultyModifiers = {
-  normal: { xpMul: 1.0, goldMul: 1.0, enemyHpMul: 1.0, enemyDmgMul: 1.0, label: 'Normal' },
-  hard:   { xpMul: 1.25, goldMul: 1.3, enemyHpMul: 1.35, enemyDmgMul: 1.25, label: 'Hard' },
-  impossible: { xpMul: 1.5, goldMul: 1.6, enemyHpMul: 1.7, enemyDmgMul: 1.5, label: 'Impossible' }
+Progression.getChallenge = function() {
+  if (G.state.challenge == null) {
+    const map = { normal: 1.0, hard: 1.25, nightmare: 1.5, mythic: 1.75 };
+    G.state.challenge = (G.state.difficulty && map[G.state.difficulty]) || 1.0;
+    delete G.state.difficulty;
+  }
+  return G.state.challenge;
+};
+
+Progression.adjustChallenge = function(r) {
+  const cur = this.getChallenge();
+  let delta;
+  if (!r.won) delta = -0.15;
+  else if (r.hpPct >= 0.7 && r.turnsPerEnemy <= 5) delta = 0.08;
+  else if (r.hpPct >= 0.4) delta = 0.02;
+  else delta = -0.04;
+  G.state.challenge = Math.max(0.6, Math.min(1.5, cur + delta));
+};
+
+Progression.getZoneDifficulty = function(zoneId) {
+  const zone = ZONES[zoneId];
+  if (!zone) return 1.0;
+  const baseLevel = zone.reqLevel || 1;
+  const playerLevel = G.state.player ? G.state.player.level : 1;
+  const levelDiff = playerLevel - baseLevel;
+  if (levelDiff > 10) return 0.7;
+  if (levelDiff > 5) return 0.85;
+  if (levelDiff < -5) return 1.3;
+  if (levelDiff < -10) return 1.5;
+  return 1.0;
 };
 
 Progression.applyDifficulty = function(enemies) {
-  const mode = G.state.difficulty || 'normal';
-  const mod = this.difficultyModifiers[mode];
-  if (!mod || mode === 'normal') return enemies;
+  const challenge = this.getChallenge();
+  const zoneDiff = this.getZoneDifficulty(G.state.currentZone);
+  const rewardMul = (1 + (challenge - 1) * 0.5) * (1 + (zoneDiff - 1) * 0.3);
+
   for (const e of enemies) {
-    e.maxHp = Math.floor(e.maxHp * mod.enemyHpMul);
+    e.maxHp = Math.floor(e.maxHp * challenge * zoneDiff);
     e.hp = e.maxHp;
-    e.str = Math.floor(e.str * mod.enemyDmgMul);
-    e.mag = Math.floor(e.mag * mod.enemyDmgMul);
-    e.xp = Math.floor(e.xp * mod.xpMul);
-    e.gold = Math.floor(e.gold * mod.goldMul);
+    e.str = Math.floor(e.str * challenge * zoneDiff);
+    e.mag = Math.floor(e.mag * challenge * zoneDiff);
+    e.def = Math.floor(e.def * (0.8 + zoneDiff * 0.2));
+    e.xp = Math.floor(e.xp * rewardMul);
+    e.gold = Math.floor(e.gold * rewardMul);
   }
   return enemies;
+};
+
+Progression.getLootBonus = function() {
+  return 1 + (this.getChallenge() - 1) * 0.75;
 };
 
 Progression.applyLevelUp = function(hero) {

@@ -201,8 +201,9 @@ const travelMapScene = Scene.create({
     backBtn.render(ctx);
 
     R.textCenter(ctx, 'Travel Map', G.W / 2, 24, R.colors.gold, R.fonts.lg);
-    const diffLabel = Progression.difficultyModifiers[G.state.difficulty || 'normal'].label;
-    R.textCenter(ctx, 'Difficulty: ' + diffLabel, G.W / 2, 44, R.colors.textDim, R.fonts.sm);
+    const challenge = Progression.getChallenge();
+    const threatLabel = challenge < 0.8 ? 'Calm' : challenge < 1.0 ? 'Steady' : challenge < 1.2 ? 'Intense' : 'Relentless';
+    R.textCenter(ctx, 'Threat: ' + threatLabel + ' (' + Math.round(challenge * 100) + '%)', G.W / 2, 44, R.colors.textDim, R.fonts.sm);
 
     if (this.data.selectedZone) {
       const zone = ZONES[this.data.selectedZone];

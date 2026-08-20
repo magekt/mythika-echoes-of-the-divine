@@ -109,6 +109,11 @@ function generateLoot(zoneId, enemyLevel) {
     if (rarityRoll < cumulative) { rarity = key; break; }
   }
   
+  if (rarity === 'common' && Math.random() < 0.3) {
+    const uncommonChance = Progression.getLootBonus() * 0.2;
+    if (Math.random() < uncommonChance) rarity = 'uncommon';
+  }
+  
   const types = ['weapons', 'armors', 'accessories'];
   const type = types[Math.floor(Math.random() * types.length)];
   const pool = EQUIPMENT_POOL[type].filter(e => e.zones.includes(zoneId));
@@ -118,6 +123,7 @@ function generateLoot(zoneId, enemyLevel) {
   const template = pool[Math.floor(Math.random() * pool.length)];
   const rarityData = RARITY[rarity];
   const levelScale = 1 + (enemyLevel - 1) * 0.08;
+  const difficultyBonus = Progression.getLootBonus();
   
   const item = {
     id: template.id + '_' + Date.now(),
@@ -129,11 +135,11 @@ function generateLoot(zoneId, enemyLevel) {
     rarityColor: rarityData.color
   };
   
-  if (template.base.atk) item.atk = Math.floor(template.base.atk * rarityData.mult * levelScale);
-  if (template.base.def) item.def = Math.floor(template.base.def * rarityData.mult * levelScale);
-  if (template.base.mag) item.mag = Math.floor(template.base.mag * rarityData.mult * levelScale);
+  if (template.base.atk) item.atk = Math.floor(template.base.atk * rarityData.mult * levelScale * difficultyBonus);
+  if (template.base.def) item.def = Math.floor(template.base.def * rarityData.mult * levelScale * difficultyBonus);
+  if (template.base.mag) item.mag = Math.floor(template.base.mag * rarityData.mult * levelScale * difficultyBonus);
   if (template.base.crit) item.crit = template.base.crit;
-  if (template.base.hp) item.hp = Math.floor(template.base.hp * rarityData.mult);
+  if (template.base.hp) item.hp = Math.floor(template.base.hp * rarityData.mult * difficultyBonus);
   if (template.base.subtype) item.subtype = template.base.subtype;
   
   loot.push(item);

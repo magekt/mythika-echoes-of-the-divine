@@ -67,7 +67,8 @@ const combatScene = Scene.create({
     beastSkillUsed: false,
     beastCooldown: 0,
     scrollY: 0,
-    comboDisplay: 0
+    comboDisplay: 0,
+    turnCount: 0
   },
 
   enter: function() {
@@ -78,6 +79,7 @@ const combatScene = Scene.create({
     this.data.enemies = JSON.parse(JSON.stringify(G.state.currentEnemies || []));
     this.data.beastSkillUsed = false;
     this.data.beastCooldown = 0;
+    this.data.turnCount = 0;
     const stories = ENCOUNTER_STORIES[zone] || ENCOUNTER_STORIES.aryavarta;
     this.data.encounterStory = stories[Math.floor(Math.random() * stories.length)];
     this.data.log = ['Battle begins!'];
@@ -408,6 +410,7 @@ const combatScene = Scene.create({
       return;
     }
     const actor = Combat.getCurrentActor();
+    if (actor && actor.type !== 'enemy') this.data.turnCount++;
     if (actor && actor.type === 'enemy') {
       this.data.turnState = 'enemyTurn';
       this.doEnemyTurn(actor);
@@ -452,6 +455,14 @@ const combatScene = Scene.create({
   endBattle: function() {
     this.data.turnState = 'result';
     const won = this.data.enemies.every(e => e.hp <= 0);
+    const heroes = this.data.heroes;
+    const totalHp = heroes.reduce((s, h) => s + Math.max(0, h.hp), 0);
+    const totalMax = heroes.reduce((s, h) => s + Math.max(1, h.maxHp), 0);
+    Progression.adjustChallenge({
+      won: won,
+      hpPct: totalHp / totalMax,
+      turnsPerEnemy: this.data.turnCount / Math.max(1, this.data.enemies.length)
+    });
     this.data.buttons = [];
     this.data.actionButtons = [];
     Combat.awardBeastXP();

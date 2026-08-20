@@ -49,8 +49,8 @@ const characterCreateScene = Scene.create({
   render: function(ctx) {
     R.textCenter(ctx, 'Create Your Legend', G.W / 2, 22, R.colors.orange, R.fonts.lg);
 
-    const steps = ['Path', 'Hero', 'Elite', 'Difficulty'];
-    for (let i = 0; i < 4; i++) {
+    const steps = ['Path', 'Hero', 'Elite'];
+    for (let i = 0; i < steps.length; i++) {
       const cx = 45 + i * 88;
       const isCurrent = i === this.data.step;
       const isDone = i < this.data.step;
@@ -111,8 +111,6 @@ const characterCreateScene = Scene.create({
         R.text(ctx, 'HP:' + hero.hp + ' MP:' + hero.mp + ' STR:' + hero.str + ' AGI:' + hero.agi + ' MAG:' + hero.mag + ' DEF:' + hero.def, 36, 130, R.colors.text, R.fonts.sm);
       }
       R.textCenter(ctx, 'Choose your Elite Class', G.W / 2, 166, R.colors.orange, R.fonts.md);
-    } else if (this.data.step === 3) {
-      R.textCenter(ctx, 'Choose Difficulty', G.W / 2, 80, R.colors.orange, R.fonts.md);
     }
 
     for (const b of this.data.buttons) b.render(ctx);
@@ -294,8 +292,7 @@ const characterCreateScene = Scene.create({
       };
       btn.onClick = function() {
         characterCreateScene.data.selectedElite = this._ec;
-        characterCreateScene.data.step = 3;
-        characterCreateScene.buildDifficultyButtons();
+        characterCreateScene.confirmCreate();
       };
       this.data.buttons.push(btn);
       y += 70;
@@ -305,8 +302,7 @@ const characterCreateScene = Scene.create({
     const skip = UI.Button(60, y, 280, 36, '\u2192  Skip Elite (choose later)', R.colors.btn);
     skip.onClick = function() {
       characterCreateScene.data.selectedElite = null;
-      characterCreateScene.data.step = 3;
-      characterCreateScene.buildDifficultyButtons();
+      characterCreateScene.confirmCreate();
     };
     this.data.buttons.push(skip);
     y += 46;
@@ -315,68 +311,6 @@ const characterCreateScene = Scene.create({
     back.onClick = function() {
       characterCreateScene.data.step = 1;
       characterCreateScene.buildHeroButtons();
-    };
-    this.data.buttons.push(back);
-    y += 48;
-    this.data.contentHeight = y;
-  },
-
-  buildDifficultyButtons: function() {
-    this.data.buttons = [];
-    this.data.scrollY = 0;
-    let y = 95;
-    const modes = Progression.difficultyModifiers;
-    const colors = { normal: R.colors.green, hard: R.colors.orange, impossible: R.colors.red };
-    const bgTints = { normal: 'rgba(48,200,48,0.08)', hard: 'rgba(232,160,48,0.08)', impossible: 'rgba(200,48,48,0.08)' };
-    const icons = { normal: '\u2605', hard: '\u26A1', impossible: '\u2620' };
-    for (const [key, mod] of Object.entries(modes)) {
-      const btn = UI.Button(30, y, G.W - 60, 86, '', R.colors.panel);
-      btn._key = key;
-      btn._diffColor = colors[key];
-      btn._bgTint = bgTints[key];
-      btn._icon = icons[key];
-      btn.render = function(ctx) {
-        const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-        const isSelected = G.state.difficulty === this._key;
-        R.roundRect(ctx, bx, by, bw, bh, 10, R.colors.panel);
-        R.roundRect(ctx, bx, by, bw, bh, 10, this._bgTint);
-        ctx.fillStyle = this._diffColor;
-        ctx.fillRect(bx + 4, by + 8, 5, bh - 16);
-        ctx.strokeStyle = isSelected ? this._diffColor : 'rgba(138,138,160,0.2)';
-        ctx.lineWidth = isSelected ? 2 : 1;
-        ctx.beginPath();
-        ctx.moveTo(bx + 12, by); ctx.lineTo(bx + bw - 12, by);
-        ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + 12);
-        ctx.lineTo(bx + bw, by + bh - 12);
-        ctx.quadraticCurveTo(bx + bw, by + bh, bx + bw - 12, by + bh);
-        ctx.lineTo(bx + 12, by + bh);
-        ctx.quadraticCurveTo(bx, by + bh, bx, by + bh - 12);
-        ctx.lineTo(bx, by + 12);
-        ctx.quadraticCurveTo(bx, by, bx + 12, by);
-        ctx.closePath();
-        ctx.stroke();
-        const label = mod.label + (this._key === 'normal' ? ' (Recommended)' : '');
-        R.text(ctx, this._icon + '  ' + label, bx + 22, by + 22, R.colors.white, R.fonts.md);
-        if (this._key === 'normal') {
-          R.text(ctx, 'Balanced \u2014 Standard rates & foes', bx + 22, by + 48, R.colors.green, R.fonts.sm);
-          R.text(ctx, 'No modifiers applied', bx + 22, by + 66, R.colors.textDim, R.fonts.sm);
-        } else {
-          R.text(ctx, 'Rewards: +' + ((mod.xpMul - 1) * 100).toFixed(0) + '% XP  +' + ((mod.goldMul - 1) * 100).toFixed(0) + '% Gold', bx + 22, by + 48, R.colors.gold, R.fonts.sm);
-          R.text(ctx, 'Threat: +' + ((mod.enemyHpMul - 1) * 100).toFixed(0) + '% HP  +' + ((mod.enemyDmgMul - 1) * 100).toFixed(0) + '% DMG', bx + 22, by + 66, R.colors.hp, R.fonts.sm);
-        }
-      };
-      btn.onClick = function() {
-        G.state.difficulty = key;
-        characterCreateScene.confirmCreate();
-      };
-      this.data.buttons.push(btn);
-      y += 94;
-    }
-    y += 8;
-    const back = UI.Button(60, y, 280, 36, '\u2190  Back', R.colors.btn);
-    back.onClick = function() {
-      characterCreateScene.data.step = 2;
-      characterCreateScene.buildConfirmButtons();
     };
     this.data.buttons.push(back);
     y += 48;
@@ -417,7 +351,6 @@ const characterCreateScene = Scene.create({
     }
     hero.hp = hero.maxHp;
     hero.mp = hero.maxMp;
-    if (!G.state.difficulty) G.state.difficulty = 'normal';
     G.state.party = [hero];
     G.state.player = hero;
     G.state.gold = 50;
