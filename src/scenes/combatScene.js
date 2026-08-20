@@ -527,10 +527,8 @@ const combatScene = Scene.create({
         if (orig.hp <= 0) continue;
         const combatHero = this.data.heroes.find(h => h.id === orig.id);
         if (combatHero) {
-          orig.hp = combatHero.hp;
+          orig.hp = Math.min(combatHero.hp, orig.maxHp);
           orig.mp = combatHero.mp;
-          orig.xp = combatHero.xp;
-          orig.level = combatHero.level;
         }
       }
       this.data.result = { won: true };

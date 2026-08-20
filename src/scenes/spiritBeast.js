@@ -113,9 +113,9 @@ const spiritBeastScene = Scene.create({
       const evo = getBeastEvolution(beast.id, beast.level);
       if (evo) {
         R.roundRect(G.ctx, 14, y, G.W - 28, 60, 6, R.colors.panel);
-        ctx.strokeStyle = R.colors.gold;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(15, y + 1, G.W - 30, 58);
+        G.ctx.strokeStyle = R.colors.gold;
+        G.ctx.lineWidth = 2;
+        G.ctx.strokeRect(15, y + 1, G.W - 30, 58);
         R.text(G.ctx, 'EVOLUTION AVAILABLE:', 22, y + 14, R.colors.gold, R.fonts.sm);
         R.text(G.ctx, evo.name, 22, y + 30, R.colors.orange, R.fonts.md);
         R.text(G.ctx, evo.desc, 22, y + 46, R.colors.text, R.fonts.sm);
