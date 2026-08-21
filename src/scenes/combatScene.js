@@ -77,6 +77,11 @@ const combatScene = Scene.create({
     Audio.playMusic(musicMap[zone] || 'combat_aryavarta');
     this.data.heroes = JSON.parse(JSON.stringify(G.state.party.filter(h => h.hp > 0)));
     this.data.enemies = JSON.parse(JSON.stringify(G.state.currentEnemies || []));
+    if (this.data.enemies.length === 0) {
+      this.data.log.push('No enemies found — returning to Ashram.');
+      setTimeout(function(){ if (G.currentScene===combatScene) gScene('ashram',true); }, 600);
+      return;
+    }
     this.data.beastSkillUsed = false;
     this.data.beastCooldown = 0;
     this.data.turnCount = 0;
@@ -112,9 +117,9 @@ const combatScene = Scene.create({
 
   clampScroll: function() {
     if (this.data.actionButtons.length === 0) return;
-    const lastBtn = this.data.actionButtons[this.data.actionButtons.length - 1];
-    const lastBottom = lastBtn.y + lastBtn.h;
-    const maxScroll = Math.max(0, lastBottom + this.getActionAreaTop() - 6 - G.H);
+    const logH = Math.min(4, this.data.log.length) * 18 + 20;
+    const contentH = logH + this.data.actionButtons.length * 34 + 30;
+    const maxScroll = Math.max(0, contentH - this.getActionAreaHeight());
     if (this.data.scrollY > maxScroll) this.data.scrollY = maxScroll;
     if (this.data.scrollY < 0) this.data.scrollY = 0;
   },
@@ -151,12 +156,19 @@ const combatScene = Scene.create({
         }
 
         const beast = (G.state.spiritBeasts || []).find(b => b.id === G.state.activeBeast);
-        if (beast && this.data.beastCooldown <= 0) {
-          const beastLabel = 'Beast: ' + beast.name + ' \u2192 ' + beast.skill;
-          const beastBtn = UI.Button(20, y, G.W - 40, 28, beastLabel, R.colors.green);
-          beastBtn.onClick = function() { combatScene.doBeastSkill(); };
-          this.data.actionButtons.push(beastBtn);
-          y += 32;
+        if (beast) {
+          if (this.data.beastCooldown <= 0) {
+            const beastLabel = 'Beast: ' + beast.name + ' \u2192 ' + beast.skill;
+            const beastBtn = UI.Button(20, y, G.W - 40, 28, beastLabel, R.colors.green);
+            beastBtn.onClick = function() { combatScene.doBeastSkill(); };
+            this.data.actionButtons.push(beastBtn);
+            y += 32;
+          } else {
+            const cdBtn = UI.Button(20, y, G.W - 40, 28, 'Beast: ' + beast.name + ' (' + this.data.beastCooldown + 't)', R.colors.btn);
+            cdBtn.enabled = false;
+            this.data.actionButtons.push(cdBtn);
+            y += 32;
+          }
         }
 
         y += 4;
@@ -269,7 +281,7 @@ const combatScene = Scene.create({
           e.hp -= dmg;
           if (e.hp < 0) e.hp = 0;
         }
-        this.data.log.push('Beast: Tempest — AoE wind damage!');
+        this.data.log.push('Beast: ' + beast.name + ' — Tempest AoE ' + (Math.max(1, Math.floor(40 * (1 + (beast.mag || 1) * 0.1)))) + ' wind dmg to all');
         R.screenShake(6, 0.3);
         break;
 
@@ -321,7 +333,7 @@ const combatScene = Scene.create({
       }
     }
 
-    this.data.beastCooldown = 2;
+    if (!this.data.beastSkillUsed) this.data.beastCooldown = 2;
     Combat.checkBattleEnd();
     if (Combat.battleOver) {
       this.endBattle();
@@ -405,6 +417,9 @@ const combatScene = Scene.create({
     this.data.buttons = [];
     this.data.actionButtons = [];
     if (this.data.beastCooldown > 0) this.data.beastCooldown--;
+    if (!this.data.enemies.some(e => e === this.data.selectedEnemy && e.hp > 0)) {
+      this.data.selectedEnemy = this.data.enemies.find(e => e.hp > 0) || null;
+    }
     if (Combat.battleOver) {
       this.endBattle();
       return;
@@ -418,7 +433,7 @@ const combatScene = Scene.create({
       this.data.turnState = 'playerTurn';
       this.buildActionButtons();
       if (this.data.autoBattle) {
-        setTimeout(function() { combatScene.doAutoTurn(); }, 300);
+        setTimeout(function() { if (G.currentScene !== combatScene) return; combatScene.doAutoTurn(); }, 300);
       }
     }
   },
@@ -426,11 +441,16 @@ const combatScene = Scene.create({
   doEnemyTurn: function(actor) {
     const enemy = actor.ref;
     const result = Combat.enemyAI(enemy);
-    if (result) {
+    if (result && result.skipped) {
+      if (result.skipped === 'stunned') this.data.log.push(enemy.name + ' is stunned and skips its turn!');
+      else if (result.skipped === 'confused') this.data.log.push(enemy.name + ' is confused and skips its turn!');
+      else if (result.skipped === 'no_target') this.data.log.push(enemy.name + ' has no target!');
+    } else if (result) {
       const target = Combat.getRandomHero();
       if (target) {
         const abilityText = result.ability ? ' uses ' + result.ability : ' attacks';
-        this.data.log.push(enemy.name + abilityText + ' ' + target.name + ' for ' + result.dmg);
+        if (result.dmg > 0) this.data.log.push(enemy.name + abilityText + ' on ' + target.name + ' for ' + result.dmg);
+        else this.data.log.push(enemy.name + abilityText + ' on ' + target.name);
         const enemyIdx = this.data.enemies.indexOf(enemy);
         const enemyX = 370 - enemyIdx * 70;
         const enemyY = 50;
@@ -448,6 +468,7 @@ const combatScene = Scene.create({
     }
     this.data.animTimer = 0.5;
     setTimeout(function() {
+      if (G.currentScene !== combatScene) return;
       combatScene.advanceTurn();
     }, 500);
   },
@@ -464,6 +485,7 @@ const combatScene = Scene.create({
       turnsPerEnemy: this.data.turnCount / Math.max(1, this.data.enemies.length)
     });
     this.data.buttons = [];
+    this.data.enemyButtons = [];
     this.data.actionButtons = [];
     Combat.awardBeastXP();
     if (won) {
@@ -567,6 +589,14 @@ const combatScene = Scene.create({
       this.data.actionButtons.push(btn);
       y += 54;
     }
+    const decline = UI.Button(20, y, G.W - 40, 28, 'Decline Blessing', R.colors.btn);
+    decline.onClick = function() {
+      combatScene.data.showEnlightenment = false;
+      combatScene.buildContinueButton();
+    };
+    this.data.actionButtons.push(decline);
+    y += 34;
+    this.data.enemyButtons = [];
   },
 
   buildContinueButton: function() {
@@ -635,7 +665,7 @@ const combatScene = Scene.create({
       R.textCenter(ctx, h.name, hx + 12, hy + 30, col, R.fonts.sm);
       if (h.hp > 0) {
         R.roundRect(ctx, hx, hy + 34, 48, 4, 2, 'rgba(200,48,48,0.2)');
-        R.roundRect(ctx, hx, hy + 34, 48 * (h.hp / h.maxHp), 4, 2, R.colors.hp);
+        R.roundRect(ctx, hx, hy + 34, 48 * Math.min(1, Math.max(0, h.hp / h.maxHp)), 4, 2, R.colors.hp);
         R.roundRect(ctx, hx, hy + 40, 48, 3, 2, 'rgba(48,128,200,0.2)');
         R.roundRect(ctx, hx, hy + 40, 48 * (h.mp / h.maxMp), 3, 2, R.colors.mp);
       }
@@ -659,7 +689,7 @@ const combatScene = Scene.create({
       R.textCenter(ctx, e.name, ex - 12, ey + 30, e.hp > 0 ? R.colors.red : R.colors.textDim, R.fonts.sm);
       if (e.hp > 0) {
         R.roundRect(ctx, ex - 48, ey + 34, 48, 4, 2, 'rgba(200,48,48,0.2)');
-        R.roundRect(ctx, ex - 48, ey + 34, 48 * (e.hp / e.maxHp), 4, 2, R.colors.hp);
+        R.roundRect(ctx, ex - 48, ey + 34, 48 * Math.min(1, Math.max(0, e.hp / e.maxHp)), 4, 2, R.colors.hp);
       }
       const ailStr = e.ailments ? Object.keys(e.ailments).join(',') : '';
       if (ailStr) {
@@ -667,6 +697,7 @@ const combatScene = Scene.create({
       }
       ex -= 90;
     }
+    for (const b of this.data.enemyButtons) b.render(ctx);
 
     const top = this.getActionAreaTop();
     ctx.save();
@@ -727,9 +758,9 @@ const combatScene = Scene.create({
     ctx.restore();
 
     if (this.data.actionButtons.length > 0) {
-      const lastBtn = this.data.actionButtons[this.data.actionButtons.length - 1];
-      const lastBottom = lastBtn.y + lastBtn.h;
-      const maxScroll = Math.max(1, lastBottom + top - 6 - G.H);
+      const logH2 = Math.min(4, this.data.log.length) * 18 + 20;
+      const contentH2 = logH2 + this.data.actionButtons.length * 34 + 30;
+      const maxScroll = Math.max(1, contentH2 - this.getActionAreaHeight());
       if (maxScroll > 0 && this.data.actionButtons.length > 1) {
         const vh = this.getActionAreaHeight();
         const ratio = vh / (lastBottom + 20);

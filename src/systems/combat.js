@@ -74,6 +74,18 @@ Combat.nextTurn = function() {
     this.checkBattleEnd();
     return;
   }
+  let tries = 0;
+  while (tries++ < this.turnOrder.length) {
+    const actor = this.turnOrder[this.currentTurn];
+    if (!actor || (actor.ref && actor.ref.hp > 0)) break;
+    this.currentTurn++;
+    if (this.currentTurn >= this.turnOrder.length) {
+      this.processAilments();
+      this.buildTurnOrder();
+      this.checkBattleEnd();
+      return;
+    }
+  }
   this.isPlayerTurn = this.turnOrder[this.currentTurn].type === 'hero';
 };
 
@@ -197,6 +209,10 @@ Combat.calcDamage = function(attacker, defender, skill, isCrit) {
   const base = Math.max(1, atk * (skill ? skill.dmg || 1 : 1) - def * 0.5);
   const variance = 0.85 + Math.random() * 0.3;
   let dmg = Math.floor(base * variance);
+  if (this.comboCount >= 2) {
+    const mult = 1.0 + Math.min(10, this.comboCount - 1) * 0.1;
+    dmg = Math.floor(dmg * mult);
+  }
   if (isCrit) dmg = Math.floor(dmg * this.CRIT_MULTIPLIER);
   dmg = _applyShield(defender, dmg);
   return Math.max(1, dmg);
@@ -208,6 +224,10 @@ Combat.calcMagicDamage = function(attacker, defender, skill) {
   const base = Math.max(1, atk * (skill ? skill.dmg || 1 : 1) - def * 0.3);
   const variance = 0.85 + Math.random() * 0.3;
   let dmg = Math.floor(base * variance);
+  if (this.comboCount >= 2) {
+    const mult = 1.0 + Math.min(10, this.comboCount - 1) * 0.1;
+    dmg = Math.floor(dmg * mult);
+  }
   dmg = _applyShield(defender, dmg);
   return Math.max(1, dmg);
 };
@@ -294,15 +314,18 @@ Combat.getRandomHero = function() {
 
 Combat.enemyAI = function(enemy) {
   if (enemy.ailments) {
-    if (enemy.ailments.vajra || enemy.ailments.confuse) {
+    if (enemy.ailments.vajra) {
       delete enemy.ailments.vajra;
+      return { skipped: 'stunned' };
+    }
+    if (enemy.ailments.confuse) {
       delete enemy.ailments.confuse;
-      return null;
+      return { skipped: 'confused' };
     }
   }
   
   const target = this.getRandomHero();
-  if (!target) return null;
+  if (!target) return { skipped: 'no_target' };
   
   if (enemy.abilities && enemy.abilities.length > 0 && Math.random() < 0.4) {
     const abilityId = enemy.abilities[Math.floor(Math.random() * enemy.abilities.length)];
@@ -317,16 +340,19 @@ Combat.enemyAI = function(enemy) {
 };
 
 Combat.performEnemyAbility = function(enemy, target, ability) {
-  const atk = _getEffectiveAtk(enemy, null) * ability.dmg;
-  const def = _getEffectiveDef(target);
-  const base = Math.max(1, atk - def * 0.5);
-  const variance = 0.85 + Math.random() * 0.3;
-  let dmg = Math.floor(base * variance);
-  dmg = _applyShield(target, dmg);
-  dmg = Math.max(1, dmg);
-  
-  target.hp -= dmg;
-  if (target.hp < 0) target.hp = 0;
+  let dmg = 0;
+  const hasDamage = ability.dmg && ability.dmg > 0;
+  if (hasDamage) {
+    const atk = _getEffectiveAtk(enemy, null) * ability.dmg;
+    const def = _getEffectiveDef(target);
+    const base = Math.max(1, atk - def * 0.5);
+    const variance = 0.85 + Math.random() * 0.3;
+    dmg = Math.floor(base * variance);
+    dmg = _applyShield(target, dmg);
+    dmg = Math.max(1, dmg);
+    target.hp -= dmg;
+    if (target.hp < 0) target.hp = 0;
+  }
   
   if (ability.ailment && target.hp > 0) {
     this.applyAilment(target, ability.ailment, 2);
@@ -361,9 +387,11 @@ Combat.awardBeastXP = function() {
   const xpGain = Math.floor(10 + Math.random() * 20);
   beast.xp = (beast.xp || 0) + xpGain;
   let needed = beast.level * 30;
+  let leveled = false;
   while (beast.xp >= needed && beast.level < 30) {
     beast.xp -= needed;
     beast.level++;
+    leveled = true;
     needed = beast.level * 30;
     beast.maxHp += 2;
     beast.str += 1;
@@ -371,4 +399,6 @@ Combat.awardBeastXP = function() {
     beast.def += 1;
     beast.mag += 1;
   }
+  if (beast.level >= 30) beast.xp = Math.min(beast.xp, needed - 1);
+  if (leveled) Notify.show(beast.name + ' reached Lv.' + beast.level + '!', 2, R.colors.green);
 };

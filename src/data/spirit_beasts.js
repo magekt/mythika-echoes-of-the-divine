@@ -98,41 +98,40 @@ function getBeastBonus(beast) {
 function getBeastEvolution(beastId, currentLevel) {
   const evolutions = BEAST_EVOLUTIONS[beastId];
   if (!evolutions) return null;
-  for (const evo of evolutions) {
-    if (currentLevel >= evo.level) return evo;
-  }
+  const beast = (typeof G !== 'undefined' && G.state && G.state.spiritBeasts) ? G.state.spiritBeasts.find(b => b.id === beastId) : null;
+  const stage = beast ? (beast.evolutionStage || 0) : 0;
+  if (stage < evolutions.length && currentLevel >= evolutions[stage].level) return evolutions[stage];
+  for (const evo of evolutions) if (currentLevel >= evo.level) return evo;
   return null;
 }
 
 function canEvolve(beast) {
-  if (!beast || beast.evolutionForm) return false;
+  if (!beast) return false;
   const evolutions = BEAST_EVOLUTIONS[beast.id];
   if (!evolutions) return false;
-  for (const evo of evolutions) {
-    if (beast.level >= evo.level) return true;
-  }
-  return false;
+  const stage = beast.evolutionStage || 0;
+  if (stage >= evolutions.length) return false;
+  return beast.level >= evolutions[stage].level;
 }
 
 function evolveBeast(beast) {
   if (!canEvolve(beast)) return null;
   const evolutions = BEAST_EVOLUTIONS[beast.id];
-  for (const evo of evolutions) {
-    if (beast.level >= evo.level) {
-      beast.evolutionForm = evo.form;
-      beast.name = evo.name;
-      beast.hp = evo.hp;
-      beast.maxHp = evo.hp;
-      beast.str = evo.str;
-      beast.agi = evo.agi;
-      beast.def = evo.def;
-      beast.mag = evo.mag;
-      beast.skill = evo.skill;
-      beast.desc = evo.desc;
-      beast.passive = evo.passive;
-      beast.passiveDesc = evo.passiveDesc;
-      return evo;
-    }
-  }
-  return null;
+  const stage = beast.evolutionStage || 0;
+  const evo = evolutions[stage];
+  if (!evo || beast.level < evo.level) return null;
+  beast.evolutionStage = stage + 1;
+  beast.evolutionForm = evo.form;
+  beast.name = evo.name;
+  beast.hp = evo.hp;
+  beast.maxHp = evo.hp;
+  beast.str = evo.str;
+  beast.agi = evo.agi;
+  beast.def = evo.def;
+  beast.mag = evo.mag;
+  beast.skill = evo.skill;
+  beast.desc = evo.desc;
+  beast.passive = evo.passive;
+  beast.passiveDesc = evo.passiveDesc;
+  return evo;
 }
