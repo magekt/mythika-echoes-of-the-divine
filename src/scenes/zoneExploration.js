@@ -18,6 +18,12 @@ const zoneExplorationScene = Scene.create({
   enter: function() {
     this.data.zoneId = G.state.currentZone;
     this.data.zone = ZONES[this.data.zoneId];
+    // Defensive: a stale/missing currentZone must not crash the scene.
+    if (!this.data.zone) {
+      Notify.show('No zone selected — returning to the map.', 2, R.colors.red);
+      gScene('travelMap', true);
+      return;
+    }
     this.data.exploring = true;
     this.data.encounterTimer = 2 + Math.random() * 2;
     this.data.totalEncounterTimer = this.data.encounterTimer;
@@ -97,6 +103,7 @@ const zoneExplorationScene = Scene.create({
   },
 
   update: function(dt) {
+    if (!this.data.zone) return;
     if (this.data.state === 'exploring' && !this.data.zoneComplete) {
       this.data.encounterTimer -= dt;
       if (this.data.encounterTimer <= 0) {
@@ -138,6 +145,7 @@ const zoneExplorationScene = Scene.create({
   },
 
   render: function(ctx) {
+    if (!this.data.zone) return;
     R.drawZoneBackground(ctx, this.data.zoneId);
 
     Scene.drawHeader(ctx, 122);

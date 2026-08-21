@@ -1,12 +1,12 @@
 # Mythika: Echoes of the Divine — Build Status
 
-**57 files, ~9,100 lines of JavaScript** across 6 directories.
+**57 files, ~9,000 lines of JavaScript** across 6 directories.
 
 ## Directory Structure
 
 ```
 Mythika/
-├── index.html            (HTML shell, loads 58 scripts)
+├── index.html            (HTML shell, loads 57 scripts)
 ├── netlify.toml          (deploys the repo root as-is)
 ├── styles/
 │   └── game.css          (dark theme, content-box canvas, JS-driven responsive fit)
