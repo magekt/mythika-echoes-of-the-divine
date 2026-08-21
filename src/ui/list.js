@@ -23,7 +23,7 @@ UI.ScrollList = function(x, y, w, h, opts) {
     handleInput: function() {
       const tap = Input.peekTap();
       if (!tap) return false;
-      let yPos = this.y + this.padding + this.scrollY;
+      let yPos = this.y + this.padding - this.scrollY;
       for (let i = 0; i < this.items.length; i++) {
         const itemY = yPos;
         const itemH = this.itemHeight;
@@ -55,7 +55,7 @@ UI.ScrollList = function(x, y, w, h, opts) {
       ctx.rect(this.x, this.y, this.w, this.h);
       ctx.clip();
 
-      let yPos = this.y + this.padding + this.scrollY;
+      let yPos = this.y + this.padding - this.scrollY;
       const endY = this.y + this.h;
 
       for (let i = 0; i < this.items.length; i++) {

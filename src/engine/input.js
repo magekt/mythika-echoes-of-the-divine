@@ -8,6 +8,7 @@ const Input = {
   _touchStart: null,
   _touchStartTime: 0,
   _touchCurrent: null,
+  _lastTouchY: null,
   _swipeThreshold: 40,
   _longPressThreshold: 500,
   _lastSwipe: null,
@@ -22,7 +23,6 @@ function initInput() {
     const r = c.getBoundingClientRect();
     const x = (e.clientX - r.left) * (G.W / r.width);
     const y = (e.clientY - r.top) * (G.H / r.height);
-    Input.clicks.push({ x, y, t: 'click' });
     Input._pressPos = { x, y };
     Input._touchStartTime = Date.now();
   });
@@ -33,8 +33,11 @@ function initInput() {
       const x = (e.clientX - r.left) * (G.W / r.width);
       const y = (e.clientY - r.top) * (G.H / r.height);
       const dx = x - Input._pressPos.x;
-      if (Math.abs(dx) > Input._swipeThreshold) {
+      const dy = y - Input._pressPos.y;
+      if (Math.abs(dx) > Input._swipeThreshold && Math.abs(dx) > Math.abs(dy) * 1.5) {
         Input._lastSwipe = dx > 0 ? 'right' : 'left';
+      } else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+        Input.clicks.push({ x: Input._pressPos.x, y: Input._pressPos.y, t: 'click' });
       }
     }
     Input._pressPos = null;
@@ -47,10 +50,10 @@ function initInput() {
     const r = c.getBoundingClientRect();
     const x = (t.clientX - r.left) * (G.W / r.width);
     const y = (t.clientY - r.top) * (G.H / r.height);
-    Input.touches.push({ x, y, id: t.identifier, t: 'touch' });
     Input._touchStart = { x, y };
     Input._touchStartTime = Date.now();
     Input._touchCurrent = { x, y };
+    Input._lastTouchY = y;
     Input._longPressActive = false;
   }, { passive: false });
 
@@ -58,10 +61,14 @@ function initInput() {
     e.preventDefault();
     const t = e.changedTouches[0];
     const r = c.getBoundingClientRect();
-    Input._touchCurrent = {
-      x: (t.clientX - r.left) * (G.W / r.width),
-      y: (t.clientY - r.top) * (G.H / r.height)
-    };
+    const x = (t.clientX - r.left) * (G.W / r.width);
+    const y = (t.clientY - r.top) * (G.H / r.height);
+    if (Input._lastTouchY !== null) {
+      const dy = y - Input._lastTouchY;
+      Input._scrollDelta = (Input._scrollDelta || 0) - dy * 1.2;
+    }
+    Input._touchCurrent = { x, y };
+    Input._lastTouchY = y;
   }, { passive: false });
 
   c.addEventListener('touchend', e => {
@@ -71,10 +78,29 @@ function initInput() {
       const dy = Input._touchCurrent.y - Input._touchStart.y;
       if (Math.abs(dx) > Input._swipeThreshold && Math.abs(dx) > Math.abs(dy) * 1.5) {
         Input._lastSwipe = dx > 0 ? 'right' : 'left';
+      } else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+        Input.touches.push({ x: Input._touchStart.x, y: Input._touchStart.y, id: Date.now(), t: 'touch' });
+      }
+      // remove consumed touch id if any were queued with same identifier
+      if (e.changedTouches && e.changedTouches[0]) {
+        const id = e.changedTouches[0].identifier;
+        Input.touches = Input.touches.filter(t => t.id !== id || t.t === 'touch');
+        // keep the newly pushed tap; filter only removes stale with same id that were from touchstart (we no longer push there)
       }
     }
     Input._touchStart = null;
     Input._touchStartTime = 0;
+    Input._touchCurrent = null;
+    Input._lastTouchY = null;
+    Input._longPressActive = false;
+  }, { passive: false });
+
+  c.addEventListener('touchcancel', e => {
+    e.preventDefault();
+    Input._touchStart = null;
+    Input._touchStartTime = 0;
+    Input._touchCurrent = null;
+    Input._lastTouchY = null;
     Input._longPressActive = false;
   }, { passive: false });
 
@@ -101,6 +127,7 @@ Input.getTap = function() {
 Input.getSwipe = function() {
   const s = this._lastSwipe;
   this._lastSwipe = null;
+  if (s) this.touches = [];
   return s;
 };
 
@@ -140,6 +167,8 @@ Input.clear = function() {
   Input._touchStart = null;
   Input._touchStartTime = 0;
   Input._touchCurrent = null;
+  Input._lastTouchY = null;
   Input._lastSwipe = null;
   Input._longPressActive = false;
+  Input._scrollDelta = 0;
 };

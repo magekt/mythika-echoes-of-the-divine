@@ -81,6 +81,7 @@ const Fade = {
         if (this.pendingScene) {
           const name = this.pendingScene;
           this.pendingScene = null;
+          Input.clear();
           if (G.currentScene && G.currentScene.leave) G.currentScene.leave();
           G.currentScene = G.scenes[name];
           G.state.scene = name;
@@ -220,6 +221,7 @@ function drawBackground() {
 
 function gScene(name, fade) {
   if (!G.scenes[name]) return;
+  Input.clear();
   if (fade && G.currentScene) {
     Fade.toScene(name);
   } else {
