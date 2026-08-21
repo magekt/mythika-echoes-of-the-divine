@@ -23,17 +23,18 @@ body {
   border-radius: 8px;
   box-shadow: 0 0 40px rgba(232, 160, 48, 0.3);
   overflow: hidden;
+  box-sizing: content-box;
+  flex-shrink: 0;
 }
 #game-canvas {
   width: 400px;
   height: 720px;
   display: block;
   image-rendering: pixelated;
-  image-rendering: crisp-edges;
 }
+#status-bar { display: none; }
 @media (max-width: 420px) {
-  #game-container { width: 100vw; height: 100vh; height: 100dvh; border: none; border-radius: 0; box-shadow: none; }
-  #game-canvas { width: 100vw; height: 100vh; height: 100dvh; }
+  #game-container { border: none; border-radius: 0; box-shadow: none; }
 }
 @media (hover: none) and (pointer: coarse) {
   #game-container { touch-action: manipulation; }

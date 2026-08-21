@@ -149,6 +149,14 @@ const G = {
   ui: {}
 };
 
+function fitGame() {
+  const el = document.getElementById('game-container');
+  if (!el) return;
+  const scale = Math.min(window.innerWidth / 404, window.innerHeight / 724, 1);
+  el.style.transform = 'scale(' + scale + ')';
+  el.style.transformOrigin = 'center center';
+}
+
 function gInit() {
   G.canvas = document.getElementById('game-canvas');
   G.canvas.width = G.W;
@@ -233,4 +241,5 @@ function gScene(name, fade) {
   }
 }
 
-window.addEventListener('load', gInit);
+window.addEventListener('load', function(){ gInit(); fitGame(); });
+window.addEventListener('resize', fitGame);
