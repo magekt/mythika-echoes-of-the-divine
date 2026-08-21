@@ -212,7 +212,7 @@ const equipmentScene = Scene.create({
     ctx.clip();
     ctx.translate(0, -this.data.scrollY);
 
-    for (const b of this.data.buttons) b.render(ctx);
+    for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);
 
     ctx.restore();

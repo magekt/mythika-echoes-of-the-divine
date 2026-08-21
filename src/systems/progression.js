@@ -23,12 +23,14 @@ Progression.xpForLevel = function(lvl) {
 };
 
 Progression.getChallenge = function() {
-  if (G.state.challenge == null) {
+  // Sanitize here, not just at load-time: any corrupt write (string, NaN)
+  // falls back to the difficulty map / neutral instead of poisoning the math.
+  if (typeof G.state.challenge !== 'number' || !isFinite(G.state.challenge)) {
     const map = { normal: 1.0, hard: 1.25, nightmare: 1.5, mythic: 1.75 };
     G.state.challenge = (G.state.difficulty && map[G.state.difficulty]) || 1.0;
     delete G.state.difficulty;
   }
-  return G.state.challenge;
+  return Math.max(0.6, Math.min(1.5, G.state.challenge));
 };
 
 Progression.adjustChallenge = function(r) {

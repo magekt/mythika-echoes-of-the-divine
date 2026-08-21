@@ -58,4 +58,15 @@
     return (slot && slot.name) || slot || 'None';
   };
 
+  // Viewport culling for long button lists: buttons store build-time y and are
+  // rendered under translate(0, -scrollY), so a button is on-screen when its
+  // span intersects [scrollY, scrollY + viewportH]. Keeps huge inventories cheap.
+  Scene.cullButtons = function(buttons, scrollY, viewportH) {
+    const visible = [];
+    for (const b of buttons) {
+      if (b.y + b.h >= scrollY && b.y <= scrollY + viewportH) visible.push(b);
+    }
+    return visible;
+  };
+
 })();
