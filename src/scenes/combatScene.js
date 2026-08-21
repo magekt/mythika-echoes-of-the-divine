@@ -85,6 +85,7 @@ const combatScene = Scene.create({
     this.data.beastSkillUsed = false;
     this.data.beastCooldown = 0;
     this.data.turnCount = 0;
+    this.data.runId = (this.data.runId || 0) + 1;   // invalidates timers from a previous battle
     const stories = ENCOUNTER_STORIES[zone] || ENCOUNTER_STORIES.aryavarta;
     this.data.encounterStory = stories[Math.floor(Math.random() * stories.length)];
     this.data.log = ['Battle begins!'];
@@ -164,7 +165,8 @@ const combatScene = Scene.create({
             this.data.actionButtons.push(beastBtn);
             y += 32;
           } else {
-            const cdBtn = UI.Button(20, y, G.W - 40, 28, 'Beast: ' + beast.name + ' (' + this.data.beastCooldown + 't)', R.colors.btn);
+            const cdLabel = this.data.beastSkillUsed ? 'Beast: ' + beast.name + ' (used)' : 'Beast: ' + beast.name + ' (' + this.data.beastCooldown + 't)';
+            const cdBtn = UI.Button(20, y, G.W - 40, 28, cdLabel, R.colors.btn);
             cdBtn.enabled = false;
             this.data.actionButtons.push(cdBtn);
             y += 32;
@@ -452,7 +454,8 @@ const combatScene = Scene.create({
       this.data.turnState = 'playerTurn';
       this.buildActionButtons();
       if (this.data.autoBattle) {
-        setTimeout(function() { if (G.currentScene !== combatScene) return; combatScene.doAutoTurn(); }, 300);
+        var autoRunId = this.data.runId;
+        setTimeout(function() { if (G.currentScene !== combatScene || combatScene.data.runId !== autoRunId) return; combatScene.doAutoTurn(); }, 300);
       }
     }
   },
@@ -487,8 +490,9 @@ const combatScene = Scene.create({
       this.data.log.push(enemy.name + ' is confused and skips its turn!');
     }
     this.data.animTimer = 0.5;
+    var enemyRunId = this.data.runId;
     setTimeout(function() {
-      if (G.currentScene !== combatScene) return;
+      if (G.currentScene !== combatScene || combatScene.data.runId !== enemyRunId) return;
       combatScene.advanceTurn();
     }, 500);
   },
