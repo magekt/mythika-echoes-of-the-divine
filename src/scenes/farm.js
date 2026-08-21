@@ -3,6 +3,7 @@ const farmScene = Scene.create({
   data: {
     buttons: [],
     plots: [],
+    staticDraws: [],
     scrollY: 0,
     contentHeight: 0
   },
@@ -33,6 +34,7 @@ const farmScene = Scene.create({
   buildButtons: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
     let y = this.getContentTop();
     const plots = G.state.farmPlots || [];
 
@@ -94,9 +96,11 @@ const farmScene = Scene.create({
   showPlantMenu: function(plotIdx) {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
-    R.text(G.ctx, 'Select herb to plant:', 18, y + 4, R.colors.gold, R.fonts.sm);
+    SD.push({ text: ['Select herb to plant:', 18, y + 4, R.colors.gold, R.fonts.sm] });
     y += 20;
 
     for (const [hid, herb] of Object.entries(HERB_GROWTH)) {
@@ -173,6 +177,7 @@ const farmScene = Scene.create({
     ctx.translate(0, -this.data.scrollY);
 
     for (const b of this.data.buttons) b.render(ctx);
+    for (const d of this.data.staticDraws) if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
 
     ctx.restore();
 

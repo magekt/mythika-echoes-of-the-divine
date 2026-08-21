@@ -3,6 +3,7 @@ const tournamentScene = Scene.create({
   data: {
     buttons: [],
     state: 'menu',
+    staticDraws: [],
     opponent: null,
     log: [],
     playerHP: 0,
@@ -37,6 +38,8 @@ const tournamentScene = Scene.create({
   buildMenu: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     let y = this.getContentTop();
     const cost = 50 + (this.data.wins * 25);
 
@@ -53,8 +56,8 @@ const tournamentScene = Scene.create({
     this.data.buttons.push(btn);
     y += 44;
 
-    R.text(G.ctx, 'Wins: ' + this.data.wins, 20, y + 4, R.colors.gold, R.fonts.sm);
-    R.text(G.ctx, 'Entry Fee: ' + cost + 'g', 20, y + 20, R.colors.textDim, R.fonts.sm);
+    SD.push({ text: ['Wins: ' + this.data.wins, 20, y + 4, R.colors.gold, R.fonts.sm] });
+    SD.push({ text: ['Entry Fee: ' + cost + 'g', 20, y + 20, R.colors.textDim, R.fonts.sm] });
     y += 36;
 
     const back = UI.Button(60, y + 4, G.W - 120, 30, 'Back to Ashram', R.colors.btnGold);
@@ -86,6 +89,8 @@ const tournamentScene = Scene.create({
   buildFightButtons: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
     const atk = UI.BtnGold(30, y, G.W / 2 - 40, 30, 'Attack');
@@ -108,7 +113,7 @@ const tournamentScene = Scene.create({
 
     if (this.data.log.length > 0) {
       for (const msg of this.data.log.slice(-5)) {
-        R.text(G.ctx, msg, 22, y + 2, R.colors.text, R.fonts.sm);
+        SD.push({ text: [msg, 22, y + 2, R.colors.text, R.fonts.sm] });
         y += 16;
       }
       y += 10;
@@ -130,10 +135,12 @@ const tournamentScene = Scene.create({
   buildResultButtons: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
     for (const msg of this.data.log.slice(-5)) {
-      R.text(G.ctx, msg, 22, y + 2, R.colors.text, R.fonts.sm);
+      SD.push({ text: [msg, 22, y + 2, R.colors.text, R.fonts.sm] });
       y += 16;
     }
     y += 10;
@@ -241,6 +248,7 @@ const tournamentScene = Scene.create({
     ctx.translate(0, -this.data.scrollY);
 
     for (const b of this.data.buttons) b.render(ctx);
+    for (const d of this.data.staticDraws) if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
 
     ctx.restore();
 

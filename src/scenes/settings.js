@@ -3,6 +3,7 @@ const settingsScene = Scene.create({
   data: {
     buttons: [],
     scrollY: 0,
+    staticDraws: [],
     contentHeight: 0
   },
 
@@ -25,6 +26,8 @@ const settingsScene = Scene.create({
   buildButtons: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
     const sfxBtn = UI.Button(20, y, G.W - 40, 30, 'SFX: ' + (Audio.sfxOn ? 'ON' : 'OFF'));
@@ -67,11 +70,11 @@ const settingsScene = Scene.create({
 
     const info = SaveSystem.getSaveInfo();
     if (info) {
-      R.text(G.ctx, 'Save Info:', 22, y + 2, R.colors.textDim, R.fonts.sm);
+      SD.push({ text: ['Save Info:', 22, y + 2, R.colors.textDim, R.fonts.sm] });
       y += 16;
-      R.text(G.ctx, 'Gold: ' + info.gold + '  Realm: ' + info.realm, 22, y + 2, R.colors.textDim, R.fonts.sm);
+      SD.push({ text: ['Gold: ' + info.gold + '  Realm: ' + info.realm, 22, y + 2, R.colors.textDim, R.fonts.sm] });
       y += 16;
-      R.text(G.ctx, 'Party: ' + info.partySize + '  Time: ' + Math.floor(info.playTime / 60) + 'm', 22, y + 2, R.colors.textDim, R.fonts.sm);
+      SD.push({ text: ['Party: ' + info.partySize + '  Time: ' + Math.floor(info.playTime / 60) + 'm', 22, y + 2, R.colors.textDim, R.fonts.sm] });
       y += 20;
     }
 
@@ -111,6 +114,7 @@ const settingsScene = Scene.create({
     ctx.translate(0, -this.data.scrollY);
 
     for (const b of this.data.buttons) b.render(ctx);
+    for (const d of this.data.staticDraws) if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
 
     ctx.restore();
 

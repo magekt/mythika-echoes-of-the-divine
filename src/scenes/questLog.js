@@ -4,8 +4,10 @@ const questLogScene = Scene.create({
     buttons: [],
     view: 'list',
     selectedQuest: null,
+    selectedChain: null,
     scrollY: 0,
-    contentHeight: 0
+    contentHeight: 0,
+    staticDraws: []
   },
 
   enter: function() {
@@ -30,6 +32,10 @@ const questLogScene = Scene.create({
   buildList: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
+    function txt(t, x, y, c, f) { SD.push({ text: t, x: x, y: y, c: c, f: f }); }
+    function box(x, y, w, h, r, fill, sx, sy, sw, sc) { SD.push({ rect: [x, y, w, h, r, fill], sx: sx, sy: sy, sw: sw, sc: sc }); }
     let y = this.getContentTop();
     
     const zone = G.state.currentZone || 'aryavarta';
@@ -38,7 +44,7 @@ const questLogScene = Scene.create({
     const completedChains = chains.filter(c => c.chainProgress.completed && !c.chainProgress.claimed);
     
     if (activeChains.length > 0) {
-      R.text(G.ctx, 'QUEST CHAINS', 18, y + 2, R.colors.orange, R.fonts.sm);
+      txt('QUEST CHAINS', 18, y + 2, R.colors.orange, R.fonts.sm);
       y += 18;
       for (const chain of activeChains) {
         const prog = chain.chainProgress;
@@ -76,7 +82,7 @@ const questLogScene = Scene.create({
     
     if (completedChains.length > 0) {
       y += 4;
-      R.text(G.ctx, 'CLAIM REWARDS:', 18, y + 2, R.colors.green, R.fonts.sm);
+      txt('CLAIM REWARDS:', 18, y + 2, R.colors.green, R.fonts.sm);
       y += 18;
       for (const chain of completedChains) {
         const btn = UI.Button(14, y, G.W - 28, 36, '', R.colors.btnGold);
@@ -107,7 +113,7 @@ const questLogScene = Scene.create({
 
     if (activeQuests.length > 0) {
       y += 8;
-      R.text(G.ctx, 'SIDE QUESTS', 18, y + 2, R.colors.blueLight, R.fonts.sm);
+      txt('SIDE QUESTS', 18, y + 2, R.colors.blueLight, R.fonts.sm);
       y += 18;
       for (const q of activeQuests) {
         const prog = G.state.quests[q.id];
@@ -142,7 +148,7 @@ const questLogScene = Scene.create({
 
     if (completedQuests.length > 0) {
       y += 4;
-      R.text(G.ctx, 'READY TO CLAIM:', 18, y + 2, R.colors.green, R.fonts.sm);
+      txt('READY TO CLAIM:', 18, y + 2, R.colors.green, R.fonts.sm);
       y += 18;
       for (const q of completedQuests) {
         const btn = UI.Button(14, y, G.W - 28, 32, '', R.colors.btnGold);
@@ -163,7 +169,7 @@ const questLogScene = Scene.create({
 
     if (activeQuests.length === 0 && completedQuests.length === 0 && activeChains.length === 0 && completedChains.length === 0) {
       y += 10;
-      R.text(G.ctx, 'No quests available.', 18, y, R.colors.textDim, R.fonts.sm);
+      txt('No quests available.', 18, y, R.colors.textDim, R.fonts.sm);
       y += 20;
     }
 
@@ -179,24 +185,28 @@ const questLogScene = Scene.create({
   buildDetail: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
+    function txt(t, x, y, c, f) { SD.push({ text: t, x: x, y: y, c: c, f: f }); }
+    function box(x, y, w, h, r, fill, sx, sy, sw, sc) { SD.push({ rect: [x, y, w, h, r, fill], sx: sx, sy: sy, sw: sw, sc: sc }); }
     const q = this.data.selectedQuest;
     const prog = G.state.quests[q.id] || { count: 0 };
     let y = this.getContentTop();
 
     const infoH = 90;
-    R.roundRect(G.ctx, 10, y, G.W - 20, infoH, 6, R.colors.panel);
+    box(10, y, G.W - 20, infoH, 6, R.colors.panel);
     let iy = y + 14;
-    R.text(G.ctx, q.name, 22, iy, R.colors.gold, R.fonts.lg);
-    R.text(G.ctx, q.desc, 22, iy + 22, R.colors.text, R.fonts.sm);
-    R.text(G.ctx, 'Progress: ' + (prog.count || 0) + '/' + q.count, 22, iy + 40, R.colors.text, R.fonts.sm);
+    txt(q.name, 22, iy, R.colors.gold, R.fonts.lg);
+    txt(q.desc, 22, iy + 22, R.colors.text, R.fonts.sm);
+    txt('Progress: ' + (prog.count || 0) + '/' + q.count, 22, iy + 40, R.colors.text, R.fonts.sm);
 
     let rewardStr = 'Rewards: ';
     if (q.reward.gold) rewardStr += q.reward.gold + 'g ';
     if (q.reward.xp) rewardStr += q.reward.xp + 'XP ';
     if (q.reward.karma) rewardStr += q.reward.karma + 'Karma ';
     if (q.reward.df) rewardStr += q.reward.df + 'DF ';
-    R.text(G.ctx, rewardStr, 22, iy + 58, R.colors.gold, R.fonts.sm);
-    R.text(G.ctx, this.data.view === 'detail' ? (prog.completed ? 'Complete!' : 'In progress') : '', 22, iy + 74, prog.completed ? R.colors.green : R.colors.textDim, R.fonts.sm);
+    txt(rewardStr, 22, iy + 58, R.colors.gold, R.fonts.sm);
+    txt(prog.completed ? 'Complete!' : 'In progress', 22, iy + 74, prog.completed ? R.colors.green : R.colors.textDim, R.fonts.sm);
 
     y += infoH + 10;
 
@@ -227,17 +237,18 @@ const questLogScene = Scene.create({
   buildChainDetail: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
+    function txt(t, x, y, c, f) { SD.push({ text: t, x: x, y: y, c: c, f: f }); }
+    function box(x, y, w, h, r, fill, sx, sy, sw, sc) { SD.push({ rect: [x, y, w, h, r, fill], sx: sx, sy: sy, sw: sw, sc: sc }); }
     const chain = this.data.selectedChain;
     const prog = chain.chainProgress;
     let y = this.getContentTop();
 
-    R.roundRect(G.ctx, 10, y, G.W - 20, 70, 6, R.colors.panel);
-    G.ctx.strokeStyle = R.colors.orange;
-    G.ctx.lineWidth = 2;
-    G.ctx.strokeRect(11, y + 1, G.W - 22, 68);
-    R.text(G.ctx, chain.name, 22, y + 18, R.colors.orange, R.fonts.lg);
-    R.text(G.ctx, chain.desc, 22, y + 38, R.colors.text, R.fonts.sm);
-    R.text(G.ctx, 'Step ' + (prog.currentStep + 1) + ' of ' + chain.steps.length, 22, y + 56, R.colors.textDim, R.fonts.sm);
+    box(10, y, G.W - 20, 70, 6, R.colors.panel, 11, y + 1, 2, R.colors.orange);
+    txt(chain.name, 22, y + 18, R.colors.orange, R.fonts.lg);
+    txt(chain.desc, 22, y + 38, R.colors.text, R.fonts.sm);
+    txt('Step ' + (prog.currentStep + 1) + ' of ' + chain.steps.length, 22, y + 56, R.colors.textDim, R.fonts.sm);
 
     y += 78;
 
@@ -279,14 +290,14 @@ const questLogScene = Scene.create({
 
     if (chain.finalReward) {
       y += 8;
-      R.roundRect(G.ctx, 14, y, G.W - 28, 50, 6, R.colors.panel);
-      R.text(G.ctx, 'FINAL REWARD:', 22, y + 14, R.colors.gold, R.fonts.sm);
+      box(14, y, G.W - 28, 50, 6, R.colors.panel);
+      txt('FINAL REWARD:', 22, y + 14, R.colors.gold, R.fonts.sm);
       let rewardStr = '';
       if (chain.finalReward.gold) rewardStr += chain.finalReward.gold + 'g ';
       if (chain.finalReward.xp) rewardStr += chain.finalReward.xp + 'XP ';
       if (chain.finalReward.karma) rewardStr += chain.finalReward.karma + 'Karma ';
       if (chain.finalReward.item) rewardStr += 'Equipment ';
-      R.text(G.ctx, rewardStr, 22, y + 32, R.colors.gold, R.fonts.sm);
+      txt(rewardStr, 22, y + 32, R.colors.gold, R.fonts.sm);
       y += 58;
     }
 
@@ -338,6 +349,18 @@ const questLogScene = Scene.create({
     ctx.rect(0, top, G.W, this.getContentHeight());
     ctx.clip();
     ctx.translate(0, -this.data.scrollY);
+
+    for (const d of this.data.staticDraws) {
+      if (d.rect) {
+        R.roundRect(ctx, d.rect[0], d.rect[1], d.rect[2], d.rect[3], d.rect[4], d.rect[5]);
+        if (d.sw) {
+          ctx.strokeStyle = d.sc;
+          ctx.lineWidth = d.sw;
+          ctx.strokeRect(d.sx + 0.5, d.sy + 0.5, d.rect[2] - 1, d.rect[3] - 1);
+        }
+      }
+      if (d.text) R.text(ctx, d.text, d.x, d.y, d.c, d.f);
+    }
 
     for (const b of this.data.buttons) b.render(ctx);
 

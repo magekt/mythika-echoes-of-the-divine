@@ -3,6 +3,7 @@ const achievementsScene = Scene.create({
   data: {
     buttons: [],
     scrollY: 0,
+    staticDraws: [],
     contentHeight: 0
   },
 
@@ -27,6 +28,8 @@ const achievementsScene = Scene.create({
   buildButtons: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     const allAch = AchievementSystem.getAll();
     const unlocked = allAch.filter(a => a.progress.unlocked);
     const locked = allAch.filter(a => !a.progress.unlocked);
@@ -65,7 +68,7 @@ const achievementsScene = Scene.create({
 
     if (unlocked.length === 0 && locked.length === 0) {
       y += 10;
-      R.text(G.ctx, 'No achievements yet.', 18, y, R.colors.textDim, R.fonts.sm);
+      SD.push({ text: ['No achievements yet.', 18, y, R.colors.textDim, R.fonts.sm] });
       y += 20;
     }
 
@@ -109,6 +112,7 @@ const achievementsScene = Scene.create({
     ctx.translate(0, -this.data.scrollY);
 
     for (const b of this.data.buttons) b.render(ctx);
+    for (const d of this.data.staticDraws) if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
 
     ctx.restore();
 

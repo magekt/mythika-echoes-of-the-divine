@@ -3,6 +3,7 @@ const punarjanmaScene = Scene.create({
   data: {
     buttons: [],
     perkButtons: [],
+    staticDraws: [],
     selectedPerk: null,
     scrollY: 0,
     contentHeight: 0
@@ -29,6 +30,8 @@ const punarjanmaScene = Scene.create({
     this.data.buttons = [];
     this.data.perkButtons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
     const canRebirth = G.state.player && G.state.player.level >= 30 && (G.state.karma || 0) >= 10;
@@ -48,15 +51,15 @@ const punarjanmaScene = Scene.create({
     const karmaOk = (G.state.karma || 0) >= 10;
     const reqColor = lvlOk ? R.colors.green : R.colors.red;
     const reqColor2 = karmaOk ? R.colors.green : R.colors.red;
-    R.text(G.ctx, 'Requirement: ' + (lvlOk ? '\u2713' : '\u2717') + ' Level 30+ (' + (G.state.player ? G.state.player.level : 0) + ')', 22, y + 2, reqColor, R.fonts.sm);
+    SD.push({ text: ['Requirement: ' + (lvlOk ? '\u2713' : '\u2717') + ' Level 30+ (' + (G.state.player ? G.state.player.level : 0) + ')', 22, y + 2, reqColor, R.fonts.sm] });
     y += 16;
-    R.text(G.ctx, 'Requirement: ' + (karmaOk ? '\u2713' : '\u2717') + ' 10 Punya Karma (' + (G.state.karma || 0) + ')', 22, y + 2, reqColor2, R.fonts.sm);
+    SD.push({ text: ['Requirement: ' + (karmaOk ? '\u2713' : '\u2717') + ' 10 Punya Karma (' + (G.state.karma || 0) + ')', 22, y + 2, reqColor2, R.fonts.sm] });
     y += 18;
-    R.text(G.ctx, 'Samsara Crossings: ' + (G.state.rebirthCount || 0), 22, y + 2, R.colors.gold, R.fonts.sm);
+    SD.push({ text: ['Samsara Crossings: ' + (G.state.rebirthCount || 0), 22, y + 2, R.colors.gold, R.fonts.sm] });
     y += 24;
 
     if (Object.keys(PERKS.tier1).length > 0) {
-      R.text(G.ctx, '\u2501  Siddhis (Spiritual Powers)  \u2501', 22, y + 2, R.colors.gold, R.fonts.sm);
+      SD.push({ text: ['\u2501  Siddhis (Spiritual Powers)  \u2501', 22, y + 2, R.colors.gold, R.fonts.sm] });
       y += 18;
 
       for (const [pid, perk] of Object.entries(PERKS.tier1)) {
@@ -96,7 +99,7 @@ const punarjanmaScene = Scene.create({
 
         const val = getPerkValue(pid, curLvl);
         if (val > 0) {
-          R.text(G.ctx, perk.desc.replace('%', val + ''), 30, y + 2, R.colors.textDim, R.fonts.sm);
+          SD.push({ text: [perk.desc.replace('%', val + ''), 30, y + 2, R.colors.textDim, R.fonts.sm] });
           y += 16;
         }
       }
@@ -172,6 +175,7 @@ const punarjanmaScene = Scene.create({
     ctx.translate(0, -this.data.scrollY);
 
     for (const b of this.data.buttons) b.render(ctx);
+    for (const d of this.data.staticDraws) if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
 
     ctx.restore();
 

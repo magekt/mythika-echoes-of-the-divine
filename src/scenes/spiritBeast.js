@@ -6,7 +6,8 @@ const spiritBeastScene = Scene.create({
     view: 'list',
     selectedBeast: null,
     scrollY: 0,
-    contentHeight: 0
+    contentHeight: 0,
+    staticDraws: []
   },
 
   enter: function() {
@@ -31,13 +32,15 @@ const spiritBeastScene = Scene.create({
   buildList: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
     if (this.data.beasts.length === 0) {
       y += 10;
-      R.text(G.ctx, 'No spirit beasts yet.', 20, y, R.colors.textDim, R.fonts.sm);
+      SD.push({ text: ['No spirit beasts yet.', 20, y, R.colors.textDim, R.fonts.sm] });
       y += 18;
-      R.text(G.ctx, 'Defeat enemies to find beasts!', 20, y, R.colors.textDim, R.fonts.sm);
+      SD.push({ text: ['Defeat enemies to find beasts!', 20, y, R.colors.textDim, R.fonts.sm] });
       y += 40;
     } else {
       for (const beast of this.data.beasts) {
@@ -90,21 +93,23 @@ const spiritBeastScene = Scene.create({
   buildDetail: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     const beast = this.data.selectedBeast;
     const beastData = SPIRIT_BEASTS[beast.id];
     let y = this.getContentTop();
 
     const infoH = 80;
-    R.roundRect(G.ctx, 10, y, G.W - 20, infoH, 6, R.colors.panel);
+    SD.push({ rect: [10, y, G.W - 20, infoH, 6, R.colors.panel] });
     let iy = y + 12;
-    R.text(G.ctx, beast.name + ' (Tier ' + beast.tier + ' Lv.' + beast.level + ')', 22, iy, R.colors.gold, R.fonts.md);
-    R.text(G.ctx, 'Skill: ' + (beast.skill || '?'), 22, iy + 20, R.colors.text, R.fonts.sm);
+    SD.push({ text: [beast.name + ' (Tier ' + beast.tier + ' Lv.' + beast.level + ')', 22, iy, R.colors.gold, R.fonts.md] });
+    SD.push({ text: ['Skill: ' + (beast.skill || '?'), 22, iy + 20, R.colors.text, R.fonts.sm] });
     const bonus = getBeastBonus(beast);
-    R.text(G.ctx, 'HP:' + bonus.hp + ' STR:' + bonus.str + ' AGI:' + bonus.agi + ' MAG:' + bonus.mag + ' DEF:' + bonus.def, 22, iy + 38, R.colors.textDim, R.fonts.sm);
+    SD.push({ text: ['HP:' + bonus.hp + ' STR:' + bonus.str + ' AGI:' + bonus.agi + ' MAG:' + bonus.mag + ' DEF:' + bonus.def, 22, iy + 38, R.colors.textDim, R.fonts.sm] });
     if (beast.passiveDesc) {
-      R.text(G.ctx, 'Passive: ' + beast.passiveDesc, 22, iy + 56, R.colors.green, R.fonts.sm);
+      SD.push({ text: ['Passive: ' + beast.passiveDesc, 22, iy + 56, R.colors.green, R.fonts.sm] });
     } else {
-      R.text(G.ctx, 'Active: ' + (beast.active ? 'Yes' : 'No'), 22, iy + 56, beast.active ? R.colors.green : R.colors.textDim, R.fonts.sm);
+      SD.push({ text: ['Active: ' + (beast.active ? 'Yes' : 'No'), 22, iy + 56, beast.active ? R.colors.green : R.colors.textDim, R.fonts.sm] });
     }
 
     y += infoH + 8;
@@ -112,13 +117,10 @@ const spiritBeastScene = Scene.create({
     if (canEvolve(beast)) {
       const evo = getBeastEvolution(beast.id, beast.level);
       if (evo) {
-        R.roundRect(G.ctx, 14, y, G.W - 28, 60, 6, R.colors.panel);
-        G.ctx.strokeStyle = R.colors.gold;
-        G.ctx.lineWidth = 2;
-        G.ctx.strokeRect(15, y + 1, G.W - 30, 58);
-        R.text(G.ctx, 'EVOLUTION AVAILABLE:', 22, y + 14, R.colors.gold, R.fonts.sm);
-        R.text(G.ctx, evo.name, 22, y + 30, R.colors.orange, R.fonts.md);
-        R.text(G.ctx, evo.desc, 22, y + 46, R.colors.text, R.fonts.sm);
+        SD.push({ rect: [14, y, G.W - 28, 60, 6, R.colors.panel], stroke: [15, y + 1, G.W - 30, 58, R.colors.gold] });
+        SD.push({ text: ['EVOLUTION AVAILABLE:', 22, y + 14, R.colors.gold, R.fonts.sm] });
+        SD.push({ text: [evo.name, 22, y + 30, R.colors.orange, R.fonts.md] });
+        SD.push({ text: [evo.desc, 22, y + 46, R.colors.text, R.fonts.sm] });
         y += 66;
         
         const evolveBtn = UI.Button(14, y, G.W - 28, 32, 'Evolve to ' + evo.name + '!', R.colors.btnGold);
@@ -233,6 +235,13 @@ const spiritBeastScene = Scene.create({
     ctx.clip();
     ctx.translate(0, -this.data.scrollY);
 
+    for (const d of this.data.staticDraws) {
+      if (d.rect) {
+        R.roundRect(ctx, d.rect[0], d.rect[1], d.rect[2], d.rect[3], d.rect[4], d.rect[5]);
+        if (d.stroke) { ctx.strokeStyle = d.stroke[4]; ctx.lineWidth = 2; ctx.strokeRect(d.stroke[0], d.stroke[1], d.stroke[2], d.stroke[3]); }
+      }
+      if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
+    }
     for (const b of this.data.buttons) b.render(ctx);
 
     ctx.restore();

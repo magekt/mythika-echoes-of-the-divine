@@ -3,6 +3,7 @@ const partyScene = Scene.create({
   data: {
     selectedHero: null,
     buttons: [],
+    staticDraws: [],
     view: 'list',
     itemsView: false,
     equipSlot: null,
@@ -35,8 +36,7 @@ const partyScene = Scene.create({
     this.data.scrollY = 0;
     let y = this.getContentTop();
 
-    R.textCenter(G.ctx, '', 0, 0, '');
-
+    this.data.staticDraws = [];
     for (const hero of G.state.party) {
       const alive = hero.hp > 0;
       const btn = UI.Button(14, y, G.W - 28, 66, '', alive ? R.colors.panel : R.colors.btn);
@@ -235,6 +235,8 @@ const partyScene = Scene.create({
   buildItemList: function(filterType) {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     const hero = this.data.selectedHero;
     let y = this.getContentTop();
 
@@ -246,11 +248,11 @@ const partyScene = Scene.create({
       return false;
     });
 
-    R.text(G.ctx, 'Select ' + filterType + ' for ' + hero.name, 18, y + 8, R.colors.gold, R.fonts.sm);
+    SD.push({ text: ['Select ' + filterType + ' for ' + hero.name, 18, y + 8, R.colors.gold, R.fonts.sm] });
     y += 22;
 
     if (items.length === 0) {
-      R.text(G.ctx, 'No ' + filterType + 's available.', 18, y, R.colors.textDim, R.fonts.sm);
+      SD.push({ text: ['No ' + filterType + 's available.', 18, y, R.colors.textDim, R.fonts.sm] });
       y += 20;
     } else {
       for (let i = 0; i < items.length; i++) {
@@ -410,6 +412,7 @@ const partyScene = Scene.create({
       ctx.clip();
       ctx.translate(0, -this.data.scrollY);
       for (const b of this.data.buttons) b.render(ctx);
+      for (const d of this.data.staticDraws) if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
       ctx.restore();
 
       if (this.data.contentHeight > this.getContentHeight()) {

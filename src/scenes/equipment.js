@@ -6,7 +6,8 @@ const equipmentScene = Scene.create({
     selectedItem: null,
     tab: 'inventory',
     scrollY: 0,
-    contentHeight: 0
+    contentHeight: 0,
+    staticDraws: []
   },
 
   enter: function() {
@@ -29,6 +30,8 @@ const equipmentScene = Scene.create({
   buildUI: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
     const invBtn = UI.Button(14, y, 95, 28, 'Inventory', this.data.tab === 'inventory' ? R.colors.btnGold : R.colors.btn);
@@ -46,9 +49,10 @@ const equipmentScene = Scene.create({
     y += 36;
 
     if (this.data.tab === 'inventory') {
-      const items = (G.state.inventory || []).filter(i => i.type === 'weapon' || i.type === 'armor' || i.type === 'accessory');
+      const items = (G.state.inventory || []).filter(i => typeof i === 'object' && i.type && (i.type === 'weapon' || i.type === 'armor' || i.type === 'accessory'));
       if (items.length === 0) {
-        R.textCenter(G.ctx, 'No equipment found', G.W / 2, y + 20, R.colors.textDim, R.fonts.sm);
+        const ty = y + 20;
+        SD.push({ textCenter: ['No equipment found', G.W / 2, ty, R.colors.textDim, R.fonts.sm] });
       }
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
@@ -122,7 +126,7 @@ const equipmentScene = Scene.create({
           ['Level', hero.level]
         ];
         for (const [label, value] of stats) {
-          R.text(G.ctx, label + ': ' + value, 22, y + 12, R.colors.text, R.fonts.md);
+          SD.push({ text: [label + ': ' + value, 22, y + 12, R.colors.text, R.fonts.md] });
           y += 20;
         }
       }
@@ -204,6 +208,10 @@ const equipmentScene = Scene.create({
     ctx.translate(0, -this.data.scrollY);
 
     for (const b of this.data.buttons) b.render(ctx);
+    for (const d of this.data.staticDraws) {
+      if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
+      if (d.textCenter) R.textCenter(ctx, d.textCenter[0], d.textCenter[1], d.textCenter[2], d.textCenter[3], d.textCenter[4]);
+    }
 
     ctx.restore();
 

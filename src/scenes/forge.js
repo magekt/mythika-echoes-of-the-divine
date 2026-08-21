@@ -3,6 +3,7 @@ const forgeScene = Scene.create({
   data: {
     buttons: [],
     selectedHero: null,
+    staticDraws: [],
     slot: null,
     upgradeCosts: { weapon: 30, armor: 25, accessory: 20 },
     scrollY: 0,
@@ -31,6 +32,7 @@ const forgeScene = Scene.create({
   buildHeroList: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.staticDraws = [];
     let y = this.getContentTop();
 
     for (const hero of G.state.party) {
@@ -70,8 +72,10 @@ const forgeScene = Scene.create({
     const hero = this.data.selectedHero;
     let y = this.getContentTop();
 
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     const infoStr = 'Upgrading: ' + hero.name + '  |  Gold: ' + (G.state.gold || 0) + 'g';
-    R.text(G.ctx, infoStr, 18, y + 4, R.colors.text, R.fonts.sm);
+    SD.push({ text: [infoStr, 18, y + 4, R.colors.text, R.fonts.sm] });
     y += 20;
 
     const slots = [
@@ -164,6 +168,7 @@ const forgeScene = Scene.create({
     ctx.translate(0, -this.data.scrollY);
 
     for (const b of this.data.buttons) b.render(ctx);
+    for (const d of this.data.staticDraws) if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
 
     ctx.restore();
 
