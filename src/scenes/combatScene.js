@@ -764,7 +764,7 @@ const combatScene = Scene.create({
       const maxScroll = Math.max(1, contentH2 - this.getActionAreaHeight());
       if (maxScroll > 0 && this.data.actionButtons.length > 1) {
         const vh = this.getActionAreaHeight();
-        const ratio = vh / (lastBottom + 20);
+        const ratio = vh / contentH2;
         const barH = Math.max(16, ratio * vh);
         const maxTrack = vh - barH;
         const scrollFrac = this.data.scrollY / maxScroll;
