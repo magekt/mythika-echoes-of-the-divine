@@ -3,7 +3,6 @@ const travelMapScene = Scene.create({
   data: {
     buttons: [],
     selectedZone: null,
-    zoneInfo: null,
     scrollY: 0,
     contentHeight: 0,
     infoPanelHeight: 0
@@ -12,7 +11,6 @@ const travelMapScene = Scene.create({
   enter: function() {
     this.data.buttons = [];
     this.data.selectedZone = null;
-    this.data.zoneInfo = null;
     this.data.scrollY = 0;
     this.buildZoneButtons();
   },
@@ -83,7 +81,6 @@ const travelMapScene = Scene.create({
       btn.onClick = function() {
         const d = this._data;
         travelMapScene.data.selectedZone = d.id;
-        travelMapScene.data.zoneInfo = d.zone;
         travelMapScene.data.scrollY = 0;
         travelMapScene.buildActionButtons();
       };

@@ -2,7 +2,6 @@ const farmScene = Scene.create({
   name: 'farm',
   data: {
     buttons: [],
-    plots: [],
     staticDraws: [],
     scrollY: 0,
     contentHeight: 0

@@ -2,8 +2,6 @@ const Input = {
   touches: [],
   clicks: [],
   keys: {},
-  _tapQueue: [],
-  _lastTap: 0,
 
   _touchStart: null,
   _touchStartTime: 0,

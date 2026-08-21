@@ -108,6 +108,26 @@ Equipped gear is an **object** (`{name, atk, type, rarity, ...}`) or `null`. Leg
 holding plain strings are healed by `SaveSystem.migrate()` on load. Always label slots
 with `Scene.gearLabel(slot)` — handles object / legacy string / empty.
 
+### Battle-instance timers
+Combat schedules 300/500ms callbacks (auto-turn, enemy-turn pacing). Every such timer
+must capture the battle token and bail if the battle changed:
+
+```js
+var runId = this.data.runId;   // incremented in enter()
+setTimeout(function() {
+  if (G.currentScene !== combatScene || combatScene.data.runId !== runId) return;
+  combatScene.advanceTurn();
+}, 500);
+```
+
+Without the `runId` check, a timer from a finished battle can fire into the next one
+(the guard on scene alone is not enough — the scene object is reused).
+
+### Transient effects
+Fleeting visuals — `R.damageNumbers`, `R.deathBursts`, `R.comboFlash` — live on `R`
+with matching `updateEffects()`/`renderEffects()` pairs. Never draw them outside
+`render()`; never mutate scene state from an effect.
+
 ### Adaptive difficulty
 There is no manual difficulty picker. `G.state.challenge` (0.6–1.5) drifts after every
 battle via `Progression.adjustChallenge()` based on outcome, remaining HP, and speed.

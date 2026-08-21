@@ -2,7 +2,6 @@ const punarjanmaScene = Scene.create({
   name: 'punarjanma',
   data: {
     buttons: [],
-    perkButtons: [],
     staticDraws: [],
     selectedPerk: null,
     scrollY: 0,
@@ -28,7 +27,6 @@ const punarjanmaScene = Scene.create({
 
   buildButtons: function() {
     this.data.buttons = [];
-    this.data.perkButtons = [];
     this.data.scrollY = 0;
     this.data.staticDraws = [];
     const SD = this.data.staticDraws;

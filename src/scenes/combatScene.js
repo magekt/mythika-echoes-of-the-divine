@@ -60,14 +60,12 @@ const combatScene = Scene.create({
     enemyButtons: [],
     result: null,
     fleeAttempted: false,
-    animTimer: 0,
     damageFlash: 0,
     autoBattle: false,
     encounterStory: '',
     beastSkillUsed: false,
     beastCooldown: 0,
     scrollY: 0,
-    comboDisplay: 0,
     turnCount: 0
   },
 
@@ -93,7 +91,6 @@ const combatScene = Scene.create({
     this.data.buttons = [];
     this.data.actionButtons = [];
     this.data.result = null;
-    this.data.animTimer = 0;
     this.data.damageFlash = 0;
     this.data.showEnlightenment = false;
     this.data.autoBattle = false;
@@ -489,7 +486,6 @@ const combatScene = Scene.create({
     } else {
       this.data.log.push(enemy.name + ' is confused and skips its turn!');
     }
-    this.data.animTimer = 0.5;
     var enemyRunId = this.data.runId;
     setTimeout(function() {
       if (G.currentScene !== combatScene || combatScene.data.runId !== enemyRunId) return;
@@ -640,7 +636,6 @@ const combatScene = Scene.create({
 
   update: function(dt) {
     if (this.data.damageFlash > 0) this.data.damageFlash -= dt;
-    if (this.data.comboDisplay > 0) this.data.comboDisplay -= dt;
     Scene.scrollInput(this);
     UI.updateButtons(this.data.actionButtons, dt);
     UI.updateButtons(this.data.enemyButtons, dt);
