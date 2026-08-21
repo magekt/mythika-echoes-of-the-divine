@@ -194,10 +194,7 @@ const travelMapScene = Scene.create({
   },
 
   render: function(ctx) {
-    R.roundRect(ctx, 10, 6, G.W - 20, 104, 8, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 6.5, G.W - 21, 103);
+    Scene.drawHeader(ctx, 104);
 
     const backBtn = UI.Button(14, 10, 60, 24, '\u2190 Back', R.colors.btn);
     backBtn.onClick = function() {
@@ -226,11 +223,7 @@ const travelMapScene = Scene.create({
     }
 
     const top = this.getContentTop();
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, top, G.W, this.getContentHeight());
-    ctx.clip();
-    ctx.translate(0, -this.data.scrollY);
+    Scene.clipContent(ctx, this);
 
     if (this.data.selectedZone) {
       this.renderInfoPanel(ctx, this.getContentTop());

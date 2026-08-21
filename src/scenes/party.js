@@ -369,19 +369,12 @@ const partyScene = Scene.create({
 
   render: function(ctx) {
     if (this.data.view === 'list') {
-      R.roundRect(ctx, 10, 6, G.W - 20, 62, 8, R.colors.panel);
+      Scene.drawHeader(ctx, 62);
       R.textCenter(ctx, 'Party', G.W / 2, 24, R.colors.gold, R.fonts.lg);
       R.textCenter(ctx, 'Tap a hero to manage:', G.W / 2, 48, R.colors.text, R.fonts.sm);
-      ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(10.5, 6.5, G.W - 21, 61);
 
       const top = this.getContentTop();
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, top, G.W, this.getContentHeight());
-      ctx.clip();
-      ctx.translate(0, -this.data.scrollY);
+      Scene.clipContent(ctx, this);
       for (const b of this.data.buttons) b.render(ctx);
       ctx.restore();
 
@@ -389,19 +382,12 @@ const partyScene = Scene.create({
 
     } else if (this.data.itemsView) {
       const hero = this.data.selectedHero;
-      R.roundRect(ctx, 10, 6, G.W - 20, 62, 8, R.colors.panel);
+      Scene.drawHeader(ctx, 62);
       R.textCenter(ctx, hero.name + ' — Items', G.W / 2, 24, R.colors.gold, R.fonts.lg);
       R.textCenter(ctx, 'Inventory: ' + G.state.inventory.length + ' items', G.W / 2, 48, R.colors.text, R.fonts.sm);
-      ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(10.5, 6.5, G.W - 21, 61);
 
       const top = this.getContentTop();
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, top, G.W, this.getContentHeight());
-      ctx.clip();
-      ctx.translate(0, -this.data.scrollY);
+      Scene.clipContent(ctx, this);
       for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
       Scene.drawStatic(ctx, this.data.staticDraws);
       ctx.restore();
@@ -410,19 +396,12 @@ const partyScene = Scene.create({
 
     } else {
       const hero = this.data.selectedHero;
-      R.roundRect(ctx, 10, 6, G.W - 20, 62, 8, R.colors.panel);
+      Scene.drawHeader(ctx, 62);
       R.textCenter(ctx, hero.name + ' — ' + (hero.title || ''), G.W / 2, 24, R.colors.gold, R.fonts.lg);
       R.textCenter(ctx, 'Inventory: ' + G.state.inventory.length + ' items', G.W / 2, 48, R.colors.text, R.fonts.sm);
-      ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(10.5, 6.5, G.W - 21, 61);
 
       const top = this.getContentTop();
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, top, G.W, this.getContentHeight());
-      ctx.clip();
-      ctx.translate(0, -this.data.scrollY);
+      Scene.clipContent(ctx, this);
       this.renderDetailInfo(ctx, this.getContentTop());
       for (const b of this.data.buttons) b.render(ctx);
       ctx.restore();

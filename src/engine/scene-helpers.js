@@ -69,4 +69,34 @@
     return visible;
   };
 
+  // Standard top panel: background + hairline border + centered gold title.
+  // Scene-specific sub-lines stay in the scene's render().
+  Scene.drawHeader = function(ctx, h, title, titleY) {
+    R.roundRect(ctx, 10, 6, G.W - 20, h, 8, R.colors.panel);
+    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(10.5, 6.5, G.W - 21, h - 1);
+    if (title) R.textCenter(ctx, title, G.W / 2, titleY || 22, R.colors.gold, R.fonts.lg);
+  };
+
+  // save + clip to the scrollable content band + translate by -scrollY.
+  // Caller MUST ctx.restore() after drawing its content.
+  Scene.clipContent = function(ctx, scene) {
+    const top = scene.getContentTop();
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, top, G.W, scene.getContentHeight());
+    ctx.clip();
+    ctx.translate(0, -scene.data.scrollY);
+  };
+
+  // Standard bottom-of-list back button.
+  // opts: { label: 'Back to Ashram', target: 'ashram', fade: false }
+  Scene.backButton = function(y, opts) {
+    const o = opts || {};
+    const btn = UI.Button(60, y, G.W - 120, 30, o.label || 'Back to Ashram', R.colors.btnGold);
+    btn.onClick = function() { gScene(o.target || 'ashram', !!o.fade); };
+    return btn;
+  };
+
 })();

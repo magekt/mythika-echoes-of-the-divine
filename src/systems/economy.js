@@ -10,6 +10,13 @@ Economy.spendGold = function(amount) {
   return true;
 };
 
+// spendGold with the standard "Not enough gold!" toast on failure.
+Economy.spendGoldOrNotify = function(amount) {
+  if (this.spendGold(amount)) return true;
+  Notify.show('Not enough gold! Need ' + amount + 'g', 2, R.colors.red);
+  return false;
+};
+
 Economy.addKarma = function(amount) {
   G.state.karma = (G.state.karma || 0) + amount;
 };

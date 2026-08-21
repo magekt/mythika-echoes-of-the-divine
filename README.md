@@ -69,8 +69,30 @@ are factored out:
 
 ```js
 update: function(dt) { Scene.scrollInput(this); ... }
+// top of the content section in render():
+Scene.clipContent(ctx, this);   // save + clip + translate; caller ctx.restore()s after
 // end of render():
 Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
+```
+
+### Headers & chrome
+Every scene's top panel is one call (bg + hairline border + centered gold title);
+scene-specific sub-lines follow it in `render()`:
+
+```js
+Scene.drawHeader(ctx, 62, 'Quest Log');   // height, title, optional titleY (default 22)
+```
+
+Long button lists must cull to the viewport (buttons keep build-time y):
+
+```js
+for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
+```
+
+### Shared buttons & economy guards
+```js
+this.data.buttons.push(Scene.backButton(y, { fade: true }));  // opts: label/target/fade
+if (Economy.spendGoldOrNotify(cost)) { ... }   // spends + standard toast on failure
 ```
 
 ### Modals

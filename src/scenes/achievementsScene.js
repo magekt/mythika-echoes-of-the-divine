@@ -75,9 +75,7 @@ const achievementsScene = Scene.create({
     }
 
     y += 6;
-    const back = UI.Button(60, y, G.W - 120, 30, 'Back to Ashram', R.colors.btnGold);
-    back.onClick = function() { gScene('ashram'); };
-    this.data.buttons.push(back);
+    this.data.buttons.push(Scene.backButton(y));
     y += 44;
 
     this.data.contentHeight = y;
@@ -90,11 +88,7 @@ const achievementsScene = Scene.create({
   },
 
   render: function(ctx) {
-    R.roundRect(ctx, 10, 6, G.W - 20, 74, 8, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 6.5, G.W - 21, 73);
-    R.textCenter(ctx, 'Achievements', G.W / 2, 22, R.colors.gold, R.fonts.lg);
+    Scene.drawHeader(ctx, 74, 'Achievements', 22);
     const uc = AchievementSystem.getUnlockedCount();
     const tc = AchievementSystem.getTotalCount();
     const allAch = AchievementSystem.getAll();
@@ -103,11 +97,7 @@ const achievementsScene = Scene.create({
     R.textCenter(ctx, uc === tc ? 'All achievements complete!' : (locked.length + ' remaining'), G.W / 2, 64, uc === tc ? R.colors.green : R.colors.textDim, R.fonts.sm);
 
     const top = this.getContentTop();
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, top, G.W, this.getContentHeight());
-    ctx.clip();
-    ctx.translate(0, -this.data.scrollY);
+    Scene.clipContent(ctx, this);
 
     for (const b of this.data.buttons) b.render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);

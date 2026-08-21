@@ -70,11 +70,7 @@ const characterCreateScene = Scene.create({
     ctx.fillRect(15, 66, G.W - 30, 1);
 
     const top = this.getContentTop();
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, top, G.W, this.getContentHeight());
-    ctx.clip();
-    ctx.translate(0, -this.data.scrollY);
+    Scene.clipContent(ctx, this);
 
     if (this.data.step === 0) {
       R.textCenter(ctx, 'Choose your spiritual path', G.W / 2, 86, R.colors.text, R.fonts.md);

@@ -140,10 +140,7 @@ const zoneExplorationScene = Scene.create({
   render: function(ctx) {
     R.drawZoneBackground(ctx, this.data.zoneId);
 
-    R.roundRect(ctx, 10, 6, G.W - 20, 122, 8, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 6.5, G.W - 21, 121);
+    Scene.drawHeader(ctx, 122);
 
     R.textCenter(ctx, this.data.zone.name, G.W / 2, 24, R.colors.gold, R.fonts.lg);
     R.textCenter(ctx, this.data.zone.desc, G.W / 2, 46, R.colors.textDim, R.fonts.sm);
@@ -167,11 +164,7 @@ const zoneExplorationScene = Scene.create({
     }
 
     const top = this.getContentTop();
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, top, G.W, this.getContentHeight());
-    ctx.clip();
-    ctx.translate(0, -this.data.scrollY);
+    Scene.clipContent(ctx, this);
 
     let ly = top + 4;
     const logSlice = this.data.log.slice(-8);

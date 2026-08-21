@@ -195,22 +195,14 @@ const equipmentScene = Scene.create({
   },
 
   render: function(ctx) {
-    R.roundRect(ctx, 10, 6, G.W - 20, 104, 8, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 6.5, G.W - 21, 103);
-
+    Scene.drawHeader(ctx, 104);
     R.textCenter(ctx, 'Equipment', G.W / 2, 24, R.colors.gold, R.fonts.lg);
     if (this.data.selectedHero) {
       R.textCenter(ctx, this.data.selectedHero.name + ' Lv.' + this.data.selectedHero.level, G.W / 2, 44, R.colors.text, R.fonts.sm);
     }
 
     const top = this.getContentTop();
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, top, G.W, this.getContentHeight());
-    ctx.clip();
-    ctx.translate(0, -this.data.scrollY);
+    Scene.clipContent(ctx, this);
 
     for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);

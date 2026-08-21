@@ -70,9 +70,7 @@ const alchemyScene = Scene.create({
       }
     }
 
-    const back = UI.Button(60, y + 6, G.W - 120, 30, 'Back to Ashram', R.colors.btnGold);
-    back.onClick = function() { gScene('ashram'); };
-    this.data.buttons.push(back);
+    this.data.buttons.push(Scene.backButton(y + 6));
     y += 44;
 
     this.data.contentHeight = y;
@@ -85,11 +83,7 @@ const alchemyScene = Scene.create({
   },
 
   render: function(ctx) {
-    R.roundRect(ctx, 10, 6, G.W - 20, 62, 8, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 6.5, G.W - 21, 61);
-    R.textCenter(ctx, 'Alchemy Lab', G.W / 2, 22, R.colors.gold, R.fonts.lg);
+    Scene.drawHeader(ctx, 62, 'Alchemy Lab', 22);
     R.textCenter(ctx, 'Concoct magical elixirs', G.W / 2, 46, R.colors.textDim, R.fonts.sm);
 
     ctx.fillStyle = R.colors.panel;
@@ -102,11 +96,7 @@ const alchemyScene = Scene.create({
     }
 
     const top = this.getContentTop();
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, top, G.W, this.getContentHeight());
-    ctx.clip();
-    ctx.translate(0, -this.data.scrollY);
+    Scene.clipContent(ctx, this);
 
     for (const b of this.data.buttons) b.render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);

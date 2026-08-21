@@ -60,9 +60,7 @@ const tournamentScene = Scene.create({
     SD.push({ text: ['Entry Fee: ' + cost + 'g', 20, y + 20, R.colors.textDim, R.fonts.sm] });
     y += 36;
 
-    const back = UI.Button(60, y + 4, G.W - 120, 30, 'Back to Ashram', R.colors.btnGold);
-    back.onClick = function() { gScene('ashram', true); };
-    this.data.buttons.push(back);
+    this.data.buttons.push(Scene.backButton(y + 4, { fade: true }));
     y += 44;
 
     this.data.contentHeight = y;
@@ -210,11 +208,7 @@ const tournamentScene = Scene.create({
   },
 
   render: function(ctx) {
-    R.roundRect(ctx, 10, 6, G.W - 20, 62, 8, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 6.5, G.W - 21, 61);
-    R.textCenter(ctx, 'Tournament', G.W / 2, 22, R.colors.gold, R.fonts.lg);
+    Scene.drawHeader(ctx, 62, 'Tournament', 22);
     R.textCenter(ctx, this.data.state === 'fighting' || this.data.state === 'result' ? 'Round ' + this.data.round : 'Test your might!', G.W / 2, 46, R.colors.text, R.fonts.sm);
 
     if (this.data.state === 'fighting' || this.data.state === 'result') {
@@ -237,11 +231,7 @@ const tournamentScene = Scene.create({
     }
 
     const top = this.getContentTop();
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, top, G.W, this.getContentHeight());
-    ctx.clip();
-    ctx.translate(0, -this.data.scrollY);
+    Scene.clipContent(ctx, this);
 
     for (const b of this.data.buttons) b.render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);

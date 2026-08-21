@@ -58,9 +58,7 @@ const forgeScene = Scene.create({
       y += 60;
     }
 
-    const back = UI.Button(60, y + 6, G.W - 120, 30, 'Back to Ashram', R.colors.btnGold);
-    back.onClick = function() { gScene('ashram', true); };
-    this.data.buttons.push(back);
+    this.data.buttons.push(Scene.backButton(y + 6, { fade: true }));
     y += 44;
 
     this.data.contentHeight = y;
@@ -123,10 +121,7 @@ const forgeScene = Scene.create({
     const cost = this.data.upgradeCosts[slotId];
     const slotName = slotId.charAt(0).toUpperCase() + slotId.slice(1);
 
-    if (!Economy.spendGold(cost)) {
-      Notify.show('Not enough gold! Need ' + cost + 'g', 2);
-      return;
-    }
+    if (!Economy.spendGoldOrNotify(cost)) return;
     if (slotId === 'weapon') { hero.weaponLvl++; }
     else if (slotId === 'armor') { hero.armorLvl++; }
     else if (slotId === 'accessory') { hero.accessoryLvl++; }
@@ -144,11 +139,7 @@ const forgeScene = Scene.create({
   },
 
   render: function(ctx) {
-    R.roundRect(ctx, 10, 6, G.W - 20, 74, 8, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 6.5, G.W - 21, 73);
-    R.textCenter(ctx, 'Forge', G.W / 2, 22, R.colors.gold, R.fonts.lg);
+    Scene.drawHeader(ctx, 74, 'Forge', 22);
     R.textCenter(ctx, 'Gold: ' + (G.state.gold || 0) + 'g', G.W / 2, 46, R.colors.gold, R.fonts.sm);
     if (this.data.selectedHero) {
       R.textCenter(ctx, 'Upgrading: ' + this.data.selectedHero.name, G.W / 2, 66, R.colors.text, R.fonts.sm);
@@ -157,11 +148,7 @@ const forgeScene = Scene.create({
     }
 
     const top = this.getContentTop();
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, top, G.W, this.getContentHeight());
-    ctx.clip();
-    ctx.translate(0, -this.data.scrollY);
+    Scene.clipContent(ctx, this);
 
     for (const b of this.data.buttons) b.render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);

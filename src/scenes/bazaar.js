@@ -88,11 +88,9 @@ const bazaarScene = Scene.create({
 
       const refreshBtn = UI.Button(20, G.H - 42, 140, 26, 'Refresh (10g)');
       refreshBtn.onClick = function() {
-        if (Economy.spendGold(10)) {
+        if (Economy.spendGoldOrNotify(10)) {
           bazaarScene.generateInventory();
           bazaarScene.buildBuySellLists();
-        } else {
-          Notify.show('Not enough gold! Need 10g', 2, R.colors.red);
         }
       };
       this.data.buttons.push(refreshBtn);
@@ -151,10 +149,7 @@ const bazaarScene = Scene.create({
   },
 
   render: function(ctx) {
-    R.roundRect(ctx, 10, 6, G.W - 20, 78, 8, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 6.5, G.W - 21, 77);
+    Scene.drawHeader(ctx, 78);
 
     R.textCenter(ctx, 'Bazaar', G.W / 2, 24, R.colors.gold, R.fonts.lg);
     R.textCenter(ctx, 'Gold: ' + (G.state.gold || 0) + 'g', G.W / 2, 48, R.colors.gold, R.fonts.sm);

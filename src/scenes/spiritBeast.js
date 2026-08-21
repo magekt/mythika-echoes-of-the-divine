@@ -216,20 +216,12 @@ const spiritBeastScene = Scene.create({
   },
 
   render: function(ctx) {
-    R.roundRect(ctx, 10, 6, G.W - 20, 76, 8, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 6.5, G.W - 21, 75);
-    R.textCenter(ctx, 'Spirit Beasts', G.W / 2, 22, R.colors.gold, R.fonts.lg);
+    Scene.drawHeader(ctx, 76, 'Spirit Beasts', 22);
     R.textCenter(ctx, 'Active: ' + (G.state.activeBeast ? ((SPIRIT_BEASTS[G.state.activeBeast] || {}).name || G.state.activeBeast) : 'None'), G.W / 2, 46, R.colors.gold, R.fonts.sm);
     R.textCenter(ctx, 'Prana: ' + Math.floor(G.state.prana || 0) + ' | Fish: ' + (G.state.fishCaught || 0), G.W / 2, 64, R.colors.text, R.fonts.sm);
 
     const top = this.getContentTop();
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, top, G.W, this.getContentHeight());
-    ctx.clip();
-    ctx.translate(0, -this.data.scrollY);
+    Scene.clipContent(ctx, this);
 
     Scene.drawStatic(ctx, this.data.staticDraws);
     for (const b of this.data.buttons) b.render(ctx);

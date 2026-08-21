@@ -131,11 +131,7 @@ const fishingScene = Scene.create({
   },
 
   render: function(ctx) {
-    R.roundRect(ctx, 10, 6, G.W - 20, 72, 8, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 6.5, G.W - 21, 71);
-    R.textCenter(ctx, 'Fishing', G.W / 2, 24, R.colors.gold, R.fonts.lg);
+    Scene.drawHeader(ctx, 72, 'Fishing', 24);
     R.textCenter(ctx, 'Fish Caught: ' + (G.state.fishCaught || 0) + '  |  Gold: ' + (G.state.gold || 0) + 'g', G.W / 2, 50, R.colors.text, R.fonts.sm);
 
     ctx.fillStyle = '#1a2a3a';
