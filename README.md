@@ -38,6 +38,10 @@ src/
 └── scenes/              23 scenes following the Scene contract
 ```
 
+The canvas backs at `devicePixelRatio` resolution (capped 3x) while all game code uses
+400x720 logical coordinates — text and edges stay crisp on phones. `fitGame()` scales
+the container to letterbox any viewport; input maps taps through the scaled rect.
+
 The game loop order matters: `update()` may rebuild UI (`build*()` functions), then the
 canvas is cleared, then `render()` draws. **Never draw text directly to `G.ctx` outside
 `render()`** — it will be wiped before it is ever seen.

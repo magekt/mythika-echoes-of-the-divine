@@ -30,7 +30,6 @@ body {
   width: 400px;
   height: 720px;
   display: block;
-  image-rendering: pixelated;
 }
 #status-bar { display: none; }
 @media (max-width: 420px) {

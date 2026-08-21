@@ -163,10 +163,14 @@ function fitGame() {
 
 function gInit() {
   G.canvas = document.getElementById('game-canvas');
-  G.canvas.width = G.W;
-  G.canvas.height = G.H;
+  // Back the canvas at device resolution so text/edges stay crisp on phones
+  // (DPR 2-3), while ALL game code keeps using 400x720 logical coordinates.
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  G.canvas.width = G.W * dpr;
+  G.canvas.height = G.H * dpr;
   G.ctx = G.canvas.getContext('2d');
-  G.ctx.imageSmoothingEnabled = false;
+  G.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  G.dpr = dpr;
   initSceneManager();
   initInput();
   initAudio();
@@ -247,3 +251,4 @@ function gScene(name, fade) {
 
 window.addEventListener('load', function(){ gInit(); fitGame(); });
 window.addEventListener('resize', fitGame);
+window.addEventListener('orientationchange', fitGame);

@@ -10,6 +10,7 @@ Mythika/
 ├── netlify.toml          (deploys the repo root as-is)
 ├── styles/
 │   └── game.css          (dark theme, content-box canvas, JS-driven responsive fit)
+├── (canvas backs at devicePixelRatio for crisp mobile rendering; letterboxed via fitGame)
 ├── src/
 │   ├── main.js           (scene registration — 23 scenes)
 │   ├── engine/           (6 files — game loop, scene, scene-helpers, input, audio, renderer)
