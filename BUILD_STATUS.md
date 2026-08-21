@@ -1,6 +1,6 @@
 # Mythika: Echoes of the Divine — Build Status
 
-**59 files, ~9,500 lines of JavaScript** across 6 directories.
+**60 files, ~9,600 lines of JavaScript** across 6 directories.
 
 ## Directory Structure
 
@@ -38,14 +38,15 @@ Mythika/
 ### Data Layer
 - **5 Heroes**: Arjuna, Bhima, Karna, Draupadi (Rishi support/mage), Hanuman (Yogi agile fighter)
 - **27 Enemies** across 5 zones with **18 unique enemy abilities** (used ~40% of the time)
-- **5 Zones**: Aryavarta → Dandaka → Meru → Patala → Svarga
+- **6 Zones**: Aryavarta → Dandaka → Meru → Patala → Svarga → **Tapobhumi** (prestige zone,
+  unlocked at Lv50 with Svarga conquered; new prestige foes + Pralaya boss)
 - **Items**: weapons/armors/accessories with **4 rarity tiers** (35 loot templates,
   zone-gated, stats scale with rarity x level x adaptive challenge), consumables with stacking
 - **3 Classes**: Kshatriya, Rishi, Yogi → 6 elite classes
 - **11 Perks (Siddhi)**, **24 Auras**, **5 Realms (Vedic)**
 - **9 Alchemy Recipes**, **3 Herbs** with growth timers
 - **10 Spirit Beasts** with **20 evolution forms** (2-stage: Lv.10 and Lv.25 via evolutionStage)
-- **21 Achievements** (incl. Endless Trials tiers), **25 quests + 10 multi-step quest chains** with final rewards
+- **22 Achievements** (incl. Endless Trials tiers and Tapobhumi conquest), **25 quests + 10 multi-step quest chains** with final rewards
 - **All 11 Siddhi perks wired** (vitality/wisdom scaling, regen, shields, XP, loot quality/rarity, rebirth boons, crit) plus
   **Tier-II ring** (Vajra/Amrita/Kirti/Gyana) unlocked by the first rebirth
 - **All 6 elite-class bonuses live**: firstCrit2x, spellDmgPct (once/battle), magicMilestone, dualCast echo strike,
@@ -111,3 +112,5 @@ Mythika/
 - Beast XP capped at Lv.30 with level-up notifications
 - Toasts and achievement banners placed to never cover action buttons
 - Mobile: touch scrolling everywhere, tap-on-release, no phantom taps across scenes
+- Accessibility: user-selectable UI text scale (Normal/Large/Largest), persisted per save
+- Onboarding: one-time contextual hints (Ashram, map gating, targeting, beasts, bazaar)
