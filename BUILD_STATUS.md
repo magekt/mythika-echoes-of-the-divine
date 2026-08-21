@@ -44,7 +44,7 @@ Mythika/
 - **11 Perks (Siddhi)**, **24 Auras**, **5 Realms (Vedic)**
 - **9 Alchemy Recipes**, **3 Herbs** with growth timers
 - **10 Spirit Beasts** with **20 evolution forms** (2-stage: Lv.10 and Lv.25 via evolutionStage)
-- **19 Achievements**, **25 quests + 10 multi-step quest chains** with final rewards
+- **21 Achievements** (incl. Endless Trials tiers), **25 quests + 10 multi-step quest chains** with final rewards
 
 ### Systems
 - **Economy**: gold, karma, divine fragments, inventory with quantity stacking
@@ -60,7 +60,15 @@ Mythika/
 - **Alchemy / Farm / Fishing**: full crafting, grow-harvest, and minigame loops
 - **Quest System**: zone quests + chains with per-step progress and claimable rewards
 - **Save/Load**: localStorage, auto-save every 30s, versioning, offline progress,
-  one-time migration for pre-object-gear saves
+  one-time migration for pre-object-gear saves, file export/import backup
+  (imports re-run migration and reject files missing party data)
+
+### Endgame
+- **Endless Trials**: unlocked by defeating Svarga's boss; endless waves cycling all
+  five zones with per-wave scaling, gold/karma/XP rewards, respite heals,
+  persistent best-wave tracking, and two dedicated achievements
+- **Combat polish**: death-burst animations (expanding ring + sparks) for fallen
+  enemies and heroes
 
 ### Scene Conventions (see src/engine/scene-helpers.js)
 - `Scene.drawStatic(ctx, draws)` — build-time text/panels recorded in `data.staticDraws`,

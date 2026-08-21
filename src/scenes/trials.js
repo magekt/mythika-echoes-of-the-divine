@@ -212,8 +212,8 @@ const trialsScene = Scene.create({
         '   |   +' + this.data.runGold + 'g' + (this.data.runKarma ? ' +' + this.data.runKarma + 'K' : ''),
         G.W / 2, 182, R.colors.gold, R.fonts.xs);
 
-      // Last few log lines above the bottom buttons
-      let ly = st === 'result' ? 300 : 290;
+      // Last few log lines above the bottom buttons (clear of the Retreat button)
+      let ly = st === 'result' ? 300 : 312;
       for (const msg of this.data.log.slice(-4)) {
         ctx.fillStyle = 'rgba(0,0,0,0.35)';
         R.roundRect(ctx, 14, ly - 1, G.W - 28, 16, 3, ctx.fillStyle);

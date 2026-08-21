@@ -96,6 +96,7 @@ SaveSystem.importFile = function(file, cb) {
     try {
       const data = JSON.parse(reader.result);
       if (!data || data.version !== 1 || !data.state) { cb(false, 'Invalid save file'); return; }
+      if (!Array.isArray(data.state.party) || !data.state.party.length) { cb(false, 'Save missing party data'); return; }
       Object.assign(G.state, data.state);
       this.migrate();
       cb(true, 'Save imported!');
