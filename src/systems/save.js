@@ -65,6 +65,48 @@ SaveSystem.load = function() {
   }
 };
 
+// Download the current save as a JSON file (manual backup).
+SaveSystem.exportFile = function() {
+  try {
+    const data = JSON.stringify({
+      state: JSON.parse(JSON.stringify(G.state)),
+      version: 1,
+      timestamp: Date.now()
+    }, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'mythika-save.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    return true;
+  } catch (e) {
+    console.warn('Export failed:', e);
+    return false;
+  }
+};
+
+// Restore from a previously exported JSON file. cb(ok, message).
+SaveSystem.importFile = function(file, cb) {
+  if (!file) { cb(false, 'No file chosen'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data || data.version !== 1 || !data.state) { cb(false, 'Invalid save file'); return; }
+      Object.assign(G.state, data.state);
+      this.migrate();
+      cb(true, 'Save imported!');
+    } catch (e) {
+      cb(false, 'Corrupted save file');
+    }
+  };
+  reader.onerror = () => cb(false, 'Could not read file');
+  reader.readAsText(file);
+};
+
 SaveSystem.delete = function() {
   try {
     localStorage.removeItem(this.SAVE_KEY);

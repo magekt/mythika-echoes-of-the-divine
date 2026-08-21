@@ -56,6 +56,30 @@ const settingsScene = Scene.create({
     this.data.buttons.push(loadBtn);
     y += 36;
 
+    const exportBtn = UI.Button(20, y, G.W - 40, 30, 'Export Save to File');
+    exportBtn.onClick = function() {
+      if (SaveSystem.exportFile()) { Notify.show('Save exported!', 2, R.colors.green); }
+      else { Notify.show('Export failed!', 2, R.colors.red); }
+    };
+    this.data.buttons.push(exportBtn);
+    y += 36;
+
+    const importBtn = UI.Button(20, y, G.W - 40, 30, 'Import Save from File');
+    importBtn.onClick = function() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onchange = function() {
+        SaveSystem.importFile(input.files && input.files[0], function(ok, msg) {
+          Notify.show(msg, 3, ok ? R.colors.green : R.colors.red);
+          if (ok) settingsScene.buildButtons();
+        });
+      };
+      input.click();
+    };
+    this.data.buttons.push(importBtn);
+    y += 36;
+
     const deleteBtn = UI.Button(20, y, G.W - 40, 30, 'Delete Save');
     deleteBtn.onClick = function() {
       UI.Modal.confirm('Delete Save', 'This cannot be undone!', function(confirmed) {
