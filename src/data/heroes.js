@@ -85,12 +85,12 @@ function createHeroState(id) {
     signalSkill: { ...h.signalSkill },
     level: 1, xp: 0,
     weaponLvl: 1, armorLvl: 1, accessoryLvl: 1,
-    weaponEquipped: (heroWeapon ? heroWeapon.name : h.weapon) + ' (Lv.1)',
-    armorEquipped: 'Leather Armor',
-    accessoryEquipped: 'Simple Amulet',
-    equipAtk: heroWeapon ? (heroWeapon.atk || 0) : 0,
-    equipDef: heroArmor ? (heroArmor.def || 0) : 0,
-    equipAccMag: heroAcc ? (heroAcc.mag || 0) : 0,
+    weaponEquipped: heroWeapon ? { name: heroWeapon.name, atk: heroWeapon.atk, type: 'weapon', rarity: 'common', rarityName: 'Common' } : null,
+    armorEquipped: heroArmor ? { name: heroArmor.name, def: heroArmor.def, type: 'armor', rarity: 'common', rarityName: 'Common' } : null,
+    accessoryEquipped: heroAcc ? { name: heroAcc.name, mag: heroAcc.mag, type: 'accessory', rarity: 'common', rarityName: 'Common' } : null,
+    equipAtk: 0,
+    equipDef: 0,
+    equipAccMag: 0,
     active: true
   };
 }

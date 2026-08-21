@@ -79,9 +79,9 @@ const forgeScene = Scene.create({
     y += 20;
 
     const slots = [
-      { id: 'weapon', label: 'Weapon (' + hero.weaponEquipped + ' Lv.' + hero.weaponLvl + ')', cost: this.data.upgradeCosts.weapon },
-      { id: 'armor', label: 'Armor (' + hero.armorEquipped + ' Lv.' + hero.armorLvl + ')', cost: this.data.upgradeCosts.armor },
-      { id: 'accessory', label: 'Accessory (' + hero.accessoryEquipped + ' Lv.' + hero.accessoryLvl + ')', cost: this.data.upgradeCosts.accessory }
+      { id: 'weapon', label: 'Weapon (' + ((hero.weaponEquipped && hero.weaponEquipped.name) || hero.weaponEquipped || 'None') + ' Lv.' + hero.weaponLvl + ')', cost: this.data.upgradeCosts.weapon },
+      { id: 'armor', label: 'Armor (' + ((hero.armorEquipped && hero.armorEquipped.name) || hero.armorEquipped || 'None') + ' Lv.' + hero.armorLvl + ')', cost: this.data.upgradeCosts.armor },
+      { id: 'accessory', label: 'Accessory (' + ((hero.accessoryEquipped && hero.accessoryEquipped.name) || hero.accessoryEquipped || 'None') + ' Lv.' + hero.accessoryLvl + ')', cost: this.data.upgradeCosts.accessory }
     ];
 
     for (const slot of slots) {

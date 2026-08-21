@@ -140,12 +140,15 @@ const partyScene = Scene.create({
     R.text(ctx, statLine, 18, y, R.colors.text, R.fonts.sm);
     y += 18;
 
-    const equipLine = 'Weapon: ' + hero.weaponEquipped + ' (Lv.' + hero.weaponLvl + ')' + (hero.equipAtk ? ' +' + hero.equipAtk + ' ATK' : '');
+    const wepName = (hero.weaponEquipped && hero.weaponEquipped.name) || hero.weaponEquipped || 'None';
+    const equipLine = 'Weapon: ' + wepName + ' (Lv.' + hero.weaponLvl + ')' + (hero.equipAtk ? ' +' + hero.equipAtk + ' ATK' : '');
     R.text(ctx, equipLine, 18, y, R.colors.textDim, R.fonts.sm);
     y += 14;
-    R.text(ctx, 'Armor: ' + hero.armorEquipped + ' (Lv.' + hero.armorLvl + ')' + (hero.equipDef ? ' +' + hero.equipDef + ' DEF' : ''), 18, y, R.colors.textDim, R.fonts.sm);
+    const armName = (hero.armorEquipped && hero.armorEquipped.name) || hero.armorEquipped || 'None';
+    R.text(ctx, 'Armor: ' + armName + ' (Lv.' + hero.armorLvl + ')' + (hero.equipDef ? ' +' + hero.equipDef + ' DEF' : ''), 18, y, R.colors.textDim, R.fonts.sm);
     y += 14;
-    R.text(ctx, 'Accessory: ' + hero.accessoryEquipped + ' (Lv.' + hero.accessoryLvl + ')' + (hero.equipAccMag ? ' +' + hero.equipAccMag + ' MAG' : ''), 18, y, R.colors.textDim, R.fonts.sm);
+    const accName = (hero.accessoryEquipped && hero.accessoryEquipped.name) || hero.accessoryEquipped || 'None';
+    R.text(ctx, 'Accessory: ' + accName + ' (Lv.' + hero.accessoryLvl + ')' + (hero.equipAccMag ? ' +' + hero.equipAccMag + ' MAG' : ''), 18, y, R.colors.textDim, R.fonts.sm);
     y += 20;
 
     if (hero.skills && hero.skills.length) {
@@ -189,7 +192,7 @@ const partyScene = Scene.create({
     this.data.buttons.push(useItemBtn);
     y += 36;
 
-    const equipWeaponBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Weapon (' + hero.weaponEquipped + ')');
+    const equipWeaponBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Weapon (' + (((hero.weaponEquipped && hero.weaponEquipped.name) || hero.weaponEquipped || 'None')) + ')');
     equipWeaponBtn.onClick = function() {
       partyScene.data.itemsView = true;
       partyScene.data.equipSlot = 'weapon';
@@ -199,7 +202,7 @@ const partyScene = Scene.create({
     this.data.buttons.push(equipWeaponBtn);
     y += 34;
 
-    const equipArmorBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Armor (' + hero.armorEquipped + ')');
+    const equipArmorBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Armor (' + (((hero.armorEquipped && hero.armorEquipped.name) || hero.armorEquipped || 'None')) + ')');
     equipArmorBtn.onClick = function() {
       partyScene.data.itemsView = true;
       partyScene.data.equipSlot = 'armor';
@@ -209,7 +212,7 @@ const partyScene = Scene.create({
     this.data.buttons.push(equipArmorBtn);
     y += 34;
 
-    const equipAccBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Accessory (' + hero.accessoryEquipped + ')');
+    const equipAccBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Accessory (' + (((hero.accessoryEquipped && hero.accessoryEquipped.name) || hero.accessoryEquipped || 'None')) + ')');
     equipAccBtn.onClick = function() {
       partyScene.data.itemsView = true;
       partyScene.data.equipSlot = 'accessory';
@@ -315,21 +318,21 @@ const partyScene = Scene.create({
                   Audio.error();
                   return;
                 }
-                hero.weaponEquipped = item.name;
+                hero.weaponEquipped = item;
                 hero.weaponLvl = item.atk ? 1 : hero.weaponLvl;
                 hero.equipAtk = item.atk || 0;
                 hero.equipCrit = item.crit || 0;
               } else if (slot === 'armor') {
-                hero.armorEquipped = item.name;
+                hero.armorEquipped = item;
                 hero.armorLvl = item.def ? 1 : hero.armorLvl;
                 hero.equipDef = item.def || 0;
                 hero.equipArmorMag = item.mag || 0;
               } else if (slot === 'accessory') {
-                hero.accessoryEquipped = item.name;
+                hero.accessoryEquipped = item;
                 hero.equipAccMag = item.mag || 0;
                 hero.equipAccDef = item.def || 0;
                 hero.equipAccHp = item.hp || 0;
-                hero.equipCrit = (hero.equipCrit || 0) + (item.crit || 0);
+                hero.equipCrit = item.crit || 0;
               }
               Economy.removeItem(idx);
               Notify.show('Equipped ' + item.name + '!', 2);
