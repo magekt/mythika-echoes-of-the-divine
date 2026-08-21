@@ -67,12 +67,15 @@ const travelMapScene = Scene.create({
           ctx.textAlign = 'right';
           ctx.fillStyle = R.colors.textDim;
           ctx.font = R.fonts.sm;
-          if (this._zone.reqZone) {
+          const reqProgress = !this._zone.reqZone || (G.state.zoneProgress[this._zone.reqZone] || 0) >= 100;
+          const reqLevel = (G.state.party || []).some(h => h.level >= (this._zone.reqLevel || 1));
+          let label = '';
+          if (!reqProgress) {
             const reqName = ZONES[this._zone.reqZone] ? ZONES[this._zone.reqZone].name : this._zone.reqZone;
-            ctx.fillText('Need: ' + reqName, bx + bw - 14, by + 20);
-          } else {
-            ctx.fillText('Lv' + (this._zone.reqLevel || 1) + '+', bx + bw - 14, by + 20);
+            label = 'Need: ' + reqName;
           }
+          if (!reqLevel) label = label ? label + ' Lv' + (this._zone.reqLevel||1) + '+' : 'Lv' + (this._zone.reqLevel||1) + '+';
+          ctx.fillText(label, bx + bw - 14, by + 20);
           ctx.textAlign = 'left';
         }
         ctx.globalAlpha = 1;
@@ -173,6 +176,18 @@ const travelMapScene = Scene.create({
   },
 
   update: function(dt) {
+    const backTap = Input.peekTap();
+    if (backTap && backTap.x >= 14 && backTap.x <= 74 && backTap.y >= 10 && backTap.y <= 34) {
+      Input.getTap();
+      if (this.data.selectedZone) {
+        this.data.selectedZone = null;
+        this.data.scrollY = 0;
+        this.buildZoneButtons();
+      } else {
+        gScene('ashram', true);
+      }
+      return;
+    }
     const sd = Input.getScrollDelta();
     if (sd) {
       this.data.scrollY += sd * G.SCROLL_SPEED;

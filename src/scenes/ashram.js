@@ -216,6 +216,7 @@ const ashramScene = Scene.create({
 
   update: function(dt) {
     CultivationSystem.tick(dt);
+    if (UI.Modal.active) { UI.Modal.handleInput(); return; }
     if (this.data.popup) {
       this.data.popup.handleInput();
       return;

@@ -137,6 +137,7 @@ const forgeScene = Scene.create({
   },
 
   update: function(dt) {
+    if (UI.Modal.active) { UI.Modal.handleInput(); return; }
     const sd = Input.getScrollDelta();
     if (sd) {
       this.data.scrollY += sd * 0.8;
@@ -144,7 +145,6 @@ const forgeScene = Scene.create({
     }
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
-    UI.Modal.handleInput();
   },
 
   render: function(ctx) {

@@ -91,11 +91,13 @@ const bazaarScene = Scene.create({
         if (Economy.spendGold(10)) {
           bazaarScene.generateInventory();
           bazaarScene.buildBuySellLists();
+        } else {
+          Notify.show('Not enough gold! Need 10g', 2, R.colors.red);
         }
       };
       this.data.buttons.push(refreshBtn);
     } else {
-      const inv = G.state.inventory || [];
+      const inv = (G.state.inventory || []).filter(i => typeof i === 'object' && i.name);
       const list = UI.ScrollList(14, listY, G.W - 28, listH, {
         itemHeight: 36,
         itemGap: 4,
@@ -132,12 +134,13 @@ const bazaarScene = Scene.create({
       this.data.sellList = list;
     }
 
-    const back = UI.Button(G.W / 2 - 80, G.H - 12, 160, 26, 'Back to Ashram', R.colors.btnGold);
+    const back = UI.Button(G.W / 2 - 80, G.H - 40, 160, 26, 'Back to Ashram', R.colors.btnGold);
     back.onClick = function() { gScene('ashram', true); };
     this.data.buttons.push(back);
   },
 
   update: function(dt) {
+    if (UI.Modal.active) { UI.Modal.handleInput(); return; }
     UI.updateButtons(this.data.buttons, dt);
     if (this.data.tabBar) this.data.tabBar.handleInput();
     if (this.data.buyList) this.data.buyList.update();
@@ -145,7 +148,6 @@ const bazaarScene = Scene.create({
     if (this.data.buyList) this.data.buyList.handleInput();
     if (this.data.sellList) this.data.sellList.handleInput();
     UI.handleButtons(this.data.buttons);
-    UI.Modal.handleInput();
   },
 
   render: function(ctx) {

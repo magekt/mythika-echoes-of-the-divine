@@ -85,6 +85,7 @@ Progression.applyLevelUp = function(hero) {
   hero.agi += Math.floor(base.agi * 0.06);
   hero.mag += Math.floor(base.mag * 0.07);
   hero.def += Math.floor(base.def * 0.07);
+  hero.skillPoints = (hero.skillPoints || 0) + 1;
   R.triggerLevelUp();
   Audio.levelUp();
 };

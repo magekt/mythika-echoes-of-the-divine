@@ -516,6 +516,7 @@ const combatScene = Scene.create({
         Economy.addKarma(1);
         if (!G.state.flags) G.state.flags = {};
         G.state.flags.bossesDefeated = (G.state.flags.bossesDefeated || 0) + 1;
+        G.state.flags['boss_' + G.state.currentZone] = true;
         this.data.log.push('Boss defeated! +1 Karma');
         G.state.zoneProgress[G.state.currentZone] = 100;
         SaveSystem.save();
@@ -698,6 +699,17 @@ const combatScene = Scene.create({
       ex -= 90;
     }
     for (const b of this.data.enemyButtons) b.render(ctx);
+    // Fixed combat log (does not scroll with action list)
+    {
+      const logSlice = this.data.log.slice(-4);
+      let logY = this.getActionAreaTop() - 78;
+      for (const msg of logSlice) {
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        R.roundRect(ctx, 14, logY - 1, G.W - 28, 16, 3, ctx.fillStyle);
+        R.textCenter(ctx, msg, G.W / 2, logY + 11, R.colors.text, R.fonts.sm);
+        logY += 18;
+      }
+    }
 
     const top = this.getActionAreaTop();
     ctx.save();
@@ -717,13 +729,6 @@ const combatScene = Scene.create({
     }
 
     let ly = 34;
-    const logSlice = this.data.log.slice(-4);
-    for (const msg of logSlice) {
-      ctx.fillStyle = 'rgba(0,0,0,0.25)';
-      R.roundRect(ctx, 14, ly - 1, G.W - 28, 16, 3, ctx.fillStyle);
-      R.textCenter(ctx, msg, G.W / 2, ly + 11, R.colors.text, R.fonts.sm);
-      ly += 18;
-    }
 
     if (this.data.showEnlightenment) {
       ly += 4;

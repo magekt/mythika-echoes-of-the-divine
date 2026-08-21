@@ -30,7 +30,7 @@ const alchemyScene = Scene.create({
     this.data.staticDraws = [];
     const SD = this.data.staticDraws;
     const recipes = AlchemySystem.getLearnedRecipes();
-    let y = this.getContentTop();
+    let y = this.getContentTop() + (Object.keys(HERB_GROWTH).length > 0 ? 34 : 0);
 
     if (recipes.length === 0) {
       y += 10;

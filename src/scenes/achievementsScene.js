@@ -58,8 +58,10 @@ const achievementsScene = Scene.create({
         btn.enabled = false;
         btn.render = function(ctx) {
           const bx = this.x, by = this.y, bw = this.w, bh = this.h;
+          ctx.globalAlpha = 0.5;
           R.roundRect(ctx, bx, by, bw, bh, 5, R.colors.btn);
           R.text(ctx, '\u25CB ' + this._a.name + ' \u2014 ' + this._a.desc, bx + 10, by + 18, R.colors.textDim, R.fonts.sm);
+          ctx.globalAlpha = 1;
         };
         this.data.buttons.push(btn);
         y += 36;

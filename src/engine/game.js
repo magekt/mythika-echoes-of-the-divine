@@ -2,6 +2,7 @@ const Notify = {
   queue: [],
   achievements: [],
   show: function(msg, duration, color) {
+    if (this.queue.length >= 3) this.queue.shift();
     this.queue.push({ msg: msg || '', timer: duration || 2, color: color || R.colors.gold });
   },
   achievement: function(name, desc, icon) {
@@ -32,7 +33,7 @@ const Notify = {
       const n = this.queue[i];
       const alpha = Math.min(1, n.timer * 2);
       ctx.globalAlpha = alpha;
-      const y = 340 + i * 30;
+      const y = 470 + i * 30;
       R.roundRect(ctx, 40, y, 320, 26, 4, 'rgba(0,0,0,0.8)');
       R.textCenter(ctx, n.msg, G.W / 2, y + 17, n.color, R.fonts.md);
     }
@@ -41,7 +42,7 @@ const Notify = {
       const alpha = a.phase === 'out' ? (a.progress || 0) : Math.min(1, (a.progress || 0) * 2);
       if (alpha <= 0) continue;
       ctx.globalAlpha = alpha;
-      const y = 60;
+      const y = 140;
       R.roundRect(ctx, 50, y, 300, 60, 8, 'rgba(10,10,26,0.95)');
       R.roundRect(ctx, 50, y, 300, 60, 8, 'rgba(232,160,48,0.3)');
       ctx.strokeStyle = R.colors.gold;

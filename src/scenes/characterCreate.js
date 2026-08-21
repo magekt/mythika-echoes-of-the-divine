@@ -37,6 +37,7 @@ const characterCreateScene = Scene.create({
   },
 
   update: function(dt) {
+    if (UI.Modal.active) { UI.Modal.handleInput(); return; }
     const sd = Input.getScrollDelta();
     if (sd) {
       this.data.scrollY += sd * 0.8;
@@ -126,6 +127,7 @@ const characterCreateScene = Scene.create({
       const barY = top + scrollFrac * maxTrack;
       R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, 'rgba(232,160,48,0.25)');
     }
+    UI.Modal.render(ctx);
   },
 
   buildClassButtons: function() {
@@ -292,7 +294,9 @@ const characterCreateScene = Scene.create({
       };
       btn.onClick = function() {
         characterCreateScene.data.selectedElite = this._ec;
-        characterCreateScene.confirmCreate();
+        const hero = HEROES[characterCreateScene.data.selectedHero];
+        const cls = CLASS_DATA[characterCreateScene.data.selectedClass];
+        UI.Modal.confirm('Confirm Creation', 'Create ' + hero.name + ' as ' + cls.name + ' with ' + this._ec.name + '?', function(ok){ if(ok) characterCreateScene.confirmCreate(); });
       };
       this.data.buttons.push(btn);
       y += 70;
@@ -302,7 +306,9 @@ const characterCreateScene = Scene.create({
     const skip = UI.Button(60, y, 280, 36, '\u2192  Skip Elite (choose later)', R.colors.btn);
     skip.onClick = function() {
       characterCreateScene.data.selectedElite = null;
-      characterCreateScene.confirmCreate();
+      const hero = HEROES[characterCreateScene.data.selectedHero];
+      const cls = CLASS_DATA[characterCreateScene.data.selectedClass];
+      UI.Modal.confirm('Confirm Creation', 'Create ' + hero.name + ' as ' + cls.name + ' (no Elite)?', function(ok){ if(ok) characterCreateScene.confirmCreate(); });
     };
     this.data.buttons.push(skip);
     y += 46;

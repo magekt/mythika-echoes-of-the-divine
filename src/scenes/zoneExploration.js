@@ -47,17 +47,23 @@ const zoneExplorationScene = Scene.create({
     let y = this.getContentTop() + logH + 8;
 
     if (this.data.zoneComplete) {
-      const bossBtn = UI.Button(30, y, G.W - 60, 30, 'Fight Zone Boss', R.colors.btnRed, '#c04040');
-      bossBtn.onClick = function() {
-        G.state.isBossFight = true;
-        G.state.returnToExploration = false;
-        const bossEnemy = getZoneBoss(zoneExplorationScene.data.zoneId);
-        Progression.applyDifficulty([bossEnemy]);
-        G.state.currentEnemies = [bossEnemy];
-        gScene('combatScene');
-      };
-      this.data.buttons.push(bossBtn);
-      y += 38;
+      const bossKey = 'boss_' + this.data.zoneId;
+      const bossDone = G.state.flags && G.state.flags[bossKey];
+      if (!bossDone) {
+        const bossBtn = UI.Button(30, y, G.W - 60, 30, 'Fight Zone Boss', R.colors.btnRed, '#c04040');
+        bossBtn.onClick = function() {
+          G.state.isBossFight = true;
+          G.state.returnToExploration = false;
+          const bossEnemy = getZoneBoss(zoneExplorationScene.data.zoneId);
+          Progression.applyDifficulty([bossEnemy]);
+          G.state.currentEnemies = [bossEnemy];
+          gScene('combatScene');
+        };
+        this.data.buttons.push(bossBtn);
+        y += 38;
+      } else {
+        y += 8;
+      }
     } else {
       const exploreBtn = UI.Button(30, y, G.W - 60, 30, 'Manual Explore', R.colors.btnGold);
       exploreBtn.onClick = function() {
