@@ -1,6 +1,6 @@
 # Mythika: Echoes of the Divine — Build Status
 
-**58 files, ~9,200 lines of JavaScript** across 6 directories.
+**58 files, ~9,300 lines of JavaScript** across 6 directories.
 
 ## Directory Structure
 
