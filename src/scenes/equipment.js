@@ -149,7 +149,8 @@ const equipmentScene = Scene.create({
     const slot = item.type === 'weapon' ? 'weaponEquipped' : item.type === 'armor' ? 'armorEquipped' : 'accessoryEquipped';
     const oldItem = hero[slot];
     
-    if (oldItem) {
+    // Swap only real inventory items back into the bag; legacy string slots are discarded.
+    if (oldItem && typeof oldItem === 'object') {
       const idx = G.state.inventory.indexOf(oldItem);
       if (idx >= 0) G.state.inventory.splice(idx, 1);
       G.state.inventory.push(oldItem);
@@ -172,6 +173,14 @@ const equipmentScene = Scene.create({
     if (!item) return;
 
     hero[slot] = null;
+
+    // Legacy saves may hold plain strings in gear slots — discard instead of re-inventorying.
+    if (typeof item === 'string') {
+      Notify.show('Removed legacy gear', 2, R.colors.textDim);
+      this.buildUI();
+      return;
+    }
+
     if (!G.state.inventory) G.state.inventory = [];
     G.state.inventory.push(item);
     

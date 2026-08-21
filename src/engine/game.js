@@ -38,11 +38,14 @@ const Notify = {
       R.textCenter(ctx, n.msg, G.W / 2, y + 17, n.color, R.fonts.md);
     }
     ctx.globalAlpha = 1;
-    for (const a of this.achievements) {
+    // Show at most the 2 newest banners, stacked so simultaneous unlocks stay readable.
+    const visible = this.achievements.slice(-2);
+    for (let ai = 0; ai < visible.length; ai++) {
+      const a = visible[ai];
       const alpha = a.phase === 'out' ? (a.progress || 0) : Math.min(1, (a.progress || 0) * 2);
       if (alpha <= 0) continue;
       ctx.globalAlpha = alpha;
-      const y = 140;
+      const y = 140 + ai * 68;
       R.roundRect(ctx, 50, y, 300, 60, 8, 'rgba(10,10,26,0.95)');
       R.roundRect(ctx, 50, y, 300, 60, 8, 'rgba(232,160,48,0.3)');
       ctx.strokeStyle = R.colors.gold;
@@ -152,7 +155,8 @@ const G = {
 function fitGame() {
   const el = document.getElementById('game-container');
   if (!el) return;
-  const scale = Math.min(window.innerWidth / 404, window.innerHeight / 724, 1);
+  // Clamp so a zero-sized viewport (hidden iframe) can never scale the game to nothing.
+  const scale = Math.max(0.2, Math.min(window.innerWidth / 404, window.innerHeight / 724, 1));
   el.style.transform = 'scale(' + scale + ')';
   el.style.transformOrigin = 'center center';
 }

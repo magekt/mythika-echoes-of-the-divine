@@ -45,7 +45,7 @@ UI.ScrollList = function(x, y, w, h, opts) {
       const scrollDelta = Input.getScrollDelta();
       if (scrollDelta) {
         const maxScroll = Math.max(0, this.contentHeight - this.h);
-        this.scrollY = Math.max(0, Math.min(maxScroll, this.scrollY + scrollDelta * 0.5));
+        this.scrollY = Math.max(0, Math.min(maxScroll, this.scrollY + scrollDelta * 0.8));
       }
     },
 

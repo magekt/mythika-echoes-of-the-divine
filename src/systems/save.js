@@ -19,6 +19,26 @@ SaveSystem.save = function() {
   }
 };
 
+SaveSystem.migrate = function() {
+  // Heal saves created before the object-based gear model:
+  // - inventory entries must be real objects with a name
+  // - gear slots must be objects or null (legacy strings are dropped)
+  // - challenge must be a finite number
+  if (Array.isArray(G.state.inventory)) {
+    G.state.inventory = G.state.inventory.filter(i => typeof i === 'object' && i !== null && i.name);
+  }
+  const gearSlots = ['weaponEquipped', 'armorEquipped', 'accessoryEquipped'];
+  for (const hero of G.state.party || []) {
+    for (const slot of gearSlots) {
+      if (typeof hero[slot] === 'string') hero[slot] = null;
+    }
+  }
+  if (G.state.challenge != null) {
+    const c = parseFloat(G.state.challenge);
+    G.state.challenge = isFinite(c) ? Math.max(0.6, Math.min(1.5, c)) : 1.0;
+  }
+};
+
 SaveSystem.load = function() {
   try {
     const raw = localStorage.getItem(this.SAVE_KEY);
@@ -28,6 +48,7 @@ SaveSystem.load = function() {
     const now = Date.now();
     const elapsed = data.timestamp ? Math.min((now - data.timestamp) / 1000, 28800) : 0;
     Object.assign(G.state, data.state);
+    this.migrate();
     if (elapsed > 60) {
       const cultPerSec = getCultivationPerSecond(G.state.ashramLevel || 1);
       const pranaPerSec = getPranaPerSecond(G.state.ashramLevel || 1);
