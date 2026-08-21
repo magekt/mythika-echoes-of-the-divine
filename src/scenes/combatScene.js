@@ -269,6 +269,7 @@ const combatScene = Scene.create({
           const dmg = Math.max(1, Math.floor(25 * (1 + (beast.mag || 1) * 0.1)));
           t.hp -= dmg;
           if (t.hp < 0) t.hp = 0;
+          if (t.hp <= 0) this.deathBurstAt(t, false);
           this.data.log.push('Beast: Spirit Flame — ' + t.name + ' takes ' + dmg + ' damage');
         }
         break;
@@ -280,6 +281,7 @@ const combatScene = Scene.create({
           const dmg = Math.max(1, Math.floor(40 * (1 + (beast.mag || 1) * 0.1)));
           e.hp -= dmg;
           if (e.hp < 0) e.hp = 0;
+          if (e.hp <= 0) this.deathBurstAt(e, false);
         }
         this.data.log.push('Beast: ' + beast.name + ' — Tempest AoE ' + (Math.max(1, Math.floor(40 * (1 + (beast.mag || 1) * 0.1)))) + ' wind dmg to all');
         R.screenShake(6, 0.3);
@@ -316,6 +318,7 @@ const combatScene = Scene.create({
           const dmg = Math.max(1, Math.floor(30 * (1 + (beast.str || 1) * 0.1)));
           t.hp -= dmg;
           if (t.hp < 0) t.hp = 0;
+          if (t.hp <= 0) this.deathBurstAt(t, false);
           Combat.applyAilment(t, 'rakta', 3);
           this.data.log.push('Beast: Rending Claw — ' + t.name + ' takes ' + dmg + ' damage + Bleed!');
         }
@@ -340,6 +343,21 @@ const combatScene = Scene.create({
     } else {
       this.advanceTurn();
     }
+  },
+
+  // Spawn a death burst at an entity's battlefield position.
+  deathBurstAt: function(entity, isHero) {
+    let x, y;
+    if (isHero) {
+      const idx = Math.max(0, this.data.heroes.indexOf(entity));
+      x = idx * 70 + 30;
+      y = 50;
+    } else {
+      const idx = this.data.enemies.indexOf(entity);
+      x = 370 - idx * 70;
+      y = 50;
+    }
+    R.deathBurst(x, y, isHero ? R.colors.blue : R.colors.red);
   },
 
   doPlayerAttack: function(skill) {
@@ -372,6 +390,7 @@ const combatScene = Scene.create({
     const result = Combat.performAttack(hero, target, skill);
     this.data.log.push(hero.name + ' attacks ' + target.name + ' for ' + result.dmg + (result.isCrit ? ' CRIT!' : ''));
     this.data.damageFlash = 0.2;
+    if (target.hp <= 0) this.deathBurstAt(target, false);
     const heroIdx = this.data.heroes.findIndex(h => h.id === hero.id);
     const heroX = Math.max(0, heroIdx) * 70 + 30;
     const heroY = 50;
@@ -461,6 +480,7 @@ const combatScene = Scene.create({
         setTimeout(function() {
           R.damageNumber(G.ctx, heroX, heroY - 20, result.dmg, R.colors.red);
         }, 200);
+        if (target.hp <= 0) combatScene.deathBurstAt(target, true);
         R.screenShake(3, 0.15);
       }
     } else {

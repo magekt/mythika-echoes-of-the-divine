@@ -191,12 +191,24 @@ R.screenShake = function(intensity, duration) {
   R.shakeIntensity = intensity || 4;
 };
 
+// Death animation: an expanding fading ring with outward sparks.
+R.deathBursts = [];
+
+R.deathBurst = function(x, y, color) {
+  R.deathBursts.push({ x: x, y: y, life: 0.6, maxLife: 0.6, color: color || R.colors.red });
+};
+
 R.updateEffects = function(dt) {
   for (let i = R.damageNumbers.length - 1; i >= 0; i--) {
     const d = R.damageNumbers[i];
     d.y += d.vy * dt;
     d.life -= dt;
     if (d.life <= 0) R.damageNumbers.splice(i, 1);
+  }
+  for (let i = R.deathBursts.length - 1; i >= 0; i--) {
+    const b = R.deathBursts[i];
+    b.life -= dt;
+    if (b.life <= 0) R.deathBursts.splice(i, 1);
   }
   if (R.shakeTimer > 0) {
     R.shakeTimer -= dt;
@@ -212,6 +224,22 @@ R.renderEffects = function(ctx) {
     const alpha = Math.max(0, d.life / d.maxLife);
     ctx.globalAlpha = alpha;
     R.textCenter(ctx, d.value.toString(), d.x + R.shakeX, d.y + R.shakeY, d.color, R.fonts.lg);
+  }
+  for (const b of R.deathBursts) {
+    const t = 1 - b.life / b.maxLife;
+    const alpha = b.life / b.maxLife;
+    const radius = 6 + t * 26;
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = b.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(b.x + R.shakeX, b.y + R.shakeY, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let s = 0; s < 6; s++) {
+      const a = (Math.PI * 2 / 6) * s + t * 1.5;
+      const d = radius * 0.8;
+      R.rect(ctx, b.x + Math.cos(a) * d + R.shakeX, b.y + Math.sin(a) * d + R.shakeY, 2, 2, b.color);
+    }
   }
   ctx.globalAlpha = 1;
   
