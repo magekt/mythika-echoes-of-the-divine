@@ -60,11 +60,12 @@ const punarjanmaScene = Scene.create({
       SD.push({ text: ['\u2501  Siddhis (Spiritual Powers)  \u2501', 22, y + 2, R.colors.gold, R.fonts.sm] });
       y += 18;
 
-      for (const [pid, perk] of Object.entries(PERKS.tier1)) {
+      const buildPerkRow = (pid, perk) => {
         const curLvl = G.state.perks[pid] || 0;
         const maxLvl = perk.maxLvl;
         const nextCost = getPerkCost(pid, curLvl + 1);
-        const canBuy = nextCost > 0 && (G.state.karma || 0) >= nextCost && curLvl < maxLvl;
+        const available = isPerkAvailable(pid);
+        const canBuy = available && nextCost > 0 && (G.state.karma || 0) >= nextCost && curLvl < maxLvl;
 
         const btn = UI.Button(14, y, G.W - 28, 36, '', canBuy ? R.colors.btnGold : R.colors.btn);
         btn._pid = pid;
@@ -95,11 +96,27 @@ const punarjanmaScene = Scene.create({
         this.data.buttons.push(btn);
         y += 42;
 
+        if (!available) {
+          SD.push({ text: ['Requires one Samsara crossing (rebirth)', 30, y + 2, R.colors.red, R.fonts.sm] });
+          y += 16;
+          return;
+        }
         const val = getPerkValue(pid, curLvl);
         if (val > 0) {
           SD.push({ text: [perk.desc.replace('%', val + ''), 30, y + 2, R.colors.textDim, R.fonts.sm] });
           y += 16;
         }
+      };
+
+      for (const [pid, perk] of Object.entries(PERKS.tier1)) buildPerkRow(pid, perk);
+
+      // Tier II — awakened by rebirth
+      if (Object.keys(PERKS.tier2).length > 0) {
+        y += 6;
+        const unlocked = (G.state.rebirthCount || 0) >= 1;
+        SD.push({ text: ['\u2501  Siddhis Tier II' + (unlocked ? '' : ' (sealed)') + '  \u2501', 22, y + 2, unlocked ? R.colors.gold : R.colors.textDim, R.fonts.sm] });
+        y += 18;
+        for (const [pid, perk] of Object.entries(PERKS.tier2)) buildPerkRow(pid, perk);
       }
     }
 

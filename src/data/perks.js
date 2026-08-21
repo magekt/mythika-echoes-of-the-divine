@@ -14,14 +14,33 @@ const PERKS = {
   }
 };
 
+PERKS.tier2 = {
+  vajra:   { name: 'Vajra',   desc: '+% thunder crit damage', tier2: true, maxLvl: 3, costs: [50,150,400], values: [25,50,100] },
+  amrita:  { name: 'Amrita',  desc: 'Nectar regeneration',    tier2: true, maxLvl: 3, costs: [50,150,400], values: [8,16,30] },
+  kirti:   { name: 'Kirti',   desc: '+% glorious gold',       tier2: true, maxLvl: 3, costs: [30,100,300], values: [20,40,75] },
+  gyana:   { name: 'Gyana',   desc: '+% skill potency',       tier2: true, maxLvl: 3, costs: [50,150,400], values: [10,20,35] }
+};
+
+function getPerkDef(perkId) {
+  return PERKS.tier1[perkId] || PERKS.tier2[perkId];
+}
+
+// Tier-2 Siddhis awaken only after the first Samsara crossing.
+function isPerkAvailable(perkId) {
+  const def = getPerkDef(perkId);
+  if (!def) return false;
+  if (def.tier2 && (G.state.rebirthCount || 0) < 1) return false;
+  return true;
+}
+
 function getPerkValue(perkId, level) {
-  const p = PERKS.tier1[perkId];
+  const p = getPerkDef(perkId);
   if (!p || level < 1) return 0;
   return p.values[Math.min(level - 1, p.values.length - 1)];
 }
 
 function getPerkCost(perkId, level) {
-  const p = PERKS.tier1[perkId];
+  const p = getPerkDef(perkId);
   if (!p || level > p.maxLvl) return -1;
   return p.costs[Math.min(level - 1, p.costs.length - 1)];
 }

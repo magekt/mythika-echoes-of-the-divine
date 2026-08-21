@@ -19,6 +19,10 @@ Combat.AILMENT_EFFECTS = {
 };
 
 Combat.CRIT_MULTIPLIER = 1.5;
+// Vajra Siddhi adds thunder to every crit.
+Combat.critMultiplier = function() {
+  return this.CRIT_MULTIPLIER + (typeof Progression !== 'undefined' ? Progression.perkValue('vajra') / 100 : 0);
+};
 
 Combat.startBattle = function(heroes, enemies) {
   this.heroes = heroes;
@@ -93,7 +97,7 @@ Combat.nextTurn = function() {
 };
 
 Combat.processAilments = function() {
-  const ayurRegen = (typeof Progression !== 'undefined') ? Progression.perkValue('ayurveda') : 0;
+  const ayurRegen = (typeof Progression !== 'undefined') ? Progression.perkValue('ayurveda') + Progression.perkValue('amrita') : 0;
   for (const h of this.heroes) {
     this.tickAilments(h);
     this.tickBuffs(h);
@@ -229,7 +233,7 @@ Combat.calcDamage = function(attacker, defender, skill, isCrit) {
     const mult = 1.0 + Math.min(10, this.comboCount - 1) * 0.1;
     dmg = Math.floor(dmg * mult);
   }
-  if (isCrit) dmg = Math.floor(dmg * this.CRIT_MULTIPLIER);
+  if (isCrit) dmg = Math.floor(dmg * this.critMultiplier());
   if (isCrit && attacker.firstCrit2x && !this.firstCritUsed) {
     dmg *= 2;                      // Assassin: the first crit of a battle lands twice as hard
     this.firstCritUsed = true;
@@ -264,6 +268,9 @@ Combat.performAttack = function(attacker, defender, skill) {
     dmg = this.calcMagicDamage(attacker, defender, skill);
   } else {
     dmg = this.calcDamage(attacker, defender, skill, isCrit);
+  }
+  if (skill && !skill.heal && typeof Progression !== 'undefined') {
+    dmg = Math.floor(dmg * (1 + Progression.perkValue('gyana') / 100));
   }
   defender.hp -= dmg;
   if (defender.hp < 0) defender.hp = 0;

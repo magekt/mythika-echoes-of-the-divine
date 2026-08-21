@@ -520,7 +520,7 @@ const combatScene = Scene.create({
     Combat.awardBeastXP();
     if (won) {
       const loot = Combat.getLoot();
-      Economy.addGold(loot.gold);
+      Economy.addGold(Math.floor(loot.gold * (1 + Progression.perkValue('kirti') / 100)));
       const xpPerHero = Math.floor(loot.xp / Math.max(1, this.data.heroes.filter(h => h.hp > 0).length));
       const leveled = Progression.addPartyXP(xpPerHero);
       for (const e of this.data.enemies) {
