@@ -1,4 +1,9 @@
 (function() {
+  // Installable PWA: network-first service worker (offline fallback), skip on file://
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(function() {});
+  }
+
   registerScene('title', titleScene);
   registerScene('characterCreate', characterCreateScene);
   registerScene('ashram', ashramScene);
