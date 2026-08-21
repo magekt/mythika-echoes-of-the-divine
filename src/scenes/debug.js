@@ -32,9 +32,9 @@ const debugScene = Scene.create({
       this.data.lines.push('MP: ' + s.player.mp + '/' + s.player.maxMp);
       this.data.lines.push('STR:' + s.player.str + ' AGI:' + s.player.agi + ' MAG:' + s.player.mag + ' DEF:' + s.player.def);
       this.data.lines.push('Class: ' + (s.player.className || 'none') + ' Elite: ' + (s.player.eliteClassName || 'none'));
-      this.data.lines.push('Weapon: ' + ((s.player.weaponEquipped && s.player.weaponEquipped.name) || s.player.weaponEquipped || 'None') + ' Lv.' + s.player.weaponLvl);
-      this.data.lines.push('Armor: ' + ((s.player.armorEquipped && s.player.armorEquipped.name) || s.player.armorEquipped || 'None') + ' Lv.' + s.player.armorLvl);
-      this.data.lines.push('Accessory: ' + ((s.player.accessoryEquipped && s.player.accessoryEquipped.name) || s.player.accessoryEquipped || 'None') + ' Lv.' + s.player.accessoryLvl);
+      this.data.lines.push('Weapon: ' + Scene.gearLabel(s.player.weaponEquipped) + ' Lv.' + s.player.weaponLvl);
+      this.data.lines.push('Armor: ' + Scene.gearLabel(s.player.armorEquipped) + ' Lv.' + s.player.armorLvl);
+      this.data.lines.push('Accessory: ' + Scene.gearLabel(s.player.accessoryEquipped) + ' Lv.' + s.player.accessoryLvl);
     } else {
       this.data.lines.push('(no player)');
     }

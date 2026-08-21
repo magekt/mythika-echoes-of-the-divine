@@ -79,9 +79,9 @@ const forgeScene = Scene.create({
     y += 20;
 
     const slots = [
-      { id: 'weapon', label: 'Weapon (' + ((hero.weaponEquipped && hero.weaponEquipped.name) || hero.weaponEquipped || 'None') + ' Lv.' + hero.weaponLvl + ')', cost: this.data.upgradeCosts.weapon },
-      { id: 'armor', label: 'Armor (' + ((hero.armorEquipped && hero.armorEquipped.name) || hero.armorEquipped || 'None') + ' Lv.' + hero.armorLvl + ')', cost: this.data.upgradeCosts.armor },
-      { id: 'accessory', label: 'Accessory (' + ((hero.accessoryEquipped && hero.accessoryEquipped.name) || hero.accessoryEquipped || 'None') + ' Lv.' + hero.accessoryLvl + ')', cost: this.data.upgradeCosts.accessory }
+      { id: 'weapon', label: 'Weapon (' + Scene.gearLabel(hero.weaponEquipped) + ' Lv.' + hero.weaponLvl + ')', cost: this.data.upgradeCosts.weapon },
+      { id: 'armor', label: 'Armor (' + Scene.gearLabel(hero.armorEquipped) + ' Lv.' + hero.armorLvl + ')', cost: this.data.upgradeCosts.armor },
+      { id: 'accessory', label: 'Accessory (' + Scene.gearLabel(hero.accessoryEquipped) + ' Lv.' + hero.accessoryLvl + ')', cost: this.data.upgradeCosts.accessory }
     ];
 
     for (const slot of slots) {
@@ -138,11 +138,7 @@ const forgeScene = Scene.create({
 
   update: function(dt) {
     if (UI.Modal.active) { UI.Modal.handleInput(); return; }
-    const sd = Input.getScrollDelta();
-    if (sd) {
-      this.data.scrollY += sd * 0.8;
-      this.clampScroll();
-    }
+    Scene.scrollInput(this);
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
   },
@@ -168,19 +164,11 @@ const forgeScene = Scene.create({
     ctx.translate(0, -this.data.scrollY);
 
     for (const b of this.data.buttons) b.render(ctx);
-    for (const d of this.data.staticDraws) if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
+    Scene.drawStatic(ctx, this.data.staticDraws);
 
     ctx.restore();
 
-    if (this.data.contentHeight > this.getContentHeight()) {
-      const vh = this.getContentHeight();
-      const ratio = vh / this.data.contentHeight;
-      const barH = Math.max(16, ratio * vh);
-      const maxTrack = vh - barH;
-      const scrollFrac = this.data.scrollY / Math.max(1, this.data.contentHeight - vh);
-      const barY = top + scrollFrac * maxTrack;
-      R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, 'rgba(232,160,48,0.25)');
-    }
+    Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
 
     UI.Modal.render(ctx);
   }

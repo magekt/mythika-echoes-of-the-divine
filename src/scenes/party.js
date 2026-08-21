@@ -140,14 +140,14 @@ const partyScene = Scene.create({
     R.text(ctx, statLine, 18, y, R.colors.text, R.fonts.sm);
     y += 18;
 
-    const wepName = (hero.weaponEquipped && hero.weaponEquipped.name) || hero.weaponEquipped || 'None';
+    const wepName = Scene.gearLabel(hero.weaponEquipped);
     const equipLine = 'Weapon: ' + wepName + ' (Lv.' + hero.weaponLvl + ')' + (hero.equipAtk ? ' +' + hero.equipAtk + ' ATK' : '');
     R.text(ctx, equipLine, 18, y, R.colors.textDim, R.fonts.sm);
     y += 14;
-    const armName = (hero.armorEquipped && hero.armorEquipped.name) || hero.armorEquipped || 'None';
+    const armName = Scene.gearLabel(hero.armorEquipped);
     R.text(ctx, 'Armor: ' + armName + ' (Lv.' + hero.armorLvl + ')' + (hero.equipDef ? ' +' + hero.equipDef + ' DEF' : ''), 18, y, R.colors.textDim, R.fonts.sm);
     y += 14;
-    const accName = (hero.accessoryEquipped && hero.accessoryEquipped.name) || hero.accessoryEquipped || 'None';
+    const accName = Scene.gearLabel(hero.accessoryEquipped);
     R.text(ctx, 'Accessory: ' + accName + ' (Lv.' + hero.accessoryLvl + ')' + (hero.equipAccMag ? ' +' + hero.equipAccMag + ' MAG' : ''), 18, y, R.colors.textDim, R.fonts.sm);
     y += 20;
 
@@ -192,7 +192,7 @@ const partyScene = Scene.create({
     this.data.buttons.push(useItemBtn);
     y += 36;
 
-    const equipWeaponBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Weapon (' + (((hero.weaponEquipped && hero.weaponEquipped.name) || hero.weaponEquipped || 'None')) + ')');
+    const equipWeaponBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Weapon (' + Scene.gearLabel(hero.weaponEquipped) + ')');
     equipWeaponBtn.onClick = function() {
       partyScene.data.itemsView = true;
       partyScene.data.equipSlot = 'weapon';
@@ -202,7 +202,7 @@ const partyScene = Scene.create({
     this.data.buttons.push(equipWeaponBtn);
     y += 34;
 
-    const equipArmorBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Armor (' + (((hero.armorEquipped && hero.armorEquipped.name) || hero.armorEquipped || 'None')) + ')');
+    const equipArmorBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Armor (' + Scene.gearLabel(hero.armorEquipped) + ')');
     equipArmorBtn.onClick = function() {
       partyScene.data.itemsView = true;
       partyScene.data.equipSlot = 'armor';
@@ -212,7 +212,7 @@ const partyScene = Scene.create({
     this.data.buttons.push(equipArmorBtn);
     y += 34;
 
-    const equipAccBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Accessory (' + (((hero.accessoryEquipped && hero.accessoryEquipped.name) || hero.accessoryEquipped || 'None')) + ')');
+    const equipAccBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Accessory (' + Scene.gearLabel(hero.accessoryEquipped) + ')');
     equipAccBtn.onClick = function() {
       partyScene.data.itemsView = true;
       partyScene.data.equipSlot = 'accessory';
@@ -362,11 +362,7 @@ const partyScene = Scene.create({
   },
 
   update: function(dt) {
-    const sd = Input.getScrollDelta();
-    if (sd) {
-      this.data.scrollY += sd * 0.8;
-      this.clampScroll();
-    }
+    Scene.scrollInput(this);
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
   },
@@ -389,15 +385,7 @@ const partyScene = Scene.create({
       for (const b of this.data.buttons) b.render(ctx);
       ctx.restore();
 
-      if (this.data.contentHeight > this.getContentHeight()) {
-        const vh = this.getContentHeight();
-        const ratio = vh / this.data.contentHeight;
-        const barH = Math.max(16, ratio * vh);
-        const maxTrack = vh - barH;
-        const scrollFrac = this.data.scrollY / Math.max(1, this.data.contentHeight - vh);
-        const barY = top + scrollFrac * maxTrack;
-        R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, 'rgba(232,160,48,0.25)');
-      }
+      Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
 
     } else if (this.data.itemsView) {
       const hero = this.data.selectedHero;
@@ -415,18 +403,10 @@ const partyScene = Scene.create({
       ctx.clip();
       ctx.translate(0, -this.data.scrollY);
       for (const b of this.data.buttons) b.render(ctx);
-      for (const d of this.data.staticDraws) if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
+      Scene.drawStatic(ctx, this.data.staticDraws);
       ctx.restore();
 
-      if (this.data.contentHeight > this.getContentHeight()) {
-        const vh = this.getContentHeight();
-        const ratio = vh / this.data.contentHeight;
-        const barH = Math.max(16, ratio * vh);
-        const maxTrack = vh - barH;
-        const scrollFrac = this.data.scrollY / Math.max(1, this.data.contentHeight - vh);
-        const barY = top + scrollFrac * maxTrack;
-        R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, 'rgba(232,160,48,0.25)');
-      }
+      Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
 
     } else {
       const hero = this.data.selectedHero;
@@ -447,15 +427,7 @@ const partyScene = Scene.create({
       for (const b of this.data.buttons) b.render(ctx);
       ctx.restore();
 
-      if (this.data.contentHeight > this.getContentHeight()) {
-        const vh = this.getContentHeight();
-        const ratio = vh / this.data.contentHeight;
-        const barH = Math.max(16, ratio * vh);
-        const maxTrack = vh - barH;
-        const scrollFrac = this.data.scrollY / Math.max(1, this.data.contentHeight - vh);
-        const barY = top + scrollFrac * maxTrack;
-        R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, 'rgba(232,160,48,0.25)');
-      }
+      Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
     }
   }
 });

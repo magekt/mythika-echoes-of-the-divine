@@ -189,11 +189,7 @@ const equipmentScene = Scene.create({
   },
 
   update: function(dt) {
-    const sd = Input.getScrollDelta();
-    if (sd) {
-      this.data.scrollY += sd * G.SCROLL_SPEED;
-      this.clampScroll();
-    }
+    Scene.scrollInput(this);
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
   },
@@ -217,21 +213,10 @@ const equipmentScene = Scene.create({
     ctx.translate(0, -this.data.scrollY);
 
     for (const b of this.data.buttons) b.render(ctx);
-    for (const d of this.data.staticDraws) {
-      if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
-      if (d.textCenter) R.textCenter(ctx, d.textCenter[0], d.textCenter[1], d.textCenter[2], d.textCenter[3], d.textCenter[4]);
-    }
+    Scene.drawStatic(ctx, this.data.staticDraws);
 
     ctx.restore();
 
-    if (this.data.contentHeight > this.getContentHeight()) {
-      const vh = this.getContentHeight();
-      const ratio = vh / this.data.contentHeight;
-      const barH = Math.max(16, ratio * vh);
-      const maxTrack = vh - barH;
-      const scrollFrac = this.data.scrollY / Math.max(1, this.data.contentHeight - vh);
-      const barY = top + scrollFrac * maxTrack;
-      R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, 'rgba(232,160,48,0.25)');
-    }
+    Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
   }
 });

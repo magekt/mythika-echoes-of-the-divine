@@ -617,11 +617,7 @@ const combatScene = Scene.create({
   update: function(dt) {
     if (this.data.damageFlash > 0) this.data.damageFlash -= dt;
     if (this.data.comboDisplay > 0) this.data.comboDisplay -= dt;
-    const sd = Input.getScrollDelta();
-    if (sd) {
-      this.data.scrollY += sd * 0.8;
-      this.clampScroll();
-    }
+    Scene.scrollInput(this);
     UI.updateButtons(this.data.actionButtons, dt);
     UI.updateButtons(this.data.enemyButtons, dt);
     UI.updateButtons(this.data.buttons, dt);

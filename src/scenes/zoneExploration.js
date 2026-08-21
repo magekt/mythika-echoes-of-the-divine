@@ -106,11 +106,7 @@ const zoneExplorationScene = Scene.create({
         this.data.totalEncounterTimer = this.data.encounterTimer;
       }
       }
-    const sd = Input.getScrollDelta();
-    if (sd) {
-      this.data.scrollY += sd * 0.8;
-      this.clampScroll();
-    }
+    Scene.scrollInput(this);
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
   },
@@ -190,14 +186,6 @@ const zoneExplorationScene = Scene.create({
 
     ctx.restore();
 
-    if (this.data.contentHeight > this.getContentHeight()) {
-      const vh = this.getContentHeight();
-      const ratio = vh / this.data.contentHeight;
-      const barH = Math.max(16, ratio * vh);
-      const maxTrack = vh - barH;
-      const scrollFrac = this.data.scrollY / Math.max(1, this.data.contentHeight - vh);
-      const barY = top + scrollFrac * maxTrack;
-      R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, 'rgba(232,160,48,0.25)');
-    }
+    Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
   }
 });

@@ -210,11 +210,7 @@ const spiritBeastScene = Scene.create({
   },
 
   update: function(dt) {
-    const sd = Input.getScrollDelta();
-    if (sd) {
-      this.data.scrollY += sd * 0.8;
-      this.clampScroll();
-    }
+    Scene.scrollInput(this);
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
   },
@@ -235,25 +231,11 @@ const spiritBeastScene = Scene.create({
     ctx.clip();
     ctx.translate(0, -this.data.scrollY);
 
-    for (const d of this.data.staticDraws) {
-      if (d.rect) {
-        R.roundRect(ctx, d.rect[0], d.rect[1], d.rect[2], d.rect[3], d.rect[4], d.rect[5]);
-        if (d.stroke) { ctx.strokeStyle = d.stroke[4]; ctx.lineWidth = 2; ctx.strokeRect(d.stroke[0], d.stroke[1], d.stroke[2], d.stroke[3]); }
-      }
-      if (d.text) R.text(ctx, d.text[0], d.text[1], d.text[2], d.text[3], d.text[4]);
-    }
+    Scene.drawStatic(ctx, this.data.staticDraws);
     for (const b of this.data.buttons) b.render(ctx);
 
     ctx.restore();
 
-    if (this.data.contentHeight > this.getContentHeight()) {
-      const vh = this.getContentHeight();
-      const ratio = vh / this.data.contentHeight;
-      const barH = Math.max(16, ratio * vh);
-      const maxTrack = vh - barH;
-      const scrollFrac = this.data.scrollY / Math.max(1, this.data.contentHeight - vh);
-      const barY = top + scrollFrac * maxTrack;
-      R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, 'rgba(232,160,48,0.25)');
-    }
+    Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
   }
 });

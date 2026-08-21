@@ -221,11 +221,7 @@ const ashramScene = Scene.create({
       this.data.popup.handleInput();
       return;
     }
-    const sd = Input.getScrollDelta();
-    if (sd) {
-      this.data.scrollY += sd * G.SCROLL_SPEED;
-      this.clampScroll();
-    }
+    Scene.scrollInput(this);
     const swipe = Input.getSwipe();
     if (swipe === 'left' || swipe === 'right') {
       const scenes = ['ashram', 'travelMap', 'party', 'cultivationScene', 'alchemyScene', 'spiritBeast', 'bazaar', 'farm', 'fishing', 'tournament', 'questLog', 'achievements', 'settings'];
@@ -299,14 +295,7 @@ const ashramScene = Scene.create({
 
     ctx.restore();
 
-    if (this.data.contentHeight > contentH) {
-      const ratio = contentH / this.data.contentHeight;
-      const barH = Math.max(18, ratio * contentH);
-      const maxTrack = contentH - barH;
-      const scrollFrac = this.data.scrollY / Math.max(1, this.data.contentHeight - contentH);
-      const barY = top + scrollFrac * maxTrack;
-      R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, 'rgba(232,160,48,0.25)');
-    }
+    Scene.drawScrollbar(ctx, top, this.data.contentHeight, contentH, this.data.scrollY, 18);
 
     for (const b of this.data.navButtons) b.render(ctx);
 

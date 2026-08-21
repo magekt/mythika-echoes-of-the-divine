@@ -34,8 +34,8 @@ const questLogScene = Scene.create({
     this.data.scrollY = 0;
     this.data.staticDraws = [];
     const SD = this.data.staticDraws;
-    function txt(t, x, y, c, f) { SD.push({ text: t, x: x, y: y, c: c, f: f }); }
-    function box(x, y, w, h, r, fill, sx, sy, sw, sc) { SD.push({ rect: [x, y, w, h, r, fill], sx: sx, sy: sy, sw: sw, sc: sc }); }
+    function txt(t, x, y, c, f) { SD.push({ text: [t, x, y, c, f] }); }
+    function box(x, y, w, h, r, fill, stroke) { SD.push({ rect: [x, y, w, h, r, fill], stroke: stroke }); }
     let y = this.getContentTop();
     
     const zone = G.state.currentZone || 'aryavarta';
@@ -187,8 +187,8 @@ const questLogScene = Scene.create({
     this.data.scrollY = 0;
     this.data.staticDraws = [];
     const SD = this.data.staticDraws;
-    function txt(t, x, y, c, f) { SD.push({ text: t, x: x, y: y, c: c, f: f }); }
-    function box(x, y, w, h, r, fill, sx, sy, sw, sc) { SD.push({ rect: [x, y, w, h, r, fill], sx: sx, sy: sy, sw: sw, sc: sc }); }
+    function txt(t, x, y, c, f) { SD.push({ text: [t, x, y, c, f] }); }
+    function box(x, y, w, h, r, fill, stroke) { SD.push({ rect: [x, y, w, h, r, fill], stroke: stroke }); }
     const q = this.data.selectedQuest;
     const prog = G.state.quests[q.id] || { count: 0 };
     let y = this.getContentTop();
@@ -239,13 +239,13 @@ const questLogScene = Scene.create({
     this.data.scrollY = 0;
     this.data.staticDraws = [];
     const SD = this.data.staticDraws;
-    function txt(t, x, y, c, f) { SD.push({ text: t, x: x, y: y, c: c, f: f }); }
-    function box(x, y, w, h, r, fill, sx, sy, sw, sc) { SD.push({ rect: [x, y, w, h, r, fill], sx: sx, sy: sy, sw: sw, sc: sc }); }
+    function txt(t, x, y, c, f) { SD.push({ text: [t, x, y, c, f] }); }
+    function box(x, y, w, h, r, fill, stroke) { SD.push({ rect: [x, y, w, h, r, fill], stroke: stroke }); }
     const chain = this.data.selectedChain;
     const prog = chain.chainProgress;
     let y = this.getContentTop();
 
-    box(10, y, G.W - 20, 70, 6, R.colors.panel, 11, y + 1, 2, R.colors.orange);
+    box(10, y, G.W - 20, 70, 6, R.colors.panel, [11, y + 1, G.W - 22, 68, R.colors.orange]);
     txt(chain.name, 22, y + 18, R.colors.orange, R.fonts.lg);
     txt(chain.desc, 22, y + 38, R.colors.text, R.fonts.sm);
     txt('Step ' + (prog.currentStep + 1) + ' of ' + chain.steps.length, 22, y + 56, R.colors.textDim, R.fonts.sm);
@@ -326,11 +326,7 @@ const questLogScene = Scene.create({
   },
 
   update: function(dt) {
-    const sd = Input.getScrollDelta();
-    if (sd) {
-      this.data.scrollY += sd * 0.8;
-      this.clampScroll();
-    }
+    Scene.scrollInput(this);
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
   },
@@ -350,30 +346,12 @@ const questLogScene = Scene.create({
     ctx.clip();
     ctx.translate(0, -this.data.scrollY);
 
-    for (const d of this.data.staticDraws) {
-      if (d.rect) {
-        R.roundRect(ctx, d.rect[0], d.rect[1], d.rect[2], d.rect[3], d.rect[4], d.rect[5]);
-        if (d.sw) {
-          ctx.strokeStyle = d.sc;
-          ctx.lineWidth = d.sw;
-          ctx.strokeRect(d.sx + 0.5, d.sy + 0.5, d.rect[2] - 1, d.rect[3] - 1);
-        }
-      }
-      if (d.text) R.text(ctx, d.text, d.x, d.y, d.c, d.f);
-    }
+    Scene.drawStatic(ctx, this.data.staticDraws);
 
     for (const b of this.data.buttons) b.render(ctx);
 
     ctx.restore();
 
-    if (this.data.contentHeight > this.getContentHeight()) {
-      const vh = this.getContentHeight();
-      const ratio = vh / this.data.contentHeight;
-      const barH = Math.max(16, ratio * vh);
-      const maxTrack = vh - barH;
-      const scrollFrac = this.data.scrollY / Math.max(1, this.data.contentHeight - vh);
-      const barY = top + scrollFrac * maxTrack;
-      R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, 'rgba(232,160,48,0.25)');
-    }
+    Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
   }
 });
