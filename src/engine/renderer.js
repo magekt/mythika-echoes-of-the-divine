@@ -45,6 +45,8 @@ R.text = function(ctx, str, x, y, color, font, align) {
   ctx.font = font || R.fonts.md;
   ctx.textAlign = align || 'left';
   ctx.fillText(str, Math.floor(x), Math.floor(y));
+  // Normalize post-state so direct fillText calls always start left-aligned.
+  ctx.textAlign = 'left';
 };
 
 R.textCenter = function(ctx, str, x, y, color, font) {

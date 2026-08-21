@@ -29,9 +29,11 @@ UI.Card = function(x, y, w, h, opts) {
 
     handleInput: function() {
       if (!this.visible) return false;
-      const tap = Input.getTap();
+      // Peek first: a tap that misses this card must stay queued for other UI.
+      const tap = Input.peekTap();
       if (!tap) return false;
       if (this.contains(tap.x, tap.y)) {
+        Input.getTap();
         Audio.click();
         if (this.onClick) this.onClick(this.data);
         return true;
