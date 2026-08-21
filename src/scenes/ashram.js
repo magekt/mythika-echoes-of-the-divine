@@ -142,7 +142,7 @@ const ashramScene = Scene.create({
         label: 'UTILITY', color: R.colors.textDim,
         items: [
           { text: 'Rest', scene: '', icon: '\u266B' },
-          { text: 'Trials', scene: 'trials', icon: '\u2666' },
+          { text: 'Trials', scene: 'trials', icon: '\u2666', badge: G.state.trialBest || null },
           { text: 'Rebirth', scene: 'punarjanma', icon: '\u21BB' },
           { text: 'Settings', scene: 'settings', icon: '\u2630' },
           { text: 'Debug', scene: 'debug', icon: '\u25A0' }
@@ -179,6 +179,7 @@ const ashramScene = Scene.create({
           btn._icon = item.icon;
           btn._text = item.text;
           btn._accent = section.color;
+          btn._badge = item.badge ? String(item.badge) : null;
           btn.render = function(ctx) {
             const bx = this.x, by = this.y, bw = this.w, bh = this.h;
             R.roundRect(ctx, bx, by, bw, bh, 10, R.colors.btn);
@@ -193,6 +194,10 @@ const ashramScene = Scene.create({
             ctx.fillStyle = 'rgba(138,138,160,0.12)';
             ctx.fillRect(bx + 10, by + bh - 22, bw - 20, 1);
             R.textCenter(ctx, this._text, bx + bw / 2, by + bh - 10, this._accent, R.fonts.md);
+            if (this._badge) {
+              // Small stat badge (e.g., best Endless Trials wave) in the corner.
+              R.text(ctx, this._badge, bx + bw - 12, by + 20, R.colors.gold, R.fonts.xs, 'right');
+            }
           };
           btn.onClick = function() {
             if (this._scene === '') {

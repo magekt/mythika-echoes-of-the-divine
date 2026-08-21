@@ -67,7 +67,14 @@ const trialsScene = Scene.create({
     e.def = Math.floor(e.def * (1 + (this.data.wave - 1) * 0.05));
     e.name = 'W' + this.data.wave + ' ' + e.name;
     this.data.enemy = e;
-    this.data.log.push('Wave ' + this.data.wave + ': ' + e.name + ' emerges!');
+
+    // Escalating mutators, announced the wave they first apply.
+    const w = this.data.wave;
+    if (w === 10) this.data.log.push('Mutator unlocked: foes REGENERATE each turn!');
+    if (w === 15) this.data.log.push('Mutator unlocked: foes are ENRAGED (+20% damage)!');
+    if (w === 20) this.data.log.push('Mutator unlocked: THORNS punish your strikes!');
+
+    this.data.log.push('Wave ' + w + ': ' + e.name + ' emerges!');
     this.buildFightButtons();
   },
 
@@ -115,12 +122,29 @@ const trialsScene = Scene.create({
     if (foe.hp < 0) foe.hp = 0;
     if (pDmg > 0) this.data.log.push('You deal ' + pDmg + ' damage!');
 
+    // Thorns mutator (W20+): striking a living foe costs you.
+    if (this.data.wave >= 20 && foe.hp > 0 && pDmg > 0) {
+      const thorns = Math.max(1, Math.floor(pDmg * 0.10));
+      this.data.playerHP -= thorns;
+      this.data.log.push('Thorns scar you for ' + thorns + '!');
+      if (this.data.playerHP <= 0) {
+        this.endRun('Thorns claim you at wave ' + this.data.wave + '...');
+        return;
+      }
+    }
+
     if (foe.hp <= 0) {
       this.waveCleared();
       return;
     }
 
-    const eAtk = Math.max(1, foe.str + Math.floor(Math.random() * 8) - Math.floor((hero.def + pDef) * 0.4));
+    // Regen mutator (W10+): surviving foes knit their wounds shut.
+    if (this.data.wave >= 10 && foe.hp < foe.maxHp) {
+      foe.hp = Math.min(foe.maxHp, foe.hp + Math.ceil(foe.maxHp * 0.05));
+    }
+
+    const enrageMul = this.data.wave >= 15 ? 1.2 : 1.0;
+    const eAtk = Math.max(1, Math.floor((foe.str + Math.floor(Math.random() * 8) - Math.floor((hero.def + pDef) * 0.4)) * enrageMul));
     this.data.playerHP -= eAtk;
     if (this.data.playerHP < 0) this.data.playerHP = 0;
     this.data.log.push(foe.name + ' deals ' + eAtk + ' damage');
@@ -151,6 +175,23 @@ const trialsScene = Scene.create({
 
     if (wave > (G.state.trialBest || 0)) G.state.trialBest = wave;
     AchievementSystem.check();
+
+    // Milestone chest: a guaranteed equipment drop every 5 waves.
+    if (wave % 5 === 0) {
+      const hero2 = G.state.player;
+      let drops = [];
+      for (let tries = 0; tries < 10 && drops.length === 0; tries++) {
+        drops = generateLoot(G.state.currentZone || 'aryavarta', hero2.level);
+      }
+      if (drops.length > 0) {
+        if (!G.state.inventory) G.state.inventory = [];
+        for (const it of drops) {
+          G.state.inventory.push(it);
+          this.data.log.push('Milestone chest: ' + it.name + ' (' + it.rarityName + ')');
+        }
+      }
+    }
+
     this.nextWave();
   },
 
