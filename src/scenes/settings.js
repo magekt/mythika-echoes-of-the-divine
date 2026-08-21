@@ -40,6 +40,21 @@ const settingsScene = Scene.create({
     this.data.buttons.push(musicBtn);
     y += 36;
 
+    // Accessibility: cycle UI text scale (persisted with the save).
+    const scales = [1, 1.15, 1.3];
+    const labels = ['Normal', 'Large', 'Largest'];
+    const cur = scales.indexOf(G.state.uiFontScale || 1) === -1 ? 0 : scales.indexOf(G.state.uiFontScale || 1);
+    const fontBtn = UI.Button(20, y, G.W - 40, 30, 'Text Size: ' + labels[cur]);
+    fontBtn.onClick = function() {
+      const next = scales[(cur + 1) % scales.length];
+      G.state.uiFontScale = next;
+      R.applyFontScale(next);
+      Notify.show('Text size: ' + labels[(cur + 1) % labels.length], 2);
+      settingsScene.buildButtons();
+    };
+    this.data.buttons.push(fontBtn);
+    y += 36;
+
     const saveBtn = UI.BtnGold(20, y, G.W - 40, 30, 'Save Game');
     saveBtn.onClick = function() {
       if (SaveSystem.save()) { Notify.show('Game saved!', 2); }

@@ -9,6 +9,8 @@ const ashramScene = Scene.create({
   },
 
   enter: function() {
+    Hints.show('welcome', 'Welcome to your Ashram. Tap Travel to begin your journey.');
+    if ((G.state.gold || 0) >= 100) Hints.show('bazaar', 'You have coin to spend — the Bazaar buys and sells gear.');
     Audio.playMusic('ashram');
     this.data.scrollY = 0;
     this.data.popup = null;

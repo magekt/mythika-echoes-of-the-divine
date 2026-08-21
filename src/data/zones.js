@@ -53,12 +53,24 @@ const ZONES = {
     boss: { id: 'indra', name: 'Indra, the Storm Lord', level: 45, hpMul: 5 },
     explorationMax: 100,
     bgColor: '#1a2040'
+  },
+  tapobhumi: {
+    id: 'tapobhumi', name: 'Tapobhumi (Austerity)',
+    desc: 'The burning ground beyond Svarga, where ascendants are forged anew.',
+    reqLevel: 50, reqZone: 'svarga',
+    minLvl: 45, maxLvl: 60,
+    realm: 'mukta',
+    enemies: ['tapasvi', 'rudra', 'brahmarishi', 'mahadeva', 'seraphim', 'pralaya'],
+    boss: { id: 'pralaya', name: 'Pralaya, the Dissolver', level: 58, hpMul: 6 },
+    explorationMax: 100,
+    bgColor: '#2a1030'
   }
 };
 
 function getZoneTier(zoneId) {
   const zone = ZONES[zoneId];
   const reqLevel = zone.reqLevel || 1;
+  if (reqLevel >= 50) return 3.2;
   if (reqLevel >= 40) return 2.7;
   if (reqLevel >= 30) return 2.2;
   if (reqLevel >= 20) return 1.7;

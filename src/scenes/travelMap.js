@@ -9,6 +9,7 @@ const travelMapScene = Scene.create({
   },
 
   enter: function() {
+    Hints.show('map', 'Locked zones list their requirements. Explore a zone to 100% to advance.');
     this.data.buttons = [];
     this.data.selectedZone = null;
     this.data.scrollY = 0;

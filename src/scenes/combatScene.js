@@ -70,6 +70,7 @@ const combatScene = Scene.create({
   },
 
   enter: function() {
+    Hints.show('combat', 'Tap a foe on the right to target it. Chained hits build combo damage.');
     const zone = G.state.currentZone;
     const musicMap = { aryavarta: 'combat_aryavarta', dandaka: 'combat_dandaka', meru: 'combat_meru', patala: 'combat_patala', svarga: 'combat_svarga' };
     Audio.playMusic(musicMap[zone] || 'combat_aryavarta');
@@ -573,6 +574,7 @@ const combatScene = Scene.create({
         if (beast && !G.state.spiritBeasts.some(b => b.id === bid)) {
           G.state.spiritBeasts.push(beast);
           this.data.log.push('A ' + beast.name + ' spirit bond formed!');
+          Hints.show('beast', 'A spirit beast joined you — activate it from Beasts at the Ashram.');
         }
       }
       for (let i = 0; i < G.state.party.length; i++) {

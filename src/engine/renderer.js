@@ -14,6 +14,18 @@ const R = {
   },
   fonts: {
     xs: '8px monospace', sm: '10px monospace', md: '12px monospace', lg: '16px monospace', xl: '24px monospace'
+  },
+
+  // Accessibility: rebuild the font ladder at a user-chosen scale (1 / 1.15 / 1.3).
+  fontScale: 1,
+  applyFontScale: function(scale) {
+    this.fontScale = scale;
+    const px = function(base) { return Math.round(base * scale) + 'px monospace'; };
+    this.fonts.xs = px(8);
+    this.fonts.sm = px(10);
+    this.fonts.md = px(12);
+    this.fonts.lg = px(16);
+    this.fonts.xl = px(24);
   }
 };
 

@@ -49,6 +49,8 @@ SaveSystem.load = function() {
     const elapsed = data.timestamp ? Math.min((now - data.timestamp) / 1000, 28800) : 0;
     Object.assign(G.state, data.state);
     this.migrate();
+    // Restore the user's text-size preference with the loaded save.
+    if (typeof R !== 'undefined' && R.applyFontScale) R.applyFontScale(G.state.uiFontScale || 1);
     if (elapsed > 60) {
       const cultPerSec = getCultivationPerSecond(G.state.ashramLevel || 1);
       const pranaPerSec = getPranaPerSecond(G.state.ashramLevel || 1);

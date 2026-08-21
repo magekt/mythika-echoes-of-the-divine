@@ -46,6 +46,11 @@ const ENEMIES = {
   darkApsara:  { name: 'Dark Apsara',     hp: 120, str: 14, agi: 26, mag: 20, def: 12, ailment: 'vayu',    xp: 180, gold: 35, minLvl: 30, abilities: ['charm', 'cosmicRays'] },
   seraphim:    { name: 'Seraphim',        hp: 150, str: 18, agi: 22, mag: 26, def: 18, ailment: 'vajra',   xp: 240, gold: 50, minLvl: 35, abilities: ['divineSmite', 'cosmicRays', 'heavenFall'] },
   vishnuDuta:  { name: 'Vishnu Duta',     hp: 200, str: 24, agi: 14, mag: 22, def: 22, ailment: 'none',    xp: 260, gold: 55, minLvl: 36, abilities: ['divineSmite', 'heavenFall'] },
+  tapasvi:     { name: 'Ascetic Tapasvi', hp: 180, str: 26, agi: 16, mag: 24, def: 20, ailment: 'agni',   xp: 280, gold: 55, minLvl: 45, abilities: ['hellfire', 'crush'] },
+  rudra:       { name: 'Rudra Sentinel',  hp: 220, str: 30, agi: 18, mag: 20, def: 24, ailment: 'vayu',   xp: 320, gold: 65, minLvl: 48, abilities: ['thunderStrike', 'crush', 'howl'] },
+  brahmarishi: { name: 'Brahmarishi Adept', hp: 170, str: 22, agi: 20, mag: 32, def: 18, ailment: 'vajra', xp: 340, gold: 70, minLvl: 50, abilities: ['divineSmite', 'cosmicRays', 'charm'] },
+  mahadeva:    { name: 'Mahadeva Herald', hp: 260, str: 32, agi: 22, mag: 30, def: 26, ailment: 'vajra', xp: 400, gold: 90, minLvl: 54, abilities: ['divineSmite', 'hellfire', 'heavenFall'] },
+  pralaya:     { name: 'Pralaya Avatar',  hp: 520, str: 40, agi: 24, mag: 36, def: 30, ailment: 'agni',   xp: 800, gold: 200, minLvl: 58, abilities: ['heavenFall', 'hellfire', 'divineSmite', 'crush'] },
   indra:       { name: 'Indra',           hp: 300, str: 30, agi: 20, mag: 28, def: 24, ailment: 'vajra',   xp: 300, gold: 60, minLvl: 38, abilities: ['thunderStrike', 'heavenFall', 'divineSmite'] }
 };
 
