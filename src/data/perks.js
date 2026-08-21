@@ -2,7 +2,7 @@ const PERKS = {
   tier1: {
     ojas:            { name: 'Ojas',            desc: '+% physical vitality',   maxLvl: 5, costs: [1,5,25,100,250],  values: [10,25,50,100,200] },
     prajna:          { name: 'Prajna',          desc: '+% wisdom power',        maxLvl: 5, costs: [1,5,25,100,250],  values: [10,25,50,100,200] },
-    drishti:         { name: 'Drishti',         desc: '+% inner vision',        maxLvl: 2, costs: [100,250],          values: [50,100] },
+    drishti:         { name: 'Drishti',         desc: '+% inner vision',        maxLvl: 2, costs: [100,250],          values: [10,20] },
     tapas:           { name: 'Tapas',           desc: '+% austerity shield',    maxLvl: 5, costs: [1,5,25,100,250],  values: [5,10,15,20,25] },
     vidya:           { name: 'Vidya',           desc: '+% knowledge gained',    maxLvl: 3, costs: [5,25,100],         values: [10,25,50] },
     samskara:        { name: 'Samskara',        desc: '+starting karmic traces',maxLvl: 3, costs: [5,25,100],         values: [2,5,10] },

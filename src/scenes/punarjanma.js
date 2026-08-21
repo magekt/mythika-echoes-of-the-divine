@@ -126,17 +126,19 @@ const punarjanmaScene = Scene.create({
       h.level = 1;
       h.xp = 0;
       const base = HEROES[h.id];
-      h.maxHp = base.hp + (G.state.rebirthCount * 5);
+      const ojasMul = 1 + Progression.perkValue('ojas') / 100;
+      const prajnaMul = 1 + Progression.perkValue('prajna') / 100;
+      h.maxHp = Math.floor((base.hp + (G.state.rebirthCount * 5)) * ojasMul);
       h.hp = h.maxHp;
       h.maxMp = base.mp + (G.state.rebirthCount * 3);
       h.mp = h.maxMp;
       h.str = base.str + G.state.rebirthCount;
       h.agi = base.agi + G.state.rebirthCount;
-      h.mag = base.mag + G.state.rebirthCount;
+      h.mag = Math.floor((base.mag + G.state.rebirthCount) * prajnaMul);
       h.def = base.def + G.state.rebirthCount;
     }
-    G.state.gold += 100 * G.state.rebirthCount;
-    Economy.addKarma(G.state.rebirthCount * 5);
+    G.state.gold += 100 * G.state.rebirthCount + Progression.perkValue('vasana') * 50;
+    Economy.addKarma(G.state.rebirthCount * 5 + Progression.perkValue('samskara'));
     AchievementSystem.check();
     Notify.show('Samsara transcended! Atman purified through ' + G.state.rebirthCount + ' cycles', 3, R.colors.gold);
     Audio.levelUp();

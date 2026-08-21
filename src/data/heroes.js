@@ -73,12 +73,15 @@ function createHeroState(id) {
   const heroWeapon = Object.values(ITEMS.weapons).find(i => i.name === h.weapon);
   const heroArmor = ITEMS.armors.leather;
   const heroAcc = ITEMS.accessories.simpleAmulet;
+  // Siddhi perks (ojas/prajna) scale base vitality and wisdom.
+  const ojasMul = 1 + Progression.perkValue('ojas') / 100;
+  const prajnaMul = 1 + Progression.perkValue('prajna') / 100;
   return {
     id: h.id, name: h.name, title: h.title,
     weapon: h.weapon, weaponType: h.weaponType,
-    hp: h.hp, maxHp: h.hp,
+    hp: Math.floor(h.hp * ojasMul), maxHp: Math.floor(h.hp * ojasMul),
     mp: h.mp, maxMp: h.mp,
-    str: h.str, agi: h.agi, mag: h.mag, def: h.def,
+    str: h.str, agi: h.agi, mag: Math.floor(h.mag * prajnaMul), def: h.def,
     ailment: h.ailment, ailmentName: h.ailmentName,
     role: h.role, desc: h.desc,
     skills: JSON.parse(JSON.stringify(h.skills)),

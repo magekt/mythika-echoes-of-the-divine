@@ -90,9 +90,13 @@ Combat.nextTurn = function() {
 };
 
 Combat.processAilments = function() {
+  const ayurRegen = (typeof Progression !== 'undefined') ? Progression.perkValue('ayurveda') : 0;
   for (const h of this.heroes) {
     this.tickAilments(h);
     this.tickBuffs(h);
+    if (ayurRegen > 0 && h.hp > 0 && h.hp < h.maxHp) {
+      h.hp = Math.min(h.maxHp, h.hp + ayurRegen);
+    }
     if (h.regenHpPct && h.hp > 0) {
       const regen = Math.max(1, Math.floor(h.maxHp * h.regenHpPct / 100));
       h.hp = Math.min(h.maxHp, h.hp + regen);
@@ -124,7 +128,13 @@ Combat.tickAilments = function(entity) {
 
 Combat.applyBuff = function(entity, buffId, value, duration) {
   if (!entity.buffs) entity.buffs = {};
+  if (buffId === 'shield') value = Math.floor(value * (1 + this.perkShieldPct() / 100));
   entity.buffs[buffId] = { value: value, turnsLeft: duration || 1 };
+};
+
+// Tapas Siddhi: +% shield potency (lives here to avoid a combat->scene dependency).
+Combat.perkShieldPct = function() {
+  return (typeof Progression !== 'undefined') ? Progression.perkValue('tapas') : 0;
 };
 
 Combat.tickBuffs = function(entity) {
@@ -233,7 +243,7 @@ Combat.calcMagicDamage = function(attacker, defender, skill) {
 };
 
 Combat.performAttack = function(attacker, defender, skill) {
-  const critChance = ((attacker.baseCrit || 10) + (attacker.equipCrit || 0)) / 100;
+  const critChance = ((attacker.baseCrit || 10) + (attacker.equipCrit || 0) + (typeof Progression !== 'undefined' ? Progression.perkValue('drishti') : 0)) / 100;
   const isCrit = Math.random() < critChance;
   let dmg = 0;
   if (skill && skill.mag) {

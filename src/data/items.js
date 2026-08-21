@@ -109,10 +109,15 @@ function generateLoot(zoneId, enemyLevel) {
     if (rarityRoll < cumulative) { rarity = key; break; }
   }
   
+  const margaChance = Progression.perkValue('marga') / 100;
+  if (Math.random() < margaChance && rarity !== 'legendary') {
+    rarity = rarity === 'common' ? 'uncommon' : rarity === 'uncommon' ? 'rare' : 'legendary';
+  }
   if (rarity === 'common' && Math.random() < 0.3) {
     const uncommonChance = Progression.getLootBonus() * 0.2;
     if (Math.random() < uncommonChance) rarity = 'uncommon';
   }
+  var siddhiBonus = 1 + Progression.perkValue('siddhi') / 100;
   
   const types = ['weapons', 'armors', 'accessories'];
   const type = types[Math.floor(Math.random() * types.length)];
@@ -123,7 +128,7 @@ function generateLoot(zoneId, enemyLevel) {
   const template = pool[Math.floor(Math.random() * pool.length)];
   const rarityData = RARITY[rarity];
   const levelScale = 1 + (enemyLevel - 1) * 0.08;
-  const difficultyBonus = Progression.getLootBonus();
+  const difficultyBonus = Progression.getLootBonus() * siddhiBonus;
   
   const item = {
     id: template.id + '_' + Date.now(),

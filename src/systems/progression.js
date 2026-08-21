@@ -1,5 +1,12 @@
 const Progression = {};
 
+// Wired value of an owned Siddhi perk for the CURRENT save (0 if unowned).
+Progression.perkValue = function(id) {
+  const lvl = (G.state.perks || {})[id] || 0;
+  if (lvl < 1) return 0;
+  return getPerkValue(id, lvl);
+};
+
 Progression.addXP = function(hero, amount) {
   hero.xp = (hero.xp || 0) + amount;
   const needed = Progression.xpForLevel(hero.level);
@@ -94,6 +101,7 @@ Progression.applyLevelUp = function(hero) {
 
 Progression.addPartyXP = function(amount) {
   let leveled = false;
+  amount = Math.floor(amount * (1 + this.perkValue('vidya') / 100));
   if (G.state.xpBuff) amount = Math.floor(amount * G.state.xpBuff);
   for (const h of G.state.party) {
     if (h.active && h.hp > 0 && Progression.addXP(h, amount)) leveled = true;
