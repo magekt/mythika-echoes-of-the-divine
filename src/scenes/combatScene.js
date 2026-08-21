@@ -402,6 +402,16 @@ const combatScene = Scene.create({
     setTimeout(function() {
       R.damageNumber(G.ctx, enemyX, enemyY - 20, result.dmg, result.isCrit ? R.colors.gold : R.colors.red);
     }, 200);
+    if (target.hp <= 0) this.deathBurstAt(target, false);
+
+    // Battle Wizard: an offensive skill follows up with a half-strength second strike.
+    if (hero.dualCast && skill && !skill.heal && target.hp > 0) {
+      const echo = JSON.parse(JSON.stringify(skill));
+      echo.dmg = (skill.dmg || 1) * 0.5;
+      const r2 = Combat.performAttack(hero, target, echo);
+      this.data.log.push('Dual cast! ' + hero.name + ' strikes again for ' + r2.dmg);
+      if (target.hp <= 0) this.deathBurstAt(target, false);
+    }
     R.screenShake(result.isCrit ? 8 : 4, result.isCrit ? 0.4 : 0.2);
     this.advanceTurn();
   },

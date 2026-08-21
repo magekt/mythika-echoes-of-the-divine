@@ -29,6 +29,9 @@ Combat.startBattle = function(heroes, enemies) {
   this.comboCount = 0;
   this.comboTimer = 0;
   this.combos = [];
+  // Elite-class battle-scoped effects (reset every battle)
+  this.firstCritUsed = false;
+  this.spellBoostUsed = false;
   for (const h of heroes) { h.ailments = {}; h.buffs = {}; }
   for (const e of enemies) { e.ailments = {}; e.buffs = {}; }
   this.applyElitePassives(heroes);
@@ -178,6 +181,9 @@ function _getEffectiveMag(attacker, skill) {
   if (attacker.accessoryEquipped && attacker.accessoryEquipped.mag) {
     mag += attacker.accessoryEquipped.mag;
   }
+  if (attacker.magicMilestone) {
+    mag = Math.floor(mag * 1.15);   // Light Wizard milestone: enduring wisdom
+  }
   if (attacker.buffs && attacker.buffs.atkBuff) {
     mag = Math.floor(mag * attacker.buffs.atkBuff.value);
   }
@@ -224,6 +230,10 @@ Combat.calcDamage = function(attacker, defender, skill, isCrit) {
     dmg = Math.floor(dmg * mult);
   }
   if (isCrit) dmg = Math.floor(dmg * this.CRIT_MULTIPLIER);
+  if (isCrit && attacker.firstCrit2x && !this.firstCritUsed) {
+    dmg *= 2;                      // Assassin: the first crit of a battle lands twice as hard
+    this.firstCritUsed = true;
+  }
   dmg = _applyShield(defender, dmg);
   return Math.max(1, dmg);
 };
@@ -234,6 +244,10 @@ Combat.calcMagicDamage = function(attacker, defender, skill) {
   const base = Math.max(1, atk * (skill ? skill.dmg || 1 : 1) - def * 0.3);
   const variance = 0.85 + Math.random() * 0.3;
   let dmg = Math.floor(base * variance);
+  if (attacker.spellDmgPct && !this.spellBoostUsed) {
+    dmg = Math.floor(dmg * (1 + attacker.spellDmgPct / 100));   // Dark Wizard: opening spell amplified
+    this.spellBoostUsed = true;
+  }
   if (this.comboCount >= 2) {
     const mult = 1.0 + Math.min(10, this.comboCount - 1) * 0.1;
     dmg = Math.floor(dmg * mult);
@@ -264,6 +278,9 @@ Combat.performAttack = function(attacker, defender, skill) {
       if (h.hp > 0) {
         const healAmt = Math.floor(h.maxHp * skill.heal);
         h.hp = Math.min(h.maxHp, h.hp + healAmt);
+        if (attacker.healDualCast) {
+          Combat.applyBuff(h, 'shield', Math.floor(healAmt * 0.2), 2);   // Paladin: dual cast leaves a ward
+        }
       }
     }
     Audio.heal();
