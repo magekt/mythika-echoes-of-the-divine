@@ -13,6 +13,7 @@
   registerScene('questLog', questLogScene);
   registerScene('forge', forgeScene);
   registerScene('tournament', tournamentScene);
+  registerScene('trials', trialsScene);
   registerScene('bazaar', bazaarScene);
   registerScene('farm', farmScene);
   registerScene('fishing', fishingScene);

@@ -1,24 +1,24 @@
 # Mythika: Echoes of the Divine — Build Status
 
-**57 files, ~9,000 lines of JavaScript** across 6 directories.
+**58 files, ~9,200 lines of JavaScript** across 6 directories.
 
 ## Directory Structure
 
 ```
 Mythika/
-├── index.html            (HTML shell, loads 57 scripts)
+├── index.html            (HTML shell, loads 58 scripts)
 ├── netlify.toml          (deploys the repo root as-is)
 ├── styles/
 │   └── game.css          (dark theme, content-box canvas, JS-driven responsive fit)
 ├── src/
-│   ├── main.js           (scene registration — 22 scenes)
+│   ├── main.js           (scene registration — 23 scenes)
 │   ├── engine/           (6 files — game loop, scene, scene-helpers, input, audio, renderer)
 │   ├── ui/               (8 files — button, panel, progress bar, text, list, tabbar, modal, card)
 │   ├── data/             (12 files — heroes, enemies, zones, items, classes, perks,
 │   │                      auras, cultivation, alchemy, spirit beasts, quests, achievements)
 │   ├── systems/          (8 files — economy, progression, combat, cultivation, alchemy,
    │                      save, quest, achievements)
-│   └── scenes/           (22 files — all scenes incl. equipment, questLog, achievements)
+│   └── scenes/           (23 files — all scenes incl. equipment, questLog, trials)
 ```
 
 ## ✅ Completed Features

@@ -17,5 +17,7 @@ const ACHIEVEMENTS = [
   { id: 'boss_slayer', name: 'Boss Slayer', desc: 'Defeat 5 bosses', icon: 'B', check: function() { return (G.state.flags && G.state.flags.bossesDefeated || 0) >= 5; } },
   { id: 'collector', name: 'Collector', desc: 'Own 20 unique items', icon: 'C', check: function() { return (G.state.inventory || []).length >= 20; } },
   { id: 'max_level', name: 'Peak Mortal', desc: 'Reach level 50 with any hero', icon: 'L', check: function() { return G.state.party && G.state.party.some(h => h.level >= 50); } },
-  { id: 'samsara_master', name: 'Samsara Master', desc: 'Rebirth 5 times', icon: 'S', check: function() { return (G.state.rebirthCount || 0) >= 5; } }
+  { id: 'samsara_master', name: 'Samsara Master', desc: 'Rebirth 5 times', icon: 'S', check: function() { return (G.state.rebirthCount || 0) >= 5; } },
+  { id: 'trial_adept', name: 'Trial Adept', desc: 'Reach wave 10 in Endless Trials', icon: 'T', check: function() { return (G.state.trialBest || 0) >= 10; } },
+  { id: 'trial_master', name: 'Trial Master', desc: 'Reach wave 25 in Endless Trials', icon: 'T', check: function() { return (G.state.trialBest || 0) >= 25; } }
 ];

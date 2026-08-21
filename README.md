@@ -19,7 +19,7 @@ Deploys to Netlify as-is (`netlify.toml` publishes the repo root).
 
 ```
 src/
-├── main.js              scene registration (22 scenes)
+├── main.js              scene registration (23 scenes)
 ├── engine/
 │   ├── game.js          G state literal, gLoop (update → clearRect → render),
 │   │                    gScene/Fade (both clear stale input), Notify toasts, fitGame()
@@ -35,7 +35,7 @@ src/
 │                        spirit beasts (+2-stage evolutions), quests (+chains), achievements
 ├── systems/             economy, progression (adaptive difficulty), combat, cultivation,
 │                        alchemy, save (+migration), quest, achievements
-└── scenes/              22 scenes following the Scene contract
+└── scenes/              23 scenes following the Scene contract
 ```
 
 The game loop order matters: `update()` may rebuild UI (`build*()` functions), then the

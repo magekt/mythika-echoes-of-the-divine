@@ -142,6 +142,7 @@ const ashramScene = Scene.create({
         label: 'UTILITY', color: R.colors.textDim,
         items: [
           { text: 'Rest', scene: '', icon: '\u266B' },
+          { text: 'Trials', scene: 'trials', icon: '\u2666' },
           { text: 'Rebirth', scene: 'punarjanma', icon: '\u21BB' },
           { text: 'Settings', scene: 'settings', icon: '\u2630' },
           { text: 'Debug', scene: 'debug', icon: '\u25A0' }
