@@ -14,6 +14,8 @@ const PERKS = {
   }
 };
 
+// DATA LAYER: perk definitions + per-level value/cost lookup.
+// Save-aware access goes through Progression.perkValue(id) in systems/progression.js.
 PERKS.tier2 = {
   vajra:   { name: 'Vajra',   desc: '+% thunder crit damage', tier2: true, maxLvl: 3, costs: [50,150,400], values: [25,50,100] },
   amrita:  { name: 'Amrita',  desc: 'Nectar regeneration',    tier2: true, maxLvl: 3, costs: [50,150,400], values: [8,16,30] },

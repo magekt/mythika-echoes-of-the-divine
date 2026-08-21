@@ -45,10 +45,11 @@ const trialsScene = Scene.create({
     if (!hero) return;
     this.data.state = 'fighting';
     this.data.wave = 0;
-    this.data.playerHP = hero.maxHp;
     this.data.log = ['The Trial begins. Steel your spirit.'];
     this.data.runGold = 0;
     this.data.runKarma = 0;
+    // The duel engine owns HP/log once a foe exists; hero snapshot scales with the run.
+    this.data.duelHero = { str: hero.str, mag: hero.mag, def: hero.def, maxHp: hero.maxHp };
     this.nextWave();
   },
 
@@ -65,7 +66,6 @@ const trialsScene = Scene.create({
     e.str = Math.floor(e.str * mult);
     e.mag = Math.floor(e.mag * mult);
     e.def = Math.floor(e.def * (1 + (this.data.wave - 1) * 0.05));
-    e.name = 'W' + this.data.wave + ' ' + e.name;
     this.data.enemy = e;
 
     // Escalating mutators, announced the wave they first apply.
@@ -74,6 +74,10 @@ const trialsScene = Scene.create({
     if (w === 15) this.data.log.push('Mutator unlocked: foes are ENRAGED (+20% damage)!');
     if (w === 20) this.data.log.push('Mutator unlocked: THORNS punish your strikes!');
 
+    // Fresh duel state each wave; the snapshot hero keeps run-start stats.
+    this.data.duel = Duel.create(this.data.duelHero, e);
+    // Carry playerHP across waves so respite heals matter.
+    this.data.duel.playerHP = this.data.playerHP;
     this.data.log.push('Wave ' + w + ': ' + e.name + ' emerges!');
     this.buildFightButtons();
   },
@@ -101,59 +105,30 @@ const trialsScene = Scene.create({
   },
 
   doRound: function(action) {
-    const hero = G.state.player;
-    const foe = this.data.enemy;
-    let pDmg = 0, pDef = 0;
+    const duel = this.data.duel;
+    if (!duel) return;
 
-    if (action === 'attack') {
-      pDmg = Math.max(1, hero.str + Math.floor(Math.random() * 10) - Math.floor(foe.def * 0.5));
-    } else if (action === 'special') {
-      pDmg = Math.max(1, Math.floor((hero.str + hero.mag) * 1.2) + Math.floor(Math.random() * 15) - Math.floor(foe.def * 0.3));
-    } else if (action === 'heal') {
-      const healAmt = Math.floor(hero.maxHp * 0.15);
-      this.data.playerHP = Math.min(this.data.playerHP + healAmt, hero.maxHp);
-      this.data.log.push('You channel prana, healing ' + healAmt + ' HP');
-    } else if (action === 'defend') {
-      pDef = Math.floor(hero.def * 1.5);
-      this.data.log.push('You brace for impact');
-    }
+    // Mutator options for the current wave.
+    const w = this.data.wave;
+    const result = Duel.round(duel, action, {
+      healPct: 0.15,
+      regen: w >= 10 ? 0.05 : 0,
+      enrage: w >= 15 ? 0.2 : 0,
+      thorns: w >= 20 ? 0.10 : 0
+    });
+    this.data.playerHP = Math.max(0, duel.playerHP);
+    for (const msg of duel.log.splice(0)) this.data.log.push(msg);
 
-    foe.hp -= pDmg;
-    if (foe.hp < 0) foe.hp = 0;
-    if (pDmg > 0) this.data.log.push('You deal ' + pDmg + ' damage!');
-
-    // Thorns mutator (W20+): striking a living foe costs you.
-    if (this.data.wave >= 20 && foe.hp > 0 && pDmg > 0) {
-      const thorns = Math.max(1, Math.floor(pDmg * 0.10));
-      this.data.playerHP -= thorns;
-      this.data.log.push('Thorns scar you for ' + thorns + '!');
-      if (this.data.playerHP <= 0) {
-        this.endRun('Thorns claim you at wave ' + this.data.wave + '...');
-        return;
-      }
-    }
-
-    if (foe.hp <= 0) {
+    if (result === 'win') {
       this.waveCleared();
       return;
     }
-
-    // Regen mutator (W10+): surviving foes knit their wounds shut.
-    if (this.data.wave >= 10 && foe.hp < foe.maxHp) {
-      foe.hp = Math.min(foe.maxHp, foe.hp + Math.ceil(foe.maxHp * 0.05));
+    if (result === 'lose') {
+      const cause = /Thorns/.test(this.data.log[this.data.log.length - 1] || '') ? 'Thorns claim you' : 'You fall';
+      this.endRun(cause + ' at wave ' + w + '...');
+      return;
     }
-
-    const enrageMul = this.data.wave >= 15 ? 1.2 : 1.0;
-    const eAtk = Math.max(1, Math.floor((foe.str + Math.floor(Math.random() * 8) - Math.floor((hero.def + pDef) * 0.4)) * enrageMul));
-    this.data.playerHP -= eAtk;
-    if (this.data.playerHP < 0) this.data.playerHP = 0;
-    this.data.log.push(foe.name + ' deals ' + eAtk + ' damage');
-
-    if (this.data.playerHP <= 0) {
-      this.endRun('You fall at wave ' + this.data.wave + '...');
-    } else {
-      this.buildFightButtons();
-    }
+    this.buildFightButtons();
   },
 
   waveCleared: function() {

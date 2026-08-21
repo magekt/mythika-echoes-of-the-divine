@@ -1,6 +1,6 @@
 # Mythika: Echoes of the Divine — Build Status
 
-**58 files, ~9,300 lines of JavaScript** across 6 directories.
+**59 files, ~9,500 lines of JavaScript** across 6 directories.
 
 ## Directory Structure
 
@@ -46,6 +46,11 @@ Mythika/
 - **9 Alchemy Recipes**, **3 Herbs** with growth timers
 - **10 Spirit Beasts** with **20 evolution forms** (2-stage: Lv.10 and Lv.25 via evolutionStage)
 - **21 Achievements** (incl. Endless Trials tiers), **25 quests + 10 multi-step quest chains** with final rewards
+- **All 11 Siddhi perks wired** (vitality/wisdom scaling, regen, shields, XP, loot quality/rarity, rebirth boons, crit) plus
+  **Tier-II ring** (Vajra/Amrita/Kirti/Gyana) unlocked by the first rebirth
+- **All 6 elite-class bonuses live**: firstCrit2x, spellDmgPct (once/battle), magicMilestone, dualCast echo strike,
+  healDualCast ward, partyHpBuff
+- **Installable PWA**: manifest + generated icons + network-first service worker (offline fallback)
 
 ### Systems
 - **Economy**: gold, karma, divine fragments, inventory with quantity stacking
@@ -66,8 +71,11 @@ Mythika/
 
 ### Endgame
 - **Endless Trials**: unlocked by defeating Svarga's boss; endless waves cycling all
-  five zones with per-wave scaling, gold/karma/XP rewards, respite heals,
-  persistent best-wave tracking, and two dedicated achievements
+  five zones with per-wave scaling, escalating mutators (W10 regen, W15 enrage, W20 thorns),
+  milestone equipment chests every 5 waves, gold/karma/XP rewards, respite heals,
+  persistent best-wave tracking (badged on the Ashram card), and two dedicated achievements
+- **Shared Duel engine** (`systems/duel.js`): one round-based 1v1 module powers both
+  Tournament and Endless Trials
 - **Combat polish**: death-burst animations (expanding ring + sparks) for fallen
   enemies and heroes
 

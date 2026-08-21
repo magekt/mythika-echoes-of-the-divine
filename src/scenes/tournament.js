@@ -73,14 +73,16 @@ const tournamentScene = Scene.create({
     const names = ['Veer', 'Agni', 'Vayu', 'Indra', 'Kali', 'Yama', 'Surya'];
     const name = names[Math.floor(Math.random() * names.length)];
     const lvl = 5 + this.data.wins * 3 + Math.floor(Math.random() * 5);
-    this.data.opponent = {
+    const foe = {
       name: 'Champion ' + name,
       hp: 50 + lvl * 5, maxHp: 50 + lvl * 5,
       str: 5 + lvl, def: 3 + Math.floor(lvl * 0.5)
     };
-    const hero = G.state.player;
-    this.data.playerHP = hero.maxHp;
-    this.data.enemyHP = this.data.opponent.maxHp;
+    this.data.opponent = foe;
+    // Shared duel engine owns HP/log state for the fight.
+    this.data.duel = Duel.create(G.state.player, foe);
+    this.data.playerHP = this.data.duel.playerHP;
+    this.data.enemyHP = foe.hp;
     this.buildFightButtons();
   },
 
@@ -156,33 +158,15 @@ const tournamentScene = Scene.create({
   },
 
   doRound: function(action) {
-    const hero = G.state.player;
-    let pDmg = 0, eDmg = 0;
-    let pDef = 0;
+    const duel = this.data.duel;
+    if (!duel) return;
+    const result = Duel.round(duel, action);   // tournament heals at the standard 20%
+    // Sync render state from the shared duel engine.
+    this.data.playerHP = duel.playerHP;
+    this.data.enemyHP = duel.foe.hp;
+    for (const msg of duel.log.splice(0)) this.data.log.push(msg);
 
-    if (action === 'attack') {
-      pDmg = Math.max(1, hero.str + Math.floor(Math.random() * 10) - Math.floor(this.data.opponent.def * 0.5));
-    } else if (action === 'special') {
-      pDmg = Math.max(1, Math.floor((hero.str + hero.mag) * 1.2) + Math.floor(Math.random() * 15) - Math.floor(this.data.opponent.def * 0.3));
-    } else if (action === 'heal') {
-      const healAmt = Math.floor(hero.maxHp * 0.2);
-      this.data.playerHP = Math.min(this.data.playerHP + healAmt, hero.maxHp);
-      this.data.log.push('You healed for ' + healAmt + ' HP');
-    } else if (action === 'defend') {
-      pDef = Math.floor(hero.def * 1.5);
-      this.data.log.push('You brace for impact');
-    }
-
-    this.data.enemyHP -= pDmg;
-    if (this.data.enemyHP < 0) this.data.enemyHP = 0;
-    if (pDmg > 0) this.data.log.push('You deal ' + pDmg + ' damage!');
-
-    const eAtk = Math.max(1, this.data.opponent.str + Math.floor(Math.random() * 8) - Math.floor((hero.def + pDef) * 0.4));
-    this.data.playerHP -= eAtk;
-    if (this.data.playerHP < 0) this.data.playerHP = 0;
-    this.data.log.push(this.data.opponent.name + ' deals ' + eAtk + ' damage');
-
-    if (this.data.enemyHP <= 0) {
+    if (result === 'win') {
       this.data.log.push('Victory!');
       G.state.tournamentWins = (G.state.tournamentWins || 0) + 1;
       const reward = 100 + this.data.wins * 50;
@@ -191,7 +175,7 @@ const tournamentScene = Scene.create({
       this.data.log.push('Reward: ' + reward + 'g, +1 Karma');
       this.data.state = 'result';
       this.buildResultButtons();
-    } else if (this.data.playerHP <= 0) {
+    } else if (result === 'lose') {
       this.data.log.push('You have been defeated...');
       this.data.state = 'result';
       this.buildResultButtons();

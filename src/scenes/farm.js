@@ -9,7 +9,7 @@ const farmScene = Scene.create({
 
   enter: function() {
     if (!G.state.farmPlots || G.state.farmPlots.length === 0) {
-      const maxPlots = 3 + (getPerkValue('prithvi', G.state.perks.prithvi || 0) > 0 ? 1 : 0);
+      const maxPlots = 3 + (Progression.perkValue('prithvi') > 0 ? 1 : 0);
       G.state.farmPlots = [];
       for (let i = 0; i < maxPlots; i++) {
         G.state.farmPlots.push({ herb: null, growTimer: 0, harvested: false });
