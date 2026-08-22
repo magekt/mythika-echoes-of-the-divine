@@ -521,8 +521,11 @@ const combatScene = Scene.create({
     Combat.awardBeastXP();
     if (won) {
       const loot = Combat.getLoot();
-      Economy.addGold(Math.floor(loot.gold * (1 + Progression.perkValue('kirti') / 100)));
+      const gainedGold = Math.floor(loot.gold * (1 + Progression.perkValue('kirti') / 100));
+      Economy.addGold(gainedGold);
       const xpPerHero = Math.floor(loot.xp / Math.max(1, this.data.heroes.filter(h => h.hp > 0).length));
+      // Ticker state: the result screen counts these up over ~0.5s.
+      this.data.rewards = { gold: gainedGold, xp: xpPerHero, shownG: 0, shownX: 0 };
       const leveled = Progression.addPartyXP(xpPerHero);
       for (const e of this.data.enemies) {
         if (e.hp <= 0) QuestSystem.trackKill(e.id, G.state.currentZone);
@@ -677,6 +680,14 @@ const combatScene = Scene.create({
 
   update: function(dt) {
     if (this.data.damageFlash > 0) this.data.damageFlash -= dt;
+    // Victory ticker: count gold/XP up over ~0.5s (feedback, not motion —
+    // runs under Reduce Motion too).
+    const rw = this.data.rewards;
+    if (rw && (rw.shownG < rw.gold || rw.shownX < rw.xp)) {
+      const k = Math.min(1, dt * 5);
+      rw.shownG = Math.min(rw.gold, rw.shownG + Math.max(1, rw.gold * k));
+      rw.shownX = Math.min(rw.xp, rw.shownX + Math.max(1, rw.xp * k));
+    }
     Scene.scrollInput(this);
     UI.updateButtons(this.data.actionButtons, dt);
     UI.updateButtons(this.data.enemyButtons, dt);
@@ -822,6 +833,11 @@ const combatScene = Scene.create({
 
     if (this.data.turnState === 'result' && !this.data.showEnlightenment) {
       ly += 8;
+      if (this.data.rewards) {
+        const rw = this.data.rewards;
+        R.textCenter(ctx, '+' + Math.floor(rw.shownG) + 'g   \u00b7   +' + Math.floor(rw.shownX) + ' XP', G.W / 2, ly + 14, R.colors.gold, R.fonts.lg);
+        ly += 34;
+      }
       for (const b of this.data.actionButtons) {
         b.y = ly;
         b.render(ctx);
