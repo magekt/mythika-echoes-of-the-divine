@@ -43,6 +43,12 @@ bodies, save numeric-field sanitization, audio unlock-on-gesture, SW v3 cache-fi
 **rAF watchdog** (a throw anywhere recovers instead of killing the loop), **tap-flood
 hardening** (queue caps + 70ms throttle + 120ms button re-fire cooldown + click-SFX gate —
 rapid Continue mashing can no longer replay queued actions or exhaust audio nodes).
+**Forge dead-screen fix**: an empty party made `buildHeroList` throw (`SD is not
+defined`) inside `enter()`, aborting before the Back button — Forge rendered zero
+buttons. Fixed, with `safeEnter()` making scene-enter failures non-fatal, modals
+now cleared on every scene transition (a carried dialog could gate a scene's
+update forever), and a Forge empty-party message. Regression coverage: the
+`?probe&selftest` input-chain test and `tools/diag_click.py` CDP diagnostic.
 
 ## ✅ Motion Audit Fixes & Battle-Aftermath Benefits
 
