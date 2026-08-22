@@ -33,6 +33,7 @@ const forgeScene = Scene.create({
     this.data.buttons = [];
     this.data.scrollY = 0;
     this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
     for (const hero of G.state.party) {
@@ -56,6 +57,13 @@ const forgeScene = Scene.create({
       };
       this.data.buttons.push(btn);
       y += 60;
+    }
+
+    // Empty state: without this, a hero-less Forge looks like dead buttons.
+    if (G.state.party.length === 0) {
+      SD.push({ textCenter: ['No heroes yet.', G.W / 2, y + 22, R.colors.text, R.fonts.md] });
+      SD.push({ textCenter: ['Recruit your first hero at the Party hall.', G.W / 2, y + 40, R.colors.textDim, R.fonts.sm] });
+      y += 56;
     }
 
     this.data.buttons.push(Scene.backButton(y + 6, { fade: true }));
