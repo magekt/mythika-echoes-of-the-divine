@@ -42,6 +42,7 @@ UI.Modal.show = function(opts) {
     }
   };
   m._buildButtons();
+  m._openedAt = performance.now();
   UI.Modal.queue.push(m);
   if (!UI.Modal.active) UI.Modal.active = UI.Modal.queue.shift();
   return m;
@@ -56,6 +57,7 @@ UI.Modal.dismiss = function(result) {
   }
   if (UI.Modal.queue.length > 0) {
     UI.Modal.active = UI.Modal.queue.shift();
+    UI.Modal.active._openedAt = performance.now();
   }
 };
 
@@ -67,8 +69,22 @@ UI.Modal.handleInput = function() {
 UI.Modal.render = function(ctx) {
   const m = UI.Modal.active;
   if (!m || !m.visible) return;
+  // Enter: fade + scale 0.96->1 over 120ms (easeOutCubic) so dialogs arrive,
+  // not flash. Skipped under Reduce Motion.
+  let e = 1;
+  if (!G.state.reduceMotion && m._openedAt) {
+    const t = Math.min(1, (performance.now() - m._openedAt) / 120);
+    e = 1 - Math.pow(1 - t, 3);
+  }
+  ctx.save();
+  ctx.globalAlpha = e;
   ctx.fillStyle = 'rgba(0,0,0,0.7)';
   ctx.fillRect(0, 0, G.W, G.H);
+  const cx = m.x + m.w / 2, cy = m.y + m.h / 2;
+  const s = 0.96 + 0.04 * e;
+  ctx.translate(cx, cy);
+  ctx.scale(s, s);
+  ctx.translate(-cx, -cy);
   R.roundRect(ctx, m.x, m.y, m.w, m.h, 8, R.colors.panel);
   ctx.strokeStyle = R.colors.orange;
   ctx.lineWidth = 2;
@@ -97,6 +113,7 @@ UI.Modal.render = function(ctx) {
   for (const b of m._buttonList) {
     b.render(ctx);
   }
+  ctx.restore();
 };
 
 UI.Modal.confirm = function(title, body, onConfirm) {

@@ -56,7 +56,15 @@ UI.Button = function(x, y, w, h, text, color, hoverColor, textColor) {
 
     render: function(ctx) {
       if (!this.visible) return;
-      const pressed = this._pressed;
+      // Held press-down state: mirror the live pointer position (touch OR
+      // mouse) so touch users see the same feedback hover gives desktop.
+      // Screen-space pointer y maps into build-space via this.scrollY.
+      let held = false;
+      const down = Input._touchCurrent || Input._touchStart || Input._pressPos;
+      if (down && this.enabled && this.visible) {
+        held = this.contains(down.x, down.y - this.scrollY);
+      }
+      const pressed = this._pressed || held;
       const col = pressed ? this.hoverColor : (this._hovered ? this.hoverColor : this.color);
       const oy = this.scrollY;
       const dx = pressed ? 1 : 0;

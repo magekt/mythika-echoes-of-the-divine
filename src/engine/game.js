@@ -3,15 +3,43 @@ const Notify = {
   achievements: [],
   show: function(msg, duration, color) {
     if (this.queue.length >= 3) this.queue.shift();
-    this.queue.push({ msg: msg || '', timer: duration || 2, color: color || R.colors.gold });
+    this.queue.push({ msg: msg || '', timer: duration || 2, color: color || R.colors.gold, age: 0 });
   },
   achievement: function(name, desc, icon) {
     this.achievements.push({ name, desc, icon, timer: 3.5, phase: 'in' });
     Audio.levelUp();
   },
+  // Fold a message into at most two md-font lines that fit the 320px toast
+  // (296px inner), ellipsizing the tail when it still overflows.
+  wrap: function(ctx, msg) {
+    ctx.font = R.fonts.md;
+    const max = 296;
+    const words = String(msg).split(/\s+/);
+    const lines = [];
+    let cur = '';
+    let used = 0;
+    for (; used < words.length; used++) {
+      const test = cur ? cur + ' ' + words[used] : words[used];
+      if (ctx.measureText(test).width <= max || !cur) {
+        cur = test;
+        continue;
+      }
+      if (lines.length === 1) break;
+      lines.push(cur);
+      cur = words[used];
+    }
+    if (cur && lines.length < 2) lines.push(cur);
+    if (used < words.length && lines.length === 2) {
+      let l2 = lines[1];
+      while (l2.length > 1 && ctx.measureText(l2 + '\u2026').width > max) l2 = l2.slice(0, -1);
+      lines[1] = l2.replace(/\s+\S*$/, '') + '\u2026';
+    }
+    return lines.length ? lines : [''];
+  },
   update: function(dt) {
     for (let i = this.queue.length - 1; i >= 0; i--) {
       this.queue[i].timer -= dt;
+      this.queue[i].age += dt;
       if (this.queue[i].timer <= 0) this.queue.splice(i, 1);
     }
     for (let i = this.achievements.length - 1; i >= 0; i--) {
@@ -28,16 +56,28 @@ const Notify = {
     }
   },
   render: function(ctx) {
+    const reduceMotion = !!G.state.reduceMotion;
+    let ty = 470;
     const count = Math.min(this.queue.length, 3);
     for (let i = 0; i < count; i++) {
       const n = this.queue[i];
-      const alpha = Math.min(1, n.timer * 2);
+      // Enter: slide down 12px + fade over 150ms so toasts land, not pop.
+      const enter = reduceMotion ? 1 : Math.min(1, n.age / 0.15);
+      const alpha = Math.min(1, n.timer * 2) * enter;
+      const lines = Notify.wrap(ctx, n.msg);
+      const h = lines.length > 1 ? 40 : 26;
+      const y = ty - (reduceMotion ? 0 : (1 - enter) * 12);
       ctx.globalAlpha = alpha;
-      const y = 470 + i * 30;
-      R.roundRect(ctx, 40, y, 320, 26, 4, 'rgba(0,0,0,0.8)');
-      R.textCenter(ctx, n.msg, G.W / 2, y + 17, n.color, R.fonts.md);
+      R.roundRect(ctx, 40, y, 320, h, 4, 'rgba(0,0,0,0.8)');
+      if (lines.length > 1) {
+        R.textCenter(ctx, lines[0], G.W / 2, y + 14, n.color, R.fonts.md);
+        R.textCenter(ctx, lines[1], G.W / 2, y + 28, n.color, R.fonts.md);
+      } else {
+        R.textCenter(ctx, lines[0], G.W / 2, y + 17, n.color, R.fonts.md);
+      }
+      ctx.globalAlpha = 1;
+      ty += h + 6;
     }
-    ctx.globalAlpha = 1;
     // Show at most the 2 newest banners, stacked so simultaneous unlocks stay readable.
     const visible = this.achievements.slice(-2);
     for (let ai = 0; ai < visible.length; ai++) {
