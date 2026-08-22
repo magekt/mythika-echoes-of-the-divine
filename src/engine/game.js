@@ -264,6 +264,11 @@ function gLoop(time) {
   }
   Fade.render(G.ctx);
   Notify.render(G.ctx);
+  // First frame is on screen: drop the CSS boot splash.
+  if (G.frameCount === 1) {
+    const el = document.getElementById('game-container');
+    if (el) el.classList.remove('loading');
+  }
   requestAnimationFrame(gLoop);
 }
 

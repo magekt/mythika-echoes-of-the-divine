@@ -32,6 +32,21 @@ body {
   display: block;
 }
 #status-bar { display: none; }
+/* Boot splash: covers the empty canvas until the first rendered frame
+   (removed by gLoop via frameCount). Pure CSS, zero JS cost. */
+#game-container.loading::after {
+  content: '\2694\00A0\00A0Summoning the realms...';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #15152a;
+  color: #e8a030;
+  font: 12px 'Courier New', monospace;
+  letter-spacing: 0.12em;
+  z-index: 5;
+}
 @media (max-width: 420px) {
   #game-container { border: none; border-radius: 0; box-shadow: none; }
 }
