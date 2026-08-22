@@ -15,7 +15,7 @@ UI.ProgressBar = function(x, y, w, h, color, bgColor) {
     },
 
     render: function(ctx) {
-      R.roundRect(ctx, this.x, this.y, this.w, this.h, 3, this.bgColor);
+      R.roundRect(ctx, this.x, this.y, this.w, this.h, R.radius.xs, this.bgColor);
       ctx.strokeStyle = R.colors.blueDark;
       ctx.lineWidth = 1;
       ctx.beginPath();

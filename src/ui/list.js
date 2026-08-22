@@ -68,7 +68,7 @@ UI.ScrollList = function(x, y, w, h, opts) {
           if (this.onRenderItem) {
             this.onRenderItem(ctx, item, i, this.x, itemY, this.w, itemH, selected);
           } else {
-        R.roundRect(ctx, this.x, itemY, this.w, itemH, 3, selected ? R.colors.orange : R.colors.btn);
+        R.roundRect(ctx, this.x, itemY, this.w, itemH, R.radius.xs, selected ? R.colors.orange : R.colors.btn);
         R.textCenter(ctx, item.label || item.name || String(item), this.x + this.w / 2, itemY + itemH / 2 + 3, R.colors.text, R.fonts.sm);
           }
         }

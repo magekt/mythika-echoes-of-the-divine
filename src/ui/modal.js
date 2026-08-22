@@ -85,11 +85,11 @@ UI.Modal.render = function(ctx) {
   ctx.translate(cx, cy);
   ctx.scale(s, s);
   ctx.translate(-cx, -cy);
-  R.roundRect(ctx, m.x, m.y, m.w, m.h, 8, R.colors.panel);
+  R.roundRect(ctx, m.x, m.y, m.w, m.h, R.radius.m, R.colors.panel);
   ctx.strokeStyle = R.colors.orange;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  const r = 8, x = m.x, y = m.y, w = m.w, h = m.h;
+  const r = R.radius.m, x = m.x, y = m.y, w = m.w, h = m.h;
   ctx.moveTo(x + r, y);
   ctx.lineTo(x + w - r, y);
   ctx.quadraticCurveTo(x + w, y, x + w, y + r);

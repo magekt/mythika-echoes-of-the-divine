@@ -71,12 +71,12 @@ UI.Button = function(x, y, w, h, text, color, hoverColor, textColor) {
       const dy = pressed ? 1 : 0;
       const dw = pressed ? -2 : 0;
       const dh = pressed ? -2 : 0;
-      R.roundRect(ctx, this.x + dx, this.y + oy + dy, this.w + dw, this.h + dh, 5, col);
+      R.roundRect(ctx, this.x + dx, this.y + oy + dy, this.w + dw, this.h + dh, R.radius.s, col);
       if (this.color === R.colors.btnGold || this.color === R.colors.orange) {
         ctx.strokeStyle = pressed ? R.colors.gold : R.colors.orangeLight;
         ctx.lineWidth = 1;
         ctx.beginPath();
-        const r = 5, x = this.x + dx, y = this.y + oy + dy, w = this.w + dw, h = this.h + dh;
+        const r = R.radius.s, x = this.x + dx, y = this.y + oy + dy, w = this.w + dw, h = this.h + dh;
         ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
         ctx.quadraticCurveTo(x + w, y, x + w, y + r);
         ctx.lineTo(x + w, y + h - r);
