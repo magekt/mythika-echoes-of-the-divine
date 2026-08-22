@@ -22,16 +22,21 @@ Mythika/
 │   └── scenes/           (23 files — all scenes incl. equipment, questLog, trials)
 ```
 
-## 🚧 Roadmap — In Progress (H-series)
+## ✅ Roadmap — H-series (done) & U-series UI/UX (done)
 
-Live-verified flaws from the desktop/mobile verification matrix (6 profiles):
+All items verified by `tools/verify_matrix.py` (desktop / phone / landscape headless
+boot matrix with screenshots) plus per-phase syntax checks and commits.
 
 | # | Item | Status |
 |---|---|---|
-| H1 | Boot determinism: `gInit` waits for `window.load`; under slow straggler resources the shell can sit dark/main-tail races | **in progress** |
-| H2 | Long toast messages overflow their 320px box (onboarding hints) — needs word-wrap | **planned** |
-| H3 | Landscape (<500px height) shows tiny letterboxed view — add one-time rotate hint | **planned** |
-| H4 | Verification harness moved in-repo (`tools/verify_matrix.py`) | **planned** |
+| H1 | Boot determinism: idempotent `bootGame()` fires on script parse, `window.load` kept as guarded safety-net | ✅ |
+| H2 | Toasts word-wrap to 2 lines (ellipsis), grow/stack by real height | ✅ (in U1) |
+| H3 | One-time rotate hint for landscape (<500px height) via `Hints.show('rotate')` | ✅ |
+| H4 | In-repo harness `tools/verify_matrix.py` — boot beacon + screenshot matrix | ✅ |
+| U1 | Held touch press-down feedback on buttons; toast slide+fade-in (150ms); modal fade+scale-in (120ms) | ✅ |
+| U2 | Combat HP ghost-drain (white segment eases on damage, snaps on heal); Settings > Reduce Motion gates shake/bursts/flashes/enter anims (audio unaffected), persists with save | ✅ |
+| U3 | `drawHeader` bezel depth (1px top highlight + bottom shade); `R.radius` token scale; dim-text contrast lift (`#98a0b8` / `#6a7088`) | ✅ |
+| U4 | CSS "Summoning the realms…" splash until first rendered frame | ✅ |
 
 Recently shipped hardening: recruit level-up loop clamp (over-cap leaders), modal multi-line
 bodies, save numeric-field sanitization, audio unlock-on-gesture, SW v3 cache-first loads.
