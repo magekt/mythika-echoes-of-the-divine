@@ -297,13 +297,16 @@ R.drawEncounterTimer = function(ctx, x, y, remaining, total) {
 };
 
 R.drawCultivationAura = function(ctx, x, y, time) {
-  const radius = 20 + Math.sin(time * 2) * 5;
+  // Reduce Motion: hold the rings at their resting size (still signals an
+  // active aura, without the continuous pulse).
+  const rm = !!G.state.reduceMotion;
+  const radius = rm ? 20 : 20 + Math.sin(time * 2) * 5;
   ctx.strokeStyle = 'rgba(200, 160, 80, 0.3)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, Math.PI * 2);
   ctx.stroke();
-  const innerR = 8 + Math.sin(time * 3) * 3;
+  const innerR = rm ? 8 : 8 + Math.sin(time * 3) * 3;
   ctx.strokeStyle = 'rgba(200, 160, 80, 0.5)';
   ctx.beginPath();
   ctx.arc(x, y, innerR, 0, Math.PI * 2);
@@ -427,6 +430,9 @@ R.renderLevelUp = function(ctx) {
 };
 
 R.renderEnlightenmentAura = function(ctx, dt) {
+  // Reduce Motion: the full-screen breathing glow is decorative — skip it.
+  // The ENLIGHTENED timer chip remains the functional buff indicator.
+  if (G.state.reduceMotion) return;
   if (G.state.enlightenmentTimer > 0 && G.state.enlightenmentBuff) {
     R.enlightenmentAura += dt * 2;
     const pulse = 0.3 + Math.sin(R.enlightenmentAura) * 0.15;
@@ -537,8 +543,10 @@ R.drawZoneBackground = function(ctx, zoneId) {
 };
 
 R.drawFishingBobber = function(ctx, x, y, phase, isRare) {
-  const bobX = x + Math.sin(phase) * 15;
-  const bobY = y + Math.cos(phase * 0.7) * 3;
+  // Reduce Motion: pin the bobber and drop the expanding ripples.
+  const rm = !!G.state.reduceMotion;
+  const bobX = rm ? x : x + Math.sin(phase) * 15;
+  const bobY = rm ? y : y + Math.cos(phase * 0.7) * 3;
 
   ctx.strokeStyle = '#5a5040';
   ctx.lineWidth = 1;
@@ -547,12 +555,14 @@ R.drawFishingBobber = function(ctx, x, y, phase, isRare) {
   ctx.lineTo(bobX, bobY);
   ctx.stroke();
 
-  const rippleR = 10 + Math.sin(phase * 2) * 3;
-  ctx.strokeStyle = isRare ? 'rgba(232, 200, 128, 0.4)' : 'rgba(48, 128, 200, 0.3)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.arc(bobX, bobY, rippleR, 0, Math.PI * 2);
-  ctx.stroke();
+  if (!rm) {
+    const rippleR = 10 + Math.sin(phase * 2) * 3;
+    ctx.strokeStyle = isRare ? 'rgba(232, 200, 128, 0.4)' : 'rgba(48, 128, 200, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(bobX, bobY, rippleR, 0, Math.PI * 2);
+    ctx.stroke();
+  }
 
   ctx.fillStyle = isRare ? '#e8c880' : '#c83030';
   ctx.fillRect(bobX - 3, bobY - 3, 6, 6);

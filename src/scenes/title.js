@@ -37,9 +37,12 @@ const titleScene = Scene.create({
 
   update: function(dt) {
     if (this.data.titleY < 60) this.data.titleY += 60 * dt;
-    for (const p of this.data.particles) {
-      p.x += p.vx; p.y += p.vy;
-      if (p.y < -10) { p.y = G.H + 10; p.x = Math.random() * G.W; }
+    // Reduce Motion: particles render as a static starfield (no drift loop).
+    if (!G.state.reduceMotion) {
+      for (const p of this.data.particles) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.y < -10) { p.y = G.H + 10; p.x = Math.random() * G.W; }
+      }
     }
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons);
