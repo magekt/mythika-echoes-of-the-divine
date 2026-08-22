@@ -242,6 +242,28 @@ function gInit() {
 }
 
 function gLoop(time) {
+  // Watchdog: schedule first, then isolate the frame. An exception anywhere
+  // in update/render used to kill the rAF chain silently — now the error is
+  // logged, surfaced once as a toast, and the game recovers. A long
+  // consecutive-error streak stops the toast spam but never the loop.
+  requestAnimationFrame(gLoop);
+  try {
+    gLoopFrame(time);
+    G._errStreak = 0;
+  } catch (err) {
+    G._errStreak = (G._errStreak || 0) + 1;
+    if (G._errStreak <= 3 && window.console && console.error) {
+      console.error('[Mythika] loop error #' + G._errStreak, err);
+    }
+    if (G._errStreak === 1 || G._errStreak === 25) {
+      try {
+        Notify.show('Recovered from an internal error (' + G._errStreak + ')', 2.5, R.colors.red);
+      } catch (e2) {}
+    }
+  }
+}
+
+function gLoopFrame(time) {
   G.dt = Math.min((time - G.lastTime) / 1000, 0.05);
   G.lastTime = time;
   G.frameCount++;
@@ -314,7 +336,7 @@ function gLoop(time) {
       }
     }
   }
-  requestAnimationFrame(gLoop);
+  // (Scheduling lives in gLoop's watchdog — do not re-schedule here.)
 }
 
 function drawBackground() {
