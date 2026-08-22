@@ -62,8 +62,11 @@ const Notify = {
     for (let i = 0; i < count; i++) {
       const n = this.queue[i];
       // Enter: slide down 12px + fade over 150ms so toasts land, not pop.
+      // Exit: fade over the final 180ms only — leaving should be subtler
+      // than arriving (the old timer*2 window kept them half-visible for
+      // 500ms, outliving their welcome).
       const enter = reduceMotion ? 1 : Math.min(1, n.age / 0.15);
-      const alpha = Math.min(1, n.timer * 2) * enter;
+      const alpha = Math.min(1, n.timer / 0.18) * enter;
       const lines = Notify.wrap(ctx, n.msg);
       const h = lines.length > 1 ? 40 : 26;
       const y = ty - (reduceMotion ? 0 : (1 - enter) * 12);
