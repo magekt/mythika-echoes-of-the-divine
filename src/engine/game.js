@@ -48,9 +48,10 @@ const Notify = {
       if (a.phase === 'in') {
         a.progress = Math.min(1, (a.progress || 0) + dt * 3);
         if (a.progress >= 1) a.phase = 'hold';
-      } else if (a.timer < 0.5) {
+      } else if (a.timer < 0.2) {
         a.phase = 'out';
-        a.progress = Math.max(0, a.timer * 2);
+        // 200ms exit: subtler than the entrance, matching the toast family.
+        a.progress = Math.max(0, a.timer * 5);
       }
       if (a.timer <= 0) this.achievements.splice(i, 1);
     }
