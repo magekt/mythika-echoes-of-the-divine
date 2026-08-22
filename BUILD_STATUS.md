@@ -39,7 +39,10 @@ boot matrix with screenshots) plus per-phase syntax checks and commits.
 | U4 | CSS "Summoning the realms…" splash until first rendered frame | ✅ |
 
 Recently shipped hardening: recruit level-up loop clamp (over-cap leaders), modal multi-line
-bodies, save numeric-field sanitization, audio unlock-on-gesture, SW v3 cache-first loads.
+bodies, save numeric-field sanitization, audio unlock-on-gesture, SW v3 cache-first loads,
+**rAF watchdog** (a throw anywhere recovers instead of killing the loop), **tap-flood
+hardening** (queue caps + 70ms throttle + 120ms button re-fire cooldown + click-SFX gate —
+rapid Continue mashing can no longer replay queued actions or exhaust audio nodes).
 
 ## ✅ Motion Audit Fixes & Battle-Aftermath Benefits
 
