@@ -66,6 +66,7 @@ plus the post-combat options bug report. Verified per-commit with the boot/fps h
 | I2 | Toast exit window 500ms → 180ms (exits subtler than enters) | ✅ |
 | O1–O5 | Banner slide-in · splash crossfade · scene-fade legs 150/250ms · victory reward tickers · adaptive Reduce Motion (two <30fps windows auto-enable unless set manually) | ✅ |
 | FX | **Click-outcome micro-interactions**: every valid press plays a gold valid-tick + click blip at the exact tap point; disabled or rejected actions (`return false` from the handler) play stone-hits-glass (ripple rings, dent ticks, impact-synced thud). Bounds-guarded, RM-aware, flood-safe | ✅ |
+| FX2 | Coverage completed: TabBar switches / active-tab no-ops, ScrollList rows (bazaar), cultivation breakthrough failures; achievement banners exit in 200ms | ✅ |
 
 ## ✅ Completed Features
 
