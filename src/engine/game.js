@@ -281,6 +281,25 @@ function gInit() {  G.canvas = document.getElementById('game-canvas');
           }
         }, 700);
       }, 400);
+      // Phase 2: re-tapping equipment's active tab must spawn the blocked
+      // stone-glass FX (and never a valid tick).
+      setTimeout(function() {
+        gScene('equipment');
+        setTimeout(function() {
+          const tb = equipmentScene.data.buttons.find(function(b2) { return b2.text === 'Inventory'; });
+          if (!tb) { console.log('[Mythika] selftest2 {"error":"no tab button"}'); return; }
+          Input._lastTapAt = -Infinity;
+          Input.clicks = [];
+          const glassBefore = R.clickFx.filter(function(f2) { return f2.type === 'glass'; }).length;
+          Input._pushTap({ x: tb.x + tb.w / 2, y: tb.y + tb.h / 2, t: 'click' });
+          setTimeout(function() {
+            const glassAfter = R.clickFx.filter(function(f2) { return f2.type === 'glass'; }).length;
+            console.log('[Mythika] selftest2 ' + JSON.stringify({
+              blockedOK: glassAfter > glassBefore
+            }));
+          }, 400);
+        }, 500);
+      }, 2400);
     }, 900);
   }
   gLoop(performance.now());
