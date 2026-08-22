@@ -686,7 +686,9 @@ const combatScene = Scene.create({
       R.textCenter(ctx, '\u25C0 Enemy Turn', G.W / 2, 88, R.colors.red, R.fonts.sm);
     }
 
-    let hx = 22, hy = 32;
+    let hx = 12;
+    const heroStep = this.data.heroes.length <= 3 ? 90 : 68;   // keep 4-5 hero bars on-canvas
+    const hy = 32;
     for (const h of this.data.heroes) {
       const col = h.hp > 0 ? R.colors.text : R.colors.textDim;
       R.drawHero(ctx, h.id, hx + 12, hy, 22);
@@ -708,7 +710,7 @@ const combatScene = Scene.create({
         ctx.font = R.fonts.sm;
         R.textCenter(ctx, (buffStr.length ? buffStr.join(' ') : '') + (ailStr ? ' [' + ailStr + ']' : ''), hx + 12, hy + 48, R.colors.textDim, R.fonts.sm);
       }
-      hx += 90;
+      hx += heroStep;
     }
 
     let ex = G.W - 22, ey = 32;

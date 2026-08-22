@@ -8,7 +8,8 @@ const partyScene = Scene.create({
     itemsView: false,
     equipSlot: null,
     scrollY: 0,
-    contentHeight: 0
+    contentHeight: 0,
+    recruitCosts: [800, 2500, 6000, 14000]
   },
 
   enter: function() {
@@ -68,6 +69,21 @@ const partyScene = Scene.create({
       y += 72;
     }
 
+    // Recruit Hall: grow the party toward the full pantheon (max 5 heroes).
+    if (G.state.party.length < 5) {
+      const cost = this.data.recruitCosts[G.state.party.length - 1] || 14000;
+      const canAfford = (G.state.gold || 0) >= cost;
+      const rec = UI.Button(14, y + 4, G.W - 28, 36, 'Recruit Hero (' + cost + 'g)', canAfford ? R.colors.btnGold : R.colors.btn);
+      rec.enabled = canAfford;
+      rec.onClick = function() {
+        partyScene.data.view = 'recruit';
+        partyScene.data.scrollY = 0;
+        partyScene.buildRecruitList();
+      };
+      this.data.buttons.push(rec);
+      y += 48;
+    }
+
     const back = UI.Button(60, y + 6, G.W - 120, 32, 'Back to Ashram', R.colors.btnGold);
     back.onClick = function() { gScene('ashram', true); };
     this.data.buttons.push(back);
@@ -76,8 +92,76 @@ const partyScene = Scene.create({
     this.data.contentHeight = y;
   },
 
-  selectHero: function(hero) {
-    this.data.selectedHero = hero;
+  // Recruit Hall: pick from heroes not yet in the party.
+  buildRecruitList: function() {
+    this.data.buttons = [];
+    this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
+    let y = this.getContentTop();
+
+    const cost = this.data.recruitCosts[G.state.party.length - 1] || 14000;
+    const inParty = G.state.party.map(x => x.id);
+    SD.push({ text: ['Recruit joins at 60% of your leader\'s level — ' + cost + 'g', 18, y + 8, R.colors.gold, R.fonts.sm] });
+    y += 24;
+
+    for (const hid of Object.keys(HEROES)) {
+      if (inParty.indexOf(hid) !== -1) continue;
+      const heroDef = HEROES[hid];
+      const btn = UI.Button(14, y, G.W - 28, 54, '', R.colors.panel);
+      btn._hid = hid;
+      btn.render = function(ctx) {
+        const bx = this.x, by = this.y, bw = this.w, bh = this.h;
+        R.roundRect(ctx, bx, by, bw, bh, 6, R.colors.panel);
+        ctx.strokeStyle = 'rgba(138,138,160,0.1)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+        R.drawHero(ctx, this._hid, bx + 10, by + 8, 20);
+        R.text(ctx, heroDef ? HEROES[this._hid].name : this._hid, bx + 40, by + 16, R.colors.gold, R.fonts.md);
+        R.text(ctx, (heroDef ? HEROES[this._hid].role + ': ' : '') + (heroDef ? HEROES[this._hid].desc : ''), bx + 40, by + 34, R.colors.textDim, R.fonts.xs);
+      };
+      btn.onClick = function() { partyScene.recruitHero(this._hid); };
+      this.data.buttons.push(btn);
+      y += 62;
+    }
+
+    const back = UI.Button(60, y + 8, G.W - 120, 30, 'Back to Party', R.colors.btnGold);
+    back.onClick = function() {
+      partyScene.data.view = 'list';
+      partyScene.data.scrollY = 0;
+      partyScene.buildList();
+    };
+    this.data.buttons.push(back);
+    y += 44;
+
+    this.data.contentHeight = y;
+  },
+
+  recruitHero: function(hid) {
+    const idx = G.state.party.length - 1;
+    const cost = this.data.recruitCosts[idx] || 14000;
+    if (!Economy.spendGoldOrNotify(cost)) return;
+
+    const recruit = createHeroState(hid);
+    // Allies arrive seasoned: 60% of the leader's level, via real level-ups.
+    const target = Math.max(1, Math.floor((G.state.player ? G.state.player.level : 1) * 0.6));
+    while (recruit.level < target) {
+      Progression.addXP(recruit, Progression.xpForLevel(recruit.level));
+    }
+    recruit.hp = recruit.maxHp;
+    recruit.mp = recruit.maxMp;
+
+    G.state.party.push(recruit);
+    Notify.show(recruit.name + ' joins your party!', 3, R.colors.gold);
+    Audio.levelUp();
+    Hints.show('recruit', 'Allies fight alongside you automatically in every battle.');
+    AchievementSystem.check();
+    this.data.view = 'list';
+    this.data.scrollY = 0;
+    this.buildList();
+  },
+
+  selectHero: function(hero) {    this.data.selectedHero = hero;
     this.data.view = 'detail';
     this.data.itemsView = false;
     this.data.equipSlot = null;
@@ -296,7 +380,16 @@ const partyScene = Scene.create({
             ctx.font = R.fonts.sm;
             const mainW = ctx.measureText(text.substring(0, parenIdx)).width;
             R.text(ctx, diffText, bx + 12 + mainW, by + 16, diffColor, R.fonts.sm);
-          } else {
+    } else if (this.data.view === 'recruit') {
+      R.drawHeader(ctx, 62, 'Recruit Hall');
+      R.textCenter(ctx, 'Allies arrive at 60% of your leader\'s level', G.W / 2, 48, R.colors.textDim, R.fonts.sm);
+      Scene.clipContent(ctx, this);
+      for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
+      Scene.drawStatic(ctx, this.data.staticDraws);
+      ctx.restore();
+      Scene.drawScrollbar(ctx, this.getContentTop(), this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
+
+    } else {
             R.text(ctx, text, bx + 12, by + 16, R.colors.white, R.fonts.sm);
           }
         };
