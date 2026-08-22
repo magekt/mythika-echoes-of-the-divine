@@ -1,6 +1,6 @@
 # Mythika: Echoes of the Divine — Build Status
 
-**60 files, ~9,600 lines of JavaScript** across 6 directories.
+**60 files, ~9,700 lines of JavaScript** across 6 directories.
 
 ## Directory Structure
 
@@ -36,7 +36,9 @@ Mythika/
   (legacy string gear slots and junk inventory entries healed automatically)
 
 ### Data Layer
-- **5 Heroes**: Arjuna, Bhima, Karna, Draupadi (Rishi support/mage), Hanuman (Yogi agile fighter)
+- **5 Heroes** (Arjuna, Bhima, Karna, Draupadi, Hanuman) with a **Recruit Hall** —
+  grow the party from 1 to all 5 via the Party screen; allies arrive seasoned at 60% of
+  the leader's level; multi-hero combat bars auto-compress to stay on-canvas
 - **27 Enemies** across 5 zones with **18 unique enemy abilities** (used ~40% of the time)
 - **6 Zones**: Aryavarta → Dandaka → Meru → Patala → Svarga → **Tapobhumi** (prestige zone,
   unlocked at Lv50 with Svarga conquered; new prestige foes + Pralaya boss)
@@ -46,7 +48,7 @@ Mythika/
 - **11 Perks (Siddhi)**, **24 Auras**, **5 Realms (Vedic)**
 - **9 Alchemy Recipes**, **3 Herbs** with growth timers
 - **10 Spirit Beasts** with **20 evolution forms** (2-stage: Lv.10 and Lv.25 via evolutionStage)
-- **22 Achievements** (incl. Endless Trials tiers and Tapobhumi conquest), **25 quests + 10 multi-step quest chains** with final rewards
+- **23 Achievements** (incl. Endless Trials tiers, Tapobhumi conquest, Full Pantheon), **25 quests + 10 multi-step quest chains** with final rewards
 - **All 11 Siddhi perks wired** (vitality/wisdom scaling, regen, shields, XP, loot quality/rarity, rebirth boons, crit) plus
   **Tier-II ring** (Vajra/Amrita/Kirti/Gyana) unlocked by the first rebirth
 - **All 6 elite-class bonuses live**: firstCrit2x, spellDmgPct (once/battle), magicMilestone, dualCast echo strike,
