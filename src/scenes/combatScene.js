@@ -600,6 +600,7 @@ const combatScene = Scene.create({
   buildEnlightenmentButtons: function() {
     this.data.actionButtons = [];
     this.data.scrollY = 0;
+    this.data.restResult = null;
     const enlightenments = [
       { id: 'meditate', text: 'Meditate: Still your mind', story: ENLIGHTENMENT_STORIES.meditate.story, buff: 1.2, timer: 60 },
       { id: 'pushOn', text: 'Push On: Relentless drive', story: ENLIGHTENMENT_STORIES.pushOn.story, buff: 0.9, xpBuff: 1.15, timer: 60 },
@@ -614,6 +615,22 @@ const combatScene = Scene.create({
           G.state.enlightenmentTimer = opt.timer;
           if (opt.xpBuff) G.state.xpBuff = opt.xpBuff;
           else G.state.xpBuff = null;
+          if (opt.id === 'rest') {
+            // Rest keeps its promise: restore the living party (+40% maxHp,
+            // +60% maxMp). Dead heroes stay dead, matching the victory sync.
+            // Totals are kept for the effect toast.
+            let hpGain = 0, mpGain = 0;
+            for (const p of G.state.party) {
+              if (p.hp <= 0) continue;
+              const dh = Math.min(p.maxHp - p.hp, Math.round(p.maxHp * 0.4));
+              const dm = Math.min(p.maxMp - p.mp, Math.round(p.maxMp * 0.6));
+              hpGain += dh; mpGain += dm;
+              p.hp += dh; p.mp += dm;
+              const h = combatScene.data.heroes.find(function(x) { return x.id === p.id; });
+              if (h && h.hp > 0) { h.hp = p.hp; h.mp = p.mp; }
+            }
+            combatScene.data.restResult = { hpGain: hpGain, mpGain: mpGain };
+          }
           Notify.show('"' + opt.story + '"', 3, R.colors.gold);
           combatScene.data.showEnlightenment = false;
           combatScene.buildContinueButton();
