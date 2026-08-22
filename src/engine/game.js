@@ -277,10 +277,14 @@ function gLoop(time) {
   }
   Fade.render(G.ctx);
   Notify.render(G.ctx);
-  // First frame is on screen: drop the CSS boot splash.
+  // First frame is on screen: dissolve the CSS boot splash (150ms), then
+  // drop the class entirely.
   if (G.frameCount === 1) {
     const el = document.getElementById('game-container');
-    if (el) el.classList.remove('loading');
+    if (el && el.classList.contains('loading')) {
+      el.classList.add('out');
+      setTimeout(function() { el.classList.remove('loading', 'out'); }, 170);
+    }
   }
   if (G._probe && time - G._fpsT >= 5000) {
     console.log('[Mythika] fps=' + Math.round((G.frameCount - G._fpsN) * 1000 / (time - G._fpsT)));

@@ -46,6 +46,12 @@ body {
   font: 12px 'Courier New', monospace;
   letter-spacing: 0.12em;
   z-index: 5;
+  opacity: 1;
+  transition: opacity 0.15s linear;
+}
+#game-container.loading.out::after { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  #game-container.loading::after { transition: none; }
 }
 @media (max-width: 420px) {
   #game-container { border: none; border-radius: 0; box-shadow: none; }
