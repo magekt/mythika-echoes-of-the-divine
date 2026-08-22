@@ -55,6 +55,17 @@ const settingsScene = Scene.create({
     this.data.buttons.push(fontBtn);
     y += 36;
 
+    // Accessibility: gate screen shake, death bursts, combo/level-up flashes
+    // and enter animations. Persists with the save (whole-state clone).
+    const rmBtn = UI.Button(20, y, G.W - 40, 30, 'Reduce Motion: ' + (G.state.reduceMotion ? 'ON' : 'OFF'));
+    rmBtn.onClick = function() {
+      G.state.reduceMotion = !G.state.reduceMotion;
+      Notify.show('Reduce motion ' + (G.state.reduceMotion ? 'on' : 'off'), 2);
+      settingsScene.buildButtons();
+    };
+    this.data.buttons.push(rmBtn);
+    y += 36;
+
     const saveBtn = UI.BtnGold(20, y, G.W - 40, 30, 'Save Game');
     saveBtn.onClick = function() {
       if (SaveSystem.save()) { Notify.show('Game saved!', 2); }

@@ -694,7 +694,13 @@ const combatScene = Scene.create({
       R.drawHero(ctx, h.id, hx + 12, hy, 22);
       R.textCenter(ctx, h.name, hx + 12, hy + 30, col, R.fonts.sm);
       if (h.hp > 0) {
+        // Ghost trail: a white segment eases from the previous HP down to the
+        // current one, so damage reads as a draining bar. Heals snap it full.
+        if (typeof h._ghostHp !== 'number' || h.hp > h._ghostHp) h._ghostHp = h.hp;
+        h._ghostHp += (h.hp - h._ghostHp) * Math.min(1, G.dt * 6);
         R.roundRect(ctx, hx, hy + 34, 48, 4, 2, 'rgba(200,48,48,0.2)');
+        const gw = 48 * Math.min(1, Math.max(0, h._ghostHp / h.maxHp));
+        if (gw > 0) R.roundRect(ctx, hx, hy + 34, gw, 4, 2, R.colors.white);
         R.roundRect(ctx, hx, hy + 34, 48 * Math.min(1, Math.max(0, h.hp / h.maxHp)), 4, 2, R.colors.hp);
         R.roundRect(ctx, hx, hy + 40, 48, 3, 2, 'rgba(48,128,200,0.2)');
         R.roundRect(ctx, hx, hy + 40, 48 * (h.mp / h.maxMp), 3, 2, R.colors.mp);
@@ -718,7 +724,12 @@ const combatScene = Scene.create({
       R.drawEnemy(ctx, e.id, ex - 12, ey, 22);
       R.textCenter(ctx, e.name, ex - 12, ey + 30, e.hp > 0 ? R.colors.red : R.colors.textDim, R.fonts.sm);
       if (e.hp > 0) {
+        // Same ghost trail as hero bars (see above).
+        if (typeof e._ghostHp !== 'number' || e.hp > e._ghostHp) e._ghostHp = e.hp;
+        e._ghostHp += (e.hp - e._ghostHp) * Math.min(1, G.dt * 6);
         R.roundRect(ctx, ex - 48, ey + 34, 48, 4, 2, 'rgba(200,48,48,0.2)');
+        const gw = 48 * Math.min(1, Math.max(0, e._ghostHp / e.maxHp));
+        if (gw > 0) R.roundRect(ctx, ex - 48, ey + 34, gw, 4, 2, R.colors.white);
         R.roundRect(ctx, ex - 48, ey + 34, 48 * Math.min(1, Math.max(0, e.hp / e.maxHp)), 4, 2, R.colors.hp);
       }
       const ailStr = e.ailments ? Object.keys(e.ailments).join(',') : '';

@@ -197,6 +197,8 @@ R.damageNumber = function(ctx, x, y, value, color) {
 };
 
 R.screenShake = function(intensity, duration) {
+  // Reduce Motion: keep the hit feedback in damage numbers/log, drop the shake.
+  if (G.state.reduceMotion) return;
   R.shakeX = 0;
   R.shakeY = 0;
   R.shakeTimer = duration || 0.3;
@@ -207,6 +209,7 @@ R.screenShake = function(intensity, duration) {
 R.deathBursts = [];
 
 R.deathBurst = function(x, y, color) {
+  if (G.state.reduceMotion) return;
   R.deathBursts.push({ x: x, y: y, life: 0.6, maxLife: 0.6, color: color || R.colors.red });
 };
 
@@ -364,6 +367,7 @@ R.comboFlash = 0;
 R.comboFlashColor = '#e8a030';
 
 R.triggerLevelUp = function() {
+  if (G.state.reduceMotion) return;
   R.levelUpFlash = 0.5;
   for (let i = 0; i < 20; i++) {
     R.levelUpParticles.push({
@@ -379,11 +383,13 @@ R.triggerLevelUp = function() {
 };
 
 R.triggerComboFlash = function(level) {
+  // Combo audio always plays; only the full-screen flash is gated.
+  Audio.comboMilestone(level);
+  if (G.state.reduceMotion) return;
   R.comboFlash = 0.3;
   if (level >= 5) R.comboFlashColor = '#c83030';
   else if (level >= 3) R.comboFlashColor = '#e8a030';
   else R.comboFlashColor = '#30c830';
-  Audio.comboMilestone(level);
 };
 
 R.updateLevelUp = function(dt) {
