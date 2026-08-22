@@ -4,6 +4,15 @@ UI.Modal.active = null;
 UI.Modal.queue = [];
 UI.Modal._ghost = null;
 
+// Dialogs are scene-local: a confirmation must never follow the player into
+// another screen (it would gate that scene's update forever). Called on
+// every scene transition.
+UI.Modal.clearAll = function() {
+  UI.Modal.active = null;
+  UI.Modal.queue = [];
+  UI.Modal._ghost = null;
+};
+
 UI.Modal.show = function(opts) {
   // Canvas fillText ignores "\n" — fold multi-line bodies into wrapped lines.
   let body = opts.body || '';
