@@ -118,7 +118,7 @@ R.pixelText = function(ctx, str, x, y, color, size) {
   }
 };
 
-R.drawEnemy = function(ctx, name, x, y, size) {
+R.drawEnemy = function(ctx, name, x, y, size, showLabel) {
   const s = size || 32;
   ctx.fillStyle = R.colors.textDim;
   ctx.font = '8px monospace';
@@ -156,9 +156,13 @@ R.drawEnemy = function(ctx, name, x, y, size) {
   ctx.fillRect(cx - 6, cy + 4, 3, 4);
   ctx.fillRect(cx + 3, cy + 4, 3, 4);
 
-  ctx.fillStyle = R.colors.text;
-  ctx.font = R.fonts.sm;
-  ctx.fillText(name.charAt(0).toUpperCase() + name.slice(1), cx, cy + hs + 12);
+  // Decorative callers (title screen) pass showLabel=false and draw their own
+  // caption, avoiding a second label colliding with this one.
+  if (showLabel !== false) {
+    ctx.fillStyle = R.colors.text;
+    ctx.font = R.fonts.sm;
+    ctx.fillText(name.charAt(0).toUpperCase() + name.slice(1), cx, cy + hs + 12);
+  }
 };
 
 R.drawHero = function(ctx, name, x, y, size) {
