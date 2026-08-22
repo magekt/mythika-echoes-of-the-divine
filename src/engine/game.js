@@ -87,8 +87,10 @@ const Notify = {
       const a = visible[ai];
       const alpha = a.phase === 'out' ? (a.progress || 0) : Math.min(1, (a.progress || 0) * 2);
       if (alpha <= 0) continue;
+      // Slide-in mirrors the toast family: drops 12px while blooming in.
+      const enterP = a.phase === 'in' ? Math.min(1, a.progress || 0) : 1;
+      const y = 140 + ai * 68 - (G.state.reduceMotion ? 0 : (1 - enterP) * 12);
       ctx.globalAlpha = alpha;
-      const y = 140 + ai * 68;
       R.roundRect(ctx, 50, y, 300, 60, 8, 'rgba(10,10,26,0.95)');
       R.roundRect(ctx, 50, y, 300, 60, 8, 'rgba(232,160,48,0.3)');
       ctx.strokeStyle = R.colors.gold;
