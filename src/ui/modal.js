@@ -4,10 +4,17 @@ UI.Modal.active = null;
 UI.Modal.queue = [];
 
 UI.Modal.show = function(opts) {
+  // Canvas fillText ignores "\n" — fold multi-line bodies into wrapped lines.
+  let body = opts.body || '';
+  let lines = opts.lines || [];
+  if (body.indexOf('\n') !== -1) {
+    lines = body.split('\n').concat(lines);
+    body = '';
+  }
   const m = {
     title: opts.title || '',
-    body: opts.body || '',
-    lines: opts.lines || [],
+    body: body,
+    lines: lines,
     buttons: opts.buttons || [{ label: 'OK', primary: true }],
     onResult: opts.onResult || null,
     x: opts.x || 40,

@@ -164,6 +164,8 @@ const trialsScene = Scene.create({
           G.state.inventory.push(it);
           this.data.log.push('Milestone chest: ' + it.name + ' (' + it.rarityName + ')');
         }
+      } else {
+        this.data.log.push('Milestone chest was empty...');
       }
     }
 

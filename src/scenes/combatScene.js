@@ -353,7 +353,7 @@ const combatScene = Scene.create({
       x = idx * 70 + 30;
       y = 50;
     } else {
-      const idx = this.data.enemies.indexOf(entity);
+      const idx = Math.max(0, this.data.enemies.indexOf(entity));
       x = 370 - idx * 70;
       y = 50;
     }

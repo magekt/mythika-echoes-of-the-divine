@@ -23,7 +23,7 @@ SaveSystem.migrate = function() {
   // Heal saves created before the object-based gear model:
   // - inventory entries must be real objects with a name
   // - gear slots must be objects or null (legacy strings are dropped)
-  // - challenge must be a finite number
+  // - numeric fields must be finite numbers (crafted/corrupt files included)
   if (Array.isArray(G.state.inventory)) {
     G.state.inventory = G.state.inventory.filter(i => typeof i === 'object' && i !== null && i.name);
   }
@@ -36,6 +36,14 @@ SaveSystem.migrate = function() {
   if (G.state.challenge != null) {
     const c = parseFloat(G.state.challenge);
     G.state.challenge = isFinite(c) ? Math.max(0.6, Math.min(1.5, c)) : 1.0;
+  }
+  const numericFields = ['gold', 'karma', 'divineFragments', 'prana', 'cultivationBase',
+                         'trialBest', 'tournamentWins', 'rebirthCount', 'ashramLevel', 'fishCaught'];
+  for (const field of numericFields) {
+    if (G.state[field] != null) {
+      const n = parseFloat(G.state[field]);
+      G.state[field] = isFinite(n) && n >= 0 ? Math.floor(n) : 0;
+    }
   }
 };
 
@@ -101,6 +109,8 @@ SaveSystem.importFile = function(file, cb) {
       if (!Array.isArray(data.state.party) || !data.state.party.length) { cb(false, 'Save missing party data'); return; }
       Object.assign(G.state, data.state);
       this.migrate();
+      // Mirror load(): imported saves may carry a text-size preference.
+      if (typeof R !== 'undefined' && R.applyFontScale) R.applyFontScale(G.state.uiFontScale || 1);
       cb(true, 'Save imported!');
     } catch (e) {
       cb(false, 'Corrupted save file');
