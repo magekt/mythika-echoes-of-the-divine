@@ -41,6 +41,22 @@ boot matrix with screenshots) plus per-phase syntax checks and commits.
 Recently shipped hardening: recruit level-up loop clamp (over-cap leaders), modal multi-line
 bodies, save numeric-field sanitization, audio unlock-on-gesture, SW v3 cache-first loads.
 
+## ✅ Motion Audit Fixes & Battle-Aftermath Benefits
+
+From the 2026-08-22 design-motion-principles audit (`motion-audits/mythika-2026-08-22.html`)
+plus the post-combat options bug report. Verified per-commit with the boot/fps harness.
+
+| # | Item | Status |
+|---|---|---|
+| C1 | Ambient loops (cultivation aura, enlightenment glow, bobber ripples, title particles) now respect Reduce Motion | ✅ |
+| C2 | Dialogs dissolve over 100ms on dismiss instead of vanishing; result callback stays instant | ✅ |
+| C3 | Equipment tabs and ScrollList rebuilds crossfade in 90ms; chrome anchored | ✅ |
+| B1 | **Rest choice actually restores the party** (+40% maxHp / +60% maxMp, living members) | ✅ |
+| B2 | Every post-victory choice reports its real effect via stacked toasts (buff %, durations, healed totals) | ✅ |
+| I1/I3 | Title entrance 900ms ease-out settle; glowing wordmark baked to offscreen canvas (no per-frame shadowBlur) | ✅ |
+| I2 | Toast exit window 500ms → 180ms (exits subtler than enters) | ✅ |
+| O1–O5 | Banner slide-in · splash crossfade · scene-fade legs 150/250ms · victory reward tickers · adaptive Reduce Motion (two <30fps windows auto-enable unless set manually) | ✅ |
+
 ## ✅ Completed Features
 
 ### Core Engine
