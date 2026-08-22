@@ -139,6 +139,8 @@ const equipmentScene = Scene.create({
     y += 42;
 
     this.data.contentHeight = y;
+    // Timestamp drives the 90ms content crossfade on tab switches.
+    this.data._builtAt = performance.now();
   },
 
   showEquipDialog: function() {
@@ -204,8 +206,13 @@ const equipmentScene = Scene.create({
     const top = this.getContentTop();
     Scene.clipContent(ctx, this);
 
+    // Content crossfade on tab switch (chrome above stays anchored).
+    const bt = this.data._builtAt;
+    const fade = (!bt || G.state.reduceMotion) ? 1 : Math.min(1, (performance.now() - bt) / 90);
+    ctx.globalAlpha = ctx.globalAlpha * fade;
     for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);
+    ctx.globalAlpha = 1;
 
     ctx.restore();
 

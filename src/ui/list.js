@@ -18,6 +18,8 @@ UI.ScrollList = function(x, y, w, h, opts) {
       this.items = items;
       this.contentHeight = items.length * (this.itemHeight + this.itemGap) + this.padding * 2 + this.bottomPadding;
       if (this.selectedIndex >= items.length) this.selectedIndex = -1;
+      // Timestamp drives the 90ms rebuild crossfade (tab switches, refresh).
+      this._builtAt = performance.now();
     },
 
     handleInput: function() {
@@ -57,6 +59,10 @@ UI.ScrollList = function(x, y, w, h, opts) {
 
       let yPos = this.y + this.padding - this.scrollY;
       const endY = this.y + this.h;
+      // Rebuild crossfade: per-item wrapper so item callbacks that reset
+      // globalAlpha can't cancel it.
+      const bt = this._builtAt;
+      const fade = (!bt || G.state.reduceMotion) ? 1 : Math.min(1, (performance.now() - bt) / 90);
 
       for (let i = 0; i < this.items.length; i++) {
         const item = this.items[i];
@@ -65,12 +71,15 @@ UI.ScrollList = function(x, y, w, h, opts) {
 
         if (itemY + itemH >= this.y && itemY <= endY) {
           const selected = i === this.selectedIndex;
+          ctx.save();
+          ctx.globalAlpha = ctx.globalAlpha * fade;
           if (this.onRenderItem) {
             this.onRenderItem(ctx, item, i, this.x, itemY, this.w, itemH, selected);
           } else {
         R.roundRect(ctx, this.x, itemY, this.w, itemH, R.radius.xs, selected ? R.colors.orange : R.colors.btn);
         R.textCenter(ctx, item.label || item.name || String(item), this.x + this.w / 2, itemY + itemH / 2 + 3, R.colors.text, R.fonts.sm);
           }
+          ctx.restore();
         }
         yPos += itemH + this.itemGap;
       }
