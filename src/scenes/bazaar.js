@@ -114,7 +114,7 @@ const bazaarScene = Scene.create({
         },
         onClick: function(item, i) {
           const realIdx = G.state.inventory.indexOf(item);
-          if (realIdx === -1) return;
+          if (realIdx === -1) return false;
           const sellPrice = Math.floor((getItemCost(item) || 5) * 0.5);
           Economy.removeItem(realIdx);
           Economy.addGold(sellPrice);

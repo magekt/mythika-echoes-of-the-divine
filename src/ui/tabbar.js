@@ -41,7 +41,13 @@ UI.TabBar = function(x, y, w, h, opts) {
         if (tap.x >= tx && tap.x <= tx + tabW &&
             tap.y >= this.y && tap.y <= this.y + this.h) {
           Input.getTap();
+          if (i === this.activeIndex) {
+            // No-op: the tab is already showing. Stone-on-glass.
+            R.stoneHit(tap.x, tap.y);
+            return true;
+          }
           this.setActive(i);
+          R.validTick(tap.x, tap.y);
           return true;
         }
       }

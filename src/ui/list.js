@@ -34,8 +34,15 @@ UI.ScrollList = function(x, y, w, h, opts) {
             tap.y >= this.y && tap.y <= this.y + this.h) {
           Input.getTap();
           this.selectedIndex = i;
-          Audio.click();
-          if (this.onClick) this.onClick(this.items[i], i);
+          // Row outcome convention (matches UI.handleButtons): explicit
+          // false = rejected action -> stone-on-glass; otherwise valid tick.
+          const outcome = this.onClick ? this.onClick(this.items[i], i) : undefined;
+          if (outcome === false) {
+            R.stoneHit(tap.x, tap.y);
+          } else {
+            Audio.click();
+            R.validTick(tap.x, tap.y);
+          }
           return true;
         }
         yPos += this.itemHeight + this.itemGap;
