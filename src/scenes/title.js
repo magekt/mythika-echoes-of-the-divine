@@ -36,7 +36,17 @@ const titleScene = Scene.create({
   },
 
   update: function(dt) {
-    if (this.data.titleY < 60) this.data.titleY += 60 * dt;
+    // Ease-out settle over ~900ms: fast arrival, soft landing — replaces the
+    // old constant-velocity crawl that took 2.7s on every visit. Instant
+    // under Reduce Motion.
+    if (G.state.reduceMotion) {
+      this.data.titleY = 60;
+    } else {
+      this.data._enterT = Math.min(0.9, (this.data._enterT || 0) + dt);
+      const ep = this.data._enterT / 0.9;
+      const eased = 1 - Math.pow(1 - ep, 3);
+      this.data.titleY = -100 + 160 * eased;
+    }
     // Reduce Motion: particles render as a static starfield (no drift loop).
     if (!G.state.reduceMotion) {
       for (const p of this.data.particles) {
@@ -56,10 +66,28 @@ const titleScene = Scene.create({
     ctx.globalAlpha = 1;
 
     const ty = Math.floor(this.data.titleY);
-    ctx.shadowColor = R.colors.orange;
-    ctx.shadowBlur = 25;
-    R.pixelText(ctx, 'MYTHIKA', G.W / 2 - 80, ty, R.colors.gold, 6);
-    ctx.shadowBlur = 0;
+    // Bake the glowing wordmark once (lazy: needs G.dpr, set after boot) —
+    // canvas shadowBlur per frame is a needless cost on low-end GPUs. One
+    // drawImage blit per frame instead.
+    if (!this.data.titleSprite && typeof document !== 'undefined' && G.dpr) {
+      const spr = document.createElement('canvas');
+      spr.width = 208 * G.dpr;
+      spr.height = 72 * G.dpr;
+      const sc = spr.getContext('2d');
+      sc.scale(G.dpr, G.dpr);
+      sc.shadowColor = R.colors.orange;
+      sc.shadowBlur = 25;
+      R.pixelText(sc, 'MYTHIKA', 20, 18, R.colors.gold, 6);
+      this.data.titleSprite = spr;
+    }
+    if (this.data.titleSprite) {
+      ctx.drawImage(this.data.titleSprite, G.W / 2 - 104, ty - 18, 208, 72);
+    } else {
+      ctx.shadowColor = R.colors.orange;
+      ctx.shadowBlur = 25;
+      R.pixelText(ctx, 'MYTHIKA', G.W / 2 - 80, ty, R.colors.gold, 6);
+      ctx.shadowBlur = 0;
+    }
 
     R.textCenter(ctx, 'Echoes of the Divine', G.W / 2, ty + 50, R.colors.textDim, R.fonts.md);
     R.drawEnemy(ctx, 'dragon', G.W / 2, ty + 100, 40, false);
