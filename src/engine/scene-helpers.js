@@ -76,6 +76,10 @@
     ctx.strokeStyle = 'rgba(232,160,48,0.12)';
     ctx.lineWidth = 1;
     ctx.strokeRect(10.5, 6.5, G.W - 21, h - 1);
+    // Bezel depth: a 1px light catches the top inner edge and a 1px shade
+    // seats the bottom one — machined-panel feel with zero blur cost.
+    R.rect(ctx, 12, 7, G.W - 24, 1, 'rgba(255,255,255,0.06)');
+    R.rect(ctx, 12, 5 + h, G.W - 24, 1, 'rgba(0,0,0,0.35)');
     if (title) R.textCenter(ctx, title, G.W / 2, titleY || 22, R.colors.gold, R.fonts.lg);
   };
 

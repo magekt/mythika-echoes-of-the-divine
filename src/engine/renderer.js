@@ -6,12 +6,16 @@ const R = {
     gold: '#e8a030', goldLight: '#f0c060', goldDark: '#b07020',
     red: '#c83030', green: '#30c830', white: '#e8e0d0',
     hp: '#c83030', mp: '#3080c8', exp: '#30c830',
-    text: '#e8e0d0', textDim: '#8a8aa0', textDark: '#5a5a70',
+    text: '#e8e0d0', textDim: '#98a0b8', textDark: '#6a7088',
     btn: '#1a2040', btnHover: '#252555', btnGold: '#e8a030', btnRed: '#a03030',
     highlight: '#e8a030',
     indian: { saffron: '#e8a030', crimson: '#c83030', gold: '#e8a030',
               peacock: '#2080a0', lotus: '#e8a0a0', sandal: '#d0b080' }
   },
+  // Corner-radius scale (Shape Consistency Lock): xs=3 chips/ticks, s=5
+  // buttons/small bars, m=8 panels/headers, l=10 large cards. New UI adopts
+  // these instead of ad-hoc numbers.
+  radius: { xs: 3, s: 5, m: 8, l: 10 },
   fonts: {
     xs: '8px monospace', sm: '10px monospace', md: '12px monospace', lg: '16px monospace', xl: '24px monospace'
   },
