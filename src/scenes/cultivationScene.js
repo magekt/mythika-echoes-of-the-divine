@@ -50,10 +50,12 @@ const cultivationScene = Scene.create({
       if (result.success) {
         Notify.show('Breakthrough! ' + (result.bonusText || ''), 3, R.colors.gold);
         Audio.levelUp();
-      } else {
-        Notify.show(result.reason || 'Breakthrough failed!', 3);
-        Audio.error();
+        return true;
       }
+      Notify.show(result.reason || 'Breakthrough failed!', 3);
+      Audio.error();
+      // Both failure flavors (not enough base / gamble lost) read as blocked.
+      return false;
     };
     this.data.buttons.push(bt);
     y += 46;
