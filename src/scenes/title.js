@@ -18,6 +18,11 @@ const titleScene = Scene.create({
       });
     }
     this.data.titleY = -100;
+    // First-ever visit earns the full cinematic (1.6s); every later visit
+    // keeps the brisk 900ms settle. Flag persists with the save.
+    if (!G.state.flags) G.state.flags = {};
+    this.data._enterDur = G.state.flags.titleSeen ? 0.9 : 1.6;
+    this.data._enterT = 0;
     this.data.buttons = [];
     const bw = 200, bh = 38;
     const cx = G.W / 2 - bw / 2;
@@ -36,16 +41,18 @@ const titleScene = Scene.create({
   },
 
   update: function(dt) {
-    // Ease-out settle over ~900ms: fast arrival, soft landing — replaces the
-    // old constant-velocity crawl that took 2.7s on every visit. Instant
-    // under Reduce Motion.
+    // Ease-out settle: fast arrival, soft landing — 1.6s cinematic on the
+    // first-ever visit, 900ms afterwards. Instant under Reduce Motion.
     if (G.state.reduceMotion) {
       this.data.titleY = 60;
+      G.state.flags.titleSeen = true;
     } else {
-      this.data._enterT = Math.min(0.9, (this.data._enterT || 0) + dt);
-      const ep = this.data._enterT / 0.9;
+      const dur = this.data._enterDur || 0.9;
+      this.data._enterT = Math.min(dur, (this.data._enterT || 0) + dt);
+      const ep = this.data._enterT / dur;
       const eased = 1 - Math.pow(1 - ep, 3);
       this.data.titleY = -100 + 160 * eased;
+      if (ep >= 1) G.state.flags.titleSeen = true;
     }
     // Reduce Motion: particles render as a static starfield (no drift loop).
     if (!G.state.reduceMotion) {
