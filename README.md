@@ -99,6 +99,20 @@ this.data.buttons.push(Scene.backButton(y, { fade: true }));  // opts: label/tar
 if (Economy.spendGoldOrNotify(cost)) { ... }   // spends + standard toast on failure
 ```
 
+### Click outcomes
+`UI.handleButtons` classifies every press. An explicit `return false` from a
+handler marks the action rejected — the stone-hits-glass FX + thud play at the
+tap point; any other return plays the gold valid-tick with the click blip.
+Disabled buttons always play blocked. Empty space and off-screen taps stay
+silent. Gate rejections accordingly:
+
+```js
+btn.onClick = function() {
+  if (!Economy.spendGoldOrNotify(cost)) return false;   // blocked feedback
+  ...
+};
+```
+
 ### Modals
 Any scene that can open a modal guards its update first — otherwise taps pass through
 the overlay:

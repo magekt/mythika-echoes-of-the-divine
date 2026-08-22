@@ -267,6 +267,7 @@ function gInit() {  G.canvas = document.getElementById('game-canvas');
               stage.lastFireAge = b._lastFire ? Date.now() - b._lastFire : null;
               if (!stage.consumedByUpdate && b._lastFire) {
                 stage.consumedByUpdate = true;
+                stage.clickFxAlive = R.clickFx.length;
                 console.log('[Mythika] selftest ' + JSON.stringify(stage));
               }
               if (Date.now() - t0 > 1500 || stage.selectedHero) {
