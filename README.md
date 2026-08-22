@@ -142,8 +142,17 @@ It scales enemy HP/damage (`applyDifficulty`) plus reward and loot quality
 
 1. Make changes; keep the Scene contract (`enter` builds UI, `render` draws).
 2. Syntax-check every touched file: `node -c <file>`.
-3. Smoke-test in a browser (serve locally; hard-reload to bypass cache).
-4. Commit with conventional prefixes: `fix:` / `feat:` / `refactor:` / `docs:` / `style:`.
-5. Push: `git push origin master`.
+3. Run the headless boot matrix (needs local Chrome; stdlib only):
+
+   ```bash
+   python3 tools/verify_matrix.py
+   ```
+
+   It serves the repo root, boots desktop / phone / phone-landscape profiles in
+   headless Chrome, asserts the `[Mythika] booted` beacon with no uncaught
+   errors, and drops per-profile screenshots in `tools/shots/` for review.
+4. Smoke-test in a browser (serve locally; hard-reload to bypass cache).
+5. Commit with conventional prefixes: `fix:` / `feat:` / `refactor:` / `docs:` / `style:`.
+6. Push: `git push origin master`.
 
 Do not modify `netlify.toml`. See `BUILD_STATUS.md` for the current feature inventory.

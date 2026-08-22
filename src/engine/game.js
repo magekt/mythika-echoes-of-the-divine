@@ -159,6 +159,10 @@ function fitGame() {
   const scale = Math.max(0.2, Math.min(window.innerWidth / 404, window.innerHeight / 724, 1));
   el.style.transform = 'scale(' + scale + ')';
   el.style.transformOrigin = 'center center';
+  // Landscape phones get a squeezed viewport; nudge the player upright (once).
+  if (typeof Hints !== 'undefined' && window.innerHeight < 500 && window.innerWidth > window.innerHeight) {
+    Hints.show('rotate', 'Rotate your device upright for the best experience.');
+  }
 }
 
 function gInit() {
