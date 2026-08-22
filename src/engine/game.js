@@ -232,6 +232,9 @@ function gInit() {
   G._probe = /[?&]probe/.test(location.search);
   G._fpsT = G.lastTime;
   G._fpsN = 0;
+  // Adaptive Reduce Motion windows (O4) run for everyone, silently.
+  G._perfT = G.lastTime;
+  G._perfN = 0;
   gLoop(performance.now());
   // Boot beacon: lets the verification harness (and devtools) confirm the
   // loop actually started on this device/DPR.
@@ -290,6 +293,26 @@ function gLoop(time) {
     console.log('[Mythika] fps=' + Math.round((G.frameCount - G._fpsN) * 1000 / (time - G._fpsT)));
     G._fpsT = time;
     G._fpsN = G.frameCount;
+  }
+  // Adaptive Reduce Motion (O4): two consecutive sub-30fps windows on a
+  // device whose player never picked a motion setting flips the toggle once
+  // and says so. A manual choice always wins.
+  if (time - G._perfT >= 5000) {
+    const fps = Math.round((G.frameCount - G._perfN) * 1000 / (time - G._perfT));
+    G._perfT = time;
+    G._perfN = G.frameCount;
+    if (!G.state.rmAutoDone && !G.state.rmUserSet && !G.state.reduceMotion && G.frameCount > 60) {
+      if (fps < 30) {
+        G._lowStreak = (G._lowStreak || 0) + 1;
+        if (G._lowStreak >= 2) {
+          G.state.reduceMotion = true;
+          G.state.rmAutoDone = true;
+          Notify.show('Performance mode on — animations reduced', 3, R.colors.blueLight);
+        }
+      } else {
+        G._lowStreak = 0;
+      }
+    }
   }
   requestAnimationFrame(gLoop);
 }

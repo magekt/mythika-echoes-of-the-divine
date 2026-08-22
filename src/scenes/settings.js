@@ -60,6 +60,7 @@ const settingsScene = Scene.create({
     const rmBtn = UI.Button(20, y, G.W - 40, 30, 'Reduce Motion: ' + (G.state.reduceMotion ? 'ON' : 'OFF'));
     rmBtn.onClick = function() {
       G.state.reduceMotion = !G.state.reduceMotion;
+      G.state.rmUserSet = true;
       Notify.show('Reduce motion ' + (G.state.reduceMotion ? 'on' : 'off'), 2);
       settingsScene.buildButtons();
     };
