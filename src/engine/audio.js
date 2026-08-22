@@ -79,7 +79,14 @@ Audio.beep = function(freq, duration, type) {
   } catch(e) {}
 };
 
-Audio.click = function() { Audio.beep(800, 0.05, 'square'); };
+Audio.click = function() {
+  // UI clicks are the flood vector when players hammer a button; gate to
+  // one click sound per 45ms so node creation stays bounded.
+  const now = performance.now();
+  if (now - (this._clickGate || 0) < 45) return;
+  this._clickGate = now;
+  Audio.beep(800, 0.05, 'square');
+};
 Audio.menuSwoosh = function() { Audio.beep(400, 0.1, 'sine'); Audio.beep(600, 0.1, 'sine'); };
 Audio.attack = function() { Audio.beep(200, 0.08, 'sawtooth'); };
 Audio.crit = function() { 

@@ -11,7 +11,22 @@ const Input = {
   _longPressThreshold: 500,
   _lastSwipe: null,
   _longPressActive: false,
-  _pressPos: null
+  _pressPos: null,
+  // Flood guards: cap the queues (frantic tapping must never build a
+  // backlog that replays clicks seconds later) and drop taps arriving
+  // faster than ~70ms (14/s is far above deliberate play).
+  TAP_MIN_INTERVAL: 70,
+  QUEUE_MAX: 4,
+  _lastTapAt: -Infinity,
+
+  _pushTap: function(t) {
+    const now = performance.now();
+    if (now - this._lastTapAt < this.TAP_MIN_INTERVAL) return;
+    this._lastTapAt = now;
+    const q = t.t === 'click' ? this.clicks : this.touches;
+    if (q.length >= this.QUEUE_MAX) q.shift();
+    q.push(t);
+  }
 };
 
 function initInput() {
@@ -35,7 +50,7 @@ function initInput() {
       if (Math.abs(dx) > Input._swipeThreshold && Math.abs(dx) > Math.abs(dy) * 1.5) {
         Input._lastSwipe = dx > 0 ? 'right' : 'left';
       } else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
-        Input.clicks.push({ x: Input._pressPos.x, y: Input._pressPos.y, t: 'click' });
+        Input._pushTap({ x: Input._pressPos.x, y: Input._pressPos.y, t: 'click' });
       }
     }
     Input._pressPos = null;
@@ -77,7 +92,7 @@ function initInput() {
       if (Math.abs(dx) > Input._swipeThreshold && Math.abs(dx) > Math.abs(dy) * 1.5) {
         Input._lastSwipe = dx > 0 ? 'right' : 'left';
       } else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
-        Input.touches.push({ x: Input._touchStart.x, y: Input._touchStart.y, id: Date.now(), t: 'touch' });
+        Input._pushTap({ x: Input._touchStart.x, y: Input._touchStart.y, id: Date.now(), t: 'touch' });
       }
       // remove consumed touch id if any were queued with same identifier
       if (e.changedTouches && e.changedTouches[0]) {

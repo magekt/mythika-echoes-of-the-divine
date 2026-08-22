@@ -15,6 +15,16 @@ UI.handleButtons = function(buttons, scrollY) {
     if (b.enabled === false || b.visible === false || !b.contains) continue;
     if (b.contains(tap.x, tap.y - oy)) {
       Input.getTap();
+      // Per-button cooldown: a queued tap landing on a button that already
+      // fired within 120ms is absorbed without re-firing (stops double
+      // Continue transitions and double purchases from tap backlogs).
+      const now = performance.now();
+      if (b._lastFire && now - b._lastFire < 120) {
+        b._pressed = true;
+        b._pressTimer = 0.12;
+        return true;
+      }
+      b._lastFire = now;
       b._pressed = true;
       b._pressTimer = 0.12;
       Audio.click();
