@@ -131,10 +131,11 @@ const Fade = {
           const name = this.pendingScene;
           this.pendingScene = null;
           Input.clear();
+          UI.Modal.clearAll();
           if (G.currentScene && G.currentScene.leave) G.currentScene.leave();
           G.currentScene = G.scenes[name];
           G.state.scene = name;
-          if (G.currentScene.enter) G.currentScene.enter();
+          safeEnter(G.currentScene);
           // Asymmetric legs: covering the screen is quick (150ms), the
           // reveal lets the new scene breathe (250ms).
           this.target = 0;
@@ -214,8 +215,7 @@ function fitGame() {
   }
 }
 
-function gInit() {
-  G.canvas = document.getElementById('game-canvas');
+function gInit() {  G.canvas = document.getElementById('game-canvas');
   // Back the canvas at device resolution so text/edges stay crisp on phones
   // (DPR 2-3), while ALL game code keeps using 400x720 logical coordinates.
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
@@ -235,6 +235,52 @@ function gInit() {
   // Adaptive Reduce Motion windows (O4) run for everyone, silently.
   G._perfT = G.lastTime;
   G._perfN = 0;
+  // Input-chain self-test (?probe&selftest): drives a synthetic tap through
+  // the real pipeline onto a Forge button and logs every stage, so input
+  // regressions are diagnosable from the harness alone.
+  if (G._probe && /[?&]selftest/.test(location.search)) {
+    setTimeout(function() {
+      try {
+        SaveSystem.load();
+      } catch (e3) {}
+      gScene('ashram');
+      setTimeout(function() {
+        gScene('forge');
+        setTimeout(function() {
+          const b = forgeScene.data.buttons[0];
+          const stage = {
+            scene: G.state.scene,
+            modalActive: !!UI.Modal.active,
+            btnCount: forgeScene.data.buttons.length,
+            btn0: b ? { x: b.x, y: b.y, w: b.w, h: b.h, enabled: b.enabled, text: b.text } : null,
+            scrollY: forgeScene.data.scrollY
+          };
+          if (b) {
+            Input._lastTapAt = -Infinity;
+            Input.clicks = [];
+            Input._pushTap({ x: b.x + b.w / 2, y: b.y + b.h / 2, t: 'click' });
+            stage.queued = Input.clicks.length;
+            stage.consumedByUpdate = false;
+            const t0 = Date.now();
+            const iv = setInterval(function() {
+              stage.selectedHero = !!forgeScene.data.selectedHero;
+              stage.lastFireAge = b._lastFire ? Date.now() - b._lastFire : null;
+              if (!stage.consumedByUpdate && b._lastFire) {
+                stage.consumedByUpdate = true;
+                console.log('[Mythika] selftest ' + JSON.stringify(stage));
+              }
+              if (Date.now() - t0 > 1500 || stage.selectedHero) {
+                clearInterval(iv);
+                console.log('[Mythika] selftest-final ' + JSON.stringify(stage));
+              }
+            }, 120);
+          } else {
+            console.log('[Mythika] selftest ' + JSON.stringify(stage));
+          }
+        }, 700);
+      }, 400);
+    }, 900);
+  }
   gLoop(performance.now());
   // Boot beacon: lets the verification harness (and devtools) confirm the
   // loop actually started on this device/DPR.
@@ -355,16 +401,30 @@ function drawBackground() {
   ctx.fillRect(0, 0, G.W, G.H);
 }
 
+// Scene enter() runs build code that can throw; a dead enter must never
+// leave a screen with zero buttons — log it, say so, keep the scene alive.
+function safeEnter(scene) {
+  try {
+    if (scene && scene.enter) scene.enter();
+  } catch (err) {
+    if (window.console && console.error) {
+      console.error('[Mythika] enter error in ' + (G.state.scene || '?'), err);
+    }
+    try { Notify.show('A screen failed to finish loading', 2.5, R.colors.red); } catch (e4) {}
+  }
+}
+
 function gScene(name, fade) {
   if (!G.scenes[name]) return;
   Input.clear();
+  UI.Modal.clearAll();
   if (fade && G.currentScene) {
     Fade.toScene(name);
   } else {
     if (G.currentScene && G.currentScene.leave) G.currentScene.leave();
     G.currentScene = G.scenes[name];
     G.state.scene = name;
-    if (G.currentScene.enter) G.currentScene.enter();
+    safeEnter(G.currentScene);
   }
 }
 

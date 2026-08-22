@@ -36,7 +36,7 @@
     if (G._booted) return;
     G._booted = true;
     G.currentScene = G.scenes['title'];
-    if (G.currentScene && G.currentScene.enter) G.currentScene.enter();
+    safeEnter(G.currentScene);
     gInit();
     fitGame();
   }
