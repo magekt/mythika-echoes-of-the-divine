@@ -135,7 +135,10 @@ const Fade = {
           G.currentScene = G.scenes[name];
           G.state.scene = name;
           if (G.currentScene.enter) G.currentScene.enter();
+          // Asymmetric legs: covering the screen is quick (150ms), the
+          // reveal lets the new scene breathe (250ms).
           this.target = 0;
+          this.speed = 4;
         }
       }
     }
@@ -153,6 +156,7 @@ const Fade = {
     if (this.pendingScene) return;
     this.pendingScene = name;
     this.target = 1;
+    this.speed = 6.7;
   }
 };
 
