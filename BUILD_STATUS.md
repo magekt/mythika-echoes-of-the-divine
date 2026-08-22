@@ -7,7 +7,7 @@
 ```
 Mythika/
 ├── index.html            (HTML shell, loads 58 scripts)
-├── netlify.toml          (deploys the repo root as-is)
+├── .github/workflows/    (verify + GitHub Pages deploy on push to master)
 ├── styles/
 │   └── game.css          (dark theme, content-box canvas, JS-driven responsive fit)
 ├── (canvas backs at devicePixelRatio for crisp mobile rendering; letterboxed via fitGame)

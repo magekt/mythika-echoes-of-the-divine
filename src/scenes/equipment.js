@@ -35,15 +35,28 @@ const equipmentScene = Scene.create({
     let y = this.getContentTop();
 
     const invBtn = UI.Button(14, y, 95, 28, 'Inventory', this.data.tab === 'inventory' ? R.colors.btnGold : R.colors.btn);
-    invBtn.onClick = function() { equipmentScene.data.tab = 'inventory'; equipmentScene.buildUI(); };
+    invBtn.onClick = function() {
+      // Re-tapping the active tab is a no-op -> blocked feedback.
+      if (equipmentScene.data.tab === 'inventory') return false;
+      equipmentScene.data.tab = 'inventory';
+      equipmentScene.buildUI();
+    };
     this.data.buttons.push(invBtn);
 
     const equipBtn = UI.Button(115, y, 95, 28, 'Equipped', this.data.tab === 'equipped' ? R.colors.btnGold : R.colors.btn);
-    equipBtn.onClick = function() { equipmentScene.data.tab = 'equipped'; equipmentScene.buildUI(); };
+    equipBtn.onClick = function() {
+      if (equipmentScene.data.tab === 'equipped') return false;
+      equipmentScene.data.tab = 'equipped';
+      equipmentScene.buildUI();
+    };
     this.data.buttons.push(equipBtn);
 
     const statsBtn = UI.Button(216, y, 95, 28, 'Stats', this.data.tab === 'stats' ? R.colors.btnGold : R.colors.btn);
-    statsBtn.onClick = function() { equipmentScene.data.tab = 'stats'; equipmentScene.buildUI(); };
+    statsBtn.onClick = function() {
+      if (equipmentScene.data.tab === 'stats') return false;
+      equipmentScene.data.tab = 'stats';
+      equipmentScene.buildUI();
+    };
     this.data.buttons.push(statsBtn);
 
     y += 36;

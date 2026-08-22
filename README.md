@@ -11,11 +11,9 @@ python3 -m http.server 8931
 # open http://localhost:8931
 ```
 
-Deploys to Netlify as-is (`netlify.toml` publishes the repo root), and to
-**GitHub Pages** via Actions on every push to `master` — the verify job boots
+Deployed via **GitHub Actions** on every push to `master` — the verify job boots
 the game headlessly across the device matrix and only a clean boot deploys.
 Live URL: https://magekt.github.io/mythika-echoes-of-the-divine/
-(One-time setup: Settings → Pages → Source: **GitHub Actions**.)
 
 ---
 
@@ -173,4 +171,5 @@ It scales enemy HP/damage (`applyDifficulty`) plus reward and loot quality
 5. Commit with conventional prefixes: `fix:` / `feat:` / `refactor:` / `docs:` / `style:`.
 6. Push: `git push origin master`.
 
-Do not modify `netlify.toml`. See `BUILD_STATUS.md` for the current feature inventory.
+Deployment is owned by `.github/workflows/pages.yml` (verify → deploy on push
+to `master`). See `BUILD_STATUS.md` for the current feature inventory.
