@@ -22,6 +22,20 @@ Mythika/
 │   └── scenes/           (23 files — all scenes incl. equipment, questLog, trials)
 ```
 
+## 🚧 Roadmap — In Progress (H-series)
+
+Live-verified flaws from the desktop/mobile verification matrix (6 profiles):
+
+| # | Item | Status |
+|---|---|---|
+| H1 | Boot determinism: `gInit` waits for `window.load`; under slow straggler resources the shell can sit dark/main-tail races | **in progress** |
+| H2 | Long toast messages overflow their 320px box (onboarding hints) — needs word-wrap | **planned** |
+| H3 | Landscape (<500px height) shows tiny letterboxed view — add one-time rotate hint | **planned** |
+| H4 | Verification harness moved in-repo (`tools/verify_matrix.py`) | **planned** |
+
+Recently shipped hardening: recruit level-up loop clamp (over-cap leaders), modal multi-line
+bodies, save numeric-field sanitization, audio unlock-on-gesture, SW v3 cache-first loads.
+
 ## ✅ Completed Features
 
 ### Core Engine
