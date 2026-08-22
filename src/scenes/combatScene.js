@@ -602,9 +602,18 @@ const combatScene = Scene.create({
     this.data.scrollY = 0;
     this.data.restResult = null;
     const enlightenments = [
-      { id: 'meditate', text: 'Meditate: Still your mind', story: ENLIGHTENMENT_STORIES.meditate.story, buff: 1.2, timer: 60 },
-      { id: 'pushOn', text: 'Push On: Relentless drive', story: ENLIGHTENMENT_STORIES.pushOn.story, buff: 0.9, xpBuff: 1.15, timer: 60 },
-      { id: 'rest', text: 'Rest: Recover your spirit', story: ENLIGHTENMENT_STORIES.rest.story, buff: 1.1, timer: 90 }
+      { id: 'meditate', text: 'Meditate: Still your mind', story: ENLIGHTENMENT_STORIES.meditate.story, buff: 1.2, timer: 60,
+        effect: function() { return 'Cultivation +20% for 60s'; } },
+      { id: 'pushOn', text: 'Push On: Relentless drive', story: ENLIGHTENMENT_STORIES.pushOn.story, buff: 0.9, xpBuff: 1.15, timer: 60,
+        effect: function() { return 'XP +15%, Cultivation -10% for 60s'; } },
+      { id: 'rest', text: 'Rest: Recover your spirit', story: ENLIGHTENMENT_STORIES.rest.story, buff: 1.1, timer: 90,
+        effect: function(r) {
+          if (r && (r.hpGain > 0 || r.mpGain > 0)) {
+            return 'Party restored +' + r.hpGain + ' HP / +' + r.mpGain + ' MP \u00b7 Cultivation +10% for 90s';
+          }
+          if (r) return 'Party already at full strength \u00b7 Cultivation +10% for 90s';
+          return 'Cultivation +10% for 90s';
+        } }
     ];
     let y = 6;
     for (const e of enlightenments) {
@@ -631,7 +640,10 @@ const combatScene = Scene.create({
             }
             combatScene.data.restResult = { hpGain: hpGain, mpGain: mpGain };
           }
-          Notify.show('"' + opt.story + '"', 3, R.colors.gold);
+          // Effect first (actionable), story second (flavor) — the toast
+          // queue stacks them in that order.
+          Notify.show(opt.effect(combatScene.data.restResult), 3, R.colors.gold);
+          Notify.show('"' + opt.story + '"', 3.5, R.colors.blueLight);
           combatScene.data.showEnlightenment = false;
           combatScene.buildContinueButton();
         };
