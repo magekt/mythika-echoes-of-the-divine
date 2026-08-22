@@ -140,7 +140,7 @@ const partyScene = Scene.create({
   recruitHero: function(hid) {
     const idx = G.state.party.length - 1;
     const cost = this.data.recruitCosts[idx] || 14000;
-    if (!Economy.spendGoldOrNotify(cost)) return;
+    if (!Economy.spendGoldOrNotify(cost)) return false;
 
     const recruit = createHeroState(hid);
     // Allies arrive seasoned: 60% of the leader's level, via real level-ups.

@@ -51,6 +51,7 @@ const tournamentScene = Scene.create({
         tournamentScene.startMatch();
       } else {
         tournamentScene.data.log = ['Not enough gold!'];
+        return false;
       }
     };
     this.data.buttons.push(btn);

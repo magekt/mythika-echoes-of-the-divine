@@ -129,7 +129,7 @@ const forgeScene = Scene.create({
     const cost = this.data.upgradeCosts[slotId];
     const slotName = slotId.charAt(0).toUpperCase() + slotId.slice(1);
 
-    if (!Economy.spendGoldOrNotify(cost)) return;
+    if (!Economy.spendGoldOrNotify(cost)) return false;
     if (slotId === 'weapon') { hero.weaponLvl++; }
     else if (slotId === 'armor') { hero.armorLvl++; }
     else if (slotId === 'accessory') { hero.accessoryLvl++; }

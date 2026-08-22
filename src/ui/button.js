@@ -12,25 +12,28 @@ UI.handleButtons = function(buttons, scrollY) {
   if (!tap) return false;
   const oy = scrollY || 0;
   for (const b of buttons) {
-    if (b.enabled === false || b.visible === false || !b.contains) continue;
-    if (b.contains(tap.x, tap.y - oy)) {
-      Input.getTap();
-      // Per-button cooldown: a queued tap landing on a button that already
-      // fired within 120ms is absorbed without re-firing (stops double
-      // Continue transitions and double purchases from tap backlogs).
-      const now = performance.now();
-      if (b._lastFire && now - b._lastFire < 120) {
-        b._pressed = true;
-        b._pressTimer = 0.12;
-        return true;
-      }
-      b._lastFire = now;
-      b._pressed = true;
-      b._pressTimer = 0.12;
-      Audio.click();
-      if (b.onClick) b.onClick(b.data);
+    if (b.visible === false || !b.contains) continue;
+    if (!b.contains(tap.x, tap.y - oy)) continue;
+    Input.getTap();
+    b._pressed = true;
+    b._pressTimer = 0.12;
+    // Per-button cooldown: a queued tap landing on a button that already
+    // fired within 120ms is absorbed with no FX and no re-fire.
+    const now = performance.now();
+    if (b._lastFire && now - b._lastFire < 120) return true;
+    b._lastFire = now;
+    if (b.enabled === false) {
+      // Unavailable target: stone strikes the glass; nothing changes.
+      R.stoneHit(tap.x, tap.y);
       return true;
     }
+    Audio.click();
+    // Outcome convention: an explicit `false` from a handler marks the
+    // action as rejected -> stone-on-glass; anything else counts as valid.
+    const outcome = b.onClick ? b.onClick(b.data) : undefined;
+    if (outcome === false) R.stoneHit(tap.x, tap.y);
+    else R.validTick(tap.x, tap.y);
+    return true;
   }
   return false;
 };

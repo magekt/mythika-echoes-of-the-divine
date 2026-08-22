@@ -123,6 +123,9 @@ const farmScene = Scene.create({
           G.state.farmPlots[data._plotIdx].harvested = false;
           Notify.show('Planted ' + data._herb.name + '!', 2);
           farmScene.buildButtons();
+        } else {
+          // Rejected: not enough gold -> stone-on-glass feedback.
+          return false;
         }
       };
       this.data.buttons.push(btn);

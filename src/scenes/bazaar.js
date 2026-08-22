@@ -80,6 +80,7 @@ const bazaarScene = Scene.create({
             Audio.click();
           } else {
             Notify.show('Not enough gold! Need ' + cost + 'g', 2);
+            return false;
           }
         }
       });
@@ -91,6 +92,8 @@ const bazaarScene = Scene.create({
         if (Economy.spendGoldOrNotify(10)) {
           bazaarScene.generateInventory();
           bazaarScene.buildBuySellLists();
+        } else {
+          return false;
         }
       };
       this.data.buttons.push(refreshBtn);
