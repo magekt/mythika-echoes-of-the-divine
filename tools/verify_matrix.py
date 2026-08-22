@@ -43,10 +43,24 @@ CHROME_CANDIDATES = [
 
 
 def find_chrome():
+    # MYTHIKA_CHROME lets CI (setup-chrome installs off-PATH) or a developer
+    # pin the binary; implies the sandbox/shm workarounds runners need.
+    env = os.environ.get("MYTHIKA_CHROME")
+    if env and os.path.exists(env):
+        return env
     for c in CHROME_CANDIDATES:
         if c and os.path.exists(c):
             return c
     return None
+
+
+# Runner environments need these; locally they are only added when
+# MYTHIKA_CHROME is pinned (harness-driven runs).
+RUNNER_FLAGS = (
+    ["--no-sandbox", "--disable-dev-shm-usage"]
+    if os.environ.get("CI") or os.environ.get("MYTHIKA_CHROME")
+    else []
+)
 
 
 def serve():
@@ -70,6 +84,7 @@ def run_profile(chrome, port, name, w, h, dpr, note, outdir, budget_ms):
         "--no-first-run",
         "--hide-scrollbars",
         "--window-size=%d,%d" % (w, h),
+        *RUNNER_FLAGS,
         "--force-device-scale-factor=%s" % dpr,
         "--virtual-time-budget=%d" % budget_ms,
         "--enable-logging=stderr",
@@ -119,6 +134,7 @@ def main():
             "--no-first-run",
             "--hide-scrollbars",
             "--window-size=1280,1400",
+            *RUNNER_FLAGS,
             "--enable-logging=stderr",
             "--v=0",
             # NOTE: no --screenshot here — it would exit right after capture,
