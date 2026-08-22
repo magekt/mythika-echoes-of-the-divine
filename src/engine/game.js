@@ -219,6 +219,10 @@ function gInit() {
   initInput();
   initAudio();
   G.lastTime = performance.now();
+  // Perf probe: only active when loaded with ?probe (harness --fps mode).
+  G._probe = /[?&]probe/.test(location.search);
+  G._fpsT = G.lastTime;
+  G._fpsN = 0;
   gLoop(performance.now());
   // Boot beacon: lets the verification harness (and devtools) confirm the
   // loop actually started on this device/DPR.
@@ -268,6 +272,11 @@ function gLoop(time) {
   if (G.frameCount === 1) {
     const el = document.getElementById('game-container');
     if (el) el.classList.remove('loading');
+  }
+  if (G._probe && time - G._fpsT >= 5000) {
+    console.log('[Mythika] fps=' + Math.round((G.frameCount - G._fpsN) * 1000 / (time - G._fpsT)));
+    G._fpsT = time;
+    G._fpsN = G.frameCount;
   }
   requestAnimationFrame(gLoop);
 }

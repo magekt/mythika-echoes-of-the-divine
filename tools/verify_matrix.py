@@ -92,6 +92,8 @@ def main():
     ap.add_argument("--budget", type=int, default=6000,
                     help="virtual time budget per profile (ms)")
     ap.add_argument("--outdir", default=None)
+    ap.add_argument("--fps", type=int, default=0, metavar="MIN",
+                    help="also run a real-time 12s probe and require >= MIN fps")
     args = ap.parse_args()
 
     chrome = find_chrome()
@@ -106,6 +108,42 @@ def main():
     failures = 0
     print("chrome: %s" % chrome)
     print("server: http://127.0.0.1:%d  (Ctrl-C after run if --keep)" % port)
+
+    if args.fps > 0:
+        # Real-time pacing (no virtual-time budget): count frames across a
+        # 12s wall window via the ?probe fps beacons emitted every 5s.
+        cmd = [
+            chrome,
+            "--headless=new",
+            "--disable-gpu",
+            "--no-first-run",
+            "--hide-scrollbars",
+            "--window-size=1280,1400",
+            "--enable-logging=stderr",
+            "--v=0",
+            # NOTE: no --screenshot here — it would exit right after capture,
+            # before the first 5s fps beacon. We keep the session alive and
+            # kill it ourselves after the sampling window.
+            "http://127.0.0.1:%d/index.html?probe=1" % port,
+        ]
+        proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL,
+                                stderr=subprocess.PIPE, text=True)
+        time.sleep(12)
+        proc.kill()
+        err = proc.communicate()[1] or ""
+        import re
+        fps_vals = [int(m) for m in re.findall(r"\[Mythika\] fps=(\d+)", err)]
+        booted = "[Mythika] booted" in err
+        uncaught = "Uncaught" in err
+        best = max(fps_vals) if fps_vals else 0
+        ok = booted and not uncaught and best >= args.fps
+        print("%-4s fps-probe      measured=%d  (need >= %d; beacons=%s)" % (
+            "PASS" if ok else "FAIL", best, args.fps, fps_vals or "none"))
+        if not booted:
+            print("     no boot beacon in real-time window")
+        if not ok:
+            failures += 1
+
     for (name, w, h, dpr, note) in PROFILES:
         t0 = time.time()
         ok, booted, uncaught, shot, _ = run_profile(
