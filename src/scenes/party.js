@@ -144,8 +144,11 @@ const partyScene = Scene.create({
 
     const recruit = createHeroState(hid);
     // Allies arrive seasoned: 60% of the leader's level, via real level-ups.
-    const target = Math.max(1, Math.floor((G.state.player ? G.state.player.level : 1) * 0.6));
-    while (recruit.level < target) {
+    // Clamp to the Lv.50 cap and bound the loop — an over-levelled leader
+    // (crafted/migrated save) must never hang the main thread here.
+    const target = Math.min(50, Math.max(1, Math.floor((G.state.player ? G.state.player.level : 1) * 0.6)));
+    let guard = 0;
+    while (recruit.level < target && guard++ < 60) {
       Progression.addXP(recruit, Progression.xpForLevel(recruit.level));
     }
     recruit.hp = recruit.maxHp;
