@@ -176,6 +176,9 @@ function gInit() {
   initAudio();
   G.lastTime = performance.now();
   gLoop(performance.now());
+  // Boot beacon: lets the verification harness (and devtools) confirm the
+  // loop actually started on this device/DPR.
+  console.log('[Mythika] booted dpr=' + G.dpr);
 }
 
 function gLoop(time) {
@@ -249,6 +252,7 @@ function gScene(name, fade) {
   }
 }
 
-window.addEventListener('load', function(){ gInit(); fitGame(); });
+// Boot ownership lives in main.js bootGame(): it fires immediately on script
+// parse and re-enters via this load safety-net (idempotent via G._booted).
 window.addEventListener('resize', fitGame);
 window.addEventListener('orientationchange', fitGame);
