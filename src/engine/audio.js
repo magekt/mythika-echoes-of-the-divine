@@ -6,25 +6,65 @@ const Audio = {
   _musicNodes: [],
   _musicInterval: null,
   _currentTrack: null,
-  _musicGain: null,
+  _pendingTrack: null,
   musicVolume: function(v) {
     if (this._musicGain) this._musicGain.gain.value = (v || 0.7) * 0.04;
   }
 };
 
 function initAudio() {
+  // Browsers block AudioContext creation before a user gesture. Do NOT create
+  // it here; Audio.unlock() runs on the first pointer/key event instead.
   try {
-    Audio._ctx = new (window.AudioContext || window.webkitAudioContext)();
-    Audio._musicGain = Audio._ctx.createGain();
-    Audio._musicGain.gain.value = 0.04;
-    Audio._musicGain.connect(Audio._ctx.destination);
+    const unlock = function() {
+      Audio.unlock();
+      document.removeEventListener('pointerdown', unlock);
+      document.removeEventListener('touchend', unlock);
+      document.removeEventListener('keydown', unlock);
+    };
+    document.addEventListener('pointerdown', unlock);
+    document.addEventListener('touchend', unlock);
+    document.addEventListener('keydown', unlock);
   } catch(e) {
     Audio.enabled = false;
   }
 }
 
+// First user gesture: create the context (or resume the blocked one) and start
+// whatever music was requested while locked.
+Audio.unlock = function() {
+  try {
+    if (!Audio._ctx) {
+      Audio._ctx = new (window.AudioContext || window.webkitAudioContext)();
+      Audio._musicGain = Audio._ctx.createGain();
+      Audio._musicGain.gain.value = 0.04;
+      Audio._musicGain.connect(Audio._ctx.destination);
+    }
+    const startPending = function() {
+      if (Audio._pendingTrack && Audio._ctx.state === 'running') {
+        const trackId = Audio._pendingTrack;
+        Audio._pendingTrack = null;
+        Audio.playMusic(trackId);
+      }
+    };
+    if (Audio._ctx.state === 'suspended') {
+      const p = Audio._ctx.resume();
+      if (p && p.then) p.then(startPending).catch(function() {});
+    }
+    startPending();
+  } catch(e) {
+    Audio.enabled = false;
+  }
+};
+
+// True when the context exists AND is running — gates every node creation so a
+// suspended context never spams "not allowed to start" warnings.
+Audio.ready = function() {
+  return !!(Audio.enabled && Audio._ctx && Audio._ctx.state === 'running');
+};
+
 Audio.beep = function(freq, duration, type) {
-  if (!Audio.enabled || !Audio.sfxOn || !Audio._ctx) return;
+  if (!Audio.sfxOn || !Audio.ready()) return;
   try {
     const osc = Audio._ctx.createOscillator();
     const gain = Audio._ctx.createGain();
@@ -119,7 +159,12 @@ Audio.TRACKS = {
 
 Audio.playMusic = function(trackId) {
   this.stopMusic();
-  if (!this.enabled || !this.musicOn || !this._ctx) return;
+  if (!this.musicOn) return;
+  if (!this.ready()) {
+    // Locked (pre-gesture): remember the request; Audio.unlock() starts it.
+    this._pendingTrack = trackId;
+    return;
+  }
   const track = this.TRACKS[trackId];
   if (!track) return;
   this._currentTrack = trackId;
@@ -127,7 +172,7 @@ Audio.playMusic = function(trackId) {
   const ctx = this._ctx;
 
   function playNote() {
-    if (!Audio.musicOn || Audio._currentTrack !== trackId) return;
+    if (!Audio.ready() || !Audio.musicOn || Audio._currentTrack !== trackId) return;
     const freq = track.notes[noteIndex];
     const osc = ctx.createOscillator();
     const noteGain = ctx.createGain();

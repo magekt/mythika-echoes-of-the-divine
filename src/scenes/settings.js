@@ -107,6 +107,22 @@ const settingsScene = Scene.create({
     this.data.buttons.push(deleteBtn);
     y += 40;
 
+    const updateBtn = UI.Button(20, y, G.W - 40, 30, 'Check for Game Updates');
+    updateBtn.onClick = function() {
+      Notify.show('Fetching updates...', 2);
+      Promise.all([
+        caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))),
+        navigator.serviceWorker.getRegistrations().then(rs => Promise.all(rs.map(r => r.update())))
+      ]).then(function() {
+        Notify.show('Updated! Reloading...', 1);
+        setTimeout(function() { location.reload(); }, 800);
+      }).catch(function() {
+        Notify.show('Update check failed', 2, R.colors.red);
+      });
+    };
+    this.data.buttons.push(updateBtn);
+    y += 40;
+
     const info = SaveSystem.getSaveInfo();
     if (info) {
       SD.push({ text: ['Save Info:', 22, y + 2, R.colors.textDim, R.fonts.sm] });
