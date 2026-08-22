@@ -214,15 +214,24 @@ const trialsScene = Scene.create({
       const hero = G.state.player;
       R.drawHero(ctx, hero.id, 80, 82, 26);
       R.textCenter(ctx, hero.name, 80, 142, R.colors.text, R.fonts.sm);
+      // Ghost trail (same pattern as combatScene): eases toward current HP.
+      const php = Math.min(1, Math.max(0, this.data.playerHP / hero.maxHp));
+      if (typeof this.data._ghostPHP !== 'number' || php > this.data._ghostPHP) this.data._ghostPHP = php;
+      this.data._ghostPHP += (php - this.data._ghostPHP) * Math.min(1, G.dt * 6);
       R.roundRect(ctx, 40, 148, 80, 6, 3, 'rgba(200,48,48,0.2)');
-      R.roundRect(ctx, 40, 148, 80 * Math.min(1, Math.max(0, this.data.playerHP / hero.maxHp)), 6, 3, R.colors.hp);
+      if (this.data._ghostPHP > 0) R.roundRect(ctx, 40, 148, 80 * this.data._ghostPHP, 6, 3, R.colors.white);
+      R.roundRect(ctx, 40, 148, 80 * php, 6, 3, R.colors.hp);
       R.textCenter(ctx, Math.floor(this.data.playerHP) + '/' + hero.maxHp, 80, 162, R.colors.white, R.fonts.xs);
 
       const foe = this.data.enemy;
       if (foe) {
         R.drawEnemy(ctx, foe.id, 320, 82, 26);
         R.textCenter(ctx, foe.name, 320, 142, R.colors.red, R.fonts.sm);
+        if (typeof foe._ghostHp !== 'number' || foe.hp > foe._ghostHp) foe._ghostHp = foe.hp;
+        foe._ghostHp += (foe.hp - foe._ghostHp) * Math.min(1, G.dt * 6);
         R.roundRect(ctx, 280, 148, 80, 6, 3, 'rgba(200,48,48,0.2)');
+        const fgw = 80 * Math.min(1, Math.max(0, foe._ghostHp / foe.maxHp));
+        if (fgw > 0) R.roundRect(ctx, 280, 148, fgw, 6, 3, R.colors.white);
         R.roundRect(ctx, 280, 148, 80 * Math.min(1, Math.max(0, foe.hp / foe.maxHp)), 6, 3, R.colors.hp);
         R.textCenter(ctx, Math.floor(foe.hp) + '/' + foe.maxHp, 320, 162, R.colors.white, R.fonts.xs);
       }

@@ -198,16 +198,24 @@ const tournamentScene = Scene.create({
     if (this.data.state === 'fighting' || this.data.state === 'result') {
       R.drawHero(ctx, G.state.player ? G.state.player.id : 'arjuna', 80, 82, 26);
       R.textCenter(ctx, G.state.player ? G.state.player.name : 'You', 80, 142, R.colors.text, R.fonts.sm);
+      // Ghost trail: white segment eases toward current HP so damage drains
+      // visibly (same pattern as combatScene bars).
+      const pHPct = G.state.player ? Math.max(0, this.data.playerHP / G.state.player.maxHp) : 1;
+      if (typeof this.data._ghostPHP !== 'number' || pHPct > this.data._ghostPHP) this.data._ghostPHP = pHPct;
+      this.data._ghostPHP += (pHPct - this.data._ghostPHP) * Math.min(1, G.dt * 6);
       R.roundRect(ctx, 40, 148, 80, 6, 3, 'rgba(200,48,48,0.2)');
-      const pHPct = G.state.player ? this.data.playerHP / G.state.player.maxHp : 1;
-      R.roundRect(ctx, 40, 148, 80 * Math.max(0, pHPct), 6, 3, R.colors.hp);
+      if (this.data._ghostPHP > 0) R.roundRect(ctx, 40, 148, 80 * this.data._ghostPHP, 6, 3, R.colors.white);
+      R.roundRect(ctx, 40, 148, 80 * pHPct, 6, 3, R.colors.hp);
       R.textCenter(ctx, Math.floor(this.data.playerHP) + '/' + (G.state.player ? G.state.player.maxHp : 100), 80, 162, R.colors.white, R.fonts.xs);
 
       R.drawEnemy(ctx, 'rakshasa', 320, 82, 26);
       R.textCenter(ctx, this.data.opponent ? this.data.opponent.name : '?', 320, 142, R.colors.red, R.fonts.sm);
+      const eHPct = this.data.opponent ? Math.max(0, this.data.enemyHP / this.data.opponent.maxHp) : 1;
+      if (typeof this.data._ghostEHP !== 'number' || eHPct > this.data._ghostEHP) this.data._ghostEHP = eHPct;
+      this.data._ghostEHP += (eHPct - this.data._ghostEHP) * Math.min(1, G.dt * 6);
       R.roundRect(ctx, 280, 148, 80, 6, 3, 'rgba(200,48,48,0.2)');
-      const eHPct = this.data.opponent ? this.data.enemyHP / this.data.opponent.maxHp : 1;
-      R.roundRect(ctx, 280, 148, 80 * Math.max(0, eHPct), 6, 3, R.colors.hp);
+      if (this.data._ghostEHP > 0) R.roundRect(ctx, 280, 148, 80 * this.data._ghostEHP, 6, 3, R.colors.white);
+      R.roundRect(ctx, 280, 148, 80 * eHPct, 6, 3, R.colors.hp);
       R.textCenter(ctx, Math.floor(this.data.enemyHP) + '/' + (this.data.opponent ? this.data.opponent.maxHp : 100), 320, 162, R.colors.white, R.fonts.xs);
     } else {
       R.textCenter(ctx, 'Wins: ' + (G.state.tournamentWins || 0), G.W / 2, 88, R.colors.gold, R.fonts.sm);
