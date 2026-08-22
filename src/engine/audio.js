@@ -87,6 +87,10 @@ Audio.click = function() {
   this._clickGate = now;
   Audio.beep(800, 0.05, 'square');
 };
+
+// Blocked/no-op feedback: a dull knock against glass. Paired with the
+// stone-hits-glass visual so valid vs invalid is unmistakable by ear.
+Audio.thud = function() { Audio.beep(120, 0.09, 'triangle'); };
 Audio.menuSwoosh = function() { Audio.beep(400, 0.1, 'sine'); Audio.beep(600, 0.1, 'sine'); };
 Audio.attack = function() { Audio.beep(200, 0.08, 'sawtooth'); };
 Audio.crit = function() { 

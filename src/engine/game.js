@@ -318,6 +318,7 @@ function gLoopFrame(time) {
   R.updateEffects(G.dt);
   R.updateProjectiles(G.dt);
   R.updateLevelUp(G.dt);
+  R.updateClickFx(G.dt);
   if (G.state.enlightenmentTimer > 0) {
     G.state.enlightenmentTimer -= G.dt;
     if (G.state.enlightenmentTimer <= 0) {
@@ -337,6 +338,7 @@ function gLoopFrame(time) {
   G.ctx.restore();
   R.renderProjectiles(G.ctx);
   R.renderEffects(G.ctx);
+  R.renderClickFx(G.ctx);
   R.renderLevelUp(G.ctx);
   R.renderEnlightenmentAura(G.ctx, G.dt);
   if (G.state.enlightenmentTimer > 0) {

@@ -275,6 +275,159 @@ R.renderEffects = function(ctx) {
   }
 };
 
+// ── Click-outcome micro-FX ────────────────────────────────────────────
+// Valid press: a thin gold ring + 4 micro-sparks at the exact tap point.
+// Blocked press: a stone flies in and strikes the surface — ripple rings
+// and dent marks appear, but nothing shatters. Empty space and off-screen
+// coordinates stay dead by design.
+R.clickFx = [];
+R.CLICKFX_MAX = 16;
+
+R.validTick = function(x, y) {
+  if (G.state.reduceMotion) return;
+  if (x < 0 || x > G.W || y < 0 || y > G.H) return;
+  if (R.clickFx.length >= R.CLICKFX_MAX) R.clickFx.shift();
+  const sparks = [];
+  for (let i = 0; i < 4; i++) {
+    const a = Math.random() * Math.PI * 2;
+    sparks.push({
+      x: x, y: y,
+      vx: Math.cos(a) * (40 + Math.random() * 30),
+      vy: Math.sin(a) * (40 + Math.random() * 30),
+      life: 0.22,
+      color: i % 2 ? R.colors.gold : R.colors.white
+    });
+  }
+  R.clickFx.push({ type: 'tick', x: x, y: y, age: 0, sparks: sparks });
+};
+
+R.stoneHit = function(x, y) {
+  if (x < 0 || x > G.W || y < 0 || y > G.H) return;
+  if (R.clickFx.length >= R.CLICKFX_MAX) R.clickFx.shift();
+  if (G.state.reduceMotion) {
+    // Static dent mark: informational, zero motion. Sound still fires.
+    Audio.thud();
+    R.clickFx.push({
+      type: 'glass', x: x, y: y, age: 0.3, staticMark: true,
+      rings: [], ticks: []
+    });
+    return;
+  }
+  const a = Math.random() * Math.PI * 2;
+  const dist = 22 + Math.random() * 8;
+  const ticks = [];
+  for (let i = 0; i < 5; i++) {
+    ticks.push((Math.PI * 2 / 5) * i + Math.random() * 0.5);
+  }
+  R.clickFx.push({
+    type: 'glass', x: x, y: y, age: 0,
+    sx: x + Math.cos(a) * dist, sy: y + Math.sin(a) * dist,
+    impactAt: 0.11, angle: a,
+    rings: null, ringSpawned: false, ticks: ticks
+  });
+};
+
+R.updateClickFx = function(dt) {
+  for (let i = R.clickFx.length - 1; i >= 0; i--) {
+    const f = R.clickFx[i];
+    f.age += dt;
+    let done;
+    if (f.type === 'tick') {
+      done = f.age > 0.24;
+      for (const s of f.sparks) {
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        s.life -= dt;
+      }
+    } else if (f.staticMark) {
+      done = f.age > 0.55;
+    } else {
+      done = f.age > f.impactAt + 0.45;
+      if (f.age >= f.impactAt && !f.ringSpawned) {
+        f.ringSpawned = true;
+        Audio.thud(); // impact-synced; renderer->audio precedent: comboMilestone
+        f.rings = [{ born: f.age }, { born: f.age + 0.06 }, { born: f.age + 0.12 }];
+      }
+      if (f.rings) {
+        for (const rg of f.rings) rg.t = f.age - rg.born;
+      }
+    }
+    if (done) R.clickFx.splice(i, 1);
+  }
+};
+
+R.renderClickFx = function(ctx) {
+  for (const f of R.clickFx) {
+    if (f.type === 'tick') {
+      const t = f.age / 0.18;
+      if (t <= 1) {
+        ctx.globalAlpha = 1 - t;
+        ctx.strokeStyle = R.colors.gold;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(f.x + R.shakeX, f.y + R.shakeY, 2 + t * 7, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      for (const s of f.sparks) {
+        if (s.life <= 0) continue;
+        ctx.globalAlpha = Math.max(0, s.life / 0.22);
+        R.rect(ctx, s.x + R.shakeX - 1, s.y + R.shakeY - 1, 2, 2, s.color);
+      }
+      ctx.globalAlpha = 1;
+      continue;
+    }
+    const ix = f.x + R.shakeX, iy = f.y + R.shakeY;
+    const impacted = f.staticMark || f.age >= f.impactAt;
+    if (!impacted) {
+      // Stone in flight, accelerating toward the strike point.
+      const st = f.age / f.impactAt;
+      const e = st * st;
+      const px = f.sx + (f.x - f.sx) * e + R.shakeX;
+      const py = f.sy + (f.y - f.sy) * e + R.shakeY;
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(f.angle + f.age * 10);
+      ctx.fillStyle = '#3a3a58';
+      ctx.fillRect(-3, -3, 6, 6);
+      ctx.strokeStyle = R.colors.textDark;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-3, -3, 6, 6);
+      ctx.restore();
+      continue;
+    }
+    // Dent disc.
+    const dT = f.staticMark ? 0 : Math.min(1, (f.age - f.impactAt) / 0.45);
+    ctx.globalAlpha = 0.35 * (f.staticMark ? 1 : 1 - dT);
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.beginPath();
+    ctx.arc(ix, iy, 5, 0, Math.PI * 2);
+    ctx.fill();
+    // Dent ticks: pop in with the impact, then stay put.
+    ctx.strokeStyle = 'rgba(232,224,208,0.5)';
+    ctx.lineWidth = 1;
+    for (const ta of f.ticks) {
+      ctx.beginPath();
+      ctx.moveTo(ix + Math.cos(ta) * 6, iy + Math.sin(ta) * 6);
+      ctx.lineTo(ix + Math.cos(ta) * 11, iy + Math.sin(ta) * 11);
+      ctx.stroke();
+    }
+    // Ripple rings (skipped for the static Reduce-Motion mark).
+    if (!f.staticMark && f.rings) {
+      ctx.strokeStyle = 'rgba(232,224,208,0.6)';
+      for (const rg of f.rings) {
+        const rt = rg.t / 0.38;
+        if (rt < 0 || rt > 1) continue;
+        ctx.globalAlpha = (1 - rt) * 0.6;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(ix, iy, 4 + rt * 14, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+};
+
 R.zoneBgColor = function(zoneId) {
   if (ZONES[zoneId]) return ZONES[zoneId].bgColor;
   return '#1a0a00';
