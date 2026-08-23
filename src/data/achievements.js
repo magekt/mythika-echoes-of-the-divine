@@ -7,7 +7,7 @@ const ACHIEVEMENTS = [
   { id: 'alchemist', name: 'Alchemist', desc: 'Craft 10 alchemy items', icon: 'A', check: function() { return (G.state.flags && G.state.flags.itemsCrafted || 0) >= 10; } },
   { id: 'master_alchemist', name: 'Master Alchemist', desc: 'Craft 50 alchemy items', icon: 'M', check: function() { return (G.state.flags && G.state.flags.itemsCrafted || 0) >= 50; } },
   { id: 'spirit_master', name: 'Spirit Master', desc: 'Collect 3 spirit beasts', icon: 'S', check: function() { return (G.state.spiritBeasts || []).length >= 3; } },
-  { id: 'beast_tamer', name: 'Beast Tamer', desc: 'Reach tier 5 on any spirit beast', icon: 'B', check: function() { return G.state.spiritBeasts && G.state.spiritBeasts.some(b => b.tier >= 5); } },
+  { id: 'beast_tamer', name: 'Beast Tamer', desc: 'Reach tier 4 on any spirit beast', icon: 'B', check: function() { return G.state.spiritBeasts && G.state.spiritBeasts.some(b => b.tier >= 4); } },
   { id: 'wealthy', name: 'Wealthy Soul', desc: 'Accumulate 5000 gold', icon: 'G', check: function() { return (G.state.gold || 0) >= 5000; } },
   { id: 'millionaire', name: 'Millionaire', desc: 'Accumulate 20000 gold', icon: '$', check: function() { return (G.state.gold || 0) >= 20000; } },
   { id: 'breakthrough', name: 'First Breakthrough', desc: 'Perform your first breakthrough', icon: 'B', check: function() { return (G.state.realmStage || 0) > 1 || G.state.realm !== 'manushya'; } },

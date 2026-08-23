@@ -103,6 +103,8 @@ Progression.addPartyXP = function(amount) {
   let leveled = false;
   amount = Math.floor(amount * (1 + this.perkValue('vidya') / 100));
   if (G.state.xpBuff) amount = Math.floor(amount * G.state.xpBuff);
+  const xpAura = (typeof AURAS !== 'undefined' && AURAS.getTotal) ? AURAS.getTotal('xpBonus') : 0;
+  if (xpAura) amount = Math.floor(amount * (1 + xpAura / 100));
   for (const h of G.state.party) {
     if (h.active && h.hp > 0 && Progression.addXP(h, amount)) leveled = true;
   }

@@ -8,10 +8,16 @@ const farmScene = Scene.create({
   },
 
   enter: function() {
+    const prithviVal = Progression.perkValue('prithvi');
+    const extraPlots = Math.min(3, Math.floor(prithviVal / 50));
+    const maxPlots = 3 + extraPlots;
     if (!G.state.farmPlots || G.state.farmPlots.length === 0) {
-      const maxPlots = 3 + (Progression.perkValue('prithvi') > 0 ? 1 : 0);
       G.state.farmPlots = [];
       for (let i = 0; i < maxPlots; i++) {
+        G.state.farmPlots.push({ herb: null, growTimer: 0, harvested: false });
+      }
+    } else if (G.state.farmPlots.length < maxPlots) {
+      for (let i = G.state.farmPlots.length; i < maxPlots; i++) {
         G.state.farmPlots.push({ herb: null, growTimer: 0, harvested: false });
       }
     }

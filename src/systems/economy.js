@@ -43,11 +43,22 @@ Economy.addItem = function(item) {
     const existing = G.state.inventory.find(i => i.name === item.name && i.type === 'consumable');
     if (existing) {
       existing.qty = (existing.qty || 1) + 1;
+      if (typeof QuestSystem !== 'undefined' && QuestSystem.trackCollect) QuestSystem.trackCollect(item.name, 1);
+      return;
+    }
+  }
+  if (item.type === 'herb' && item.name) {
+    // Herbs also stack like consumables for cleaner inventory
+    const existingHerb = G.state.inventory.find(i => i.name === item.name && i.type === 'herb');
+    if (existingHerb) {
+      existingHerb.qty = (existingHerb.qty || 1) + (item.qty || 1);
+      if (typeof QuestSystem !== 'undefined' && QuestSystem.trackCollect) QuestSystem.trackCollect(item.name, item.qty || 1);
       return;
     }
   }
   item.qty = item.qty || 1;
   G.state.inventory.push(item);
+  if (item.name && typeof QuestSystem !== 'undefined' && QuestSystem.trackCollect) QuestSystem.trackCollect(item.name, item.qty || 1);
 };
 
 Economy.removeItem = function(index) {

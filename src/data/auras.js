@@ -31,3 +31,12 @@ const AURAS = {
 function getClassAuras(classPath) {
   return Object.entries(AURAS).filter(([k,v]) => v.path === classPath);
 }
+
+AURAS.getTotal = function(key) {
+  let total = 0;
+  for (const id of (G.state.equippedAuras || [])) {
+    const a = AURAS[id];
+    if (a && a.effect && a.effect[key]) total += a.effect[key];
+  }
+  return total;
+};

@@ -521,7 +521,9 @@ const combatScene = Scene.create({
     Combat.awardBeastXP();
     if (won) {
       const loot = Combat.getLoot();
-      const gainedGold = Math.floor(loot.gold * (1 + Progression.perkValue('kirti') / 100));
+      let gainedGold = Math.floor(loot.gold * (1 + Progression.perkValue('kirti') / 100));
+      const dream = (typeof AURAS !== 'undefined' && AURAS.getTotal) ? AURAS.getTotal('dreamReward') : 0;
+      if (dream) gainedGold = Math.floor(gainedGold * (1 + dream / 100));
       Economy.addGold(gainedGold);
       const xpPerHero = Math.floor(loot.xp / Math.max(1, this.data.heroes.filter(h => h.hp > 0).length));
       // Ticker state: the result screen counts these up over ~0.5s.

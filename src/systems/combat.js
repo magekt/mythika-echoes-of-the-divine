@@ -171,6 +171,17 @@ function _getEffectiveAtk(attacker, skill) {
   // Forge weapon levels now matter in combat (15% per level).
   const wLvl = attacker.weaponLvl || 1;
   atk = Math.floor(atk * (1 + wLvl * 0.15));
+  // Aura light pass: partyAtk, vayuDmg, furyAtk (conditional), allElemDmg
+  const partyAtk = (typeof AURAS !== 'undefined' && AURAS.getTotal) ? AURAS.getTotal('partyAtk') : 0;
+  if (partyAtk) atk = Math.floor(atk * (1 + partyAtk / 100));
+  const vayu = (typeof AURAS !== 'undefined' && AURAS.getTotal) ? AURAS.getTotal('vayuDmg') : 0;
+  if (vayu) atk = Math.floor(atk * (1 + vayu / 100));
+  const allElem = (typeof AURAS !== 'undefined' && AURAS.getTotal) ? AURAS.getTotal('allElemDmg') : 0;
+  if (allElem) atk = Math.floor(atk * (1 + allElem / 100));
+  const fury = (typeof AURAS !== 'undefined' && AURAS.getTotal) ? AURAS.getTotal('furyAtk') : 0;
+  if (fury && attacker.hp && attacker.maxHp && attacker.hp < attacker.maxHp * 0.3) {
+    atk = Math.floor(atk * (1 + fury / 100));
+  }
   if (attacker.buffs && attacker.buffs.atkBuff) {
     atk = Math.floor(atk * attacker.buffs.atkBuff.value);
   }
@@ -191,6 +202,10 @@ function _getEffectiveMag(attacker, skill) {
   // Forge accessory levels empower magic.
   const accLvl = attacker.accessoryLvl || 1;
   mag = Math.floor(mag * (1 + accLvl * 0.15));
+  const agni = (typeof AURAS !== 'undefined' && AURAS.getTotal) ? AURAS.getTotal('agniDmg') : 0;
+  if (agni) mag = Math.floor(mag * (1 + agni / 100));
+  const allElem = (typeof AURAS !== 'undefined' && AURAS.getTotal) ? AURAS.getTotal('allElemDmg') : 0;
+  if (allElem) mag = Math.floor(mag * (1 + allElem / 100));
   if (attacker.magicMilestone) {
     mag = Math.floor(mag * 1.15);   // Light Wizard milestone: enduring wisdom
   }

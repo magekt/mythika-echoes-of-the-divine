@@ -135,6 +135,27 @@ QuestSystem.trackRealm = function(realmId) {
   return anyCompleted;
 };
 
+QuestSystem.trackCollect = function(itemName, qty) {
+  this.init();
+  qty = qty || 1;
+  const allQuests = getAllQuests();
+  let anyCompleted = false;
+  for (const q of allQuests) {
+    if (q.type !== 'collect') continue;
+    if (q.target !== itemName) continue;
+    const prog = G.state.quests[q.id] || { count: 0, completed: false, claimed: false };
+    if (prog.completed) continue;
+    prog.count = (prog.count || 0) + qty;
+    if (prog.count >= q.count) {
+      prog.completed = true;
+      anyCompleted = true;
+      Notify.show('Quest complete: ' + q.name + '!', 3, R.colors.gold);
+    }
+    G.state.quests[q.id] = prog;
+  }
+  return anyCompleted;
+};
+
 QuestSystem.canClaim = function(questId) {
   this.init();
   const prog = G.state.quests[questId];
@@ -172,9 +193,10 @@ QuestSystem.claimChain = function(chainId) {
   if (!this.canClaimChain(chainId)) return false;
   
   let chain = null;
+  let chainZone = null;
   for (const zoneId of Object.keys(QUEST_CHAINS)) {
-    chain = QUEST_CHAINS[zoneId].find(c => c.id === chainId);
-    if (chain) break;
+    const found = QUEST_CHAINS[zoneId].find(c => c.id === chainId);
+    if (found) { chain = found; chainZone = zoneId; break; }
   }
   if (!chain) return false;
 
@@ -182,8 +204,10 @@ QuestSystem.claimChain = function(chainId) {
   if (reward.gold) Economy.addGold(reward.gold);
   if (reward.xp) Progression.addPartyXP(reward.xp);
   if (reward.karma) Economy.addKarma(reward.karma);
+  if (reward.df) Economy.addDivineFragments(reward.df);
   if (reward.item) {
-    const loot = generateLoot(G.state.currentZone || 'aryavarta', 10);
+    const lootZone = chainZone || G.state.currentZone || 'aryavarta';
+    const loot = generateLoot(lootZone, 10);
     if (loot.length > 0) {
       if (!G.state.inventory) G.state.inventory = [];
       G.state.inventory.push(loot[0]);
