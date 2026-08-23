@@ -1,3 +1,10 @@
+const BAIT_TIERS = [
+  { id: 0, name: 'No Bait', cost: 0, fishReq: 0, rareBonus: 0, windowBonus: 0, desc: 'Basic' },
+  { id: 1, name: 'Basic Bait', cost: 40, fishReq: 5, rareBonus: 0.06, windowBonus: 0.3, desc: '+6% rare, +0.3s' },
+  { id: 2, name: 'Quality Bait', cost: 120, fishReq: 20, rareBonus: 0.12, windowBonus: 0.6, desc: '+12% rare, +0.6s' },
+  { id: 3, name: 'Divine Bait', cost: 300, fishReq: 50, rareBonus: 0.20, windowBonus: 1.0, desc: '+20% rare, +1.0s' }
+];
+
 const fishingScene = Scene.create({
   name: 'fishing',
   data: {
@@ -19,19 +26,62 @@ const fishingScene = Scene.create({
     Audio.playMusic('fishing');
     this.data.state = 'idle';
     this.data.fishCaught = G.state.fishCaught || 0;
-    this.data.streak = 0;
+    this.data.streak = G.state.fishingStreak || 0;
+    if (G.state.unlockedBaitTier == null) G.state.unlockedBaitTier = 0;
+    if (G.state.selectedBaitTier == null) G.state.selectedBaitTier = 0;
     this.buildButtons();
   },
 
   buildButtons: function() {
     this.data.buttons = [];
-    const cast = UI.BtnGold(G.W / 2 - 100, 260, 200, 34, 'Cast Line');
+    // Bait tier selector: personalizes rare chance + window
+    let by = 200;
+    for (let t = 0; t < BAIT_TIERS.length; t++) {
+      const tier = BAIT_TIERS[t];
+      const isUnlocked = (G.state.unlockedBaitTier || 0) >= t;
+      const isSelected = (G.state.selectedBaitTier || 0) === t;
+      const bx = 18 + t * 92;
+      const btn = UI.Button(bx, by, 86, 30, '', isSelected ? R.colors.btnGold : (isUnlocked ? R.colors.btn : R.colors.panel));
+      btn._tier = t;
+      btn.render = function(ctx) {
+        const bx=this.x, by=this.y, bw=this.w, bh=this.h;
+        R.roundRect(ctx, bx, by, bw, bh, 6, this.color);
+        if (isSelected) {
+          ctx.strokeStyle = R.colors.gold;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(bx+0.5, by+0.5, bw-1, bh-1);
+        }
+        R.textCenter(ctx, tier.name.split(' ')[0], bx+bw/2, by+13, isSelected ? R.colors.white : (isUnlocked ? R.colors.text : R.colors.textDim), R.fonts.sm);
+        const costStr = isUnlocked ? (isSelected ? 'Selected' : tier.desc) : tier.cost + 'g/' + tier.fishReq + ' fish';
+        R.textCenter(ctx, costStr, bx+bw/2, by+24, isUnlocked ? R.colors.textDim : R.colors.red, R.fonts.xs);
+      };
+      btn.onClick = function() {
+        const tierId = this._tier;
+        const tierData = BAIT_TIERS[tierId];
+        const unlocked = (G.state.unlockedBaitTier || 0) >= tierId;
+        if (!unlocked) {
+          if ((G.state.fishCaught || 0) < tierData.fishReq) { Notify.show('Need ' + tierData.fishReq + ' fish caught', 2, R.colors.red); return false; }
+          if (!Economy.spendGoldOrNotify(tierData.cost)) return false;
+          G.state.unlockedBaitTier = tierId;
+          G.state.selectedBaitTier = tierId;
+          Notify.show('Unlocked ' + tierData.name + '!', 2, R.colors.gold);
+          fishingScene.buildButtons();
+          return true;
+        }
+        G.state.selectedBaitTier = tierId;
+        Notify.show('Selected ' + tierData.name, 1.5, R.colors.green);
+        fishingScene.buildButtons();
+      };
+      this.data.buttons.push(btn);
+    }
+    by += 38;
+    const cast = UI.BtnGold(G.W / 2 - 100, by, 200, 34, 'Cast Line');
     cast.onClick = function() {
       fishingScene.startFishing();
     };
     this.data.buttons.push(cast);
-
-    const back = UI.Button(G.W / 2 - 100, 300, 200, 30, 'Back to Ashram');
+    by += 40;
+    const back = UI.Button(G.W / 2 - 100, by, 200, 30, 'Back to Ashram');
     back.onClick = function() { gScene('ashram'); };
     this.data.buttons.push(back);
   },
@@ -42,8 +92,12 @@ const fishingScene = Scene.create({
     this.data.fishPos = 0;
     this.data.fishSpeed = 0.5 + Math.random() * 2;
     this.data.fishPhase = Math.random() * Math.PI * 2;
-    this.data.isRareFish = Math.random() < 0.12;
+    const bait = BAIT_TIERS[G.state.selectedBaitTier || 0] || BAIT_TIERS[0];
+    const streakBonus = (this.data.streak >= 5 ? 0.05 : 0) + (this.data.streak >= 10 ? 0.05 : 0);
+    this.data.isRareFish = Math.random() < (0.12 + bait.rareBonus + streakBonus);
     this.data.rareColor = this.data.isRareFish ? '#e8c880' : R.colors.red;
+    // Better bait slightly slows the fish via calmer water bonus applied later
+    this.data._baitWindowBonus = bait.windowBonus;
     this.data.buttons = [];
   },
 
@@ -54,8 +108,10 @@ const fishingScene = Scene.create({
       this.data.fishPos += Math.sin(this.data.fishPhase) * 0.8;
       if (this.data.fishTimer <= 0) {
         this.data.state = 'catching';
-        this.data.catchWindow = this.data.isRareFish ? 1.8 : 2.5;
-        this.data.fishSpeed = this.data.isRareFish ? 3 + Math.random() * 2 : 1 + Math.random() * 1.5;
+        const baseWindow = this.data.isRareFish ? 1.8 : 2.5;
+        this.data.catchWindow = baseWindow + (this.data._baitWindowBonus || 0);
+        const baitSlow = 1 - ((this.data._baitWindowBonus || 0) * 0.12);
+        this.data.fishSpeed = this.data.isRareFish ? (3 + Math.random() * 2) * baitSlow : (1 + Math.random() * 1.5) * baitSlow;
         this.data.fishPos = 10 + Math.random() * (this.data.barWidth - 30);
         this.buildCatchButtons();
       }
@@ -89,32 +145,40 @@ const fishingScene = Scene.create({
   checkCatch: function() {
     const targetX = this.data.barWidth / 2 - 10;
     const diff = Math.abs(this.data.fishPos - targetX);
+    const bait = BAIT_TIERS[G.state.selectedBaitTier || 0] || BAIT_TIERS[0];
 
     if (this.data.isRareFish) {
       if (diff < 25) {
         const bonus = 20 + Math.floor(Math.random() * 30);
         this.data.streak++;
+        G.state.fishingStreak = this.data.streak;
+        G.state.fishingBestStreak = Math.max(G.state.fishingBestStreak || 0, this.data.streak);
         const streakBonus = Math.floor(this.data.streak * 2);
+        const baitBonus = Math.floor(bait.windowBonus * 5);
         G.state.fishCaught = (G.state.fishCaught || 0) + 1;
-        Economy.addGold(bonus + streakBonus);
-        Progression.addPartyXP(30);
+        Economy.addGold(bonus + streakBonus + baitBonus);
+        Progression.addPartyXP(30 + baitBonus);
         AchievementSystem.check();
-        Notify.show('RARE CATCH! +' + (bonus + streakBonus) + ' Gold!', 3, R.colors.goldLight);
+        Notify.show('RARE CATCH! +' + (bonus + streakBonus + baitBonus) + ' Gold!', 3, R.colors.goldLight);
         Audio.levelUp();
       } else {
         this.data.streak = 0;
+        G.state.fishingStreak = 0;
         Notify.show('Rare fish escaped!', 2, R.colors.red);
         Audio.error();
       }
     } else {
       if (diff < 20) {
         this.data.streak++;
+        G.state.fishingStreak = this.data.streak;
+        G.state.fishingBestStreak = Math.max(G.state.fishingBestStreak || 0, this.data.streak);
         const streakBonus = Math.floor(this.data.streak * 2);
+        const baitBonus = Math.floor(bait.windowBonus * 3);
         G.state.fishCaught = (G.state.fishCaught || 0) + 1;
-        Economy.addGold(5 + Math.floor(Math.random() * 10) + streakBonus);
-        Progression.addPartyXP(8 + this.data.streak * 2);
+        Economy.addGold(5 + Math.floor(Math.random() * 10) + streakBonus + baitBonus);
+        Progression.addPartyXP(8 + this.data.streak * 2 + baitBonus);
         AchievementSystem.check();
-        Notify.show('Caught a fish! +' + (5 + streakBonus + Math.floor(Math.random() * 10)) + ' Gold', 2);
+        Notify.show('Caught a fish! +' + (5 + streakBonus + baitBonus + Math.floor(Math.random() * 10)) + ' Gold', 2);
         Audio.click();
       } else if (diff < 50) {
         Economy.addGold(3);
@@ -123,6 +187,7 @@ const fishingScene = Scene.create({
         Audio.click();
       } else {
         this.data.streak = 0;
+        G.state.fishingStreak = 0;
         Notify.show('Missed!', 1.5);
       }
     }

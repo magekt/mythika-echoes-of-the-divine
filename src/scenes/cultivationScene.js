@@ -36,6 +36,15 @@ const cultivationScene = Scene.create({
     const infoH = 240;
     y += infoH + 10;
 
+    const medAmt = 5 + Math.max(0, (G.state.ashramLevel || 1) - 1) * 2;
+    const medBtn = UI.Button(60, y, G.W - 120, 32, 'Meditate (+' + medAmt + ')', R.colors.btnGold);
+    medBtn.onClick = function() {
+      CultivationSystem.addCultivationBase(5 + Math.max(0, (G.state.ashramLevel || 1) - 1) * 2);
+      return true;
+    };
+    this.data.buttons.push(medBtn);
+    y += 38;
+
     const bt = UI.BtnGold(60, y, G.W - 120, 38, 'Attempt Breakthrough');
     bt.enabled = canBreak;
     bt.render = function(ctx) {
