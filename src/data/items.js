@@ -21,7 +21,10 @@ const EQUIPMENT_POOL = {
     { id: 'netherbow', base: { name: 'Nether Bow', subtype: 'bow', atk: 30 }, zones: ['patala'] },
     { id: 'celestialblade', base: { name: 'Celestial Blade', subtype: 'spear', atk: 35 }, zones: ['svarga'] },
     { id: 'divinemace', base: { name: 'Divine Mace', subtype: 'mace', atk: 38 }, zones: ['svarga'] },
-    { id: 'heavenbow', base: { name: 'Heaven Bow', subtype: 'bow', atk: 40 }, zones: ['svarga'] }
+    { id: 'heavenbow', base: { name: 'Heaven Bow', subtype: 'bow', atk: 40 }, zones: ['svarga'] },
+    { id: 'tapasbow', base: { name: 'Tapas Bow', subtype: 'bow', atk: 46 }, zones: ['tapobhumi'] },
+    { id: 'rudrahammer', base: { name: 'Rudra Hammer', subtype: 'mace', atk: 50 }, zones: ['tapobhumi'] },
+    { id: 'voidblade', base: { name: 'Void Blade', subtype: 'spear', atk: 48 }, zones: ['tapobhumi'] }
   ],
   armors: [
     { id: 'leather', base: { name: 'Leather', def: 3 }, zones: ['aryavarta'] },
@@ -33,7 +36,9 @@ const EQUIPMENT_POOL = {
     { id: 'shadowveil', base: { name: 'Shadow Veil', def: 24 }, zones: ['patala'] },
     { id: 'asuraplate', base: { name: 'Asura Plate', def: 28 }, zones: ['patala'] },
     { id: 'celestialrobe', base: { name: 'Celestial Robe', def: 32 }, zones: ['svarga'] },
-    { id: 'divinearmor', base: { name: 'Divine Armor', def: 36 }, zones: ['svarga'] }
+    { id: 'divinearmor', base: { name: 'Divine Armor', def: 36 }, zones: ['svarga'] },
+    { id: 'tapasrobe', base: { name: 'Tapas Robe', def: 42 }, zones: ['tapobhumi'] },
+    { id: 'mahadevaplates', base: { name: 'Mahadeva Plate', def: 46 }, zones: ['tapobhumi'] }
   ],
   accessories: [
     { id: 'ruby', base: { name: 'Ruby Amulet', mag: 3 }, zones: ['aryavarta'] },
@@ -45,7 +50,9 @@ const EQUIPMENT_POOL = {
     { id: 'obsidian', base: { name: 'Obsidian Talisman', mag: 15, hp: 20 }, zones: ['patala'] },
     { id: 'moonstone', base: { name: 'Moonstone Pendant', mag: 18, hp: 30 }, zones: ['patala'] },
     { id: 'starlight', base: { name: 'Starlight Amulet', mag: 22, crit: 5 }, zones: ['svarga'] },
-    { id: 'divine', base: { name: 'Divine Crown', mag: 25, def: 5 }, zones: ['svarga'] }
+    { id: 'divine', base: { name: 'Divine Crown', mag: 25, def: 5 }, zones: ['svarga'] },
+    { id: 'pralayaamulet', base: { name: 'Pralaya Amulet', mag: 30, hp: 40 }, zones: ['tapobhumi'] },
+    { id: 'voidcrown', base: { name: 'Void Crown', mag: 32, crit: 7 }, zones: ['tapobhumi'] }
   ]
 };
 

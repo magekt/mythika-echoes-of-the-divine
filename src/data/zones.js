@@ -58,7 +58,7 @@ const ZONES = {
     id: 'tapobhumi', name: 'Tapobhumi (Austerity)',
     desc: 'The burning ground beyond Svarga, where ascendants are forged anew.',
     reqLevel: 50, reqZone: 'svarga',
-    minLvl: 45, maxLvl: 60,
+    minLvl: 41, maxLvl: 60,
     realm: 'mukta',
     enemies: ['tapasvi', 'rudra', 'brahmarishi', 'mahadeva', 'seraphim', 'pralaya'],
     boss: { id: 'pralaya', name: 'Pralaya, the Dissolver', level: 58, hpMul: 6 },

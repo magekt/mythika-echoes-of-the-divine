@@ -59,7 +59,8 @@ const ZONE_ENEMIES = {
   dandaka:    ['wraith', 'darkElf', 'giantSpider', 'naga', 'shadowMage', 'treant'],
   meru:       ['asuraWarrior', 'orc', 'ogre', 'dragonEmerald', 'iceElemental', 'fireElemental'],
   patala:     ['asura', 'naga', 'rakshasa', 'kaliya', 'hellHound', 'succubus'],
-  svarga:     ['celestialGuardian', 'fallenDeva', 'darkApsara', 'indra', 'seraphim', 'vishnuDuta']
+  svarga:     ['celestialGuardian', 'fallenDeva', 'darkApsara', 'indra', 'seraphim', 'vishnuDuta'],
+  tapobhumi:  ['tapasvi', 'rudra', 'brahmarishi', 'mahadeva', 'pralaya', 'seraphim']
 };
 
 function createEnemyState(id, level, zoneTier) {

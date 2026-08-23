@@ -127,6 +127,32 @@ const QUEST_CHAINS = {
       ],
       finalReward: { gold: 5000, xp: 10000, karma: 25, item: 'legendary_accessory' }
     }
+  ],
+  tapobhumi: [
+    {
+      id: 'chain_tapo_austerity',
+      name: 'Austerity Trial',
+      desc: 'Endure the burning ground',
+      prerequisite: 'chain_svg_godslayer',
+      steps: [
+        { id: 'tapo_aust1', name: 'Tapasvi Trial', desc: 'Defeat 5 ascetic tapasvi', type: 'kill', target: 'tapasvi', count: 5, reward: { gold: 1200, xp: 2500 } },
+        { id: 'tapo_aust2', name: 'Rudra Hunt', desc: 'Defeat 4 rudra sentinels', type: 'kill', target: 'rudra', count: 4, reward: { gold: 1500, xp: 3000 } },
+        { id: 'tapo_aust3', name: 'Brahma Path', desc: 'Defeat 3 brahmarishi adepts', type: 'kill', target: 'brahmarishi', count: 3, reward: { gold: 1800, xp: 3500 } }
+      ],
+      finalReward: { gold: 6000, xp: 12000, karma: 30, item: 'legendary_weapon' }
+    },
+    {
+      id: 'chain_tapo_dissolution',
+      name: 'Pralaya Dissolution',
+      desc: 'Face the dissolver of worlds',
+      prerequisite: 'chain_tapo_austerity',
+      steps: [
+        { id: 'tapo_dis1', name: 'Herald Hunt', desc: 'Defeat 3 mahadeva heralds', type: 'kill', target: 'mahadeva', count: 3, reward: { gold: 2000, xp: 4000 } },
+        { id: 'tapo_dis2', name: 'Seraphim Remnant', desc: 'Defeat 3 seraphim', type: 'kill', target: 'seraphim', count: 3, reward: { gold: 2500, xp: 5000 } },
+        { id: 'tapo_dis3', name: 'Pralaya Falls', desc: 'Defeat Pralaya, the Dissolver', type: 'boss', target: 'pralaya', count: 1, reward: { gold: 5000, xp: 12000 } }
+      ],
+      finalReward: { gold: 10000, xp: 20000, karma: 50, item: 'legendary_accessory' }
+    }
   ]
 };
 
@@ -165,6 +191,13 @@ const QUESTS = {
     { id: 'svg_kill_apsara', name: 'Apsara Ascension', desc: 'Defeat 3 dark apsaras', type: 'kill', target: 'darkApsara', count: 3, reward: { gold: 350, xp: 600, karma: 2 } },
     { id: 'svg_kill_boss', name: 'Godslayer', desc: 'Defeat Indra, the Storm Lord', type: 'boss', target: 'indra', count: 1, reward: { gold: 800, xp: 1000, karma: 5, df: 5 } },
     { id: 'svg_reach_realm', name: 'Mukta Ascension', desc: 'Reach Mukta realm', type: 'realm', target: 'mukta', count: 1, reward: { gold: 500, xp: 800, karma: 3 } }
+  ],
+  tapobhumi: [
+    { id: 'tap_kill_tapasvi', name: 'Ascetic Purge', desc: 'Defeat 5 ascetic tapasvi in Tapobhumi', type: 'kill', target: 'tapasvi', count: 5, reward: { gold: 400, xp: 800, karma: 3 } },
+    { id: 'tap_kill_rudra', name: 'Storm Sentinel', desc: 'Defeat 4 rudra sentinels in Tapobhumi', type: 'kill', target: 'rudra', count: 4, reward: { gold: 450, xp: 900, karma: 3 } },
+    { id: 'tap_kill_mahadeva', name: 'Herald Hunt', desc: 'Defeat 3 mahadeva heralds in Tapobhumi', type: 'kill', target: 'mahadeva', count: 3, reward: { gold: 500, xp: 1000, karma: 4 } },
+    { id: 'tap_kill_boss', name: 'Dissolver Falls', desc: 'Defeat Pralaya, the Dissolver', type: 'boss', target: 'pralaya', count: 1, reward: { gold: 1200, xp: 2000, karma: 8, df: 8 } },
+    { id: 'tap_reach_realm', name: 'Paramukta Awakening', desc: 'Reach Paramukta realm', type: 'realm', target: 'paramukta', count: 1, reward: { gold: 800, xp: 1500, karma: 5 } }
   ]
 };
 

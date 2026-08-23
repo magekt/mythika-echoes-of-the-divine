@@ -49,8 +49,9 @@ CultivationSystem.attemptBreakthrough = function() {
   if (!this.canBreakthrough()) return { success: false, reason: 'Not enough cultivation base' };
   const realm = this.getRealmData();
   const needed = getCultivationForLevel(getRealmIndex(G.state.realm) + 1);
-  const baseChance = 0.4 + (G.state.ashramLevel || 1) * 0.05;
-  const success = Math.random() < baseChance;
+  const tribBonus = (G.state.flags && G.state.flags.tribulationBonus) || 0;
+  const baseChance = 0.4 + (G.state.ashramLevel || 1) * 0.05 + tribBonus / 100;
+  const success = Math.random() < Math.min(0.9, baseChance);
   if (success) {
     G.state.cultivationBase -= needed;
     G.state.realmStage++;
