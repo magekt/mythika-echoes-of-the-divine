@@ -133,5 +133,11 @@ function evolveBeast(beast) {
   beast.desc = evo.desc;
   beast.passive = evo.passive;
   beast.passiveDesc = evo.passiveDesc;
+  try {
+    if (beast.id === 'wolf' || evo.form.includes('Wolf') || evo.form.includes('wolf')) {
+      JourneySystem.start('beastWolfPact');
+      Notify.show('New Journey: Pact of the Shadow Wolf!', 3, R.colors.gold);
+    }
+  } catch(e) {}
   return evo;
 }

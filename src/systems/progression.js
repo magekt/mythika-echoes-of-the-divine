@@ -108,6 +108,17 @@ Progression.addPartyXP = function(amount) {
   for (const h of G.state.party) {
     if (h.active && h.hp > 0 && Progression.addXP(h, amount)) leveled = true;
   }
+  if (leveled) {
+    try {
+      for (const h of G.state.party) {
+        if (h.level >= 10 && !G.state.journeys?.progress?.karmicCrossroads) {
+          JourneySystem.start('karmicCrossroads');
+          Notify.show('New Journey: Karmic Crossroads!', 3, R.colors.gold);
+          break;
+        }
+      }
+    } catch(e) {}
+  }
   return leveled;
 };
 

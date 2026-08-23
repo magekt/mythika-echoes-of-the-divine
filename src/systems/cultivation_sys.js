@@ -61,6 +61,9 @@ CultivationSystem.attemptBreakthrough = function() {
       if (nextIdx < REALMS.length) {
         G.state.realm = REALMS[nextIdx].id;
         QuestSystem.trackRealm(G.state.realm);
+        if (G.state.realm === 'paramukta') {
+          try { JourneySystem.start('paramuktaPilgrimage'); Notify.show('New Journey: Pilgrimage Beyond Mukta!', 3, R.colors.gold); } catch(e) {}
+        }
       }
     }
     const realmIdx = getRealmIndex(G.state.realm);

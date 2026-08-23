@@ -26,6 +26,7 @@
   registerScene('equipment', equipmentScene);
   registerScene('welcome', welcomeScene);
   registerScene('debug', debugScene);
+  registerScene('journeyScene', journeyScene);
 
   // Deterministic early boot (H1): scripts load synchronously at the end of
   // <body>, so the DOM exists right now — start immediately instead of waiting

@@ -127,7 +127,8 @@ const ashramScene = Scene.create({
           { text: 'Forge', scene: 'forge', icon: '\u2694' },
           { text: 'Beasts', scene: 'spiritBeast', icon: '\u2603' },
           { text: 'Farm', scene: 'farm', icon: '\u2618' },
-          { text: 'Fishing', scene: 'fishing', icon: '\u2248' }
+          { text: 'Fishing', scene: 'fishing', icon: '\u2248' },
+          { text: 'Journeys', scene: 'journeyScene', icon: '\u2726' }
         ]
       },
       {

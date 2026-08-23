@@ -351,6 +351,12 @@ const characterCreateScene = Scene.create({
     G.state.alchemyRecipes = ['xpPill'];
     const starterBeast = createBeastState('wolf');
     if (starterBeast) G.state.spiritBeasts = [starterBeast];
+    // Personalized journey kickoff: hero's memory awakens
+    try {
+      const heroMap = { arjuna: 'arjunaResolve', karna: 'karnaburden', bhima: 'covenantKshatriya', hanuman: 'beastWolfPact', draupadi: 'covenantRishi' };
+      const jid = heroMap[heroId] || 'karmicCrossroads';
+      setTimeout(() => { try { JourneySystem.start(jid); Notify.show('New Journey: ' + (JOURNEYS[jid] ? JOURNEYS[jid].name : jid) + ' — find it in Journeys', 3, R.colors.gold); } catch(e) {} }, 700);
+    } catch(e) {}
     Audio.menuSwoosh();
     gScene('welcome');
   }
