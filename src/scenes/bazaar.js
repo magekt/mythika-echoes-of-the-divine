@@ -25,6 +25,16 @@ const bazaarScene = Scene.create({
       const item = allItems[Math.floor(Math.random() * allItems.length)];
       this.data.inventory.push(JSON.parse(JSON.stringify(item)));
     }
+    // Recipe scrolls: offer 1-2 undiscovered recipes as learnable scrolls.
+    const learned = G.state.alchemyRecipes || [];
+    const undiscovered = Object.values(ALCHEMY_RECIPES).filter(r => !learned.includes(r.id));
+    const offerCount = Math.min(2, undiscovered.length);
+    for (let i = 0; i < offerCount; i++) {
+      const r = undiscovered[Math.floor(Math.random() * undiscovered.length)];
+      if (!r || this.data.inventory.some(it => it.recipeId === r.id)) continue;
+      const cost = 120 * r.reqAshram;
+      this.data.inventory.push({ name: 'Recipe: ' + r.name, type: 'recipe', recipeId: r.id, cost: cost, desc: 'Teaches ' + r.name + ' (' + r.desc + ')' });
+    }
   },
 
   buildUI: function() {
@@ -72,6 +82,22 @@ const bazaarScene = Scene.create({
         },
         onClick: function(item, i) {
           const cost = getItemCost(item);
+          if (item.type === 'recipe' && item.recipeId) {
+            if (Economy.spendGold(cost)) {
+              if (AlchemySystem.learnRecipe(item.recipeId)) {
+                Notify.show('Learned ' + item.name + '!', 2, R.colors.gold);
+              } else {
+                Notify.show('Recipe already known!', 2);
+              }
+              bazaarScene.data.inventory.splice(i, 1);
+              bazaarScene.buildBuySellLists();
+              Audio.click();
+            } else {
+              Notify.show('Not enough gold! Need ' + cost + 'g', 2);
+              return false;
+            }
+            return;
+          }
           if (Economy.spendGold(cost)) {
             G.state.inventory.push(JSON.parse(JSON.stringify(item)));
             bazaarScene.data.inventory.splice(i, 1);

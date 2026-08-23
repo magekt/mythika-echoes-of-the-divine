@@ -66,7 +66,24 @@ SaveSystem.load = function() {
       const pranaGain = Math.floor(elapsed * pranaPerSec);
       G.state.cultivationBase = (G.state.cultivationBase || 0) + cultGain;
       G.state.prana = (G.state.prana || 0) + pranaGain;
-      Notify.show('While you were away: +' + cultGain + ' cultivation, +' + pranaGain + ' prana', 5, R.colors.gold);
+      // Offline farm: fast-forward each plot's growTimer so herbs can be
+      // ready even when the farm scene was never active.
+      let farmReady = 0;
+      for (const plot of G.state.farmPlots || []) {
+        if (plot.herb && !plot.harvested) {
+          const herbData = (typeof HERB_GROWTH !== 'undefined' && HERB_GROWTH[plot.herb]) || null;
+          if (herbData) {
+            plot.growTimer = Math.min(herbData.growTime, (plot.growTimer || 0) + elapsed);
+            if (plot.growTimer >= herbData.growTime) {
+              plot.harvested = true;
+              farmReady++;
+            }
+          }
+        }
+      }
+      let awayMsg = 'While you were away: +' + cultGain + ' cultivation, +' + pranaGain + ' prana';
+      if (farmReady > 0) awayMsg += ', ' + farmReady + ' herb' + (farmReady > 1 ? 's' : '') + ' ready';
+      Notify.show(awayMsg, 5, R.colors.gold);
     }
     return true;
   } catch (e) {

@@ -70,11 +70,15 @@ const farmScene = Scene.create({
         const idx = this._i;
         const p = G.state.farmPlots[idx];
         if (p.harvested) {
+          const herbId = p.herb;
+          const herbName = herbId && HERB_GROWTH[herbId] ? HERB_GROWTH[herbId].name : herbId;
           p.herb = null;
           p.harvested = false;
           p.growTimer = 0;
+          Economy.addItem({ name: herbName, type: 'herb', herbId: herbId, desc: herbName + ' herb' });
           Progression.addPartyXP(5);
-          Notify.show('Harvested! +5 XP', 2);
+          Notify.show('Harvested ' + herbName + '! +5 XP', 2);
+          Hints.show('alchemy', 'Herbs go to your inventory \u2014 use them in the Alchemy Lab.');
           farmScene.buildButtons();
         } else if (!p.herb) {
           farmScene.showPlantMenu(idx);

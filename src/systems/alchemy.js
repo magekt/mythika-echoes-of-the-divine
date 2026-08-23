@@ -17,7 +17,8 @@ AlchemySystem.canCraft = function(recipeId) {
   if (recipe.reqAshram > (G.state.ashramLevel || 1)) return false;
   if (!G.state.alchemyRecipes || !G.state.alchemyRecipes.includes(recipeId)) return false;
   for (const [herb, qty] of Object.entries(recipe.ingredients)) {
-    if ((G.state.farmPlots || []).filter(p => p.herb === herb && p.harvested).length < qty) {
+    const herbName = HERB_GROWTH[herb] ? HERB_GROWTH[herb].name : herb;
+    if (Economy.getItemCount(herbName) < qty) {
       return false;
     }
   }
@@ -28,15 +29,8 @@ AlchemySystem.craft = function(recipeId) {
   if (!this.canCraft(recipeId)) return false;
   const recipe = ALCHEMY_RECIPES[recipeId];
   for (const [herb, qty] of Object.entries(recipe.ingredients)) {
-    let needed = qty;
-    for (const plot of G.state.farmPlots || []) {
-      if (plot.herb === herb && plot.harvested && needed > 0) {
-        plot.herb = null;
-        plot.harvested = false;
-        plot.growTimer = 0;
-        needed--;
-      }
-    }
+    const herbName = HERB_GROWTH[herb] ? HERB_GROWTH[herb].name : herb;
+    Economy.removeItemByName(herbName, qty);
   }
 
   const craftedItem = {
@@ -65,5 +59,6 @@ AlchemySystem.craft = function(recipeId) {
 };
 
 AlchemySystem.getHerbCount = function(herbId) {
-  return (G.state.farmPlots || []).filter(p => p.herb === herbId && p.harvested).length;
+  const herbName = HERB_GROWTH[herbId] ? HERB_GROWTH[herbId].name : herbId;
+  return Economy.getItemCount(herbName);
 };
