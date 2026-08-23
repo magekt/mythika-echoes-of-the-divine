@@ -47,9 +47,18 @@ const journeyScene = Scene.create({
       y += 6;
       const avail = JourneySystem.getAvailable();
       if (avail.length === 0) {
-        SD.push({ textCenter: ['No journeys yet.', G.W/2, y+20, R.colors.textDim, R.fonts.sm] });
-        SD.push({ textCenter: ['Level up, bond a beast, or breakthrough to unlock.', G.W/2, y+38, R.colors.textDim, R.fonts.sm] });
-        y += 64;
+        // Use EmptyState illustration
+        if (!this._emptyState) {
+          this._emptyState = Scene.EmptyState({
+            type: 'journey',
+            title: 'No Journeys Yet',
+            hint: 'Level up, bond a beast, or breakthrough to unlock your first journey.',
+            ctaLabel: 'View Progress',
+            ctaAction: () => { /* could open a progress modal */ }
+          });
+        }
+        // We'll render the empty state in render() instead
+        y += 200; // Reserve space for empty state illustration
       }
       for (const j of avail) {
         const prog = j.progress;
@@ -57,18 +66,32 @@ const journeyScene = Scene.create({
         const isActive = j.id === selId;
         const statusColor = isCompleted ? R.colors.green : (prog.nodeId ? R.colors.gold : R.colors.textDim);
         const statusText = isCompleted ? 'Completed' : (prog.nodeId ? 'In Progress' : 'Available');
-        const btn = UI.Button(14, y, G.W-28, 56, '', isCompleted ? R.colors.panel : R.colors.btn);
+        
+        // Use PremiumShell for journey cards
+        const shell = UI.PremiumShell(14, y, G.W-28, 56, { outerR: 12, innerR: 8 });
+        
+        const btn = UI.Button(14, y, G.W-28, 56, '', 'transparent');
         btn._journeyId = j.id;
+        btn._shell = shell;
+        btn._journey = j;
+        btn._isCompleted = isCompleted;
+        btn._statusColor = statusColor;
+        btn._statusText = statusText;
         btn.enabled = !isCompleted;
         btn.render = function(ctx) {
-          const bx=this.x, by=this.y, bw=this.w, bh=this.h;
-          R.roundRect(ctx, bx, by, bw, bh, 8, this.color);
-          ctx.strokeStyle = isCompleted ? 'rgba(48,200,48,0.25)' : 'rgba(232,160,48,0.2)';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(bx+0.5, by+0.5, bw-1, bh-1);
-          R.text(ctx, j.icon + '  ' + j.name, bx+12, by+16, R.colors.gold, R.fonts.md);
-          R.text(ctx, j.desc, bx+12, by+32, R.colors.textDim, R.fonts.sm);
-          R.text(ctx, statusText, bx+bw-8, by+16, statusColor, R.fonts.sm, 'right');
+          this._shell.render(ctx);
+          const content = this._shell.contentRect();
+          
+          // Accent bar
+          const accentColor = this._isCompleted ? R.colors.success : (this._journey.progress.nodeId ? R.colors.gold : R.colors.textDim);
+          R.roundRect(ctx, content.x, content.y, content.w, 4, 2, accentColor);
+          
+          // Icon and name
+          R.text(ctx, this._journey.icon + '  ' + this._journey.name, content.x + 12, content.y + 16, R.colors.gold, R.fonts.md);
+          // Description
+          R.text(ctx, this._journey.desc, content.x + 12, content.y + 32, R.colors.textDim, R.fonts.sm);
+          // Status
+          R.text(ctx, this._statusText, content.x + content.w - 8, content.y + 16, this._statusColor, R.fonts.sm, 'right');
         };
         btn.onClick = function() {
           journeyScene.data.selectedId = this._journeyId;
@@ -85,35 +108,35 @@ const journeyScene = Scene.create({
     } else {
       // Detail view for selected journey
       const node = JourneySystem.getCurrentNode(selId);
-      // Header card
-      SD.push({ text: [sel.icon + '  ' + sel.name, 18, y+8, R.colors.gold, R.fonts.md] });
-      SD.push({ text: [sel.desc, 18, y+24, R.colors.textDim, R.fonts.sm] });
-      y += 36;
+      // Header card with PremiumShell
+      const headerShell = UI.PremiumShell(14, y, G.W-28, 80, { outerR: 12 });
+      headerShell.render(ctx);
+      const headerContent = headerShell.contentRect();
+      R.text(ctx, sel.icon + '  ' + sel.name, headerContent.x + 12, headerContent.y + 16, R.colors.gold, R.fonts.md);
+      R.text(ctx, sel.desc, headerContent.x + 12, headerContent.y + 36, R.colors.textDim, R.fonts.sm);
+      y += 90;
+      
       if (!node) {
         // Completed
-        SD.push({ textCenter: ['Journey Complete!', G.W/2, y+20, R.colors.green, R.fonts.md] });
-        SD.push({ textCenter: ['Rewards have been claimed.', G.W/2, y+38, R.colors.textDim, R.fonts.sm] });
-        y += 56;
+        const completeShell = UI.PremiumShell(14, y, G.W-28, 80, { outerR: 12 });
+        completeShell.render(ctx);
+        const cc = completeShell.contentRect();
+        R.textCenter(ctx, 'Journey Complete!', cc.x + cc.w/2, cc.y + 20, R.colors.green, R.fonts.md);
+        R.textCenter(ctx, 'Rewards have been claimed.', cc.x + cc.w/2, cc.y + 40, R.colors.textDim, R.fonts.sm);
+        y += 90;
       } else {
-        // Prompt
-        // Wrap prompt manually into two lines via textCenter
-        SD.push({ textCenter: [node.prompt, G.W/2, y+12, R.colors.text, R.fonts.md] });
-        // Simple wrap: if prompt > 36 chars, split
-        if (node.prompt.length > 38) {
-          y += 28;
-        } else {
-          y += 22;
-        }
+        // Prompt with PremiumShell
+        const promptShell = UI.PremiumShell(14, y, G.W-28, 60, { outerR: 12 });
+        promptShell.render(ctx);
+        const pc = promptShell.contentRect();
+        R.textCenter(ctx, node.prompt, pc.x + pc.w/2, pc.y + 20, R.colors.text, R.fonts.md);
+        y += 70;
+        
         for (let idx=0; idx<node.choices.length; idx++) {
           const ch = node.choices[idx];
-          const btn = UI.Button(14, y, G.W-28, 38, '', R.colors.btnGold);
+          const btn = UI.MagneticBtn(14, y, G.W-28, 44, ch.text, { trailingIcon: 'arrow-right' });
           btn._journeyId = selId;
           btn._choiceIdx = idx;
-          btn.render = function(ctx) {
-            const bx=this.x, by=this.y, bw=this.w, bh=this.h;
-            R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.btnGold);
-            R.textCenter(ctx, ch.text, bx+bw/2, by+24, R.colors.white, R.fonts.md);
-          };
           btn.onClick = function() {
             const jId = this._journeyId;
             const cIdx = this._choiceIdx;
@@ -126,18 +149,18 @@ const journeyScene = Scene.create({
             }
           };
           this.data.buttons.push(btn);
-          y += 44;
+          y += 50;
         }
         y += 8;
       }
       // Back to list
-      const back = UI.Button(60, y, G.W-120, 30, 'Back to Journeys', R.colors.btn);
+      const back = UI.MagneticBtn(60, y, G.W-120, 40, 'Back to Journeys', { trailingIcon: 'arrow-left' });
       back.onClick = function() {
         journeyScene.data.selectedId = null;
         journeyScene.buildUI();
       };
       this.data.buttons.push(back);
-      y += 40;
+      y += 48;
     }
 
     // Global back

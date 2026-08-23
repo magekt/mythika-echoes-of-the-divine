@@ -101,6 +101,7 @@ const titleScene = Scene.create({
     R.textCenter(ctx, 'Mount Meru', G.W / 2, ty + 155, R.colors.textDim, R.fonts.sm);
 
     for (const b of this.data.buttons) b.render(ctx);
+    UI.HUD().render(ctx);
 
     const ver = UI.TextDim(G.W / 2, G.H - 30, 'v1.0 - A Mythic Idle RPG');
     ver.render(ctx);

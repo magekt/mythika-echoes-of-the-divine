@@ -144,6 +144,7 @@ const debugScene = Scene.create({
 
   render: function(ctx) {
     R.textCenter(ctx, 'Debug Panel', G.W / 2, 30, R.colors.gold, R.fonts.lg);
+    UI.HUD().render(ctx);
     R.textCenter(ctx, 'Tap \u2191/\u2193 to scroll, Copy to clipboard', G.W / 2, 55, R.colors.textDim, R.fonts.sm);
 
     if (this.data.copyStatus) {

@@ -339,6 +339,7 @@ const questLogScene = Scene.create({
     Scene.drawStatic(ctx, this.data.staticDraws);
 
     for (const b of this.data.buttons) b.render(ctx);
+    UI.HUD().render(ctx);
 
     ctx.restore();
 

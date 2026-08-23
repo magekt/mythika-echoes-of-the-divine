@@ -227,6 +227,7 @@ const travelMapScene = Scene.create({
       this.renderInfoPanel(ctx, this.getContentTop());
     }
     for (const b of this.data.buttons) b.render(ctx);
+    UI.HUD().render(ctx);
 
     ctx.restore();
 

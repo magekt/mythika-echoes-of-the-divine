@@ -193,69 +193,146 @@ const ashramScene = Scene.create({
       y += 42;
     }
 
-    for (const section of sections) {
-      const hdr = UI.Button(0, y, G.W, 22, '', 'transparent');
-      hdr._isHeader = true;
-      hdr._label = section.label;
-      hdr._color = section.color;
-      hdr.enabled = false;
-      hdr.render = function(ctx) {
-        const hx = 18, hy = this.y;
-        ctx.fillStyle = 'rgba(138,138,160,0.08)';
-        ctx.fillRect(hx, hy + 10, G.W - 36, 1);
-        R.text(ctx, '\u2501  ' + this._label + '  \u2501', hx + 8, hy + 14, this._color, R.fonts.sm);
-      };
-      this.data.buttons.push(hdr);
-      y += 22;
+    // Asymmetric Bento Grid Layout
+    // Define bento items with spans for asymmetric layout
+    const bentoItems = [
+      // PROGRESSION section
+      { id: 'travel', label: 'Travel', icon: '\u25B6', scene: 'travelMap', accent: R.colors.orange, span: { col: 2, row: 2 }, section: 'PROGRESSION' },
+      { id: 'party', label: 'Party', icon: '\u263A', scene: 'party', accent: R.colors.blue, span: { col: 1, row: 1 }, section: 'PROGRESSION' },
+      { id: 'cultivate', label: 'Cultivate', icon: '\u2727', scene: 'cultivationScene', accent: R.colors.gold, span: { col: 1, row: 1 }, section: 'PROGRESSION' },
+      // ACTIVITIES section
+      { id: 'alchemy', label: 'Alchemy', icon: '\u2606', scene: 'alchemyScene', accent: R.colors.blue, span: { col: 1, row: 1 }, section: 'ACTIVITIES' },
+      { id: 'forge', label: 'Forge', icon: '\u2694', scene: 'forge', accent: R.colors.orange, span: { col: 1, row: 1 }, section: 'ACTIVITIES' },
+      { id: 'beasts', label: 'Beasts', icon: '\u2603', scene: 'spiritBeast', accent: R.colors.green, span: { col: 1, row: 1 }, section: 'ACTIVITIES' },
+      { id: 'farm', label: 'Farm', icon: '\u2618', scene: 'farm', accent: R.colors.gold, span: { col: 1, row: 1 }, section: 'ACTIVITIES' },
+      { id: 'fishing', label: 'Fishing', icon: '\u2248', scene: 'fishing', accent: R.colors.blue, span: { col: 1, row: 1 }, section: 'ACTIVITIES' },
+      { id: 'journeys', label: 'Journeys', icon: '\u2726', scene: 'journeyScene', accent: R.colors.gold, span: { col: 1, row: 1 }, section: 'ACTIVITIES' },
+      // SERVICES section
+      { id: 'bazaar', label: 'Bazaar', icon: '\u2699', scene: 'bazaar', accent: R.colors.gold, span: { col: 1, row: 1 }, section: 'SERVICES' },
+      { id: 'equipment', label: 'Equipment', icon: '\u2694', scene: 'equipment', accent: R.colors.orange, span: { col: 1, row: 1 }, section: 'SERVICES' },
+      { id: 'tournament', label: 'Tourney', icon: '\u2605', scene: 'tournament', accent: R.colors.red, span: { col: 1, row: 1 }, section: 'SERVICES' },
+      { id: 'questLog', label: 'Quests', icon: '\u2713', scene: 'questLog', accent: R.colors.blue, span: { col: 1, row: 1 }, section: 'SERVICES' },
+      { id: 'achievements', label: 'Achieve', icon: '\u2605', scene: 'achievements', accent: R.colors.gold, span: { col: 1, row: 1 }, section: 'SERVICES' },
+      // UTILITY section
+      { id: 'rest', label: 'Rest', icon: '\u266B', scene: '', accent: R.colors.textDim, span: { col: 1, row: 1 }, section: 'UTILITY' },
+      { id: 'trials', label: 'Trials', icon: '\u2666', scene: 'trials', accent: R.colors.gold, span: { col: 1, row: 1 }, section: 'UTILITY', badge: G.state.trialBest || null },
+      { id: 'rebirth', label: 'Rebirth', icon: '\u21BB', scene: 'punarjanma', accent: R.colors.orange, span: { col: 1, row: 1 }, section: 'UTILITY' },
+      { id: 'settings', label: 'Settings', icon: '\u2630', scene: 'settings', accent: R.colors.textDim, span: { col: 1, row: 1 }, section: 'UTILITY' },
+      { id: 'debug', label: 'Debug', icon: '\u25A0', scene: 'debug', accent: R.colors.textDim, span: { col: 1, row: 1 }, section: 'UTILITY' },
+    ];
 
-      const items = section.items;
-      for (let i = 0; i < items.length; i += cols) {
-        for (let j = 0; j < cols; j++) {
-          const idx = i + j;
-          if (idx >= items.length) break;
-          const item = items[idx];
-          const bx = ml + j * (cw + gap);
-          const btn = UI.Button(bx, y, cw, cardH, '', R.colors.btn);
-          btn._scene = item.scene;
-          btn._icon = item.icon;
-          btn._text = item.text;
-          btn._accent = section.color;
-          btn._badge = item.badge ? String(item.badge) : null;
-          btn.render = function(ctx) {
-            const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-            R.roundRect(ctx, bx, by, bw, bh, 10, R.colors.btn);
-            R.roundRect(ctx, bx, by, bw, 6, 10, this._accent);
-            ctx.fillRect(bx + 2, by + 6, bw - 4, 2);
-            ctx.fillStyle = 'rgba(138,138,160,0.08)';
-            ctx.fillRect(bx + 4, by + 10, bw - 8, 1);
-            ctx.strokeStyle = 'rgba(138,138,160,0.1)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(bx + 0.5, by + 6.5, bw - 1, bh - 7);
-            R.textCenter(ctx, this._icon, bx + bw / 2, by + 44, R.colors.text, R.fonts.xl);
-            ctx.fillStyle = 'rgba(138,138,160,0.12)';
-            ctx.fillRect(bx + 10, by + bh - 22, bw - 20, 1);
-            R.textCenter(ctx, this._text, bx + bw / 2, by + bh - 10, this._accent, R.fonts.md);
-            if (this._badge) {
-              // Small stat badge (e.g., best Endless Trials wave) in the corner.
-              R.text(ctx, this._badge, bx + bw - 12, by + 20, R.colors.gold, R.fonts.xs, 'right');
-            }
-          };
-          btn.onClick = function() {
-            if (this._scene === '') {
-              for (const h of G.state.party) {
-                h.hp = h.maxHp;
-                h.mp = h.maxMp;
-              }
-              Notify.show('Party restored to full vitality', 2, R.colors.green);
-            } else {
-              gScene(this._scene, true);
-            }
-          };
-          this.data.buttons.push(btn);
-        }
-        y += cardH + rowGap;
+    // 4-column grid for asymmetric bento
+    const bentoCols = 4;
+    const bentoGap = 8;
+    const bentoML = 12;
+    const bentoCW = (G.W - bentoML * 2 - bentoGap * (bentoCols - 1)) / bentoCols;
+    const bentoRowH = 70;
+    const bentoRowGap = 8;
+
+    // Section headers for bento
+    const sectionOrder = ['PROGRESSION', 'ACTIVITIES', 'SERVICES', 'UTILITY'];
+    const sectionColors = {
+      PROGRESSION: R.colors.orange,
+      ACTIVITIES: R.colors.blue,
+      SERVICES: R.colors.green,
+      UTILITY: R.colors.textDim
+    };
+
+    // Simple grid placement algorithm for asymmetric bento
+    // Travel gets 2x2, others 1x1
+    let grid = Array(4).fill().map(() => Array(4).fill(null));
+    let placed = new Set();
+    
+    // Place travel at (0,0) spanning 2x2
+    grid[0][0] = bentoItems.find(i => i.id === 'travel');
+    grid[0][1] = 'occupied';
+    grid[1][0] = 'occupied';
+    grid[1][1] = 'occupied';
+    placed.add('travel');
+    
+    // Place party at (0,2)
+    grid[0][2] = bentoItems.find(i => i.id === 'party');
+    placed.add('party');
+    
+    // Place cultivate at (0,3)
+    grid[0][3] = bentoItems.find(i => i.id === 'cultivate');
+    placed.add('cultivate');
+    
+    // Fill remaining items row by row
+    let row = 0, col = 0;
+    for (const item of bentoItems) {
+      if (placed.has(item.id)) continue;
+      // Find next empty cell
+      while (row < 4 && col < 4 && grid[row][col]) {
+        col++;
+        if (col >= 4) { col = 0; row++; }
       }
-      y += 4;
+      if (row < 4 && col < 4) {
+        grid[row][col] = item;
+        placed.add(item.id);
+        col++;
+        if (col >= 4) { col = 0; row++; }
+      }
+    }
+
+    // Render bento grid
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        const item = grid[r][c];
+        if (!item || item === 'occupied') continue;
+        
+        const bx = bentoML + c * (bentoCW + bentoGap);
+        const by = y + r * (bentoRowH + bentoRowGap);
+        const bw = bentoCW;
+        const bh = bentoRowH;
+        
+        // Use PremiumShell for bento cards
+        const shell = UI.PremiumShell(bx, by, bw, bh, { 
+          outerR: 16, 
+          innerR: 10,
+          outerBg: 'rgba(0,0,0,0.05)',
+          outerBorder: 'rgba(255,255,255,0.08)',
+          innerBg: R.colors.surface,
+          innerHighlight: 'rgba(255,255,255,0.12)'
+        });
+        
+        const btn = UI.Button(bx, by, bw, bh, '', 'transparent');
+        btn._scene = item.scene;
+        btn._item = item;
+        btn._shell = shell;
+        btn.render = function(ctx) {
+          // Render shell
+          this._shell.render(ctx);
+          const content = this._shell.contentRect();
+          
+          // Accent bar at top
+          R.roundRect(ctx, content.x, content.y, content.w, 4, 2, this._item.accent);
+          
+          // Icon
+          R.textCenter(ctx, this._item.icon, content.x + content.w/2, content.y + 28, R.colors.text, R.fonts.xl);
+          
+          // Label
+          R.textCenter(ctx, this._item.label, content.x + content.w/2, content.y + 52, this._item.accent, R.fonts.md);
+          
+          // Badge
+          if (this._item.badge) {
+            R.text(ctx, this._item.badge, content.x + content.w - 12, content.y + 16, R.colors.gold, R.fonts.xs, 'right');
+          }
+        };
+        btn.onClick = function() {
+          if (this._item.scene === '') {
+            for (const h of G.state.party) {
+              h.hp = h.maxHp;
+              h.mp = h.maxMp;
+            }
+            Notify.show('Party restored to full vitality', 2, R.colors.green);
+          } else {
+            gScene(this._item.scene, true);
+          }
+        };
+        this.data.buttons.push(btn);
+      }
+      y += 4 * (bentoRowH + bentoRowGap) + 20;
     }
 
     this.data.contentHeight = y + 20;
@@ -280,8 +357,13 @@ const ashramScene = Scene.create({
       return;
     }
     UI.updateButtons(this.data.buttons, dt);
-    UI.updateButtons(this.data.navButtons, dt);
-    UI.handleButtons(this.data.navButtons);
+    // Update fluid nav
+    if (this._fluidNav) this._fluidNav.update(dt);
+    // Handle fluid nav tap
+    const tap = Input.peekTap();
+    if (tap && this._fluidNav && this._fluidNav.handleTap(tap.x, tap.y)) {
+      Input.getTap();
+    }
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
     UI.Modal.handleInput();
   },
@@ -289,45 +371,58 @@ const ashramScene = Scene.create({
   render: function(ctx) {
     const realm = REALMS.find(r => r.id === G.state.realm) || REALMS[0];
 
-    R.roundRect(ctx, 10, 8, G.W - 20, 100, 10, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.15)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 8.5, G.W - 21, 99);
+    // Render noise/grain overlay for editorial luxury feel
+    R.renderNoise(ctx);
 
-    R.textCenter(ctx, 'Ashram (Lv.' + G.state.ashramLevel + ')', G.W / 2, 24, R.colors.gold, R.fonts.lg);
+    // Hero Moment for Ashram
+    if (!this._heroMoment) {
+      this._heroMoment = Scene.HeroMoment({
+        title: 'Ashram',
+        subtitle: 'Your sanctuary between realms. Cultivate, forge, and prepare for the journey ahead.',
+        ctaLabel: 'Travel',
+        ctaAction: () => gScene('travelMap'),
+        eyebrow: 'Lv.' + G.state.ashramLevel,
+        accent: R.colors.accent
+      });
+    }
+    this._heroMoment.render(ctx);
 
+    // Player stats panel with PremiumShell
     const p = G.state.player;
     if (p) {
       const hpPct = Math.floor(p.hp / p.maxHp * 100);
       const mpPct = Math.floor(p.mp / p.maxMp * 100);
+      
+      // Stats panel using PremiumShell
+      const statsShell = UI.PremiumShell(10, 110, G.W - 20, 100, { outerR: 16 });
+      statsShell.render(ctx);
+      const content = statsShell.contentRect();
+      
+      R.textCenter(ctx, p.name + ' \u2014 Lv.' + p.level + ' ' + (p.className || ''), content.x + content.w/2, content.y + 16, R.colors.textPrimary, R.fonts.md);
+      R.textCenter(ctx, 'Realm: ' + realm.name + ' (Stage ' + G.state.realmStage + '/' + realm.stages + ')', content.x + content.w/2, content.y + 36, R.colors.textSecondary, R.fonts.sm);
 
-      R.textCenter(ctx, p.name + ' \u2014 Lv.' + p.level + ' ' + (p.className || ''), G.W / 2, 44, R.colors.text, R.fonts.sm);
-      R.textCenter(ctx, 'Realm: ' + realm.name + ' (Stage ' + G.state.realmStage + '/' + realm.stages + ')', G.W / 2, 56, R.colors.textDim, R.fonts.sm);
-
-      ctx.fillStyle = 'rgba(200,48,48,0.15)';
-      R.roundRect(ctx, 20, 62, G.W - 40, 7, 4, 'rgba(200,48,48,0.15)');
+      // HP bar
+      R.roundRect(ctx, content.x + 12, content.y + 50, content.w - 24, 8, 4, 'rgba(200,48,48,0.15)');
       ctx.fillStyle = p.hp > 0 ? R.colors.hp : R.colors.textDark;
-      R.roundRect(ctx, 20, 62, (G.W - 40) * hpPct / 100, 7, 4, ctx.fillStyle);
-      R.textCenter(ctx, Math.floor(p.hp) + '/' + p.maxHp, G.W / 2, 68, R.colors.white, R.fonts.sm);
+      R.roundRect(ctx, content.x + 12, content.y + 50, (content.w - 24) * hpPct / 100, 8, 4, ctx.fillStyle);
+      R.textCenter(ctx, Math.floor(p.hp) + '/' + p.maxHp, content.x + content.w/2, content.y + 62, R.colors.white, R.fonts.sm);
 
-      ctx.fillStyle = 'rgba(48,128,200,0.15)';
-      R.roundRect(ctx, 20, 73, G.W - 40, 5, 3, 'rgba(48,128,200,0.15)');
+      // MP bar
+      R.roundRect(ctx, content.x + 12, content.y + 66, content.w - 24, 6, 3, 'rgba(48,128,200,0.15)');
       ctx.fillStyle = mpPct > 0 ? R.colors.mp : R.colors.textDark;
-      R.roundRect(ctx, 20, 73, (G.W - 40) * mpPct / 100, 5, 3, ctx.fillStyle);
-      R.textCenter(ctx, Math.floor(p.mp) + '/' + p.maxMp, G.W / 2, 77, R.colors.white, R.fonts.sm);
+      R.roundRect(ctx, content.x + 12, content.y + 66, (content.w - 24) * mpPct / 100, 6, 3, ctx.fillStyle);
+      R.textCenter(ctx, Math.floor(p.mp) + '/' + p.maxMp, content.x + content.w/2, content.y + 78, R.colors.white, R.fonts.sm);
     }
 
-    ctx.fillStyle = R.colors.gold;
-    ctx.fillRect(18, 84, G.W - 36, 1);
-
-    R.textCenter(ctx, '\u26A1 ' + Math.floor(G.state.gold || 0) + ' Gold', G.W / 2 - 95, 97, R.colors.gold, R.fonts.sm);
-    R.textCenter(ctx, '\u2727 ' + Math.floor(G.state.karma || 0) + ' Karma', G.W / 2, 97, R.colors.blueLight, R.fonts.sm);
-    R.textCenter(ctx, '\u2606 ' + (G.state.divineFragments || 0) + ' DF', G.W / 2 + 95, 97, R.colors.orange, R.fonts.sm);
+    // Resources row
+    R.textCenter(ctx, '\u26A1 ' + Math.floor(G.state.gold || 0) + ' Gold', G.W / 2 - 95, 220, R.colors.gold, R.fonts.sm);
+    R.textCenter(ctx, '\u2727 ' + Math.floor(G.state.karma || 0) + ' Karma', G.W / 2, 220, R.colors.blueLight, R.fonts.sm);
+    R.textCenter(ctx, '\u2606 ' + (G.state.divineFragments || 0) + ' DF', G.W / 2 + 95, 220, R.colors.orange, R.fonts.sm);
 
     if (G.state.currentZone) {
       const zoneName = ZONES[G.state.currentZone] ? ZONES[G.state.currentZone].name : G.state.currentZone;
       const zonePct = G.state.zoneProgress[G.state.currentZone] || 0;
-      R.textCenter(ctx, 'Zone: ' + zoneName + ' (' + zonePct + '%)', G.W / 2, 110, R.colors.textDim, R.fonts.sm);
+      R.textCenter(ctx, 'Zone: ' + zoneName + ' (' + zonePct + '%)', G.W / 2, 236, R.colors.textDim, R.fonts.sm);
     }
 
     const top = this.getContentTop();
@@ -344,7 +439,12 @@ const ashramScene = Scene.create({
 
     Scene.drawScrollbar(ctx, top, this.data.contentHeight, contentH, this.data.scrollY, 18);
 
-    for (const b of this.data.navButtons) b.render(ctx);
+    // Render FluidNav instead of static navButtons
+    if (!this._fluidNav) {
+      this._fluidNav = Scene.FluidNav();
+    }
+    this._fluidNav.update(1/60); // approximate dt
+    this._fluidNav.render(ctx);
 
     UI.Modal.render(ctx);
     if (this.data.popup) this.data.popup.render(ctx);

@@ -188,6 +188,7 @@ const bazaarScene = Scene.create({
     if (this.data.buyList) this.data.buyList.render(ctx);
     if (this.data.sellList) this.data.sellList.render(ctx);
     for (const b of this.data.buttons) b.render(ctx);
+    UI.HUD().render(ctx);
     UI.Modal.render(ctx);
   }
 });

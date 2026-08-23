@@ -103,4 +103,237 @@
     return btn;
   };
 
+  // ============================================================================
+  // PREMIUM SCENE COMPONENTS
+  // ============================================================================
+
+  // Hero Moment - for key scenes (Ashram, Journey, Combat, CharacterCreate)
+  Scene.HeroMoment = function(opts) {
+    const { title, subtitle, ctaLabel, ctaAction, eyebrow, accent } = opts;
+    return {
+      render: function(ctx) {
+        const cx = G.W/2;
+        let y = 40;
+        // Eyebrow (optional, max 1 per 3 sections)
+        if (eyebrow) {
+          R.roundRect(ctx, cx - 60, y, 120, 22, 11, 'rgba(232,160,48,0.15)');
+          R.textCenter(ctx, eyebrow, cx, y + 15, accent || R.colors.accent, R.fonts.xs);
+          y += 36;
+        }
+        // Display serif headline
+        R.textCenter(ctx, title, cx, y, R.colors.textPrimary, R.fonts.display);
+        y += 44;
+        // Subtext (max 20 words)
+        R.textCenter(ctx, subtitle, cx, y, 'rgba(232,224,208,0.7)', R.fonts.md);
+        y += 36;
+        // Primary CTA
+        const btn = UI.MagneticBtn(cx - 100, y, 200, 48, ctaLabel);
+        btn.onClick = ctaAction;
+        btn.setTrailingIcon('arrow-right');
+        btn.render(ctx);
+      }
+    };
+  };
+
+  // Scroll Reveal Stagger - for entry animations
+  Scene.ScrollReveal = function() {
+    const reduce = R.reducedMotion ? R.reducedMotion() : false;
+    const elements = [];
+    
+    return {
+      register: function(el, opts = {}) {
+        if (reduce) { el._revealed = true; return; }
+        const { delay = 0, y = 24, blur = 8, duration = 800 } = opts;
+        el._revealState = { opacity: 0, y, blur, progress: 0 };
+        el._revealOpts = { delay, duration };
+        elements.push(el);
+      },
+      update: function(dt) {
+        elements.forEach(el => {
+          if (el._revealed) return;
+          const inView = el.y < G.H + 100 && el.y + el.h > -100;
+          if (inView && !el._revealStarted) {
+            el._revealStarted = true;
+            setTimeout(() => {
+              el._revealed = true;
+            }, el._revealOpts.delay);
+          }
+          if (el._revealed) {
+            el._revealState.progress = Math.min(1, el._revealState.progress + dt * 1000 / el._revealOpts.duration);
+            const p = el._revealState.progress;
+            const ease = 1 - Math.pow(1 - p, 3);
+            el._revealState.opacity = ease;
+            el._revealState.y = el._revealState.y * (1 - ease);
+            el._revealState.blur = el._revealState.blur * (1 - ease);
+          }
+        });
+      },
+      apply: function(ctx, el) {
+        if (!el._revealState) return;
+        ctx.save();
+        ctx.globalAlpha = el._revealState.opacity;
+        ctx.translate(0, el._revealState.y);
+        ctx.filter = `blur(${el._revealState.blur}px)`;
+        ctx.restore();
+      }
+    };
+  };
+
+  // Fluid Island Nav Morph
+  Scene.FluidNav = function() {
+    const navItems = [
+      { text: 'Map', scene: 'travelMap', icon: '▶' },
+      { text: 'Party', scene: 'party', icon: '☺' },
+      { text: 'Shop', scene: 'bazaar', icon: '⚙' },
+      { text: 'Rest', scene: '', icon: '♪' },
+      { text: 'More', scene: '_more', icon: '≡' }
+    ];
+    
+    let expanded = false;
+    const spring = { rotation: 0, targetRotation: 0, stagger: [] };
+    
+    return {
+      toggle: function() {
+        expanded = !expanded;
+        spring.targetRotation = expanded ? 45 : 0;
+        spring.stagger = navItems.map((_, i) => ({ progress: 0, delay: i * 100 }));
+      },
+      update: function(dt) {
+        spring.rotation += (spring.targetRotation - spring.rotation) * Math.min(1, dt * 10);
+        spring.stagger.forEach((s, i) => {
+          if (expanded) {
+            s.progress = Math.min(1, s.progress + dt * 1000 / 600);
+          } else {
+            s.progress = Math.max(0, s.progress - dt * 1000 / 300);
+          }
+        });
+      },
+      render: function(ctx) {
+        if (!expanded) {
+          const pillW = 280, pillH = 44;
+          const x = G.W/2 - pillW/2, y = G.H - pillH - 12;
+          R.roundRect(ctx, x, y, pillW, pillH, 22, 'rgba(26,26,48,0.9)');
+          ctx.strokeStyle = 'rgba(232,160,48,0.2)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x+0.5, y+0.5, pillW-1, pillH-1);
+          navItems.forEach((item, i) => {
+            const ix = x + pillW/5 * i + pillW/10;
+            R.textCenter(ctx, item.icon, ix, y + 28, R.colors.textDim, R.fonts.lg);
+            R.textCenter(ctx, item.text, ix, y + 40, R.colors.textDim, R.fonts.xs);
+          });
+          const hx = x + pillW - 36, hy = y + 8;
+          const lineW = 20;
+          ctx.strokeStyle = R.colors.gold;
+          ctx.lineWidth = 2;
+          ctx.lineCap = 'round';
+          ctx.save();
+          ctx.translate(hx + lineW/2, hy + 6);
+          ctx.rotate(spring.rotation * Math.PI/180);
+          ctx.beginPath(); ctx.moveTo(-lineW/2, 0); ctx.lineTo(lineW/2, 0); ctx.stroke();
+          ctx.restore();
+          ctx.save();
+          ctx.translate(hx + lineW/2, hy + 14);
+          ctx.rotate(-spring.rotation * Math.PI/180);
+          ctx.beginPath(); ctx.moveTo(-lineW/2, 0); ctx.lineTo(lineW/2, 0); ctx.stroke();
+          ctx.restore();
+          if (!expanded) {
+            ctx.beginPath(); ctx.moveTo(hx, hy + 22); ctx.lineTo(hx + lineW, hy + 22); ctx.stroke();
+          }
+        } else {
+          ctx.fillStyle = 'rgba(0,0,0,0.85)';
+          ctx.fillRect(0, 0, G.W, G.H);
+          navItems.forEach((item, i) => {
+            const s = spring.stagger[i];
+            const y = G.H/2 - 60 + i * 50 + (1 - s.progress) * 30;
+            const alpha = s.progress;
+            ctx.globalAlpha = alpha;
+            R.textCenter(ctx, item.icon + '  ' + item.text, G.W/2, y, R.colors.gold, R.fonts.lg);
+          });
+          ctx.globalAlpha = 1;
+        }
+      },
+      handleTap: function(x, y) {
+        if (!expanded) {
+          if (x > G.W - 60 && y > G.H - 60) {
+            this.toggle();
+            return true;
+          }
+        } else {
+          navItems.forEach((item, i) => {
+            const y = G.H/2 - 60 + i * 50;
+            if (Math.abs(y - y) < 30 && item.scene) {
+              gScene(item.scene);
+              this.toggle();
+            }
+          });
+          return true;
+        }
+        return false;
+      }
+    };
+  };
+
+  // Empty State Illustrations
+  Scene.EmptyState = function(opts) {
+    const { type, title, hint, ctaLabel, ctaAction } = opts;
+    const illustrations = {
+      journey: function(ctx, cx, cy) {
+        ctx.strokeStyle = 'rgba(232,160,48,0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy - 20, 30, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx - 15, cy - 20); ctx.lineTo(cx + 15, cy - 20);
+        ctx.moveTo(cx - 10, cy - 30); ctx.lineTo(cx + 10, cy - 30);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(232,160,48,0.3)';
+        ctx.beginPath();
+        ctx.moveTo(cx + 25, cy - 40); ctx.lineTo(cx + 40, cy - 55);
+        ctx.stroke();
+      },
+      beast: function(ctx, cx, cy) {
+        ctx.fillStyle = 'rgba(232,160,48,0.3)';
+        ctx.beginPath(); ctx.arc(cx, cy - 10, 8, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx - 10, cy - 20, 4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + 10, cy - 20, 4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx - 5, cy - 30, 4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + 5, cy - 30, 4, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = 'rgba(232,160,48,0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (let i = 0; i < 3; i++) {
+          ctx.arc(cx, cy, 20 + i * 10, 0, Math.PI * 1.5);
+        }
+        ctx.stroke();
+      },
+      recipe: function(ctx, cx, cy) {
+        ctx.strokeStyle = 'rgba(232,160,48,0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(cx - 12, cy + 20); ctx.lineTo(cx - 12, cy - 20);
+        ctx.lineTo(cx + 12, cy - 20); ctx.lineTo(cx + 12, cy + 20);
+        ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy - 25, 6, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = 'rgba(48,200,48,0.5)';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy - 35, 6, 12, -0.3, 0, Math.PI*2); ctx.fill();
+      }
+    };
+    
+    return {
+      render: function(ctx) {
+        const cx = G.W/2, cy = G.H/2 - 40;
+        illustrations[type]?.(ctx, cx, cy);
+        R.textCenter(ctx, title, cx, cy + 50, R.colors.gold, R.fonts.md);
+        R.textCenter(ctx, hint, cx, cy + 70, R.colors.textDim, R.fonts.sm);
+        if (ctaLabel) {
+          const btn = UI.MagneticBtn(cx - 90, cy + 100, 180, 40, ctaLabel);
+          btn.onClick = ctaAction;
+          btn.render(ctx);
+        }
+      }
+    };
+  };
+
 })();

@@ -173,6 +173,7 @@ const farmScene = Scene.create({
     Scene.clipContent(ctx, this);
 
     for (const b of this.data.buttons) b.render(ctx);
+    UI.HUD().render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);
 
     ctx.restore();

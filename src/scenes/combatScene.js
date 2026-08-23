@@ -701,6 +701,7 @@ const combatScene = Scene.create({
 
   render: function(ctx) {
     R.drawZoneBackground(ctx, G.state.currentZone);
+    UI.HUD().render(ctx);
     if (this.data.damageFlash > 0) {
       ctx.fillStyle = 'rgba(255,255,255,0.08)';
       ctx.fillRect(0, 0, G.W, G.H);

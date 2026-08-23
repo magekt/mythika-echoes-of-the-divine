@@ -10,26 +10,78 @@ const R = {
     btn: '#1a2040', btnHover: '#252555', btnGold: '#e8a030', btnRed: '#a03030',
     highlight: '#e8a030',
     indian: { saffron: '#e8a030', crimson: '#c83030', gold: '#e8a030',
-              peacock: '#2080a0', lotus: '#e8a0a0', sandal: '#d0b080' }
+              peacock: '#2080a0', lotus: '#e8a0a0', sandal: '#d0b080' },
+    // Semantic tokens for premium theming
+    surface: '#1a1a30',
+    surfaceElevated: '#222240',
+    surfaceGlass: 'rgba(26,26,48,0.85)',
+    borderHairline: 'rgba(232,160,48,0.12)',
+    borderFocus: 'rgba(232,160,48,0.6)',
+    accent: '#e8a030',
+    accentMuted: 'rgba(232,160,48,0.15)',
+    textPrimary: '#e8e0d0',
+    textSecondary: '#98a0b8',
+    textMuted: '#6a7088',
+    success: '#30c830',
+    warning: '#e8a030',
+    danger: '#c83030',
+    info: '#3080c8',
   },
   // Corner-radius scale (Shape Consistency Lock): xs=3 chips/ticks, s=5
   // buttons/small bars, m=8 panels/headers, l=10 large cards. New UI adopts
   // these instead of ad-hoc numbers.
   radius: { xs: 3, s: 5, m: 8, l: 10 },
   fonts: {
-    xs: '8px monospace', sm: '10px monospace', md: '12px monospace', lg: '16px monospace', xl: '24px monospace'
+    // Display serif for lore/hero moments
+    display: '24px "PP Editorial New", Georgia, serif',
+    displaySm: '18px "PP Editorial New", Georgia, serif',
+    // Sans for UI/body
+    lg: '16px "Geist", -apple-system, BlinkMacSystemFont, sans-serif',
+    md: '12px "Geist", -apple-system, BlinkMacSystemFont, sans-serif',
+    sm: '10px "Geist", -apple-system, BlinkMacSystemFont, sans-serif',
+    xs: '8px "Geist", -apple-system, BlinkMacSystemFont, sans-serif',
+    mono: '10px "Geist Mono", monospace'
   },
 
   // Accessibility: rebuild the font ladder at a user-chosen scale (1 / 1.15 / 1.3).
   fontScale: 1,
   applyFontScale: function(scale) {
     this.fontScale = scale;
-    const px = function(base) { return Math.round(base * scale) + 'px monospace'; };
+    const px = function(base) { return Math.round(base * scale) + 'px "Geist", -apple-system, BlinkMacSystemFont, sans-serif'; };
     this.fonts.xs = px(8);
     this.fonts.sm = px(10);
     this.fonts.md = px(12);
     this.fonts.lg = px(16);
     this.fonts.xl = px(24);
+    this.fonts.display = Math.round(24 * scale) + 'px "PP Editorial New", Georgia, serif';
+    this.fonts.displaySm = Math.round(18 * scale) + 'px "PP Editorial New", Georgia, serif';
+  },
+
+  // Noise/grain overlay for editorial luxury feel
+  noiseCanvas: null,
+  initNoise: function() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 400; canvas.height = 720;
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.createImageData(400, 720);
+    for (let i = 0; i < imgData.data.length; i += 4) {
+      const val = Math.random() * 255;
+      imgData.data[i] = val; imgData.data[i+1] = val; imgData.data[i+2] = val; imgData.data[i+3] = 12;
+    }
+    ctx.putImageData(imgData, 0, 0);
+    this.noiseCanvas = canvas;
+  },
+  renderNoise: function(ctx) {
+    if (!this.noiseCanvas) this.initNoise();
+    ctx.save();
+    ctx.globalAlpha = 0.03;
+    ctx.drawImage(this.noiseCanvas, 0, 0);
+    ctx.restore();
+  },
+
+  // Global reduced motion check
+  reducedMotion: function() {
+    return !!G.state.reduceMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 };
 
@@ -284,7 +336,7 @@ R.clickFx = [];
 R.CLICKFX_MAX = 16;
 
 R.validTick = function(x, y) {
-  if (G.state.reduceMotion) return;
+  if (R.reducedMotion()) return;
   if (x < 0 || x > G.W || y < 0 || y > G.H) return;
   if (R.clickFx.length >= R.CLICKFX_MAX) R.clickFx.shift();
   const sparks = [];
@@ -304,7 +356,7 @@ R.validTick = function(x, y) {
 R.stoneHit = function(x, y) {
   if (x < 0 || x > G.W || y < 0 || y > G.H) return;
   if (R.clickFx.length >= R.CLICKFX_MAX) R.clickFx.shift();
-  if (G.state.reduceMotion) {
+  if (R.reducedMotion()) {
     // Static dent mark: informational, zero motion. Sound still fires.
     Audio.thud();
     R.clickFx.push({
@@ -531,7 +583,7 @@ R.comboFlash = 0;
 R.comboFlashColor = '#e8a030';
 
 R.triggerLevelUp = function() {
-  if (G.state.reduceMotion) return;
+  if (R.reducedMotion()) return;
   R.levelUpFlash = 0.5;
   for (let i = 0; i < 20; i++) {
     R.levelUpParticles.push({
@@ -549,7 +601,7 @@ R.triggerLevelUp = function() {
 R.triggerComboFlash = function(level) {
   // Combo audio always plays; only the full-screen flash is gated.
   Audio.comboMilestone(level);
-  if (G.state.reduceMotion) return;
+  if (R.reducedMotion()) return;
   R.comboFlash = 0.3;
   if (level >= 5) R.comboFlashColor = '#c83030';
   else if (level >= 3) R.comboFlashColor = '#e8a030';
@@ -697,7 +749,7 @@ R.drawZoneBackground = function(ctx, zoneId) {
 
 R.drawFishingBobber = function(ctx, x, y, phase, isRare) {
   // Reduce Motion: pin the bobber and drop the expanding ripples.
-  const rm = !!G.state.reduceMotion;
+  const rm = R.reducedMotion();
   const bobX = rm ? x : x + Math.sin(phase) * 15;
   const bobY = rm ? y : y + Math.cos(phase * 0.7) * 3;
 

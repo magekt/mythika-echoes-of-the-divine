@@ -470,9 +470,10 @@ const partyScene = Scene.create({
       R.textCenter(ctx, 'Tap a hero to manage:', G.W / 2, 48, R.colors.text, R.fonts.sm);
 
       const top = this.getContentTop();
-      Scene.clipContent(ctx, this);
-      for (const b of this.data.buttons) b.render(ctx);
-      ctx.restore();
+Scene.clipContent(ctx, this);
+    for (const b of this.data.buttons) b.render(ctx);
+    UI.HUD().render(ctx);
+    ctx.restore();
 
       Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
 

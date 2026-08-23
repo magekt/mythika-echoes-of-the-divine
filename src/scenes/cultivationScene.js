@@ -37,21 +37,21 @@ const cultivationScene = Scene.create({
     y += infoH + 10;
 
     const medAmt = 5 + Math.max(0, (G.state.ashramLevel || 1) - 1) * 2;
-    const medBtn = UI.Button(60, y, G.W - 120, 32, 'Meditate (+' + medAmt + ')', R.colors.btnGold);
+    const medBtn = UI.MagneticBtn(60, y, G.W - 120, 40, 'Meditate (+' + medAmt + ')', { trailingIcon: 'arrow-right' });
     medBtn.onClick = function() {
       CultivationSystem.addCultivationBase(5 + Math.max(0, (G.state.ashramLevel || 1) - 1) * 2);
       return true;
     };
     this.data.buttons.push(medBtn);
-    y += 38;
+    y += 48;
 
-    const bt = UI.BtnGold(60, y, G.W - 120, 38, 'Attempt Breakthrough');
+    const bt = UI.MagneticBtn(60, y, G.W - 120, 48, 'Attempt Breakthrough', { trailingIcon: 'arrow-right' });
     bt.enabled = canBreak;
     bt.render = function(ctx) {
       const bx = this.x, by = this.y, bw = this.w, bh = this.h;
       R.roundRect(ctx, bx, by, bw, bh, 6, this.enabled ? R.colors.btnGold : R.colors.btn);
       if (!this.enabled) ctx.globalAlpha = 0.5;
-      R.textCenter(ctx, 'Attempt Breakthrough', bx + bw / 2, by + 22, this.enabled ? R.colors.white : R.colors.textDim, R.fonts.md);
+      R.textCenter(ctx, 'Attempt Breakthrough', bx + bw / 2, by + 28, this.enabled ? R.colors.white : R.colors.textDim, R.fonts.md);
       ctx.globalAlpha = 1;
     };
     bt.onClick = function() {
@@ -63,16 +63,15 @@ const cultivationScene = Scene.create({
       }
       Notify.show(result.reason || 'Breakthrough failed!', 3);
       Audio.error();
-      // Both failure flavors (not enough base / gamble lost) read as blocked.
       return false;
     };
     this.data.buttons.push(bt);
-    y += 46;
+    y += 56;
 
-    const back = UI.Button(60, y + 4, G.W - 120, 32, 'Back to Ashram', R.colors.btnGold);
+    const back = UI.MagneticBtn(60, y + 4, G.W - 120, 40, 'Back to Ashram', { trailingIcon: 'arrow-left' });
     back.onClick = function() { gScene('ashram'); };
     this.data.buttons.push(back);
-    y += 44;
+    y += 48;
 
     this.data.contentHeight = y;
   },
@@ -133,13 +132,73 @@ const cultivationScene = Scene.create({
   },
 
   render: function(ctx) {
-    Scene.drawHeader(ctx, 62, 'Cultivation', 24);
-    R.textCenter(ctx, 'Refine your spirit and ascend realms', G.W / 2, 48, R.colors.textDim, R.fonts.sm);
+    // Render noise/grain overlay
+    R.renderNoise(ctx);
+
+    // Hero Moment for Cultivation
+    if (!this._heroMoment) {
+      this._heroMoment = Scene.HeroMoment({
+        title: 'Cultivation',
+        subtitle: 'Refine your spirit and ascend realms. Meditate to accelerate your progress.',
+        ctaLabel: 'Meditate',
+        ctaAction: () => {
+          const medAmt = 5 + Math.max(0, (G.state.ashramLevel || 1) - 1) * 2;
+          CultivationSystem.addCultivationBase(medAmt);
+        },
+        eyebrow: 'Realm ' + G.state.realmStage + '/' + CultivationSystem.getRealmData().stages,
+        accent: R.colors.accent
+      });
+    }
+    this._heroMoment.render(ctx);
+
+    // Info panel with PremiumShell
+    const realm = CultivationSystem.getRealmData();
+    const progress = CultivationSystem.getRealmProgress();
+    const canBreak = CultivationSystem.canBreakthrough();
+    const stats = CultivationSystem.getBreakthroughStats(getRealmIndex(G.state.realm));
+
+    const infoShell = UI.PremiumShell(10, 110, G.W - 20, 240, { outerR: 16 });
+    infoShell.render(ctx);
+    const content = infoShell.contentRect();
+    let iy = content.y + 12;
+
+    R.textCenter(ctx, 'Cultivation', content.x + content.w/2, iy, R.colors.gold, R.fonts.displaySm);
+    iy += 28;
+
+    R.textCenter(ctx, 'Realm: ' + realm.name, content.x + content.w/2, iy, R.colors.textPrimary, R.fonts.md);
+    iy += 22;
+    R.textCenter(ctx, 'Stage: ' + G.state.realmStage + '/' + realm.stages, content.x + content.w/2, iy, R.colors.textSecondary, R.fonts.sm);
+    iy += 24;
+
+    const pb = UI.ProgressBar(content.x + 20, iy, content.w - 40, 14, R.colors.gold, '#2a1510');
+    pb.setProgress(progress.current, progress.needed);
+    pb.render(ctx);
+    iy += 24;
+    R.textCenter(ctx, 'Cultivation Base: ' + Math.floor(progress.current) + ' / ' + progress.needed, content.x + content.w/2, iy, R.colors.textDim, R.fonts.sm);
+    iy += 20;
+
+    R.textCenter(ctx, 'Prana: ' + Math.floor(G.state.prana || 0), content.x + content.w/2, iy, R.colors.blue, R.fonts.sm);
+    iy += 18;
+    R.textCenter(ctx, 'Gathering: +' + CultivationSystem.getCultivationPerSecond().toFixed(1) + '/s', content.x + content.w/2, iy, R.colors.textDim, R.fonts.sm);
+    iy += 18;
+    R.textCenter(ctx, 'Prana Rate: +' + CultivationSystem.getPranaPerSecond().toFixed(1) + '/s', content.x + content.w/2, iy, R.colors.textDim, R.fonts.sm);
+    iy += 22;
+
+    const canBreakText = canBreak ? 'Ready for breakthrough!' : 'Need more cultivation base';
+    R.textCenter(ctx, canBreakText, content.x + content.w/2, iy, canBreak ? R.colors.green : R.colors.textDim, R.fonts.sm);
+    iy += 20;
+
+    const statsData = CultivationSystem.getBreakthroughStats(getRealmIndex(G.state.realm));
+    let statStr = 'Next: +' + statsData.hp + 'HP';
+    if (statsData.str) statStr += ' +' + statsData.str + 'STR';
+    if (statsData.agi) statStr += ' +' + statsData.agi + 'AGI';
+    if (statsData.mag) statStr += ' +' + statsData.mag + 'MAG';
+    if (statsData.def) statStr += ' +' + statsData.def + 'DEF';
+    R.textCenter(ctx, statStr, content.x + content.w/2, iy, R.colors.textDim, R.fonts.sm);
 
     const top = this.getContentTop();
     Scene.clipContent(ctx, this);
 
-      this.renderInfo(ctx, this.getContentTop());
     for (const b of this.data.buttons) b.render(ctx);
 
     ctx.restore();
