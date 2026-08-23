@@ -168,6 +168,9 @@ function _getEffectiveAtk(attacker, skill) {
   if (attacker.weaponEquipped && attacker.weaponEquipped.atk) {
     atk += attacker.weaponEquipped.atk;
   }
+  // Forge weapon levels now matter in combat (15% per level).
+  const wLvl = attacker.weaponLvl || 1;
+  atk = Math.floor(atk * (1 + wLvl * 0.15));
   if (attacker.buffs && attacker.buffs.atkBuff) {
     atk = Math.floor(atk * attacker.buffs.atkBuff.value);
   }
@@ -185,6 +188,9 @@ function _getEffectiveMag(attacker, skill) {
   if (attacker.accessoryEquipped && attacker.accessoryEquipped.mag) {
     mag += attacker.accessoryEquipped.mag;
   }
+  // Forge accessory levels empower magic.
+  const accLvl = attacker.accessoryLvl || 1;
+  mag = Math.floor(mag * (1 + accLvl * 0.15));
   if (attacker.magicMilestone) {
     mag = Math.floor(mag * 1.15);   // Light Wizard milestone: enduring wisdom
   }
@@ -205,6 +211,9 @@ function _getEffectiveDef(defender) {
   if (defender.accessoryEquipped && defender.accessoryEquipped.def) {
     def += defender.accessoryEquipped.def;
   }
+  // Forge armor levels add durability.
+  const aLvl = defender.armorLvl || 1;
+  def = Math.floor(def * (1 + aLvl * 0.15));
   if (defender.buffs && defender.buffs.defBuff) {
     def = Math.floor(def * defender.buffs.defBuff.value);
   }

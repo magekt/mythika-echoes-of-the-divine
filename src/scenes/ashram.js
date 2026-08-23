@@ -154,6 +154,44 @@ const ashramScene = Scene.create({
 
     let y = this.getContentTop();
 
+    // Ashram Upgrade: steeper curve 1000*lv^1.5 gold + 5*lv DF → +0.05 cult/s, +0.5 prana/s & unlocks recipe tiers
+    {
+      const lv = G.state.ashramLevel || 1;
+      const nextGold = Math.floor(1000 * Math.pow(lv, 1.5));
+      const nextDF = 5 * lv;
+      const canUpgrade = (G.state.gold || 0) >= nextGold && (G.state.divineFragments || 0) >= nextDF;
+      const btn = UI.Button(14, y, G.W - 28, 36, '', canUpgrade ? R.colors.btnGold : R.colors.btn);
+      btn._lv = lv;
+      btn._nextGold = nextGold;
+      btn._nextDF = nextDF;
+      btn._canUpgrade = canUpgrade;
+      btn.enabled = true;
+      btn.render = function(ctx) {
+        const bx = this.x, by = this.y, bw = this.w, bh = this.h;
+        R.roundRect(ctx, bx, by, bw, bh, 6, this._canUpgrade ? R.colors.btnGold : R.colors.btn);
+        const label = 'Upgrade Ashram Lv.' + this._lv + ' \u2192 ' + (this._lv + 1) + '  (' + this._nextGold + 'g + ' + this._nextDF + ' DF)';
+        R.textCenter(ctx, label, bx + bw / 2, by + 13, this._canUpgrade ? R.colors.white : R.colors.textDim, R.fonts.sm);
+        R.textCenter(ctx, '+0.05 cultivation/s, +0.5 prana/s & unlocks recipes', bx + bw / 2, by + 26, this._canUpgrade ? R.colors.goldLight : R.colors.textDark, R.fonts.xs);
+      };
+      btn.onClick = function() {
+        const lv2 = G.state.ashramLevel || 1;
+        const costG = Math.floor(1000 * Math.pow(lv2, 1.5));
+        const costDF = 5 * lv2;
+        if ((G.state.gold || 0) < costG || (G.state.divineFragments || 0) < costDF) {
+          Notify.show('Need ' + costG + 'g + ' + costDF + ' DF', 2, R.colors.red);
+          return false;
+        }
+        Economy.spendGold(costG);
+        Economy.spendDivineFragments(costDF);
+        G.state.ashramLevel = lv2 + 1;
+        Notify.show('Ashram upgraded to Lv.' + G.state.ashramLevel + '!', 2, R.colors.gold);
+        Audio.levelUp();
+        ashramScene.buildMenu();
+      };
+      this.data.buttons.push(btn);
+      y += 42;
+    }
+
     for (const section of sections) {
       const hdr = UI.Button(0, y, G.W, 22, '', 'transparent');
       hdr._isHeader = true;
