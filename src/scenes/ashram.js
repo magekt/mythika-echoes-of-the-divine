@@ -20,7 +20,6 @@ const ashramScene = Scene.create({
 
   leave: function() {
     SaveSystem.stopAutoSave();
-    this._heroMoment = null;
     this._fluidNav = null;
     this.data.buttons = [];
     this.data.navButtons = [];
@@ -152,7 +151,7 @@ const ashramScene = Scene.create({
       }
     ];
 
-    let y = this.getContentTop() + 140; // offset below fixed header (40+250 clip starts at 116, so 140 puts first scrollable item at ~256, below the 236 zone line)
+    let y = this.getContentTop(); // offset below fixed header (24-92), clip starts at 116
 
     // Ashram Upgrade: steeper curve 1000*lv^1.5 gold + 5*lv DF → +0.05 cult/s, +0.5 prana/s & unlocks recipe tiers
     {
@@ -197,7 +196,7 @@ const ashramScene = Scene.create({
     const gridGap = 8;
     const mx = 14;
     const cw = (G.W - mx * 2 - gridGap * (gridCols - 1)) / gridCols;
-    const ch = 70;
+    const ch = 86; // was 70
 
     for (const section of sections) {
       // Section header bar — button so it renders in the render(ctx) pass
@@ -229,8 +228,8 @@ const ashramScene = Scene.create({
           ctx.strokeStyle = 'rgba(232,160,48,0.08)';
           ctx.lineWidth = 1;
           ctx.strokeRect(this.x + 0.5, this.y + 0.5, this.w - 1, this.h - 1);
-          R.textCenter(ctx, this._item.icon, this.x + this.w / 2, this.y + 28, this._accent, R.fonts.xl);
-          R.textCenter(ctx, this._item.text, this.x + this.w / 2, this.y + this.h - 10, R.colors.textDim, R.fonts.sm);
+          R.textCenter(ctx, this._item.icon, this.x + this.w / 2, this.y + 34, this._accent, R.fonts.xl);
+          R.textCenter(ctx, this._item.text, this.x + this.w / 2, this.y + this.h - 12, R.colors.textDim, R.fonts.sm);
           if (this._item.badge) {
             R.text(ctx, this._item.badge, this.x + this.w - 8, this.y + 12, R.colors.gold, R.fonts.xs, 'right');
           }
@@ -305,8 +304,8 @@ const ashramScene = Scene.create({
       const hpPct = Math.floor(p.hp / p.maxHp * 100);
       const mpPct = Math.floor(p.mp / p.maxMp * 100);
       
-      // Stats panel using PremiumShell
-      const statsShell = UI.PremiumShell(10, 110, G.W - 20, 100, { outerR: 16 });
+      // Stats panel using PremiumShell (moved down 10px to y=120 to be fully inside clip at y=116)
+      const statsShell = UI.PremiumShell(10, 120, G.W - 20, 100, { outerR: 16 });
       statsShell.render(ctx);
       const content = statsShell.contentRect();
       
@@ -327,14 +326,14 @@ const ashramScene = Scene.create({
     }
 
     // Resources row
-    R.textCenter(ctx, '\u26A1 ' + Math.floor(G.state.gold || 0) + ' Gold', G.W / 2 - 95, 220, R.colors.gold, R.fonts.sm);
-    R.textCenter(ctx, '\u2727 ' + Math.floor(G.state.karma || 0) + ' Karma', G.W / 2, 220, R.colors.blueLight, R.fonts.sm);
-    R.textCenter(ctx, '\u2606 ' + (G.state.divineFragments || 0) + ' DF', G.W / 2 + 95, 220, R.colors.orange, R.fonts.sm);
+    R.textCenter(ctx, '\u26A1 ' + Math.floor(G.state.gold || 0) + ' Gold', G.W / 2 - 95, 140, R.colors.gold, R.fonts.sm);
+    R.textCenter(ctx, '\u2727 ' + Math.floor(G.state.karma || 0) + ' Karma', G.W / 2, 140, R.colors.blueLight, R.fonts.sm);
+    R.textCenter(ctx, '\u2606 ' + (G.state.divineFragments || 0) + ' DF', G.W / 2 + 95, 140, R.colors.orange, R.fonts.sm);
 
     if (G.state.currentZone) {
       const zoneName = ZONES[G.state.currentZone] ? ZONES[G.state.currentZone].name : G.state.currentZone;
       const zonePct = G.state.zoneProgress[G.state.currentZone] || 0;
-      R.textCenter(ctx, 'Zone: ' + zoneName + ' (' + zonePct + '%)', G.W / 2, 236, R.colors.textDim, R.fonts.sm);
+      R.textCenter(ctx, 'Zone: ' + zoneName + ' (' + zonePct + '%)', G.W / 2, 160, R.colors.textDim, R.fonts.sm);
     }
 
     const top = this.getContentTop();
@@ -345,7 +344,8 @@ const ashramScene = Scene.create({
     ctx.clip();
     ctx.translate(0, -this.data.scrollY);
 
-    for (const b of this.data.buttons) b.render(ctx);
+    const vis = Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight());
+    for (const b of vis) b.render(ctx);
 
     ctx.restore();
 

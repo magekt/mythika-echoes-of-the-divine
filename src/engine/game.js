@@ -164,7 +164,7 @@ const Fade = {
 
 const G = {
   W: 400, H: 720,
-  SCROLL_SPEED: 0.8,
+  SCROLL_SPEED: 0.5,
   CONTENT_TOP: 116,
   canvas: null, ctx: null,
   state: {

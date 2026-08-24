@@ -49,7 +49,7 @@
     const maxTrack = viewportH - barH;
     const scrollFrac = scrollY / Math.max(1, contentHeight - viewportH);
     const barY = top + scrollFrac * maxTrack;
-    R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, 'rgba(232,160,48,0.25)');
+    R.roundRect(ctx, G.W - 5, barY, 4, barH, 2, 'rgba(232,160,48,0.4)');
   };
 
   // Human-readable name for an equipped-gear slot that may hold an object,
@@ -254,14 +254,16 @@
       },
       handleTap: function(x, y) {
         if (!expanded) {
-          if (x > G.W - 60 && y > G.H - 60) {
+          const pillW = 280, pillH = 44;
+          const pillX = G.W/2 - pillW/2, pillY = G.H - pillH - 12;
+          if (x >= pillX && x <= pillX + pillW && y >= pillY && y <= pillY + pillH) {
             this.toggle();
             return true;
           }
         } else {
           navItems.forEach((item, i) => {
-            const y = G.H/2 - 60 + i * 50;
-            if (Math.abs(y - y) < 30 && item.scene) {
+            const itemY = G.H/2 - 60 + i * 50;
+            if (Math.abs(y - itemY) < 30 && item.scene) {
               gScene(item.scene);
               this.toggle();
             }
