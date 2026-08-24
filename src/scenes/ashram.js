@@ -20,6 +20,12 @@ const ashramScene = Scene.create({
 
   leave: function() {
     SaveSystem.stopAutoSave();
+    this._heroMoment = null;
+    this._fluidNav = null;
+    this.data.buttons = [];
+    this.data.navButtons = [];
+    this.data.popup = null;
+    this.data.scrollY = 0;
   },
 
   navBarHeight: 44,

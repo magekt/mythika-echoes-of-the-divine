@@ -71,11 +71,23 @@ function initInput() {
   }, { passive: false });
 
   c.addEventListener('touchmove', e => {
-    e.preventDefault();
+    // Only prevent default if the touch is within the canvas and not a scroll gesture
     const t = e.changedTouches[0];
     const r = c.getBoundingClientRect();
     const x = (t.clientX - r.left) * (G.W / r.width);
     const y = (t.clientY - r.top) * (G.H / r.height);
+    
+    // Check if this looks like a scroll gesture (vertical movement > horizontal)
+    if (Input._lastTouchY !== null) {
+      const dy = y - Input._lastTouchY;
+      const dx = x - (Input._touchCurrent?.x || x);
+      if (Math.abs(dy) > Math.abs(dx) * 1.5) {
+        // Likely a scroll gesture - allow native scrolling
+        return;
+      }
+    }
+    
+    e.preventDefault();
     if (Input._lastTouchY !== null) {
       const dy = y - Input._lastTouchY;
       Input._scrollDelta = (Input._scrollDelta || 0) - dy * 1.2;

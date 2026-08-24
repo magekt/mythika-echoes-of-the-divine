@@ -26,6 +26,16 @@ const trialsScene = Scene.create({
     else if (this.data.state === 'result') this.buildResult();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    this.data.log = [];
+    this.data.enemy = null;
+    this.data.duel = null;
+    this.data.duelHero = null;
+    this.data.scrollY = 0;
+  },
+
   buildLocked: function() {
     this.data.buttons.push(Scene.backButton(G.H - 80, { fade: true }));
   },

@@ -207,13 +207,16 @@ function fitGame() {
   const el = document.getElementById('game-container');
   if (!el) return;
   // Clamp so a zero-sized viewport (hidden iframe) can never scale the game to nothing.
-  const scale = Math.max(0.2, Math.min(window.innerWidth / 404, window.innerHeight / 724, 1));
+  // Use the container's actual size for scaling
+  const containerRect = el.getBoundingClientRect();
+  const scale = Math.max(0.2, Math.min(window.innerWidth / containerRect.width, window.innerHeight / containerRect.height, 1));
   el.style.transform = 'scale(' + scale + ')';
   el.style.transformOrigin = 'center center';
   // Landscape phones get a squeezed viewport; nudge the player upright (once).
   if (typeof Hints !== 'undefined' && window.innerHeight < 500 && window.innerWidth > window.innerHeight) {
     Hints.show('rotate', 'Rotate your device upright for the best experience.');
   }
+}
 }
 
 function gInit() {  G.canvas = document.getElementById('game-canvas');
@@ -453,5 +456,21 @@ function gScene(name, fade) {
 
 // Boot ownership lives in main.js bootGame(): it fires immediately on script
 // parse and re-enters via this load safety-net (idempotent via G._booted).
-window.addEventListener('resize', fitGame);
-window.addEventListener('orientationchange', fitGame);
+G._resizeHandler = fitGame;
+G._orientationHandler = fitGame;
+window.addEventListener('resize', G._resizeHandler);
+window.addEventListener('orientationchange', G._orientationHandler);
+
+G.cleanupEventListeners = function() {
+  window.removeEventListener('resize', G._resizeHandler);
+  window.removeEventListener('orientationchange', G._orientationHandler);
+  G._resizeHandler = null;
+  G._orientationHandler = null;
+};
+
+// Pagehide cleanup
+document.addEventListener('pagehide', function() {
+  G.cleanupEventListeners();
+  if (typeof Audio !== 'undefined' && Audio.cleanup) Audio.cleanup();
+  if (typeof SaveSystem !== 'undefined' && SaveSystem.stopAutoSave) SaveSystem.stopAutoSave();
+});

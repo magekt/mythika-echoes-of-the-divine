@@ -1,13 +1,13 @@
 UI.ProgressBar = function(x, y, w, h, color, bgColor) {
   return {
     x, y, w, h,
-    color: color || R.colors.orange,
-    bgColor: bgColor || '#0a0a1a',
+    color: color || R.colors.gold,
+    bgColor: bgColor || R.colors.borderHairline,
     value: 0,
     maxValue: 100,
-    showText: true,
+    showText: false,
     text: '',
-    textColor: R.colors.white,
+    textColor: R.colors.textPrimary,
 
     setProgress: function(val, max) {
       this.value = val;
@@ -15,29 +15,33 @@ UI.ProgressBar = function(x, y, w, h, color, bgColor) {
     },
 
     render: function(ctx) {
-      R.roundRect(ctx, this.x, this.y, this.w, this.h, R.radius.xs, this.bgColor);
-      ctx.strokeStyle = R.colors.blueDark;
+      const r = 4; // 4px radius for 8px height bar
+      // Background track with borderHairline
+      R.roundRect(ctx, this.x, this.y, this.w, this.h, r, this.bgColor);
+      
+      // Subtle border
+      ctx.strokeStyle = R.colors.borderHairline;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      const r = 3, x = this.x, y = this.y, w = this.w, h = this.h;
-      ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
-      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-      ctx.lineTo(x + w, y + h - r);
-      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      ctx.lineTo(x + r, y + h);
-      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.moveTo(this.x + r, this.y);
+      ctx.lineTo(this.x + this.w - r, this.y);
+      ctx.quadraticCurveTo(this.x + this.w, this.y, this.x + this.w, this.y + r);
+      ctx.lineTo(this.x + this.w, this.y + this.h - r);
+      ctx.quadraticCurveTo(this.x + this.w, this.y + this.h, this.x + this.w - r, this.y + this.h);
+      ctx.lineTo(this.x + r, this.y + this.h);
+      ctx.quadraticCurveTo(this.x, this.y + this.h, this.x, this.y + this.h - r);
+      ctx.lineTo(this.x, this.y + r);
+      ctx.quadraticCurveTo(this.x, this.y, this.x + r, this.y);
       ctx.closePath();
       ctx.stroke();
+      
+      // Fill with solid gold color (no gradient per design spec)
       const pct = this.maxValue > 0 ? Math.max(0, Math.min(1, this.value / this.maxValue)) : 0;
       if (pct > 0) {
         const fillW = (this.w - 2) * pct;
-        const grad = ctx.createLinearGradient(this.x, this.y, this.x + fillW, this.y);
-        grad.addColorStop(0, R.colors.orange);
-        grad.addColorStop(1, R.colors.orangeLight);
-        R.roundRect(ctx, this.x + 1, this.y + 1, fillW, this.h - 2, 2, grad);
+        R.roundRect(ctx, this.x + 1, this.y + 1, fillW, this.h - 2, Math.max(0, r - 1), this.color);
       }
+      
       if (this.showText) {
         const t = this.text || Math.floor(this.value) + '/' + Math.floor(this.maxValue);
         R.textCenter(ctx, t, this.x + this.w / 2, this.y + this.h / 2 + 4, this.textColor, R.fonts.sm);

@@ -203,13 +203,19 @@ UI.PremiumShell = function(x, y, w, h, opts = {}) {
   };
 };
 
-// Magnetic Button with Spring Physics
+// Magnetic Button with Spring Physics - Supports variants: primary, secondary, ghost
 UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
+  const variant = opts.variant || 'primary'; // 'primary', 'secondary', 'ghost'
   const baseBtn = UI.BtnGold(x, y, w, h, label);
   const spring = { scale: 1, targetScale: 1, iconX: 0, iconY: 0 };
   const stiffness = 120, damping = 22;
   
   baseBtn._trailingIcon = opts.trailingIcon || null;
+  baseBtn._leadingIcon = opts.leadingIcon || null;
+  baseBtn._variant = variant;
+  baseBtn._iconSpringX = 0;
+  baseBtn._iconSpringY = 0;
+  baseBtn._springScale = 1;
   
   baseBtn.update = function(dt) {
     if (this._pressTimer > 0) {
@@ -219,35 +225,81 @@ UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
     // Spring to target
     spring.scale += (spring.targetScale - spring.scale) * Math.min(1, dt * stiffness / damping);
     if (Math.abs(spring.scale - spring.targetScale) < 0.001) spring.scale = spring.targetScale;
+    this._springScale = spring.scale;
     
     // Magnetic icon physics
-    if (this._hovered && this._trailingIcon) {
+    const reduceMotion = R.reducedMotion ? R.reducedMotion() : false;
+    if (this._hovered && (this._trailingIcon || this._leadingIcon) && !reduceMotion) {
       spring.iconX += (2 - spring.iconX) * Math.min(1, dt * 8);
       spring.iconY += (-1 - spring.iconY) * Math.min(1, dt * 8);
     } else {
       spring.iconX += (0 - spring.iconX) * Math.min(1, dt * 8);
       spring.iconY += (0 - spring.iconY) * Math.min(1, dt * 8);
     }
+    this._iconSpringX = spring.iconX;
+    this._iconSpringY = spring.iconY;
   };
   
   const originalRender = baseBtn.render;
   baseBtn.render = function(ctx) {
+    const reduceMotion = R.reducedMotion ? R.reducedMotion() : false;
+    const bx = this.x, by = this.y, bw = this.w, bh = this.h;
+    
     ctx.save();
-    ctx.translate(this.x + this.w/2, this.y + this.h/2);
+    ctx.translate(bx + bw/2, by + bh/2);
     ctx.scale(spring.scale, spring.scale);
-    ctx.translate(-this.w/2, -this.h/2);
-    originalRender.call(this, ctx);
+    ctx.translate(-bw/2, -bh/2);
+    
+    if (variant === 'primary') {
+      // Primary: Gold background, white text
+      R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.gold);
+      if (this._pressed || this._hovered) {
+        ctx.strokeStyle = R.colors.goldLight;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
+      }
+      R.textCenter(ctx, label, bx + bw / 2, by + bh/2 + 4, R.colors.white, R.fonts.md);
+    } else if (variant === 'secondary') {
+      // Secondary: Surface background, gold border
+      if (this.enabled) {
+        R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.surface);
+        ctx.strokeStyle = R.colors.gold;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
+        R.textCenter(ctx, label, bx + bw / 2, by + bh/2 + 4, R.colors.textPrimary, R.fonts.md);
+      } else {
+        R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.surface);
+        ctx.strokeStyle = R.colors.borderHairline;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+        ctx.globalAlpha = 0.5;
+        R.textCenter(ctx, label, bx + bw / 2, by + bh/2 + 4, R.colors.textDim, R.fonts.md);
+        ctx.globalAlpha = 1;
+      }
+    } else if (variant === 'ghost') {
+      // Ghost: No background, text only with hover underline
+      if (this._hovered && !reduceMotion) {
+        ctx.strokeStyle = R.colors.gold;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(bx, by + bh - 4);
+        ctx.lineTo(bx + bw, by + bh - 4);
+        ctx.stroke();
+      }
+      R.textCenter(ctx, label, bx + bw / 2, by + bh/2 + 4, this._hovered ? R.colors.gold : R.colors.textPrimary, R.fonts.md);
+    }
+    
     ctx.restore();
     
     // Trailing icon physics
-    if (this._trailingIcon && this._hovered) {
-      const ix = this.x + this.w - 28 + spring.iconX;
-      const iy = this.y + this.h/2 - 12 + spring.iconY;
+    if (this._trailingIcon && this._hovered && !reduceMotion) {
+      const ix = bx + bw - 28 + spring.iconX;
+      const iy = by + bh/2 - 12 + spring.iconY;
       ctx.save();
       ctx.translate(ix, iy);
       ctx.scale(1.05, 1.05);
-      // Draw arrow-right icon
-      ctx.strokeStyle = R.colors.white;
+      const iconColor = variant === 'ghost' ? R.colors.gold : R.colors.white;
+      ctx.strokeStyle = iconColor;
       ctx.lineWidth = 2;
       ctx.lineCap = 'round';
       ctx.beginPath();
@@ -257,14 +309,32 @@ UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
       ctx.stroke();
       ctx.restore();
     }
+    
+    // Leading icon for ghost variant
+    if (this._leadingIcon && this._hovered && !reduceMotion) {
+      const ix = bx + 20 + spring.iconX;
+      const iy = by + bh/2 - 12 + spring.iconY;
+      ctx.save();
+      ctx.translate(ix, iy);
+      ctx.strokeStyle = R.colors.gold;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(4, 0); ctx.lineTo(-4, 0);
+      ctx.moveTo(0, -4); ctx.lineTo(-4, 0);
+      ctx.moveTo(0, 4); ctx.lineTo(-4, 0);
+      ctx.stroke();
+      ctx.restore();
+    }
   };
   
-  // Magnetic hover detection
+  // Magnetic hover detection with reduced motion support
   const originalUpdate = baseBtn.update;
   baseBtn.update = function(dt) {
     originalUpdate.call(this, dt);
+    const reduceMotion = R.reducedMotion ? R.reducedMotion() : false;
     const ptr = Input._touchCurrent || Input._mousePos;
-    if (ptr && this.enabled && this.visible) {
+    if (ptr && this.enabled && this.visible && !reduceMotion) {
       const inside = this.contains(ptr.x, ptr.y - (this.scrollY||0));
       this._hovered = inside;
       spring.targetScale = inside ? 0.98 : 1;
@@ -275,6 +345,7 @@ UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
   };
   
   baseBtn.setTrailingIcon = function(iconName) { this._trailingIcon = iconName; };
+  baseBtn.setLeadingIcon = function(iconName) { this._leadingIcon = iconName; };
   return baseBtn;
 };
 

@@ -114,20 +114,20 @@
       render: function(ctx) {
         const cx = G.W/2;
         let y = 40;
-        // Eyebrow (optional, max 1 per 3 sections)
+        // Eyebrow (optional, max 1 per 3 sections) - using gold accent
         if (eyebrow) {
-          R.roundRect(ctx, cx - 60, y, 120, 22, 11, 'rgba(232,160,48,0.15)');
-          R.textCenter(ctx, eyebrow, cx, y + 15, accent || R.colors.accent, R.fonts.xs);
-          y += 36;
+          R.roundRect(ctx, cx - 80, y, 160, 24, 12, 'rgba(232,160,48,0.12)');
+          R.textCenter(ctx, eyebrow, cx, y + 16, accent || R.colors.gold, R.fonts.sm);
+          y += 40;
         }
-        // Display serif headline
-        R.textCenter(ctx, title, cx, y, R.colors.textPrimary, R.fonts.display);
-        y += 44;
-        // Subtext (max 20 words)
-        R.textCenter(ctx, subtitle, cx, y, 'rgba(232,224,208,0.7)', R.fonts.md);
-        y += 36;
-        // Primary CTA
-        const btn = UI.MagneticBtn(cx - 100, y, 200, 48, ctaLabel);
+        // Display serif headline - using displaySm (18px PP Editorial New)
+        R.textCenter(ctx, title, cx, y, R.colors.textPrimary, R.fonts.displaySm);
+        y += 40;
+        // Subtext (max 20 words) - using textSecondary color
+        R.textCenter(ctx, subtitle, cx, y, R.colors.textSecondary, R.fonts.md);
+        y += 40;
+        // Primary CTA - MagneticBtn with gold styling
+        const btn = UI.MagneticBtn(cx - 120, y, 240, 52, ctaLabel);
         btn.onClick = ctaAction;
         btn.setTrailingIcon('arrow-right');
         btn.render(ctx);

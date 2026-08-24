@@ -21,6 +21,15 @@ const journeyScene = Scene.create({
     this.buildUI();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this._emptyState = null;
+    this.data.buttons = [];
+    this.data.staticDraws = [];
+    this.data.selectedId = null;
+    this.data.scrollY = 0;
+  },
+
   getContentTop: function() { return 86; },
   getContentHeight: function() { return G.H - this.getContentTop() - 44; },
 

@@ -45,7 +45,6 @@ const ENCOUNTER_STORIES = {
     'A bolt of divine energy crackles across the pristine sky.'
   ]
 };
-
 const combatScene = Scene.create({
   name: 'combatScene',
   data: {
@@ -98,6 +97,7 @@ const combatScene = Scene.create({
     this.data.scrollY = 0;
     this.data.selectedEnemy = null;
     this.data.enemyButtons = [];
+
     Combat.startBattle(this.data.heroes, this.data.enemies);
     const firstAlive = this.data.enemies.find(e => e.hp > 0);
     if (firstAlive) this.data.selectedEnemy = firstAlive;
@@ -109,6 +109,18 @@ const combatScene = Scene.create({
       this.data.turnState = 'enemyTurn';
       if (firstActor) this.doEnemyTurn(firstActor);
     }
+  },
+
+  leave: function() {
+    this._heroMoment = null;
+    this._fluidNav = null;
+    this.data.buttons = [];
+    this.data.actionButtons = [];
+    this.data.enemyButtons = [];
+    this.data.log = [];
+    this.data.heroes = [];
+    this.data.enemies = [];
+    Audio.stopMusic();
   },
 
   getActionAreaTop: function() { return 270; },

@@ -214,3 +214,16 @@ Audio.stopMusic = function() {
   this._musicNodes = [];
   this._currentTrack = null;
 };
+
+Audio.cleanup = function() {
+  this.stopMusic();
+  this._pendingTrack = null;
+  if (this._ctx && this._ctx.state !== 'closed') {
+    this._ctx.suspend().catch(function() {});
+  }
+};
+
+// Pagehide listener to suspend audio when page is hidden/backgrounded
+document.addEventListener('pagehide', function() {
+  Audio.cleanup();
+});

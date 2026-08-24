@@ -14,6 +14,13 @@ const debugScene = Scene.create({
     this.buildButtons();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    this.data.lines = [];
+    this.data.scrollY = 0;
+  },
+
   buildLines: function() {
     this.data.lines = [];
     const s = G.state;

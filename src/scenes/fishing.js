@@ -32,6 +32,12 @@ const fishingScene = Scene.create({
     this.buildButtons();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    Audio.stopMusic();
+  },
+
   buildButtons: function() {
     this.data.buttons = [];
     // Bait tier selector: personalizes rare chance + window

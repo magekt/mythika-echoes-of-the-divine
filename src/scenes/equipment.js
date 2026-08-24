@@ -19,6 +19,15 @@ const equipmentScene = Scene.create({
     this.buildUI();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    this.data.staticDraws = [];
+    this.data.selectedHero = null;
+    this.data.selectedItem = null;
+    this.data.scrollY = 0;
+  },
+
   getContentTop: function() { return G.CONTENT_TOP; },
   getContentHeight: function() { return G.H - this.getContentTop() - 44; },
 

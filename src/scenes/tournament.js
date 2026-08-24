@@ -24,6 +24,15 @@ const tournamentScene = Scene.create({
     this.buildMenu();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    this.data.staticDraws = [];
+    this.data.log = [];
+    this.data.opponent = null;
+    this.data.scrollY = 0;
+  },
+
   getContentTop: function() { return 74; },
   getContentHeight: function() { return G.H - this.getContentTop(); },
 

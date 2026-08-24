@@ -25,6 +25,12 @@ const welcomeScene = Scene.create({
     this.data.buttons = [];
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    this.data.particles = [];
+  },
+
   update: function(dt) {
     for (const p of this.data.particles) {
       p.x += p.vx; p.y += p.vy;

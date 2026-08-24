@@ -1,0 +1,44 @@
+{
+  "$schema": "https://unpkg.com/oh-my-opencode-slim@latest/oh-my-opencode-slim.schema.json",
+  "preset": "nemotron",
+  "presets": {
+    "nemotron": {
+      "orchestrator": {
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "variant": "high",
+        "skills": ["*"],
+        "mcps": ["*", "!context7"]
+      },
+      "oracle": {
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "variant": "high",
+        "skills": ["simplify"],
+        "mcps": []
+      },
+      "explorer": {
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "variant": "high",
+        "skills": [],
+        "mcps": []
+      },
+      "librarian": {
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "variant": "high",
+        "skills": [],
+        "mcps": ["context7", "gh_grep"]
+      },
+      "designer": {
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "variant": "high",
+        "skills": [],
+        "mcps": []
+      },
+      "fixer": {
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "variant": "high",
+        "skills": [],
+        "mcps": []
+      }
+    }
+  }
+}

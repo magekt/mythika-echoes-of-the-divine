@@ -25,6 +25,12 @@ const characterCreateScene = Scene.create({
     this.buildClassButtons();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    this.data.scrollY = 0;
+  },
+
   getContentTop: function() { return 74; },
   getContentHeight: function() { return G.H - this.getContentTop(); },
 

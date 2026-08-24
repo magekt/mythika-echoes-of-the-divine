@@ -18,6 +18,15 @@ const spiritBeastScene = Scene.create({
     this.buildList();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    this.data.staticDraws = [];
+    this.data.beasts = [];
+    this.data.selectedBeast = null;
+    this.data.scrollY = 0;
+  },
+
   getContentTop: function() { return 88; },
   getContentHeight: function() { return G.H - this.getContentTop(); },
 

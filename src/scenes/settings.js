@@ -12,6 +12,13 @@ const settingsScene = Scene.create({
     this.buildButtons();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    this.data.staticDraws = [];
+    this.data.scrollY = 0;
+  },
+
   getContentTop: function() { return 86; },
   getContentHeight: function() { return G.H - this.getContentTop(); },
 

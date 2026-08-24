@@ -121,6 +121,10 @@ R.textCenter = function(ctx, str, x, y, color, font) {
   R.text(ctx, str, x, y, color, font, 'center');
 };
 
+R.textRight = function(ctx, str, x, y, color, font) {
+  R.text(ctx, str, x, y, color, font, 'right');
+};
+
 R.pixelChar = function(ctx, ch, x, y, color, size) {
   const s = size || 4;
   const chars = {
@@ -243,13 +247,69 @@ R.drawHero = function(ctx, name, x, y, size) {
   ctx.fillText(name.charAt(0).toUpperCase() + name.slice(1), cx, cy + hs + 12);
 };
 
-R.damageNumbers = [];
+// Circular buffer helper for bounded particle arrays
+function createCircularBuffer(maxSize) {
+  const buffer = new Array(maxSize);
+  let writeIndex = 0;
+  let count = 0;
+  return {
+    buffer,
+    writeIndex,
+    count,
+    maxSize,
+    add(item) {
+      buffer[writeIndex] = item;
+      writeIndex = (writeIndex + 1) % maxSize;
+      if (count < maxSize) count++;
+    },
+    forEach(fn) {
+      // Iterate in insertion order (oldest first)
+      for (let i = 0; i < count; i++) {
+        const idx = (writeIndex - count + i + maxSize) % maxSize;
+        fn(buffer[idx], i);
+      }
+    },
+    filterInPlace(predicate) {
+      // Remove items that don't match predicate, maintain order
+      let readIdx = 0;
+      let writeIdx = 0;
+      for (let i = 0; i < count; i++) {
+        const idx = (writeIndex - count + i + maxSize) % maxSize;
+        if (predicate(buffer[idx])) {
+          if (readIdx !== writeIdx) {
+            buffer[writeIdx] = buffer[idx];
+          }
+          writeIdx = (writeIdx + 1) % maxSize;
+        }
+        readIdx++;
+      }
+      count = writeIdx;
+      writeIndex = writeIdx;
+    },
+    get length() { return count; },
+    get all() {
+      const result = [];
+      for (let i = 0; i < count; i++) {
+        const idx = (writeIndex - count + i + maxSize) % maxSize;
+        result.push(buffer[idx]);
+      }
+      return result;
+    },
+    clear() {
+      count = 0;
+      writeIndex = 0;
+    }
+  };
+}
+
+// Particle arrays with circular buffers (bounded memory)
+R.damageNumbers = createCircularBuffer(50);
 R.shakeX = 0;
 R.shakeY = 0;
 R.shakeTimer = 0;
 
 R.damageNumber = function(ctx, x, y, value, color) {
-  R.damageNumbers.push({
+  R.damageNumbers.add({
     x: x, y: y, value: value,
     color: color || R.colors.red,
     vy: -40, life: 1, maxLife: 1
@@ -266,25 +326,27 @@ R.screenShake = function(intensity, duration) {
 };
 
 // Death animation: an expanding fading ring with outward sparks.
-R.deathBursts = [];
+R.deathBursts = createCircularBuffer(30);
 
 R.deathBurst = function(x, y, color) {
   if (G.state.reduceMotion) return;
-  R.deathBursts.push({ x: x, y: y, life: 0.6, maxLife: 0.6, color: color || R.colors.red });
+  R.deathBursts.add({ x: x, y: y, life: 0.6, maxLife: 0.6, color: color || R.colors.red });
 };
 
 R.updateEffects = function(dt) {
-  for (let i = R.damageNumbers.length - 1; i >= 0; i--) {
-    const d = R.damageNumbers[i];
+  // Damage numbers - filter out expired
+  R.damageNumbers.filterInPlace(d => {
     d.y += d.vy * dt;
     d.life -= dt;
-    if (d.life <= 0) R.damageNumbers.splice(i, 1);
-  }
-  for (let i = R.deathBursts.length - 1; i >= 0; i--) {
-    const b = R.deathBursts[i];
+    return d.life > 0;
+  });
+  
+  // Death bursts - filter out expired
+  R.deathBursts.filterInPlace(b => {
     b.life -= dt;
-    if (b.life <= 0) R.deathBursts.splice(i, 1);
-  }
+    return b.life > 0;
+  });
+  
   if (R.shakeTimer > 0) {
     R.shakeTimer -= dt;
     R.shakeX = (Math.random() - 0.5) * R.shakeIntensity * 2 * (R.shakeTimer / 0.3);
@@ -295,12 +357,13 @@ R.updateEffects = function(dt) {
 };
 
 R.renderEffects = function(ctx) {
-  for (const d of R.damageNumbers) {
+  R.damageNumbers.forEach(d => {
     const alpha = Math.max(0, d.life / d.maxLife);
     ctx.globalAlpha = alpha;
     R.textCenter(ctx, d.value.toString(), d.x + R.shakeX, d.y + R.shakeY, d.color, R.fonts.lg);
-  }
-  for (const b of R.deathBursts) {
+  });
+  
+  R.deathBursts.forEach(b => {
     const t = 1 - b.life / b.maxLife;
     const alpha = b.life / b.maxLife;
     const radius = 6 + t * 26;
@@ -315,7 +378,7 @@ R.renderEffects = function(ctx) {
       const d = radius * 0.8;
       R.rect(ctx, b.x + Math.cos(a) * d + R.shakeX, b.y + Math.sin(a) * d + R.shakeY, 2, 2, b.color);
     }
-  }
+  });
   ctx.globalAlpha = 1;
   
   if (R.comboFlash > 0) {
@@ -332,13 +395,13 @@ R.renderEffects = function(ctx) {
 // Blocked press: a stone flies in and strikes the surface — ripple rings
 // and dent marks appear, but nothing shatters. Empty space and off-screen
 // coordinates stay dead by design.
-R.clickFx = [];
+R.clickFx = createCircularBuffer(16);
 R.CLICKFX_MAX = 16;
 
 R.validTick = function(x, y) {
   if (R.reducedMotion()) return;
   if (x < 0 || x > G.W || y < 0 || y > G.H) return;
-  if (R.clickFx.length >= R.CLICKFX_MAX) R.clickFx.shift();
+  // Circular buffer handles overflow automatically
   const sparks = [];
   for (let i = 0; i < 4; i++) {
     const a = Math.random() * Math.PI * 2;
@@ -350,16 +413,16 @@ R.validTick = function(x, y) {
       color: i % 2 ? R.colors.gold : R.colors.white
     });
   }
-  R.clickFx.push({ type: 'tick', x: x, y: y, age: 0, sparks: sparks });
+  R.clickFx.add({ type: 'tick', x: x, y: y, age: 0, sparks: sparks });
 };
 
 R.stoneHit = function(x, y) {
   if (x < 0 || x > G.W || y < 0 || y > G.H) return;
-  if (R.clickFx.length >= R.CLICKFX_MAX) R.clickFx.shift();
+  // Circular buffer handles overflow automatically
   if (R.reducedMotion()) {
     // Static dent mark: informational, zero motion. Sound still fires.
     Audio.thud();
-    R.clickFx.push({
+    R.clickFx.add({
       type: 'glass', x: x, y: y, age: 0.3, staticMark: true,
       rings: [], ticks: []
     });
@@ -371,7 +434,7 @@ R.stoneHit = function(x, y) {
   for (let i = 0; i < 5; i++) {
     ticks.push((Math.PI * 2 / 5) * i + Math.random() * 0.5);
   }
-  R.clickFx.push({
+  R.clickFx.add({
     type: 'glass', x: x, y: y, age: 0,
     sx: x + Math.cos(a) * dist, sy: y + Math.sin(a) * dist,
     impactAt: 0.11, angle: a,
@@ -380,10 +443,9 @@ R.stoneHit = function(x, y) {
 };
 
 R.updateClickFx = function(dt) {
-  for (let i = R.clickFx.length - 1; i >= 0; i--) {
-    const f = R.clickFx[i];
+  R.clickFx.filterInPlace(f => {
     f.age += dt;
-    let done;
+    let done = false;
     if (f.type === 'tick') {
       done = f.age > 0.24;
       for (const s of f.sparks) {
@@ -404,12 +466,12 @@ R.updateClickFx = function(dt) {
         for (const rg of f.rings) rg.t = f.age - rg.born;
       }
     }
-    if (done) R.clickFx.splice(i, 1);
-  }
+    return !done;
+  });
 };
 
 R.renderClickFx = function(ctx) {
-  for (const f of R.clickFx) {
+  R.clickFx.forEach(f => {
     if (f.type === 'tick') {
       const t = f.age / 0.18;
       if (t <= 1) {
@@ -577,7 +639,7 @@ R.renderProjectiles = function(ctx) {
 };
 
 R.levelUpFlash = 0;
-R.levelUpParticles = [];
+R.levelUpParticles = createCircularBuffer(100);
 R.enlightenmentAura = 0;
 R.comboFlash = 0;
 R.comboFlashColor = '#e8a030';
@@ -586,7 +648,7 @@ R.triggerLevelUp = function() {
   if (R.reducedMotion()) return;
   R.levelUpFlash = 0.5;
   for (let i = 0; i < 20; i++) {
-    R.levelUpParticles.push({
+    R.levelUpParticles.add({
       x: G.W / 2 + (Math.random() - 0.5) * 200,
       y: G.H / 2 + (Math.random() - 0.5) * 100,
       vx: (Math.random() - 0.5) * 100,
@@ -610,14 +672,13 @@ R.triggerComboFlash = function(level) {
 
 R.updateLevelUp = function(dt) {
   if (R.levelUpFlash > 0) R.levelUpFlash -= dt;
-  for (let i = R.levelUpParticles.length - 1; i >= 0; i--) {
-    const p = R.levelUpParticles[i];
+  R.levelUpParticles.filterInPlace(p => {
     p.x += p.vx * dt;
     p.y += p.vy * dt;
     p.vy += 100 * dt;
     p.life -= dt;
-    if (p.life <= 0) R.levelUpParticles.splice(i, 1);
-  }
+    return p.life > 0;
+  });
 };
 
 R.renderLevelUp = function(ctx) {
@@ -626,11 +687,11 @@ R.renderLevelUp = function(ctx) {
     ctx.fillStyle = 'rgba(200, 160, 80, ' + (alpha * 0.3) + ')';
     ctx.fillRect(0, 0, G.W, G.H);
   }
-  for (const p of R.levelUpParticles) {
+  R.levelUpParticles.forEach(p => {
     const alpha = Math.max(0, p.life);
     ctx.globalAlpha = alpha;
     R.rect(ctx, p.x, p.y, p.size, p.size, p.color);
-  }
+  });
   ctx.globalAlpha = 1;
 };
 

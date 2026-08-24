@@ -13,6 +13,15 @@ const bazaarScene = Scene.create({
     this.buildUI();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    this.data.inventory = [];
+    this.data.tabBar = null;
+    this.data.buyList = null;
+    this.data.sellList = null;
+  },
+
   generateInventory: function() {
     this.data.inventory = [];
     const allWeapons = Object.values(ITEMS.weapons).filter(i => !i.unique);

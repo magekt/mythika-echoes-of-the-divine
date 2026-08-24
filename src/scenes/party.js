@@ -21,6 +21,15 @@ const partyScene = Scene.create({
     this.buildList();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this._fluidNav = null;
+    this.data.buttons = [];
+    this.data.staticDraws = [];
+    this.data.selectedHero = null;
+    this.data.scrollY = 0;
+  },
+
   getContentTop: function() { return 74; },
   getContentHeight: function() { return G.H - this.getContentTop(); },
 
@@ -374,7 +383,7 @@ const partyScene = Scene.create({
           R.roundRect(ctx, bx, by, bw, bh, 4, R.colors.btnGold);
           ctx.fillStyle = this._type === 'consumable' ? R.colors.green : R.colors.blue;
           R.roundRect(ctx, bx, by, 4, bh, 0, ctx.fillStyle);
-          const text = this._text || '';
+          const text = this.text || '';
           const parenIdx = text.lastIndexOf(' (');
           if (parenIdx > 0) {
             R.text(ctx, text.substring(0, parenIdx), bx + 12, by + 16, R.colors.white, R.fonts.sm);
@@ -383,16 +392,7 @@ const partyScene = Scene.create({
             ctx.font = R.fonts.sm;
             const mainW = ctx.measureText(text.substring(0, parenIdx)).width;
             R.text(ctx, diffText, bx + 12 + mainW, by + 16, diffColor, R.fonts.sm);
-    } else if (this.data.view === 'recruit') {
-      R.drawHeader(ctx, 62, 'Recruit Hall');
-      R.textCenter(ctx, 'Allies arrive at 60% of your leader\'s level', G.W / 2, 48, R.colors.textDim, R.fonts.sm);
-      Scene.clipContent(ctx, this);
-      for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
-      Scene.drawStatic(ctx, this.data.staticDraws);
-      ctx.restore();
-      Scene.drawScrollbar(ctx, this.getContentTop(), this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
-
-    } else {
+          } else {
             R.text(ctx, text, bx + 12, by + 16, R.colors.white, R.fonts.sm);
           }
         };

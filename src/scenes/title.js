@@ -40,6 +40,13 @@ const titleScene = Scene.create({
     }
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    this.data.particles = [];
+    Audio.stopMusic();
+  },
+
   update: function(dt) {
     // Ease-out settle: fast arrival, soft landing — 1.6s cinematic on the
     // first-ever visit, 900ms afterwards. Instant under Reduce Motion.

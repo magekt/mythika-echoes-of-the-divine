@@ -16,6 +16,13 @@ const travelMapScene = Scene.create({
     this.buildZoneButtons();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    this.data.selectedZone = null;
+    this.data.scrollY = 0;
+  },
+
   getContentTop: function() { return G.CONTENT_TOP; },
   getContentHeight: function() { return G.H - this.getContentTop(); },
 

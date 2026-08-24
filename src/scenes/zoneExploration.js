@@ -35,6 +35,14 @@ const zoneExplorationScene = Scene.create({
     this.buildButtons();
   },
 
+  leave: function() {
+    this._heroMoment = null;
+    this.data.buttons = [];
+    this.data.log = [];
+    this.data.zone = null;
+    this.data.zoneId = null;
+  },
+
   getContentTop: function() { return 134; },
   getContentHeight: function() { return G.H - this.getContentTop(); },
 
