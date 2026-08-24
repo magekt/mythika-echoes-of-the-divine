@@ -147,45 +147,45 @@ const combatScene = Scene.create({
         const skills = hero.skills || [];
         let y = 6;
 
-        const atkBtn = UI.BtnGold(20, y, G.W / 2 - 26, 30, 'Attack');
+        const atkBtn = UI.BtnGold(20, y, G.W / 2 - 26, 38, 'Attack');
         atkBtn.onClick = function() { combatScene.doPlayerAttack(null); };
         this.data.actionButtons.push(atkBtn);
 
-        const defBtn = UI.Button(G.W / 2 + 6, y, G.W / 2 - 26, 30, 'Defend');
+        const defBtn = UI.Button(G.W / 2 + 6, y, G.W / 2 - 26, 38, 'Defend');
         defBtn.onClick = function() { combatScene.doDefend(); };
         this.data.actionButtons.push(defBtn);
-        y += 36;
+        y += 40;
 
           for (const skill of skills) {
           const label = skill.name + ' (' + (skill.cost || 0) + ' MP)';
-          const btn = UI.Button(20, y, G.W - 40, 28, label);
+          const btn = UI.Button(20, y, G.W - 40, 38, label);
           btn.data = skill;
           btn.enabled = hero.mp >= (skill.cost || 0);
           btn.onClick = function() { combatScene.doPlayerAttack(this.data); };
           this.data.actionButtons.push(btn);
-          y += 32;
+          y += 40;
         }
 
         const beast = (G.state.spiritBeasts || []).find(b => b.id === G.state.activeBeast);
         if (beast) {
           if (this.data.beastCooldown <= 0) {
             const beastLabel = 'Beast: ' + beast.name + ' \u2192 ' + beast.skill;
-            const beastBtn = UI.Button(20, y, G.W - 40, 28, beastLabel, R.colors.green);
+            const beastBtn = UI.Button(20, y, G.W - 40, 38, beastLabel, R.colors.green);
             beastBtn.onClick = function() { combatScene.doBeastSkill(); };
             this.data.actionButtons.push(beastBtn);
-            y += 32;
+            y += 40;
           } else {
             const cdLabel = this.data.beastSkillUsed ? 'Beast: ' + beast.name + ' (used)' : 'Beast: ' + beast.name + ' (' + this.data.beastCooldown + 't)';
-            const cdBtn = UI.Button(20, y, G.W - 40, 28, cdLabel, R.colors.btn);
+            const cdBtn = UI.Button(20, y, G.W - 40, 38, cdLabel, R.colors.btn);
             cdBtn.enabled = false;
             this.data.actionButtons.push(cdBtn);
-            y += 32;
+            y += 40;
           }
         }
 
         y += 4;
 
-        const autoBtn = UI.Button(20, y, (G.W - 40) / 2 - 3, 26, this.data.autoBattle ? 'Auto: ON' : 'Auto: OFF', this.data.autoBattle ? R.colors.green : R.colors.btn);
+        const autoBtn = UI.Button(20, y, (G.W - 40) / 2 - 3, 32, this.data.autoBattle ? 'Auto: ON' : 'Auto: OFF', this.data.autoBattle ? R.colors.green : R.colors.btn);
         autoBtn.onClick = function() {
           combatScene.data.autoBattle = !combatScene.data.autoBattle;
           combatScene.buildActionButtons();
@@ -193,7 +193,7 @@ const combatScene = Scene.create({
         };
         this.data.actionButtons.push(autoBtn);
 
-        const flee = UI.Button(G.W / 2 + 3, y, (G.W - 40) / 2 - 3, 26, 'Flee');
+        const flee = UI.Button(G.W / 2 + 3, y, (G.W - 40) / 2 - 3, 32, 'Flee');
         flee.onClick = function() { combatScene.doFlee(); };
         this.data.actionButtons.push(flee);
 
@@ -202,7 +202,7 @@ const combatScene = Scene.create({
         for (const enemy of this.data.enemies) {
           if (enemy.hp <= 0) continue;
           const isSelected = this.data.selectedEnemy === enemy;
-          const btn = UI.Button(G.W - 62, ey, 56, 28, enemy.name.substring(0, 5), isSelected ? R.colors.btnGold : R.colors.btn);
+          const btn = UI.Button(G.W - 62, ey, 56, 38, enemy.name.substring(0, 5), isSelected ? R.colors.btnGold : R.colors.btn);
           btn._enemyRef = enemy;
           btn.onClick = (function(e) {
             return function() {
@@ -215,7 +215,7 @@ const combatScene = Scene.create({
         }
       }
     } else if (this.data.turnState === 'result') {
-      const btn = UI.BtnGold(100, 10, 200, 36, 'Continue');
+      const btn = UI.BtnGold(100, 10, 200, 42, 'Continue');
       btn.onClick = function() {
         gScene('ashram', true);
       };
@@ -741,6 +741,30 @@ const combatScene = Scene.create({
       R.textCenter(ctx, '\u25C0 Enemy Turn', G.W / 2, 88, R.colors.red, R.fonts.sm);
     }
 
+    // Enemy display area - PremiumShell panel with selected enemy sprite, name, HP bar
+    const selectedEnemy = this.data.enemies.find(e => e.hp > 0);
+    if (selectedEnemy) {
+      const panelW = 170;
+      const panelH = 80;
+      const panelX = G.W - panelW;
+      const panelY = 32;
+      const premiumShell = UI.PremiumShell(panelX, panelY, panelW, panelH, { outerR: 16 });
+      premiumShell.render(ctx);
+      const content = premiumShell.contentRect();
+      
+      // Enemy sprite
+      if (selectedEnemy.sprite) {
+        R.drawEnemy(ctx, selectedEnemy.id, content.x + content.w / 2, content.y + 10, 22);
+      }
+      R.textCenter(ctx, selectedEnemy.name, content.x + content.w / 2, content.y + 38, selectedEnemy.hp > 0 ? R.colors.red : R.colors.textDim, R.fonts.sm);
+      
+      // HP bar inside panel
+      const hpBar = UI.ProgressBar(content.x + 20, content.y + 50, content.w - 40, 8, R.colors.gold, R.colors.borderHairline);
+      hpBar.setProgress(selectedEnemy.hp, selectedEnemy.maxHp);
+      hpBar.render(ctx);
+      R.textCenter(ctx, Math.floor(selectedEnemy.hp) + '/' + selectedEnemy.maxHp, content.x + content.w / 2, content.y + 62, R.colors.white, R.fonts.sm);
+    }
+    
     let hx = 12;
     const heroStep = this.data.heroes.length <= 3 ? 90 : 68;   // keep 4-5 hero bars on-canvas
     const hy = 32;
@@ -749,16 +773,16 @@ const combatScene = Scene.create({
       R.drawHero(ctx, h.id, hx + 12, hy, 22);
       R.textCenter(ctx, h.name, hx + 12, hy + 30, col, R.fonts.sm);
       if (h.hp > 0) {
-        // Ghost trail: a white segment eases from the previous HP down to the
-        // current one, so damage reads as a draining bar. Heals snap it full.
-        if (typeof h._ghostHp !== 'number' || h.hp > h._ghostHp) h._ghostHp = h.hp;
-        h._ghostHp += (h.hp - h._ghostHp) * Math.min(1, G.dt * 6);
-        R.roundRect(ctx, hx, hy + 34, 48, 4, 2, 'rgba(200,48,48,0.2)');
-        const gw = 48 * Math.min(1, Math.max(0, h._ghostHp / h.maxHp));
-        if (gw > 0) R.roundRect(ctx, hx, hy + 34, gw, 4, 2, R.colors.white);
-        R.roundRect(ctx, hx, hy + 34, 48 * Math.min(1, Math.max(0, h.hp / h.maxHp)), 4, 2, R.colors.hp);
-        R.roundRect(ctx, hx, hy + 40, 48, 3, 2, 'rgba(48,128,200,0.2)');
-        R.roundRect(ctx, hx, hy + 40, 48 * (h.mp / h.maxMp), 3, 2, R.colors.mp);
+        // HP ProgressBar (8px height, gold fill, borderHairline track)
+        const hpBar = UI.ProgressBar(hx + 12, hy + 34, 48, 8, R.colors.gold, R.colors.borderHairline);
+        hpBar.setProgress(h.hp, h.maxHp);
+        hpBar.render(ctx);
+        // MP ProgressBar (8px height, mp fill, borderHairline track)
+        const mpBar = UI.ProgressBar(hx + 12, hy + 40, 48, 8, R.colors.mp, R.colors.borderHairline);
+        mpBar.setProgress(h.mp, h.maxMp);
+        mpBar.render(ctx);
+        R.textCenter(ctx, Math.floor(h.hp) + '/' + h.maxHp, hx + 12 + 24, hy + 48, R.colors.white, R.fonts.sm);
+        R.textCenter(ctx, Math.floor(h.mp) + '/' + h.maxMp, hx + 12 + 24, hy + 54, R.colors.white, R.fonts.sm);
       }
       const buffStr = [];
       if (h.buffs) {
@@ -799,8 +823,7 @@ const combatScene = Scene.create({
       const logSlice = this.data.log.slice(-4);
       let logY = this.getActionAreaTop() - 78;
       for (const msg of logSlice) {
-        ctx.fillStyle = 'rgba(0,0,0,0.45)';
-        R.roundRect(ctx, 14, logY - 1, G.W - 28, 16, 3, ctx.fillStyle);
+        R.roundRect(ctx, 14, logY - 1, G.W - 28, 16, 3, R.colors.panel);
         R.textCenter(ctx, msg, G.W / 2, logY + 11, R.colors.text, R.fonts.sm);
         logY += 18;
       }
@@ -812,6 +835,9 @@ const combatScene = Scene.create({
     ctx.rect(8, top - 4, G.W - 16, this.getActionAreaHeight() + 4);
     ctx.clip();
     ctx.translate(0, top - 6 - this.data.scrollY);
+    
+    // Viewport culling: only render buttons visible within the scroll area
+    const vis = Scene.cullButtons(this.data.actionButtons, this.data.scrollY, this.getActionAreaHeight());
 
     const actionContentH = this.data.actionButtons.length * 42 + 120;
     R.roundRect(ctx, 10, 6, G.W - 20, actionContentH, 8, 'rgba(0,0,0,0.6)');
@@ -827,7 +853,7 @@ const combatScene = Scene.create({
 
     if (this.data.showEnlightenment) {
       ly += 4;
-      for (const b of this.data.actionButtons) {
+      for (const b of vis) {
         b.y = ly;
         b.render(ctx);
         ly += 56;
@@ -839,7 +865,7 @@ const combatScene = Scene.create({
       R.textCenter(ctx, 'Enemy is acting...', G.W / 2, ly + 19, R.colors.textDim, R.fonts.md);
     } else if (this.data.turnState !== 'result') {
       ly += 4;
-      for (const b of this.data.actionButtons) {
+      for (const b of vis) {
         b.y = ly;
         b.render(ctx);
         ly += 34;
@@ -853,7 +879,7 @@ const combatScene = Scene.create({
         R.textCenter(ctx, '+' + Math.floor(rw.shownG) + 'g   \u00b7   +' + Math.floor(rw.shownX) + ' XP', G.W / 2, ly + 14, R.colors.gold, R.fonts.lg);
         ly += 34;
       }
-      for (const b of this.data.actionButtons) {
+      for (const b of vis) {
         b.y = ly;
         b.render(ctx);
         ly += 50;
