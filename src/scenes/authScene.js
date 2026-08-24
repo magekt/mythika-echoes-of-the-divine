@@ -7,7 +7,6 @@ const authScene = Scene.create({
     showSignup: false,
     buttons: [],
     scrollY: 0,
-    staticDraws: [],
     contentHeight: 0,
     signedInUser: null
   },
@@ -15,23 +14,38 @@ const authScene = Scene.create({
   enter: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
-    this.data.staticDraws = [];
     this.data.signedInUser = Auth.user;
     this.buildButtons();
   },
 
   leave: function() {
     this.data.buttons = [];
-    this.data.staticDraws = [];
-    this.data.scrollY = 0;
+    this.data.signedInUser = null;
+  },
+
+  getContentTop: function() { return 74; },
+  getContentHeight: function() { return G.H - this.getContentTop(); },
+
+  clampScroll: function() {
+    const ch = this.data.contentHeight;
+    const vh = this.getContentHeight();
+    const maxScroll = Math.max(0, ch - vh);
+    if (this.data.scrollY > maxScroll) this.data.scrollY = maxScroll;
+    if (this.data.scrollY < 0) this.data.scrollY = 0;
   },
 
   buildButtons: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
-    this.data.staticDraws = [];
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
+
+    // --- PremiumShell form container ---
+    const formH = y + 300; // estimated height, will be adjusted
+    const formShell = UI.PremiumShell(20, y, G.W - 40, formH, { outerR: 12 });
+    formShell.render(ctx);
+    SD.push({ shell: formShell });
+    y += 24; // padding inside premium shell outer bezel
 
     // --- Title ---
     const titleBtn = UI.Button(20, y, G.W - 40, 40, 'Mythika: Cloud Save', '');
@@ -47,7 +61,6 @@ const authScene = Scene.create({
     const modeBtn = UI.Button(20, y, G.W - 40, 36, this.data.mode === 'signin' ? 'Sign In' : 'Sign Up');
     modeBtn.onClick = function() {
       Auth.init();
-      Auth[Auth.user ? 'signOut' : 'signIn'] ? null : null;
       this.data.mode = this.data.mode === 'signin' ? 'signup' : 'signin';
       settingsScene.buildButtons();
     };
@@ -70,8 +83,8 @@ const authScene = Scene.create({
     this.data.buttons.push(pwInput);
     y += 52;
 
-    // --- Action button ---
-    const actionBtn = UI.Button(20, y, G.W - 40, 38, this.data.mode === 'signin' ? 'Sign In' : 'Sign Up');
+    // --- Action button (BtnGold primary) ---
+    const actionBtn = UI.BtnGold(20, y, G.W - 40, 38, this.data.mode === 'signin' ? 'Sign In' : 'Sign Up');
     actionBtn.onClick = async function() {
       if (Auth.user) {
         Auth.signOut();
@@ -89,7 +102,7 @@ const authScene = Scene.create({
           if (result.user) {
             Notify.show('Account created: ' + result.user.email, 2, R.colors.green);
           } else {
-            Notify.signup ? Notify.show('Sign up failed: ' + (result.error || 'unknown error'), 3, R.colors.red) : Notify.show('Sign up failed', 3, R.colors.red);
+            Notify.show('Sign up failed: ' + (result.error || 'unknown error'), 3, R.colors.red);
           }
         }
       }
@@ -100,20 +113,15 @@ const authScene = Scene.create({
     this.data.buttons.push(actionBtn);
     y += 48;
 
-    // --- Continue without account ---
-    const ghostBtn = UI.Button(20, y, G.W - 40, 34, 'Continue without account (offline mode)');
-    ghostBtn._color = R.colors.textDim;
-    ghostBtn.render = function(ctx) {
-      R.roundRect(ctx, this.x, this.y, this.w, this.h, 6, 'rgba(255,255,255,0.1)');
-      R.textCenter(ctx, this._label, this.x + this.w / 2, this.y + this.h / 2 + 2, this._color, R.fonts.sm);
-    };
+    // --- Continue without account (ghost button / MagneticBtn ghost variant) ---
+    const ghostBtn = UI.MagneticBtn(20, y, G.W - 40, 38, 'Continue without account (offline mode)', 'ghost');
     ghostBtn.onClick = function() {
       Auth.user = null;
       Notify.show('Playing in offline mode', 2, R.colors.dimGrey);
       Scene.goTo('ashram');
     };
     this.data.buttons.push(ghostBtn);
-    y += 44;
+    y += 48;
 
     // --- Already have account link ---
     if (!Auth.user) {
@@ -143,14 +151,25 @@ const authScene = Scene.create({
     R.textCenter(ctx, 'Sign in with email or create a new account', G.W / 2, 50, R.colors.textDim, R.fonts.sm);
 
     const top = this.getContentTop();
-    Scene.clipContent(ctx, this);
+    const contentH = this.getContentHeight();
 
-    for (const b of this.data.buttons) b.render(ctx);
+    // Render PremiumShell and static draws BEFORE clip
     Scene.drawStatic(ctx, this.data.staticDraws);
+
+    // Clip content area
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, top, G.W, contentH);
+    ctx.clip();
+    ctx.translate(0, -this.data.scrollY);
+
+    // Render visible buttons inside clip
+    const vis = Scene.cullButtons(this.data.buttons, this.data.scrollY, contentH);
+    for (const b of vis) b.render(ctx);
 
     ctx.restore();
 
-    Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
+    Scene.drawScrollbar(ctx, top, this.data.contentHeight, contentH, this.data.scrollY);
 
     UI.Modal.render(ctx);
   }

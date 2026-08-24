@@ -43,8 +43,14 @@ const trialsScene = Scene.create({
   buildMenu: function() {
     this.data.buttons = [];
     const canStart = !!G.state.player;
-    const btn = UI.BtnGold(60, 120, G.W - 120, 40, 'Begin Trial \u2014 Wave 1', canStart ? R.colors.btnGold : R.colors.btn);
-    btn.enabled = canStart;
+    // 86px tall begin trial button with PremiumShell
+    const beginShell = UI.PremiumShell(60, 120, G.W - 120, 44, { outerR: 8 });
+    beginShell.render(ctx);
+    this.data.staticDraws.push({ shell: beginShell });
+    let y = 168; // after premium shell
+
+    const btn = UI.BtnGold(60, y, G.W - 120, 38, 'Begin Trial \u2014 Wave 1');
+    btn.enabled = canStart && !!G.state.flags && G.state.flags.boss_svarga;
     btn.onClick = function() { trialsScene.startRun(); };
     this.data.buttons.push(btn);
     this.data.buttons.push(Scene.backButton(G.H - 80, { fade: true }));
@@ -95,21 +101,26 @@ const trialsScene = Scene.create({
   buildFightButtons: function() {
     this.data.buttons = [];
     let y = 196;
-    const atk = UI.BtnGold(30, y, G.W / 2 - 40, 30, 'Attack');
+    // Attack - primary action, BtnGold, 38px minimum touch target
+    const atk = UI.BtnGold(30, y, G.W / 2 - 40, 38, 'Attack');
     atk.onClick = function() { trialsScene.doRound('attack'); };
     this.data.buttons.push(atk);
-    const special = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 30, 'Special');
+    // Special - secondary action
+    const special = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 38, 'Special');
     special.onClick = function() { trialsScene.doRound('special'); };
     this.data.buttons.push(special);
-    y += 36;
-    const heal = UI.Button(30, y, G.W / 2 - 40, 30, 'Heal');
+    y += 46;
+    // Heal - secondary action
+    const heal = UI.Button(30, y, G.W / 2 - 40, 38, 'Heal');
     heal.onClick = function() { trialsScene.doRound('heal'); };
     this.data.buttons.push(heal);
-    const def = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 30, 'Defend');
+    // Defend - secondary action
+    const def = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 38, 'Defend');
     def.onClick = function() { trialsScene.doRound('defend'); };
     this.data.buttons.push(def);
-    y += 44;
-    const flee = UI.Button(60, y, G.W - 120, 28, 'Retreat (keep rewards)', R.colors.btn);
+    y += 50;
+    // Retreat - secondary action, 38px tall
+    const flee = UI.Button(60, y, G.W - 120, 38, 'Retreat (keep rewards)', R.colors.btn);
     flee.onClick = function() { trialsScene.endRun('You retreat from the Trial.'); };
     this.data.buttons.push(flee);
   },
@@ -194,7 +205,7 @@ const trialsScene = Scene.create({
 
   buildResult: function() {
     this.data.buttons = [];
-    const btn = UI.BtnGold(60, G.H - 140, G.W - 120, 34, 'Back to Trials Menu');
+    const btn = UI.BtnGold(60, G.H - 140, G.W - 120, 38, 'Back to Trials Menu');
     btn.onClick = function() {
       trialsScene.data.state = 'menu';
       trialsScene.enter();

@@ -52,8 +52,14 @@ const tournamentScene = Scene.create({
     let y = this.getContentTop();
     const cost = 50 + (this.data.wins * 25);
 
+    // PremiumShell entry button
+    const entryShell = UI.PremiumShell(30, y, G.W - 60, 44, { outerR: 8 });
+    entryShell.render(ctx);
+    SD.push({ shell: entryShell, x: 30, y: y });
+    y += 58;
+
     const canEnter = (G.state.gold || 0) >= cost;
-    const btn = UI.Button(30, y, G.W - 60, 36, 'Enter Tournament (' + cost + 'g)', canEnter ? R.colors.btnGold : R.colors.btn);
+    const btn = UI.BtnGold(30, y, G.W - 60, 38, 'Enter Tournament (' + cost + 'g)');
     btn.enabled = canEnter;
     btn.onClick = function() {
       if (Economy.spendGold(cost)) {
@@ -64,14 +70,14 @@ const tournamentScene = Scene.create({
       }
     };
     this.data.buttons.push(btn);
-    y += 44;
+    y += 48;
 
     SD.push({ text: ['Wins: ' + this.data.wins, 20, y + 4, R.colors.gold, R.fonts.sm] });
     SD.push({ text: ['Entry Fee: ' + cost + 'g', 20, y + 20, R.colors.textDim, R.fonts.sm] });
-    y += 36;
+    y += 44;
 
     this.data.buttons.push(Scene.backButton(y + 4, { fade: true }));
-    y += 44;
+    y += 48;
 
     this.data.contentHeight = y;
   },
@@ -103,33 +109,38 @@ const tournamentScene = Scene.create({
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
-    const atk = UI.BtnGold(30, y, G.W / 2 - 40, 30, 'Attack');
+    // Attack - primary action, BtnGold, 38px minimum
+    const atk = UI.BtnGold(30, y, G.W / 2 - 40, 38, 'Attack');
     atk.onClick = function() { tournamentScene.doRound('attack'); };
     this.data.buttons.push(atk);
 
-    const special = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 30, 'Special');
+    // Special - secondary action
+    const special = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 38, 'Special');
     special.onClick = function() { tournamentScene.doRound('special'); };
     this.data.buttons.push(special);
-    y += 36;
+    y += 46;
 
-    const heal = UI.Button(30, y, G.W / 2 - 40, 30, 'Heal');
+    // Heal - secondary action
+    const heal = UI.Button(30, y, G.W / 2 - 40, 38, 'Heal');
     heal.onClick = function() { tournamentScene.doRound('heal'); };
     this.data.buttons.push(heal);
 
-    const def = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 30, 'Defend');
+    // Defend - secondary action
+    const def = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 38, 'Defend');
     def.onClick = function() { tournamentScene.doRound('defend'); };
     this.data.buttons.push(def);
-    y += 44;
+    y += 50;
 
     if (this.data.log.length > 0) {
       for (const msg of this.data.log.slice(-5)) {
         SD.push({ text: [msg, 22, y + 2, R.colors.text, R.fonts.sm] });
-        y += 16;
+        y += 18;
       }
-      y += 10;
+      y += 12;
     }
 
-    const back = UI.Button(60, y + 4, G.W - 120, 30, 'Forfeit', R.colors.btn);
+    // Forfeit - secondary action
+    const back = UI.Button(60, y + 4, G.W - 120, 38, 'Forfeit', R.colors.btn);
     back.onClick = function() {
       tournamentScene.data.state = 'menu';
       tournamentScene.data.log = ['You fled the tournament...'];
@@ -137,7 +148,7 @@ const tournamentScene = Scene.create({
       tournamentScene.buildMenu();
     };
     this.data.buttons.push(back);
-    y += 44;
+    y += 50;
 
     this.data.contentHeight = y;
   },
@@ -149,20 +160,14 @@ const tournamentScene = Scene.create({
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
-    for (const msg of this.data.log.slice(-5)) {
-      SD.push({ text: [msg, 22, y + 2, R.colors.text, R.fonts.sm] });
-      y += 16;
-    }
-    y += 10;
-
-    const btn = UI.BtnGold(60, y + 4, G.W - 120, 34, 'Back to Menu');
+    const btn = UI.BtnGold(60, y + 4, G.W - 120, 38, 'Back to Menu');
     btn.onClick = function() {
       tournamentScene.data.state = 'menu';
       tournamentScene.data.scrollY = 0;
       tournamentScene.buildMenu();
     };
     this.data.buttons.push(btn);
-    y += 46;
+    y += 48;
 
     this.data.contentHeight = y;
   },

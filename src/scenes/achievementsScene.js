@@ -44,16 +44,22 @@ const achievementsScene = Scene.create({
 
     if (unlocked.length > 0) {
       for (const a of unlocked) {
-        const btn = UI.Button(14, y, G.W - 28, 30, '', R.colors.green);
+        // Unlocked achievement card: 86px tall with gold accent
+        const btn = UI.BtnGold(14, y, G.W - 28, 86, '\u2713 ' + a.name);
         btn._a = a;
         btn.enabled = false;
         btn.render = function(ctx) {
           const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-          R.roundRect(ctx, bx, by, bw, bh, 5, R.colors.green);
-          R.text(ctx, '\u2713 ' + this._a.name + ' \u2014 ' + this._a.desc, bx + 10, by + 18, R.colors.white, R.fonts.sm);
+          R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.panel);
+          ctx.strokeStyle = R.colors.gold;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
+          R.text(ctx, '\u2713 ' + this._a.name + ' \u2014 ' + this._a.desc, bx + 14, by + 30, R.colors.white, R.fonts.md);
+          // Progress line below
+          R.roundRect(ctx, bx + 14, by + bh - 28, bw - 28, 8, 4, 'rgba(232,160,48,0.12)');
         };
         this.data.buttons.push(btn);
-        y += 36;
+        y += 92; // card height + gap
       }
       y += 4;
     }
@@ -81,7 +87,8 @@ const achievementsScene = Scene.create({
         else if (id === 'full_pantheon') { cur = (G.state.party || []).length; target = 5; }
         const hasProgress = target > 0;
         const pct = hasProgress ? Math.min(1, cur / target) : 0;
-        const h = hasProgress ? 42 : 30;
+        // 86px tall card with progress bar
+        const h = 86;
         const btn = UI.Button(14, y, G.W - 28, h, '', R.colors.btn);
         btn._a = a;
         btn._cur = cur;
@@ -91,19 +98,17 @@ const achievementsScene = Scene.create({
         btn.enabled = false;
         btn.render = function(ctx) {
           const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-          ctx.globalAlpha = 0.5;
-          R.roundRect(ctx, bx, by, bw, bh, 5, R.colors.btn);
-          R.text(ctx, '\u25CB ' + this._a.name + ' \u2014 ' + this._a.desc, bx + 10, by + 14, R.colors.textDim, R.fonts.sm);
+          R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.btn);
+          R.text(ctx, '\u25CB ' + this._a.name + ' \u2014 ' + this._a.desc, bx + 14, by + 30, R.colors.textDim, R.fonts.md);
           if (this._hasProgress) {
-            R.text(ctx, this._cur + ' / ' + this._target, bx + bw - 10, by + 14, R.colors.gold, R.fonts.sm, 'right');
-            const barW = bw - 20;
-            R.roundRect(ctx, bx + 10, by + 22, barW, 6, 3, 'rgba(138,138,160,0.15)');
-            R.roundRect(ctx, bx + 10, by + 22, barW * this._pct, 6, 3, R.colors.gold);
+            R.text(ctx, this._cur + ' / ' + this._target, bx + bw - 14, by + 30, R.colors.gold, R.fonts.md, 'right');
+            const barW = bw - 28;
+            R.roundRect(ctx, bx + 14, by + bh - 28, barW, 8, 4, 'rgba(232,160,48,0.12)');
+            R.roundRect(ctx, bx + 14, by + bh - 28, barW * this._pct, 8, 4, R.colors.gold);
           }
-          ctx.globalAlpha = 1;
         };
         this.data.buttons.push(btn);
-        y += h + 6;
+        y += h + 12; // card height + gap
       }
     }
 

@@ -40,19 +40,26 @@ const punarjanmaScene = Scene.create({
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
+    // PremiumShell rebirth confirm button
     const canRebirth = G.state.player && G.state.player.level >= 30 && (G.state.karma || 0) >= 10;
-    const rb = UI.Button(20, y, G.W - 40, 36, 'Seek Moksha (Liberation)', canRebirth ? R.colors.btnGold : R.colors.btn);
-    rb.enabled = canRebirth;
-    rb.onClick = function() {
+    const rb = UI.PremiumShell(20, y, G.W - 40, 44, { outerR: 8 });
+    rb.render(ctx);
+    SD.push({ shell: rb, x: 20, y: y });
+    y += 50; // premium shell height + gap
+
+    const btn = UI.BtnGold(20, y, G.W - 40, 38, 'Seek Moksha (Liberation)');
+    btn.enabled = canRebirth;
+    btn.onClick = function() {
       UI.Modal.confirm('Seek Moksha',
         'Reset to level 1 with permanent stat bonuses.\nKarma Cost: 10',
         function(confirmed) {
           if (confirmed) punarjanmaScene.performRebirth();
         });
     };
-    this.data.buttons.push(rb);
-    y += 44;
+    this.data.buttons.push(btn);
+    y += 48;
 
+    // Requirements display
     const lvlOk = G.state.player ? G.state.player.level >= 30 : false;
     const karmaOk = (G.state.karma || 0) >= 10;
     const reqColor = lvlOk ? R.colors.green : R.colors.red;
@@ -75,7 +82,8 @@ const punarjanmaScene = Scene.create({
         const available = isPerkAvailable(pid);
         const canBuy = available && nextCost > 0 && (G.state.karma || 0) >= nextCost && curLvl < maxLvl;
 
-        const btn = UI.Button(14, y, G.W - 28, 36, '', canBuy ? R.colors.btnGold : R.colors.btn);
+        // 86px tall perk card
+        const btn = UI.Button(14, y, G.W - 28, 86, '', canBuy ? R.colors.btnGold : R.colors.btn);
         btn._pid = pid;
         btn._perk = perk;
         btn._curLvl = curLvl;
@@ -84,12 +92,12 @@ const punarjanmaScene = Scene.create({
         btn.enabled = canBuy;
         btn.render = function(ctx) {
           const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-          R.roundRect(ctx, bx, by, bw, bh, 5, this.color);
+          R.roundRect(ctx, bx, by, bw, bh, 8, this.color);
           if (!this._canBuy) ctx.globalAlpha = 0.5;
           R.roundRect(ctx, bx, by, 4, bh, 0, R.colors.gold);
-          R.text(ctx, this._perk.name + ' Lv.' + this._curLvl + '/' + this._perk.maxLvl, bx + 14, by + 13, R.colors.gold, R.fonts.sm);
+          R.text(ctx, this._perk.name + ' Lv.' + this._curLvl + '/' + this._perk.maxLvl, bx + 14, by + 18, R.colors.gold, R.fonts.md);
           const costStr = this._nextCost > 0 ? this._nextCost + ' Karma' : 'MAX';
-          R.text(ctx, costStr, bx + 14, by + 26, this._canBuy ? R.colors.gold : R.colors.textDim, R.fonts.sm);
+          R.text(ctx, costStr, bx + 14, by + 50, this._canBuy ? R.colors.gold : R.colors.textDim, R.fonts.sm);
           ctx.globalAlpha = 1;
         };
         btn.onClick = function() {
@@ -102,7 +110,7 @@ const punarjanmaScene = Scene.create({
           }
         };
         this.data.buttons.push(btn);
-        y += 42;
+        y += 92; // card height + gap
 
         if (!available) {
           SD.push({ text: ['Requires one Samsara crossing (rebirth)', 30, y + 2, R.colors.red, R.fonts.sm] });
