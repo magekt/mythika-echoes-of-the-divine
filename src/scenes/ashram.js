@@ -110,13 +110,6 @@ const ashramScene = Scene.create({
     this.data.scrollY = 0;
     this.buildNavButtons();
 
-    const cols = 3;
-    const gap = 12;
-    const ml = 18;
-    const cw = (G.W - ml * 2 - gap * (cols - 1)) / cols;
-    const cardH = 82;
-    const rowGap = 8;
-
     const sections = [
       {
         label: 'PROGRESSION', color: R.colors.orange,
@@ -159,7 +152,7 @@ const ashramScene = Scene.create({
       }
     ];
 
-    let y = this.getContentTop();
+    let y = this.getContentTop() + 140; // offset below fixed header (40+250 clip starts at 116, so 140 puts first scrollable item at ~256, below the 236 zone line)
 
     // Ashram Upgrade: steeper curve 1000*lv^1.5 gold + 5*lv DF → +0.05 cult/s, +0.5 prana/s & unlocks recipe tiers
     {
@@ -199,146 +192,56 @@ const ashramScene = Scene.create({
       y += 42;
     }
 
-    // Asymmetric Bento Grid Layout
-    // Define bento items with spans for asymmetric layout
-    const bentoItems = [
-      // PROGRESSION section
-      { id: 'travel', label: 'Travel', icon: '\u25B6', scene: 'travelMap', accent: R.colors.orange, span: { col: 2, row: 2 }, section: 'PROGRESSION' },
-      { id: 'party', label: 'Party', icon: '\u263A', scene: 'party', accent: R.colors.blue, span: { col: 1, row: 1 }, section: 'PROGRESSION' },
-      { id: 'cultivate', label: 'Cultivate', icon: '\u2727', scene: 'cultivationScene', accent: R.colors.gold, span: { col: 1, row: 1 }, section: 'PROGRESSION' },
-      // ACTIVITIES section
-      { id: 'alchemy', label: 'Alchemy', icon: '\u2606', scene: 'alchemyScene', accent: R.colors.blue, span: { col: 1, row: 1 }, section: 'ACTIVITIES' },
-      { id: 'forge', label: 'Forge', icon: '\u2694', scene: 'forge', accent: R.colors.orange, span: { col: 1, row: 1 }, section: 'ACTIVITIES' },
-      { id: 'beasts', label: 'Beasts', icon: '\u2603', scene: 'spiritBeast', accent: R.colors.green, span: { col: 1, row: 1 }, section: 'ACTIVITIES' },
-      { id: 'farm', label: 'Farm', icon: '\u2618', scene: 'farm', accent: R.colors.gold, span: { col: 1, row: 1 }, section: 'ACTIVITIES' },
-      { id: 'fishing', label: 'Fishing', icon: '\u2248', scene: 'fishing', accent: R.colors.blue, span: { col: 1, row: 1 }, section: 'ACTIVITIES' },
-      { id: 'journeys', label: 'Journeys', icon: '\u2726', scene: 'journeyScene', accent: R.colors.gold, span: { col: 1, row: 1 }, section: 'ACTIVITIES' },
-      // SERVICES section
-      { id: 'bazaar', label: 'Bazaar', icon: '\u2699', scene: 'bazaar', accent: R.colors.gold, span: { col: 1, row: 1 }, section: 'SERVICES' },
-      { id: 'equipment', label: 'Equipment', icon: '\u2694', scene: 'equipment', accent: R.colors.orange, span: { col: 1, row: 1 }, section: 'SERVICES' },
-      { id: 'tournament', label: 'Tourney', icon: '\u2605', scene: 'tournament', accent: R.colors.red, span: { col: 1, row: 1 }, section: 'SERVICES' },
-      { id: 'questLog', label: 'Quests', icon: '\u2713', scene: 'questLog', accent: R.colors.blue, span: { col: 1, row: 1 }, section: 'SERVICES' },
-      { id: 'achievements', label: 'Achieve', icon: '\u2605', scene: 'achievements', accent: R.colors.gold, span: { col: 1, row: 1 }, section: 'SERVICES' },
-      // UTILITY section
-      { id: 'rest', label: 'Rest', icon: '\u266B', scene: '', accent: R.colors.textDim, span: { col: 1, row: 1 }, section: 'UTILITY' },
-      { id: 'trials', label: 'Trials', icon: '\u2666', scene: 'trials', accent: R.colors.gold, span: { col: 1, row: 1 }, section: 'UTILITY', badge: G.state.trialBest || null },
-      { id: 'rebirth', label: 'Rebirth', icon: '\u21BB', scene: 'punarjanma', accent: R.colors.orange, span: { col: 1, row: 1 }, section: 'UTILITY' },
-      { id: 'settings', label: 'Settings', icon: '\u2630', scene: 'settings', accent: R.colors.textDim, span: { col: 1, row: 1 }, section: 'UTILITY' },
-      { id: 'debug', label: 'Debug', icon: '\u25A0', scene: 'debug', accent: R.colors.textDim, span: { col: 1, row: 1 }, section: 'UTILITY' },
-    ];
+    // 3-column section grid — uses the sections[] array defined above
+    const gridCols = 3;
+    const gridGap = 8;
+    const mx = 14;
+    const cw = (G.W - mx * 2 - gridGap * (gridCols - 1)) / gridCols;
+    const ch = 70;
 
-    // 4-column grid for asymmetric bento
-    const bentoCols = 4;
-    const bentoGap = 8;
-    const bentoML = 12;
-    const bentoCW = (G.W - bentoML * 2 - bentoGap * (bentoCols - 1)) / bentoCols;
-    const bentoRowH = 70;
-    const bentoRowGap = 8;
+    for (const section of sections) {
+      // Section header bar
+      const hh = 26;
+      R.roundRect(ctx, mx, y, G.W - mx * 2, hh, 6, R.colors.panel);
+      R.textCenter(ctx, section.label, G.W / 2, y + hh / 2 + 4, section.color, R.fonts.sm);
+      y += hh + 8;
 
-    // Section headers for bento
-    const sectionOrder = ['PROGRESSION', 'ACTIVITIES', 'SERVICES', 'UTILITY'];
-    const sectionColors = {
-      PROGRESSION: R.colors.orange,
-      ACTIVITIES: R.colors.blue,
-      SERVICES: R.colors.green,
-      UTILITY: R.colors.textDim
-    };
+      // 3-column cards
+      let idx = 0;
+      for (const item of section.items) {
+        const c = idx % gridCols;
+        const r = Math.floor(idx / gridCols);
+        const bx = mx + c * (cw + gridGap);
+        const by = y + r * (ch + gridGap);
 
-    // Simple grid placement algorithm for asymmetric bento
-    // Travel gets 2x2, others 1x1
-    let grid = Array(4).fill().map(() => Array(4).fill(null));
-    let placed = new Set();
-    
-    // Place travel at (0,0) spanning 2x2
-    grid[0][0] = bentoItems.find(i => i.id === 'travel');
-    grid[0][1] = 'occupied';
-    grid[1][0] = 'occupied';
-    grid[1][1] = 'occupied';
-    placed.add('travel');
-    
-    // Place party at (0,2)
-    grid[0][2] = bentoItems.find(i => i.id === 'party');
-    placed.add('party');
-    
-    // Place cultivate at (0,3)
-    grid[0][3] = bentoItems.find(i => i.id === 'cultivate');
-    placed.add('cultivate');
-    
-    // Fill remaining items row by row
-    let row = 0, col = 0;
-    for (const item of bentoItems) {
-      if (placed.has(item.id)) continue;
-      // Find next empty cell
-      while (row < 4 && col < 4 && grid[row][col]) {
-        col++;
-        if (col >= 4) { col = 0; row++; }
-      }
-      if (row < 4 && col < 4) {
-        grid[row][col] = item;
-        placed.add(item.id);
-        col++;
-        if (col >= 4) { col = 0; row++; }
-      }
-    }
-
-    // Render bento grid
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 4; c++) {
-        const item = grid[r][c];
-        if (!item || item === 'occupied') continue;
-        
-        const bx = bentoML + c * (bentoCW + bentoGap);
-        const by = y + r * (bentoRowH + bentoRowGap);
-        const bw = bentoCW;
-        const bh = bentoRowH;
-        
-        // Use PremiumShell for bento cards
-        const shell = UI.PremiumShell(bx, by, bw, bh, { 
-          outerR: 16, 
-          innerR: 10,
-          outerBg: 'rgba(0,0,0,0.05)',
-          outerBorder: 'rgba(255,255,255,0.08)',
-          innerBg: R.colors.surface,
-          innerHighlight: 'rgba(255,255,255,0.12)'
-        });
-        
-        const btn = UI.Button(bx, by, bw, bh, '', 'transparent');
-        btn._scene = item.scene;
+        const btn = UI.Button(bx, by, cw, ch, '', 'transparent');
         btn._item = item;
-        btn._shell = shell;
+        btn._scene = item.scene;
+        btn._accent = section.color;
         btn.render = function(ctx) {
-          // Render shell
-          this._shell.render(ctx);
-          const content = this._shell.contentRect();
-          
-          // Accent bar at top
-          R.roundRect(ctx, content.x, content.y, content.w, 4, 2, this._item.accent);
-          
-          // Icon
-          R.textCenter(ctx, this._item.icon, content.x + content.w/2, content.y + 28, R.colors.text, R.fonts.xl);
-          
-          // Label
-          R.textCenter(ctx, this._item.label, content.x + content.w/2, content.y + 52, this._item.accent, R.fonts.md);
-          
-          // Badge
+          R.roundRect(ctx, this.x, this.y, this.w, this.h, 8, R.colors.surface);
+          ctx.strokeStyle = 'rgba(232,160,48,0.08)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(this.x + 0.5, this.y + 0.5, this.w - 1, this.h - 1);
+          R.textCenter(ctx, this._item.icon, this.x + this.w / 2, this.y + 28, this._accent, R.fonts.xl);
+          R.textCenter(ctx, this._item.text, this.x + this.w / 2, this.y + this.h - 10, R.colors.textDim, R.fonts.sm);
           if (this._item.badge) {
-            R.text(ctx, this._item.badge, content.x + content.w - 12, content.y + 16, R.colors.gold, R.fonts.xs, 'right');
+            R.text(ctx, this._item.badge, this.x + this.w - 8, this.y + 12, R.colors.gold, R.fonts.xs, 'right');
           }
         };
         btn.onClick = function() {
-          if (this._item.scene === '') {
-            for (const h of G.state.party) {
-              h.hp = h.maxHp;
-              h.mp = h.maxMp;
-            }
+          if (this._scene === '') {
+            for (const h of G.state.party) { h.hp = h.maxHp; h.mp = h.maxMp; }
             Notify.show('Party restored to full vitality', 2, R.colors.green);
           } else {
-            gScene(this._item.scene, true);
+            gScene(this._scene, true);
           }
         };
         this.data.buttons.push(btn);
+        idx++;
       }
-      y += 4 * (bentoRowH + bentoRowGap) + 20;
+      const rows = Math.ceil(section.items.length / gridCols);
+      y += rows * (ch + gridGap) + 10;
     }
 
     this.data.contentHeight = y + 20;
@@ -380,18 +283,15 @@ const ashramScene = Scene.create({
     // Render noise/grain overlay for editorial luxury feel
     R.renderNoise(ctx);
 
-    // Hero Moment for Ashram
-    if (!this._heroMoment) {
-      this._heroMoment = Scene.HeroMoment({
-        title: 'Ashram',
-        subtitle: 'Your sanctuary between realms. Cultivate, forge, and prepare for the journey ahead.',
-        ctaLabel: 'Travel',
-        ctaAction: () => gScene('travelMap'),
-        eyebrow: 'Lv.' + G.state.ashramLevel,
-        accent: R.colors.accent
-      });
+    // Minimal header — avoids overlap with stats (110-210) and the bento grid (now at ~256)
+    // The full HeroMoment CTA duplicated the Travel bento card and was 130px too tall
+    {
+      const cx = G.W/2;
+      R.roundRect(ctx, cx - 80, 24, 160, 24, 12, 'rgba(232,160,48,0.12)');
+      R.textCenter(ctx, 'Lv.' + (G.state.ashramLevel || 1), cx, 40, R.colors.gold, R.fonts.sm);
+      R.textCenter(ctx, 'Ashram', cx, 72, R.colors.textPrimary, R.fonts.displaySm);
+      R.textCenter(ctx, 'Sanctuary • Cultivate • Forge', cx, 92, R.colors.textSecondary, R.fonts.sm);
     }
-    this._heroMoment.render(ctx);
 
     // Player stats panel with PremiumShell
     const p = G.state.player;
