@@ -89,6 +89,36 @@ const settingsScene = Scene.create({
     this.data.buttons.push(rmBtn);
     y += 44;
 
+    // --- Account Section ---
+    // Add account-related UI only after Save/Load section
+    const hasSave = SaveSystem.hasSave();
+    const accountSectionStart = y;
+
+    // Determine account status
+    let accountText, accountBtn, signoutBtn;
+
+    if (typeof Auth !== 'undefined' && Auth.user) {
+      accountText = 'Signed in as: ' + Auth.user.email || Auth.user.uid;
+      accountBtn = UI.Button(20, y, G.W - 40, 38, 'Save to Cloud');
+      accountBtn.onClick = async function() {
+        await SaveSystem.cloudSave();
+        settingsScene.buildButtons();
+      };
+      signoutBtn = UI.Button(20, y + 44, G.W - 40, 38, 'Sign Out');
+      signoutBtn.onClick = async function() {
+        await Auth.signOut();
+        Notify.show('Signed out', 2, R.colors.green);
+        settingsScene.buildButtons();
+      };
+    } else {
+      accountText = 'Not signed in — offline mode';
+      accountBtn = UI.Button(20, y, G.W - 40, 38, 'Sign In / Sign Up');
+      accountBtn.onClick = function() {
+        Scene.goTo('auth');
+      };
+      signoutBtn = null;
+    }
+
     // --- Save/Load Section ---
     // Save Game button - primary CTA, 38px minimum height
     const saveBtn = UI.Button(20, y, G.W - 40, 38, 'Save Game');

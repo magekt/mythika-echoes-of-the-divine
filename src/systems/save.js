@@ -1,7 +1,8 @@
 const SaveSystem = {
   SAVE_KEY: 'mythika_save',
   autoSaveInterval: 30000,
-  _timer: null
+  _timer: null,
+  _cloudSynced: false
 };
 
 SaveSystem.save = function() {
@@ -153,6 +154,10 @@ SaveSystem.hasSave = function() {
 SaveSystem.startAutoSave = function() {
   this.stopAutoSave();
   this._timer = setInterval(() => this.save(), this.autoSaveInterval);
+  // Also sync to cloud on first auto-save if user is signed in
+  if (typeof Auth !== 'undefined' && Auth.user) {
+    Auth.saveToCloud(G.state).catch(function() {});
+  }
 };
 
 SaveSystem.stopAutoSave = function() {
@@ -177,4 +182,27 @@ SaveSystem.getSaveInfo = function() {
   } catch (e) {
     return null;
   }
+};
+
+SaveSystem.cloudSave = async function() {
+  if (typeof Auth !== 'undefined' && Auth.user) {
+    const result = await Auth.saveToCloud(G.state);
+    if (result.success) {
+      Notify.show('Saved to cloud', 2, R.colors.green);
+    } else {
+      Notify.show('Cloud save failed: ' + result.error, 3, R.colors.red);
+    }
+  }
+};
+
+SaveSystem.cloudLoad = async function() {
+  if (typeof Auth !== 'undefined' && Auth.user) {
+    const result = await Auth.loadFromCloud();
+    if (result.data) {
+      Object.assign(G.state, result.data);
+      Notify.show('Cloud save loaded', 2, R.colors.green);
+      return true;
+    }
+  }
+  return false;
 };
