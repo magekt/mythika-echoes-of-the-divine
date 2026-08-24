@@ -200,10 +200,16 @@ const ashramScene = Scene.create({
     const ch = 70;
 
     for (const section of sections) {
-      // Section header bar
+      // Section header bar — button so it renders in the render(ctx) pass
       const hh = 26;
-      R.roundRect(ctx, mx, y, G.W - mx * 2, hh, 6, R.colors.panel);
-      R.textCenter(ctx, section.label, G.W / 2, y + hh / 2 + 4, section.color, R.fonts.sm);
+      const hdr = UI.Button(mx, y, G.W - mx * 2, hh, '', 'transparent');
+      hdr._label = section.label;
+      hdr._color = section.color;
+      hdr.render = function(ctx) {
+        R.roundRect(ctx, this.x, this.y, this.w, this.h, 6, R.colors.panel);
+        R.textCenter(ctx, this._label, this.x + this.w / 2, this.y + this.h / 2 + 4, this._color, R.fonts.sm);
+      };
+      this.data.buttons.push(hdr);
       y += hh + 8;
 
       // 3-column cards
