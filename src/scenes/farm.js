@@ -43,35 +43,50 @@ const farmScene = Scene.create({
     if (this.data.scrollY < 0) this.data.scrollY = 0;
   },
 
-  buildButtons: function() {
+buildButtons: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
     this.data.staticDraws = [];
     let y = this.getContentTop();
     const plots = G.state.farmPlots || [];
 
+    // Create a ProgressBar for growth display
+    const growthBar = UI.ProgressBar(14, 0, G.W - 28, 8, R.colors.green, R.colors.borderHairline);
+
     for (let i = 0; i < plots.length; i++) {
       const plot = plots[i];
       const isReady = plot.harvested;
       const hasHerb = !!plot.herb;
-      const btn = UI.Button(14, y, G.W - 28, 42, '', isReady ? R.colors.green : (hasHerb ? R.colors.panel : R.colors.btn));
+      // 86px card height per design system, with 8px gap below
+      const btn = UI.Button(14, y, G.W - 28, 86, '', isReady ? R.colors.green : (hasHerb ? R.colors.panel : R.colors.btn));
       btn._i = i;
       btn._plot = plot;
       btn._isReady = isReady;
       btn._hasHerb = hasHerb;
       btn.render = function(ctx) {
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-        R.roundRect(ctx, bx, by, bw, bh, 6, this.color);
-        ctx.strokeStyle = 'rgba(138,138,160,0.08)';
+        R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.surface);
+        ctx.strokeStyle = 'rgba(232,160,48,0.08)';
         ctx.lineWidth = 1;
         ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
-        R.text(ctx, 'Plot ' + (this._i + 1), bx + 14, by + 16, this._isReady ? R.colors.gold : (this._hasHerb ? R.colors.text : R.colors.textDim), R.fonts.md);
+        // Growth progress bar at bottom of card (8px height)
+        growthBar.x = bx + 4;
+        growthBar.y = by + bh - 12;
+        growthBar.w = bw - 8;
         if (this._isReady) {
-          R.text(ctx, '\u2713 ' + (this._plot.herb ? HERB_GROWTH[this._plot.herb].name : '') + ' READY!', bx + 14, by + 30, R.colors.green, R.fonts.sm);
+          growthBar.value = this._plot.herb ? HERB_GROWTH[this._plot.herb].growTime : 0;
+          growthBar.maxValue = this._plot.herb ? HERB_GROWTH[this._plot.herb].growTime : 1;
+          growthBar.showText = false;
+          growthBar.render(ctx);
+          R.text(ctx, '\u2713 ' + (this._plot.herb ? HERB_GROWTH[this._plot.herb].name : '') + ' READY!', bx + 14, by + 20, R.colors.green, R.fonts.sm);
           R.text(ctx, 'Harvest', bx + bw - 60, by + 16, R.colors.gold, R.fonts.sm);
         } else if (this._plot.herb) {
           const remaining = Math.max(0, Math.ceil(HERB_GROWTH[this._plot.herb].growTime - this._plot.growTimer));
-          R.text(ctx, HERB_GROWTH[this._plot.herb].name + ' (' + remaining + 's)', bx + 14, by + 30, R.colors.textDim, R.fonts.sm);
+          R.text(ctx, HERB_GROWTH[this._plot.herb].name + ' (' + remaining + 's)', bx + 14, by + 20, R.colors.textDim, R.fonts.sm);
+          // Growth progress bar showing current progress
+          growthBar.value = this._plot.growTimer;
+          growthBar.maxValue = Math.max(1, HERB_GROWTH[this._plot.herb].growTime);
+          growthBar.render(ctx);
           R.roundRect(ctx, bx + 14, by + bh - 4, bw - 28, 2, 1, 'rgba(138,138,160,0.15)');
           const frac = Math.min(1, this._plot.growTimer / Math.max(1, HERB_GROWTH[this._plot.herb].growTime));
           R.roundRect(ctx, bx + 14, by + bh - 4, (bw - 28) * frac, 2, 1, R.colors.green);
@@ -98,7 +113,7 @@ const farmScene = Scene.create({
         }
       };
       this.data.buttons.push(btn);
-      y += 48;
+      y += 96; // 86px card + 8px gap + 2px adjustment per design system
     }
 
     this.data.buttons.push(Scene.backButton(y + 6));
@@ -119,14 +134,24 @@ const farmScene = Scene.create({
 
     for (const [hid, herb] of Object.entries(HERB_GROWTH)) {
       const canBuy = (G.state.gold || 0) >= herb.buyCost;
-      const btn = UI.Button(14, y, G.W - 28, 32, '', canBuy ? R.colors.btnGold : R.colors.btn);
+      const btn = UI.MagneticBtn(14, y, G.W - 28, 38, '', canBuy ? 'primary' : 'secondary');
       btn._hid = hid;
       btn._herb = herb;
       btn._plotIdx = plotIdx;
       btn._canBuy = canBuy;
       btn.render = function(ctx) {
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-        R.roundRect(ctx, bx, by, bw, bh, 5, this.color);
+        if (this._variant === 'primary') {
+          R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.gold);
+          ctx.strokeStyle = R.colors.goldLight;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
+        } else {
+          R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.surface);
+          ctx.strokeStyle = R.colors.gold;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
+        }
         if (!this._canBuy) ctx.globalAlpha = 0.5;
         R.text(ctx, this._herb.name + ' (' + this._herb.buyCost + 'g, ' + this._herb.growTime + 's)', bx + 12, by + 18, R.colors.text, R.fonts.sm);
         ctx.globalAlpha = 1;
@@ -146,13 +171,13 @@ const farmScene = Scene.create({
         }
       };
       this.data.buttons.push(btn);
-      y += 38;
+      y += 46; // 38px button + 8px gap
     }
 
-    const back = UI.Button(60, y + 6, G.W - 120, 30, 'Cancel', R.colors.btnGold);
+    const back = UI.MagneticBtn(60, y + 6, G.W - 120, 38, 'Cancel', 'primary');
     back.onClick = function() { farmScene.buildButtons(); };
     this.data.buttons.push(back);
-    y += 44;
+    y += 48;
 
     this.data.contentHeight = y;
   },

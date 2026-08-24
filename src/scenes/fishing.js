@@ -1,10 +1,3 @@
-const BAIT_TIERS = [
-  { id: 0, name: 'No Bait', cost: 0, fishReq: 0, rareBonus: 0, windowBonus: 0, desc: 'Basic' },
-  { id: 1, name: 'Basic Bait', cost: 40, fishReq: 5, rareBonus: 0.06, windowBonus: 0.3, desc: '+6% rare, +0.3s' },
-  { id: 2, name: 'Quality Bait', cost: 120, fishReq: 20, rareBonus: 0.12, windowBonus: 0.6, desc: '+12% rare, +0.6s' },
-  { id: 3, name: 'Divine Bait', cost: 300, fishReq: 50, rareBonus: 0.20, windowBonus: 1.0, desc: '+20% rare, +1.0s' }
-];
-
 const fishingScene = Scene.create({
   name: 'fishing',
   data: {
@@ -19,7 +12,7 @@ const fishingScene = Scene.create({
     fishSpeed: 1,
     fishPhase: 0,
     isRareFish: false,
-    rareColor: '#e8a030'
+    rareColor: R.colors.gold
   },
 
   enter: function() {
@@ -47,18 +40,19 @@ const fishingScene = Scene.create({
       const isUnlocked = (G.state.unlockedBaitTier || 0) >= t;
       const isSelected = (G.state.selectedBaitTier || 0) === t;
       const bx = 18 + t * 92;
-      const btn = UI.Button(bx, by, 86, 30, '', isSelected ? R.colors.btnGold : (isUnlocked ? R.colors.btn : R.colors.panel));
+      const btn = UI.MagneticBtn(bx, by, 86, 38, '', isSelected ? 'primary' : (isUnlocked ? 'secondary' : 'ghost'));
       btn._tier = t;
       btn.render = function(ctx) {
         const bx=this.x, by=this.y, bw=this.w, bh=this.h;
-        R.roundRect(ctx, bx, by, bw, bh, 6, this.color);
+        const reduceMotion = R.reducedMotion ? R.reducedMotion() : false;
         if (isSelected) {
           ctx.strokeStyle = R.colors.gold;
           ctx.lineWidth = 2;
           ctx.strokeRect(bx+0.5, by+0.5, bw-1, bh-1);
         }
-        R.textCenter(ctx, tier.name.split(' ')[0], bx+bw/2, by+13, isSelected ? R.colors.white : (isUnlocked ? R.colors.text : R.colors.textDim), R.fonts.sm);
+        const displayName = tier.name.split(' ')[0];
         const costStr = isUnlocked ? (isSelected ? 'Selected' : tier.desc) : tier.cost + 'g/' + tier.fishReq + ' fish';
+        R.textCenter(ctx, displayName, bx+bw/2, by+13, isSelected ? R.colors.white : (isUnlocked ? R.colors.text : R.colors.textDim), R.fonts.sm);
         R.textCenter(ctx, costStr, bx+bw/2, by+24, isUnlocked ? R.colors.textDim : R.colors.red, R.fonts.xs);
       };
       btn.onClick = function() {
@@ -80,14 +74,14 @@ const fishingScene = Scene.create({
       };
       this.data.buttons.push(btn);
     }
-    by += 38;
-    const cast = UI.BtnGold(G.W / 2 - 100, by, 200, 34, 'Cast Line');
+    by += 48;
+    const cast = UI.MagneticBtn(G.W / 2 - 100, by, 200, 38, 'Cast Line', 'primary');
     cast.onClick = function() {
       fishingScene.startFishing();
     };
     this.data.buttons.push(cast);
-    by += 40;
-    const back = UI.Button(G.W / 2 - 100, by, 200, 30, 'Back to Ashram');
+    by += 44;
+    const back = UI.MagneticBtn(G.W / 2 - 100, by, 200, 38, 'Back to Ashram', 'primary');
     back.onClick = function() { gScene('ashram'); };
     this.data.buttons.push(back);
   },
@@ -101,7 +95,7 @@ const fishingScene = Scene.create({
     const bait = BAIT_TIERS[G.state.selectedBaitTier || 0] || BAIT_TIERS[0];
     const streakBonus = (this.data.streak >= 5 ? 0.05 : 0) + (this.data.streak >= 10 ? 0.05 : 0);
     this.data.isRareFish = Math.random() < (0.12 + bait.rareBonus + streakBonus);
-    this.data.rareColor = this.data.isRareFish ? '#e8c880' : R.colors.red;
+    this.data.rareColor = this.data.isRareFish ? R.colors.gold : R.colors.red;
     // Better bait slightly slows the fish via calmer water bonus applied later
     this.data._baitWindowBonus = bait.windowBonus;
     this.data.buttons = [];
@@ -205,13 +199,12 @@ const fishingScene = Scene.create({
     Scene.drawHeader(ctx, 72, 'Fishing', 24);
     R.textCenter(ctx, 'Fish Caught: ' + (G.state.fishCaught || 0) + '  |  Gold: ' + (G.state.gold || 0) + 'g', G.W / 2, 50, R.colors.text, R.fonts.sm);
 
-    ctx.fillStyle = '#1a2a3a';
-    R.roundRect(ctx, 60, 100, 280, 130, 8, ctx.fillStyle);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
+    R.roundRect(ctx, 60, 100, 280, 130, 8, R.colors.panel);
+    ctx.strokeStyle = R.colors.borderHairline;
     ctx.lineWidth = 1;
     R.roundRect(ctx, 60, 100, 280, 130, 8, 'transparent');
     ctx.strokeRect(60.5, 100.5, 279, 129);
-    R.textCenter(ctx, '\u2248 Water \u2248', G.W / 2, 165, 'rgba(48,128,200,0.4)', R.fonts.sm);
+    R.textCenter(ctx, '~ Water ~', G.W / 2, 165, R.colors.textDim, R.fonts.sm);
 
     if (this.data.state === 'waiting') {
       R.drawFishingBobber(ctx, G.W / 2, 240, G.state.totalPlayTime * 2, false);
@@ -221,19 +214,19 @@ const fishingScene = Scene.create({
       if (this.data.isRareFish) {
         ctx.fillStyle = 'rgba(232,200,128,0.1)';
         R.roundRect(ctx, 50, 280, 300, 20, 4, ctx.fillStyle);
-        R.textCenter(ctx, '\u2605 RARE FISH! \u2605', G.W / 2, 294, R.colors.goldLight, R.fonts.md);
+        R.textCenter(ctx, '★ RARE FISH! ★', G.W / 2, 294, R.colors.goldLight, R.fonts.md);
       } else {
         R.textCenter(ctx, 'Time: ' + timeLeft.toFixed(1) + 's', G.W / 2, 288, R.colors.gold, R.fonts.sm);
       }
       const barX = G.W / 2 - this.data.barWidth / 2;
-      R.roundRect(ctx, barX, 308, this.data.barWidth, 18, 4, '#2a1510');
-      ctx.fillStyle = 'rgba(232,160,48,0.2)';
+      R.roundRect(ctx, barX, 308, this.data.barWidth, 18, 4, R.colors.panel);
+      ctx.fillStyle = R.colors.gold;
       R.roundRect(ctx, barX + this.data.barWidth / 2 - 12, 306, 24, 22, 4, ctx.fillStyle);
       ctx.strokeStyle = R.colors.gold;
       ctx.lineWidth = 1;
       R.roundRect(ctx, barX + this.data.barWidth / 2 - 12, 306, 24, 22, 4, 'transparent');
       ctx.strokeRect(barX + this.data.barWidth / 2 - 11.5, 306.5, 23, 21);
-      R.roundRect(ctx, barX + this.data.fishPos, 310, 14, 14, 3, this.data.rareColor);
+      R.roundRect(ctx, barX + this.data.fishPos, 310, 14, 14, 3, R.colors.gold);
       R.textCenter(ctx, 'Position fish in the gold zone!', G.W / 2, 345, R.colors.textDim, R.fonts.sm);
     }
 

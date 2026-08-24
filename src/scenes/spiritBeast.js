@@ -54,19 +54,23 @@ const spiritBeastScene = Scene.create({
     } else {
       for (const beast of this.data.beasts) {
         const active = beast.active || beast.id === G.state.activeBeast;
-        const btn = UI.Button(14, y, G.W - 28, 44, '', active ? R.colors.green : R.colors.panel);
+        // 86px card height per design system, with 8px gap below
+        const btn = UI.Button(14, y, G.W - 28, 86, '', active ? R.colors.green : R.colors.panel);
         btn._beast = beast;
         btn._active = active;
         btn.render = function(ctx) {
           const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-          R.roundRect(ctx, bx, by, bw, bh, 6, this.color);
-          ctx.strokeStyle = 'rgba(138,138,160,0.08)';
+          R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.surface);
+          ctx.strokeStyle = 'rgba(232,160,48,0.08)';
           ctx.lineWidth = 1;
           ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
           if (!this._active) ctx.globalAlpha = 0.7;
           const beastData = SPIRIT_BEASTS[this._beast.id];
           R.text(ctx, (this._active ? '\u2605 ' : '') + this._beast.name, bx + 14, by + 16, this._active ? R.colors.gold : R.colors.text, R.fonts.md);
-          R.text(ctx, 'Tier ' + this._beast.tier + ' Lv.' + this._beast.level + ' | ' + (beastData ? beastData.skill : '?'), bx + 14, by + 32, R.colors.textDim, R.fonts.sm);
+          R.text(ctx, 'Tier ' + this._beast.tier + ' Lv.' + this._beast.level + ' | ' + (beastData ? beastData.skill : '?'), bx + 14, by + 30, R.colors.textDim, R.fonts.sm);
+          // Stats row
+          const bonus = getBeastBonus(beast);
+          R.text(ctx, 'HP:' + bonus.hp + ' STR:' + bonus.str + ' AGI:' + bonus.agi + ' DEF:' + bonus.def, bx + 14, by + 48, R.colors.textDim, R.fonts.xs);
           if (this._active) R.text(ctx, 'ACTIVE', bx + bw - 60, by + 16, R.colors.green, R.fonts.sm);
           ctx.globalAlpha = 1;
         };
@@ -78,11 +82,11 @@ const spiritBeastScene = Scene.create({
           spiritBeastScene.buildDetail();
         };
         this.data.buttons.push(btn);
-        y += 50;
+        y += 92; // 86px card + 8px gap per design system
       }
     }
 
-    const deactivate = UI.Button(14, y + 4, (G.W - 42) / 2, 28, 'Deactivate All');
+    const deactivate = UI.MagneticBtn(14, y + 4, (G.W - 42) / 2, 38, 'Deactivate All');
     deactivate.onClick = function() {
       for (const b of G.state.spiritBeasts) b.active = false;
       G.state.activeBeast = null;
@@ -91,10 +95,10 @@ const spiritBeastScene = Scene.create({
     };
     this.data.buttons.push(deactivate);
 
-    const back = UI.Button((G.W - 42) / 2 + 18, y + 4, (G.W - 42) / 2, 28, 'Back to Ashram', R.colors.btnGold);
+    const back = UI.MagneticBtn((G.W - 42) / 2 + 18, y + 4, (G.W - 42) / 2, 38, 'Back to Ashram', R.colors.btnGold);
     back.onClick = function() { gScene('ashram'); };
     this.data.buttons.push(back);
-    y += 40;
+    y += 48; // 38px button + 8px gap + 2px adjustment
 
     this.data.contentHeight = y;
   },
@@ -132,7 +136,7 @@ const spiritBeastScene = Scene.create({
         SD.push({ text: [evo.desc, 22, y + 46, R.colors.text, R.fonts.sm] });
         y += 66;
         
-        const evolveBtn = UI.Button(14, y, G.W - 28, 32, 'Evolve to ' + evo.name + '!', R.colors.btnGold);
+        const evolveBtn = UI.MagneticBtn(14, y, G.W - 28, 38, 'Evolve to ' + evo.name + '!', 'primary');
         evolveBtn.onClick = function() {
           const result = evolveBeast(beast);
           if (result) {
@@ -142,14 +146,14 @@ const spiritBeastScene = Scene.create({
           }
         };
         this.data.buttons.push(evolveBtn);
-        y += 38;
+        y += 46; // 38px button + 8px gap
       }
     }
 
     const pranaCost = beast.level * 50;
     const fishCost = beast.tier * 5;
 
-    const activateBtn = UI.Button(14, y, G.W - 28, 30, beast.active ? 'Deactivate' : 'Activate', R.colors.btnGold);
+    const activateBtn = UI.MagneticBtn(14, y, G.W - 28, 38, beast.active ? 'Deactivate' : 'Activate', beast.active ? 'primary' : 'primary');
     activateBtn.onClick = function() {
       if (beast.active) {
         beast.active = false;
@@ -164,10 +168,10 @@ const spiritBeastScene = Scene.create({
       spiritBeastScene.buildDetail();
     };
     this.data.buttons.push(activateBtn);
-    y += 36;
+    y += 46;
 
     const canPrana = (G.state.prana || 0) >= pranaCost;
-    const pranaBtn = UI.Button(14, y, G.W - 28, 30, 'Level Up (' + pranaCost + ' Prana)', canPrana ? R.colors.btnGold : R.colors.btn);
+    const pranaBtn = UI.MagneticBtn(14, y, G.W - 28, 38, 'Level Up (' + pranaCost + ' Prana)', canPrana ? 'primary' : 'secondary');
     pranaBtn.enabled = canPrana;
     pranaBtn.onClick = function() {
       if ((G.state.prana || 0) < pranaCost) return;
@@ -184,10 +188,10 @@ const spiritBeastScene = Scene.create({
       spiritBeastScene.enter();
     };
     this.data.buttons.push(pranaBtn);
-    y += 36;
+    y += 46;
 
     const canFish = (G.state.fishCaught || 0) >= fishCost;
-    const fishBtn = UI.Button(14, y, G.W - 28, 30, 'Evolve Tier (' + fishCost + ' Fish)', canFish ? R.colors.btnGold : R.colors.btn);
+    const fishBtn = UI.MagneticBtn(14, y, G.W - 28, 38, 'Evolve Tier (' + fishCost + ' Fish)', canFish ? 'primary' : 'secondary');
     fishBtn.enabled = canFish;
     fishBtn.onClick = function() {
       if ((G.state.fishCaught || 0) < fishCost) return;
@@ -204,16 +208,16 @@ const spiritBeastScene = Scene.create({
       spiritBeastScene.enter();
     };
     this.data.buttons.push(fishBtn);
-    y += 40;
+    y += 48;
 
-    const back = UI.Button(60, y + 4, G.W - 120, 30, 'Back to List', R.colors.btnGold);
+    const back = UI.MagneticBtn(60, y + 4, G.W - 120, 38, 'Back to List', R.colors.btnGold);
     back.onClick = function() {
       spiritBeastScene.data.view = 'list';
       spiritBeastScene.data.scrollY = 0;
       spiritBeastScene.buildList();
     };
     this.data.buttons.push(back);
-    y += 44;
+    y += 48;
 
     this.data.contentHeight = y;
   },
