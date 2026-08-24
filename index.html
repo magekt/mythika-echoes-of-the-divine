@@ -11,10 +11,47 @@
     <link rel="stylesheet" href="styles/game.css">
 </head>
 <body>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, RecaptchaVerifier, signInWithPhoneNumber, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+  // Make Firebase functions available globally for auth.js
+  window.firebaseAuth = null;
+  window.firebaseDb = null;
+  window.firebaseSignOut = firebaseSignOut;
+  window.firebaseSignUpEmail = createUserWithEmailAndPassword;
+  window.firebaseSignInEmail = signInWithEmailAndPassword;
+  window.firebaseSignInPopup = signInWithPopup;
+  window.firebaseGoogleProvider = new GoogleAuthProvider();
+  window.firebaseRecaptchaVerifier = RecaptchaVerifier;
+  window.firebaseSignInPhone = signInWithPhoneNumber;
+  window.firebaseOnAuthStateChanged = onAuthStateChanged;
+  window.firebaseDoc = doc;
+  window.firebaseSetDoc = setDoc;
+  window.firebaseGetDoc = getDoc;
+  window.firebaseServerTimestamp = serverTimestamp;
+
+  try {
+    const app = initializeApp(window.FIREBASE_CONFIG);
+    window.firebaseApp = app;
+    window.firebaseAuth = getAuth(app);
+    window.firebaseDb = getFirestore(app);
+    console.log('[Mythika] Firebase initialized');
+    // Signal Firebase is ready
+    window.firebaseReady = true;
+    document.dispatchEvent(new Event('firebase-ready'));
+  } catch (e) {
+    console.warn('[Mythika] Firebase init failed:', e.message);
+    window.firebaseReady = false;
+  }
+</script>
+
 <div id="game-container" class="loading">
   <canvas id="game-canvas"></canvas>
   <div id="status-bar"></div>
 </div>
+
 <script src="src/engine/firebase-config.js"></script>
 <script src="src/engine/auth.js"></script>
 <script src="src/engine/game.js"></script>
@@ -46,7 +83,6 @@
 <script src="src/systems/combat.js"></script>
 <script src="src/systems/duel.js"></script>
 <script src="src/systems/cultivation_sys.js"></script>
-<script src="src/systems/alchemy.js"></script>
 <script src="src/systems/save.js"></script>
 <script src="src/systems/quest.js"></script>
 <script src="src/systems/achievements.js"></script>

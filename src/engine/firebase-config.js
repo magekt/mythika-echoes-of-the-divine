@@ -1,12 +1,13 @@
-// Firebase configuration — replace with your project's config
-// Get this from Firebase Console > Project Settings > General > Your apps
-const FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+// Firebase configuration for mythika-opencode project
+// Real values from Firebase Console — do not change
+window.FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBuZlz9n4UY5vgmcML8wDNLLonzGps8eYo",
+  authDomain: "mythika-opencode.firebaseapp.com",
+  projectId: "mythika-opencode",
+  storageBucket: "mythika-opencode.firebasestorage.app",
+  messagingSenderId: "514336646089",
+  appId: "1:514336646089:web:ba43efbcaea2165a7ffe18",
+  measurementId: "G-W04BRR0W93"
 };
 
 // Firestore collection path for game saves

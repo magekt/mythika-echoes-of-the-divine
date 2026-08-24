@@ -90,9 +90,7 @@ const settingsScene = Scene.create({
     y += 44;
 
     // --- Account Section ---
-    // Add account-related UI only after Save/Load section
     const hasSave = SaveSystem.hasSave();
-    const accountSectionStart = y;
 
     // Determine account status
     let accountText, accountBtn, signoutBtn;

@@ -1,35 +1,34 @@
 const Auth = {
   user: null,
+  app: null,
+  auth: null,
+  db: null,
+  recaptchaVerifier: null,
 
-  // Initialize Firebase and listen for auth state
-  init: function() {
-    // Check if firebase is available (loaded via CDN in index.html)
-    if (typeof firebase === 'undefined') {
-      console.log('[Mythika] Firebase not loaded — running in offline mode');
-      return;
-    }
-    
-    // Initialize Firebase app
-    firebase.initializeApp(FIREBASE_CONFIG);
-    
+  // Initialize Firebase — called from the module script in index.html
+  init: function(firebaseApp, firebaseAuth, firebaseDb) {
+    this.app = firebaseApp;
+    this.auth = firebaseAuth;
+    this.db = firebaseDb;
+
     // Listen for auth state changes
-    firebase.auth().onAuthStateChanged(function(user) {
-      Auth.user = user;
+    const self = this;
+    onAuthStateChanged(this.auth, function(user) {
+      self.user = user;
       if (user) {
-        console.log('[Mythika] Signed in as:', user.email || user.uid);
-        // Auto-load save after auth
-        Auth.loadAfterAuth();
+        console.log('[Mythika] Signed in:', user.email || user.phoneNumber || user.uid);
+        self.loadAfterAuth();
       } else {
-        console.log('[Mythika] Signed out — running in offline mode');
+        console.log('[Mythika] Signed out');
       }
     });
   },
 
   // Email/password sign up
-  signUp: async function(email, password) {
-    if (!firebase) return { error: 'Firebase not available' };
+  signUpEmail: async function(email, password) {
+    if (!this.auth) return { error: 'Auth not initialized' };
     try {
-      const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
+      const cred = await createUserWithEmailAndPassword(this.auth, email, password);
       return { user: cred.user };
     } catch (e) {
       return { error: e.message };
@@ -37,11 +36,62 @@ const Auth = {
   },
 
   // Email/password sign in
-  signIn: async function(email, password) {
-    if (!firebase) return { error: 'Firebase not available' };
+  signInEmail: async function(email, password) {
+    if (!this.auth) return { error: 'Auth not initialized' };
     try {
-      const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+      const cred = await signInWithEmailAndPassword(this.auth, email, password);
       return { user: cred.user };
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  // Google sign in
+  signInGoogle: async function() {
+    if (!this.auth) return { error: 'Auth not initialized' };
+    try {
+      const result = await signInWithPopup(this.auth, new GoogleAuthProvider());
+      return { user: result.user };
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  // Phone sign in — init recaptcha first, then verify phone
+  initRecaptcha: function(elementId) {
+    if (!this.auth) return { error: 'Auth not initialized' };
+    if (typeof RecaptchaVerifier === 'undefined') {
+      return { error: 'RecaptchaVerifier not loaded' };
+    }
+    this.recaptchaVerifier = new RecaptchaVerifier(this.auth, elementId, {
+      'size': 'invisible',
+      'callback': function(response) {
+        // reCAPTCHA solved, proceed with phone sign in
+      },
+      'expired-callback': function() {
+        // User expired, ask to solve again
+      }
+    });
+    return { success: true };
+  },
+
+  signInPhone: async function(phoneNumber) {
+    if (!this.auth || !this.recaptchaVerifier) return { error: 'Recaptcha not initialized' };
+    try {
+      const result = await signInWithPhoneNumber(this.auth, phoneNumber, this.recaptchaVerifier);
+      return { verificationId: result.verificationId };
+    } catch (e) {
+      return { error: e.message };
+    }
+  },
+
+  verifyPhoneCode: async function(verificationId, code) {
+    if (!this.auth) return { error: 'Auth not initialized' };
+    try {
+      // PhoneAuthProvider is available globally from the Firebase CDN
+      const credential = PhoneAuthProvider.credential(verificationId, code);
+      const result = await signInWithCredential(this.auth, credential);
+      return { user: result.user };
     } catch (e) {
       return { error: e.message };
     }
@@ -49,21 +99,26 @@ const Auth = {
 
   // Sign out
   signOut: async function() {
-    if (!firebase) return;
-    await firebase.auth().signOut();
-    Auth.user = null;
+    if (!this.auth) return;
+    try {
+      await signOut(this.auth);
+      this.user = null;
+      console.log('[Mythika] Signed out');
+    } catch (e) {
+      console.warn('[Mythika] Sign out failed:', e.message);
+    }
   },
 
   // Save game state to Firestore
   saveToCloud: async function(gameState) {
-    if (!firebase || !Auth.user) return { error: 'Not signed in' };
+    if (!this.auth || !this.db || !this.user) return { error: 'Not signed in' };
     try {
-      const db = firebase.firestore();
-      await db.collection(SAVE_COLLECTION).doc(Auth.user.uid).set({
+      const saveData = {
         state: gameState,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: serverTimestamp(),
         version: 1
-      });
+      };
+      await setDoc(doc(this.db, 'game_saves', this.user.uid), saveData);
       return { success: true };
     } catch (e) {
       return { error: e.message };
@@ -72,12 +127,11 @@ const Auth = {
 
   // Load game state from Firestore
   loadFromCloud: async function() {
-    if (!firebase || !Auth.user) return { error: 'Not signed in' };
+    if (!this.auth || !this.db || !this.user) return { error: 'Not signed in' };
     try {
-      const db = firebase.firestore();
-      const doc = await db.collection(SAVE_COLLECTION).doc(Auth.user.uid).get();
-      if (doc.exists) {
-        return { data: doc.data().state };
+      const docSnap = await getDoc(doc(this.db, 'game_saves', this.user.uid));
+      if (docSnap.exists()) {
+        return { data: docSnap.data().state };
       }
       return { data: null };
     } catch (e) {
@@ -85,7 +139,7 @@ const Auth = {
     }
   },
 
-  // Load save after auth state changes
+  // Load after auth state changes
   loadAfterAuth: async function() {
     const result = await Auth.loadFromCloud();
     if (result.data) {
