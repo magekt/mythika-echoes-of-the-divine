@@ -14,7 +14,7 @@ const titleScene = Scene.create({
         x: Math.random() * G.W, y: Math.random() * G.H,
         vx: (Math.random() - 0.5) * 0.5, vy: -0.3 - Math.random() * 0.5,
         size: 1 + Math.random() * 2, alpha: 0.3 + Math.random() * 0.7,
-        color: Math.random() < 0.5 ? R.colors.orange : R.colors.blue
+        color: Math.random() < 0.5 ? R.colors.gold : R.colors.blue
       });
     }
     this.data.titleY = -100;

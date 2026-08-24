@@ -96,21 +96,21 @@ const debugScene = Scene.create({
 
   buildButtons: function() {
     this.data.buttons = [];
-    const copyBtn = UI.BtnGold(60, 78, 120, 24, 'Copy');
+    const copyBtn = UI.BtnGold(60, 78, 120, 44, 'Copy');
     copyBtn.onClick = function() {
       debugScene.copyToClipboard();
     };
     this.data.buttons.push(copyBtn);
 
-    const scrollUp = UI.Button(200, 78, 30, 24, '^');
+    const scrollUp = UI.Button(200, 78, 30, 44, '^');
     scrollUp.onClick = function() { debugScene.data.scrollY = Math.max(0, debugScene.data.scrollY - 1); };
     this.data.buttons.push(scrollUp);
 
-    const scrollDn = UI.Button(240, 78, 30, 24, 'v');
+    const scrollDn = UI.Button(240, 78, 30, 44, 'v');
     scrollDn.onClick = function() { debugScene.data.scrollY = Math.min(debugScene.data.lines.length - 1, debugScene.data.scrollY + 1); };
     this.data.buttons.push(scrollDn);
 
-    const back = UI.Button(290, 78, 70, 24, 'Back');
+    const back = UI.Button(290, 78, 70, 44, 'Back');
     back.onClick = function() { gScene('ashram'); };
     this.data.buttons.push(back);
   },

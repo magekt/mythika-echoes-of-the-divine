@@ -76,10 +76,10 @@ const journeyScene = Scene.create({
         const statusColor = isCompleted ? R.colors.green : (prog.nodeId ? R.colors.gold : R.colors.textDim);
         const statusText = isCompleted ? 'Completed' : (prog.nodeId ? 'In Progress' : 'Available');
         
-        // Use PremiumShell for journey cards
-        const shell = UI.PremiumShell(14, y, G.W-28, 56, { outerR: 12, innerR: 8 });
+        // Use PremiumShell for journey cards (86px height per design system)
+        const shell = UI.PremiumShell(14, y, G.W-28, 86, { outerR: 8 });
         
-        const btn = UI.Button(14, y, G.W-28, 56, '', 'transparent');
+        const btn = UI.Button(14, y, G.W-28, 86, '', 'transparent');
         btn._journeyId = j.id;
         btn._shell = shell;
         btn._journey = j;
@@ -93,7 +93,7 @@ const journeyScene = Scene.create({
           
           // Accent bar
           const accentColor = this._isCompleted ? R.colors.success : (this._journey.progress.nodeId ? R.colors.gold : R.colors.textDim);
-          R.roundRect(ctx, content.x, content.y, content.w, 4, 2, accentColor);
+          R.roundRect(ctx, content.x, content.y, content.w, R.radius.s, R.radius.s, accentColor);
           
           // Icon and name
           R.text(ctx, this._journey.icon + '  ' + this._journey.name, content.x + 12, content.y + 16, R.colors.gold, R.fonts.md);
@@ -112,13 +112,13 @@ const journeyScene = Scene.create({
           journeyScene.buildUI();
         };
         this.data.buttons.push(btn);
-        y += 62;
+        y += 94;
       }
     } else {
       // Detail view for selected journey
       const node = JourneySystem.getCurrentNode(selId);
       // Header card with PremiumShell
-      const headerShell = UI.PremiumShell(14, y, G.W-28, 80, { outerR: 12 });
+      const headerShell = UI.PremiumShell(14, y, G.W-28, 86, { outerR: 8 });
       headerShell.render(ctx);
       const headerContent = headerShell.contentRect();
       R.text(ctx, sel.icon + '  ' + sel.name, headerContent.x + 12, headerContent.y + 16, R.colors.gold, R.fonts.md);
@@ -127,7 +127,7 @@ const journeyScene = Scene.create({
       
       if (!node) {
         // Completed
-        const completeShell = UI.PremiumShell(14, y, G.W-28, 80, { outerR: 12 });
+        const completeShell = UI.PremiumShell(14, y, G.W-28, 86, { outerR: 8 });
         completeShell.render(ctx);
         const cc = completeShell.contentRect();
         R.textCenter(ctx, 'Journey Complete!', cc.x + cc.w/2, cc.y + 20, R.colors.green, R.fonts.md);
@@ -135,7 +135,7 @@ const journeyScene = Scene.create({
         y += 90;
       } else {
         // Prompt with PremiumShell
-        const promptShell = UI.PremiumShell(14, y, G.W-28, 60, { outerR: 12 });
+        const promptShell = UI.PremiumShell(14, y, G.W-28, 86, { outerR: 8 });
         promptShell.render(ctx);
         const pc = promptShell.contentRect();
         R.textCenter(ctx, node.prompt, pc.x + pc.w/2, pc.y + 20, R.colors.text, R.fonts.md);
@@ -163,7 +163,7 @@ const journeyScene = Scene.create({
         y += 8;
       }
       // Back to list
-      const back = UI.MagneticBtn(60, y, G.W-120, 40, 'Back to Journeys', { trailingIcon: 'arrow-left' });
+      const back = UI.MagneticBtn(60, y, G.W-120, 44, 'Back to Journeys', { trailingIcon: 'arrow-left' });
       back.onClick = function() {
         journeyScene.data.selectedId = null;
         journeyScene.buildUI();

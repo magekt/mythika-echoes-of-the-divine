@@ -1,175 +1,96 @@
 # Mythika: Echoes of the Divine
 
-A 400x720 HTML5 Canvas idle RPG rooted in Indian mythology — cultivate your atman,
-beast-companion in tow, through five zones toward Moksha. No frameworks, no build step.
-
-**Play:** serve the folder with any static server and open `index.html`.
-
-```bash
-cd Mythika
-python3 -m http.server 8931
-# open http://localhost:8931
-```
-
-Deployed via **GitHub Actions** on every push to `master` — the verify job boots
-the game headlessly across the device matrix and only a clean boot deploys.
-Live URL: https://magekt.github.io/mythika-echoes-of-the-divine/
+**Mythika** is a mobile-first idle/cultivation RPG rooted in Indian mythology. Cultivate your atman toward Moksha through combat, alchemy, farming, fishing, and spiritual journeys.
 
 ---
 
-## Architecture
+## Game Overview
 
-```
-src/
-├── main.js              scene registration (23 scenes)
-├── engine/
-│   ├── game.js          G state literal, gLoop (update → clearRect → render),
-│   │                    gScene/Fade (both clear stale input), Notify toasts, fitGame()
-│   ├── scene.js         Scene.create({ name, data, enter, update, render })
-│   ├── scene-helpers.js shared scene patterns (see Conventions below)
-│   ├── input.js         taps fire on release (10px dead-zone), touch drag-scrolls,
-│   │                    swipes, long-press; Input.clear() runs on every scene change
-│   ├── renderer.js      R.* draw helpers, pixel font, sprites, effects
-│   └── audio.js         Web Audio oscillator SFX + music (no audio files)
-├── ui/                  button, panel, progressBar, text, list, tabbar, modal, card
-├── data/                heroes, enemies (+18 abilities), zones, items (rarity loot),
-│                        classes, perks, auras, cultivation, alchemy recipes,
-│                        spirit beasts (+2-stage evolutions), quests (+chains), achievements
-├── systems/             economy, progression (adaptive difficulty), combat, cultivation,
-│                        alchemy, save (+migration), quest, achievements
-└── scenes/              23 scenes following the Scene contract
-```
+Mythika: Echoes of the Divine is an idle/cultivation RPG where players progress their atman toward Moksha — the ultimate liberation. Set against the rich backdrop of Indian mythology, the game features:
 
-The canvas backs at `devicePixelRatio` resolution (capped 3x) while all game code uses
-400x720 logical coordinates — text and edges stay crisp on phones. `fitGame()` scales
-the container to letterbox any viewport; input maps taps through the scaled rect.
+- **30+ Scenes** with a full UI overhaul
+- Turn-based combat system
+- Cultivation realm progression
+- Alchemy crafting system
+- Spirit beast companions
+- Farming and fishing mechanics
+- Tournament PvP
+- Achievement system
+- Cloud save via Firebase (optional)
 
-The game loop order matters: `update()` may rebuild UI (`build*()` functions), then the
-canvas is cleared, then `render()` draws. **Never draw text directly to `G.ctx` outside
-`render()`** — it will be wiped before it is ever seen.
+The game is designed to be **mobile-first** but works perfectly on desktop, with a progressive web app (PWA) experience and service worker for offline play.
 
-## Code Conventions
+---
 
-### Static panels & headers
-Build functions record draws into `data.staticDraws`; `render()` plays them back inside
-the scroll clip/translate so they scroll with content:
+## Tech Stack
 
-```js
-buildList: function() {
-  this.data.staticDraws = [];
-  const SD = this.data.staticDraws;
-  SD.push({ text: ['Quest Log', 18, y, R.colors.gold, R.fonts.sm] });
-  SD.push({ rect: [10, y, G.W - 20, 70, 6, R.colors.panel],
-            stroke: [11, y + 1, G.W - 22, 68, R.colors.orange] });
-}
-// in render(), inside clip + translate(0, -scrollY):
-Scene.drawStatic(ctx, this.data.staticDraws);
-```
+- **Vanilla JS (ES6+)** — No frameworks, no build step required
+- **HTML5 Canvas 2D** — Renderer for all graphics
+- **Web Audio API** — Sound and music
+- **PWA** — Service worker for offline play
+- **Firebase** — Optional auth and cross-device saves
 
-Entry shapes: `{ text: [str, x, y, color, font] }`, `{ textCenter: [...] }`,
-`{ rect: [x,y,w,h,r,fill], stroke?: [x,y,w,h,color], lw?: n }`.
+> **No build step required** — Simply open `index.html` or use `npx serve` to play locally.
 
-### Scrolling
-Scenes own `data.scrollY`, `data.contentHeight` and a `clampScroll()`; the shared blocks
-are factored out:
+---
 
-```js
-update: function(dt) { Scene.scrollInput(this); ... }
-// top of the content section in render():
-Scene.clipContent(ctx, this);   // save + clip + translate; caller ctx.restore()s after
-// end of render():
-Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
+## Features
+
+| Category | Details |
+|----------|---------|
+| **Scenes** | 30+ unique scenes with full UI overhaul |
+| **Combat** | Turn-based combat system |
+| **Progression** | Cultivation realm progression |
+| **Crafting** | Alchemy crafting system |
+| **Companions** | Spirit beast companions |
+| **Gameplay** | Farming and fishing mechanics |
+| **PvP** | Tournament PvP |
+| **Achievements** | Comprehensive achievement system |
+| **Cloud Save** | Firebase optional cloud saves |
+
+---
+
+## Development
+
+### Local Development
+
+```bash
+# Start local dev server
+python3 -m http.server 3000
+
+# Run boot verification (3 profiles)
+python3 tools/verify_matrix.py --budget 6000
+
+# Syntax check individual files
+node --check src/engine/<file>.js
 ```
 
-### Headers & chrome
-Every scene's top panel is one call (bg + hairline border + centered gold title);
-scene-specific sub-lines follow it in `render()`:
+### Design References
 
-```js
-Scene.drawHeader(ctx, 62, 'Quest Log');   // height, title, optional titleY (default 22)
-```
+- **Visual Design System**: `.slim/deepwork/DESIGN-SYSTEM.md`
+- **Verification Workflow**: `.slim/deepwork/verification-playbook.md`
 
-Long button lists must cull to the viewport (buttons keep build-time y):
+---
 
-```js
-for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
-```
+## Firebase Setup (Optional)
 
-### Shared buttons & economy guards
-```js
-this.data.buttons.push(Scene.backButton(y, { fade: true }));  // opts: label/target/fade
-if (Economy.spendGoldOrNotify(cost)) { ... }   // spends + standard toast on failure
-```
+1. Create a Firebase project
+2. Enable Email/Password auth
+3. Create Firestore database
+4. Copy config to `src/engine/firebase-config.js`
+5. Set security rules for `game_saves/{userId}`
 
-### Click outcomes
-`UI.handleButtons` classifies every press. An explicit `return false` from a
-handler marks the action rejected — the stone-hits-glass FX + thud play at the
-tap point; any other return plays the gold valid-tick with the click blip.
-Disabled buttons always play blocked. Empty space and off-screen taps stay
-silent. Gate rejections accordingly:
+---
 
-```js
-btn.onClick = function() {
-  if (!Economy.spendGoldOrNotify(cost)) return false;   // blocked feedback
-  ...
-};
-```
+## License
 
-### Modals
-Any scene that can open a modal guards its update first — otherwise taps pass through
-the overlay:
+Check if `LICENSE` exists in the repo root. If not, add a license note appropriate for the project.
 
-```js
-if (UI.Modal.active) { UI.Modal.handleInput(); return; }
-```
+---
 
-### Gear slots
-Equipped gear is an **object** (`{name, atk, type, rarity, ...}`) or `null`. Legacy saves
-holding plain strings are healed by `SaveSystem.migrate()` on load. Always label slots
-with `Scene.gearLabel(slot)` — handles object / legacy string / empty.
+## Quick Start
 
-### Battle-instance timers
-Combat schedules 300/500ms callbacks (auto-turn, enemy-turn pacing). Every such timer
-must capture the battle token and bail if the battle changed:
-
-```js
-var runId = this.data.runId;   // incremented in enter()
-setTimeout(function() {
-  if (G.currentScene !== combatScene || combatScene.data.runId !== runId) return;
-  combatScene.advanceTurn();
-}, 500);
-```
-
-Without the `runId` check, a timer from a finished battle can fire into the next one
-(the guard on scene alone is not enough — the scene object is reused).
-
-### Transient effects
-Fleeting visuals — `R.damageNumbers`, `R.deathBursts`, `R.comboFlash` — live on `R`
-with matching `updateEffects()`/`renderEffects()` pairs. Never draw them outside
-`render()`; never mutate scene state from an effect.
-
-### Adaptive difficulty
-There is no manual difficulty picker. `G.state.challenge` (0.6–1.5) drifts after every
-battle via `Progression.adjustChallenge()` based on outcome, remaining HP, and speed.
-It scales enemy HP/damage (`applyDifficulty`) plus reward and loot quality
-(`getLootBonus`), and renders as a Threat level on the Travel Map.
-
-## Development Workflow
-
-1. Make changes; keep the Scene contract (`enter` builds UI, `render` draws).
-2. Syntax-check every touched file: `node -c <file>`.
-3. Run the headless boot matrix (needs local Chrome; stdlib only):
-
-   ```bash
-   python3 tools/verify_matrix.py
-   ```
-
-   It serves the repo root, boots desktop / phone / phone-landscape profiles in
-   headless Chrome, asserts the `[Mythika] booted` beacon with no uncaught
-   errors, and drops per-profile screenshots in `tools/shots/` for review.
-4. Smoke-test in a browser (serve locally; hard-reload to bypass cache).
-5. Commit with conventional prefixes: `fix:` / `feat:` / `refactor:` / `docs:` / `style:`.
-6. Push: `git push origin master`.
-
-Deployment is owned by `.github/workflows/pages.yml` (verify → deploy on push
-to `master`). See `BUILD_STATUS.md` for the current feature inventory.
+1. Open `index.html` in your browser
+2. Or start a local server: `python3 -m http.server 3000`
+3. Navigate to `http://localhost:3000`
+4. Begin your cultivation journey toward Moksha!
