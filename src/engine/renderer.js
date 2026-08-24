@@ -488,7 +488,7 @@ R.renderClickFx = function(ctx) {
         R.rect(ctx, s.x + R.shakeX - 1, s.y + R.shakeY - 1, 2, 2, s.color);
       }
       ctx.globalAlpha = 1;
-      continue;
+      return;
     }
     const ix = f.x + R.shakeX, iy = f.y + R.shakeY;
     const impacted = f.staticMark || f.age >= f.impactAt;
@@ -507,7 +507,7 @@ R.renderClickFx = function(ctx) {
       ctx.lineWidth = 1;
       ctx.strokeRect(-3, -3, 6, 6);
       ctx.restore();
-      continue;
+      return;
     }
     // Dent disc.
     const dT = f.staticMark ? 0 : Math.min(1, (f.age - f.impactAt) / 0.45);
@@ -539,7 +539,7 @@ R.renderClickFx = function(ctx) {
       }
     }
     ctx.globalAlpha = 1;
-  }
+  });
 };
 
 R.zoneBgColor = function(zoneId) {

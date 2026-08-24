@@ -217,7 +217,6 @@ function fitGame() {
     Hints.show('rotate', 'Rotate your device upright for the best experience.');
   }
 }
-}
 
 function gInit() {  G.canvas = document.getElementById('game-canvas');
   // Back the canvas at device resolution so text/edges stay crisp on phones
