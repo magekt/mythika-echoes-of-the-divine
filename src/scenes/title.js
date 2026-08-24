@@ -9,10 +9,11 @@ const titleScene = Scene.create({
   enter: function() {
     Audio.playMusic('title');
     this.data.particles = [];
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 40; i++) {
+      const slow = i % 4 === 0;
       this.data.particles.push({
         x: Math.random() * G.W, y: Math.random() * G.H,
-        vx: (Math.random() - 0.5) * 0.5, vy: -0.3 - Math.random() * 0.5,
+        vx: (Math.random() - 0.5) * 0.5, vy: slow ? (-0.3 - Math.random() * 0.5) * 0.3 : (-0.3 - Math.random() * 0.5),
         size: 1 + Math.random() * 2, alpha: 0.3 + Math.random() * 0.7,
         color: Math.random() < 0.5 ? R.colors.gold : R.colors.blue
       });
@@ -31,7 +32,7 @@ const titleScene = Scene.create({
     this.data.buttons.push(newBtn);
 
     if (SaveSystem.hasSave()) {
-      const loadBtn = UI.BtnGold(cx, 430, bw, bh, 'Continue');
+      const loadBtn = UI.BtnGold(cx, 428, bw, bh, 'Continue');
       loadBtn.onClick = function() {
         SaveSystem.load();
         gScene('ashram', true);
@@ -57,7 +58,7 @@ const titleScene = Scene.create({
       const dur = this.data._enterDur || 0.9;
       this.data._enterT = Math.min(dur, (this.data._enterT || 0) + dt);
       const ep = this.data._enterT / dur;
-      const eased = 1 - Math.pow(1 - ep, 3);
+      const eased = 1 - Math.pow(1 - ep, 4);
       this.data.titleY = -100 + 160 * eased;
       if (ep >= 1) G.state.flags.titleSeen = true;
     }
@@ -80,9 +81,10 @@ const titleScene = Scene.create({
     ctx.globalAlpha = 1;
 
     const ty = Math.floor(this.data.titleY);
-    // Bake the glowing wordmark once (lazy: needs G.dpr, set after boot) —
-    // canvas shadowBlur per frame is a needless cost on low-end GPUs. One
-    // drawImage blit per frame instead.
+    // Subtle glow pulse: shadowBlur oscillates between 20-28 via sine wave
+    const glowBlur = 24 + 4 * Math.sin(G.frameCount * 0.05);
+
+    // Bake the glowing wordmark once (lazy: needs G.dpr, set after boot)
     if (!this.data.titleSprite && typeof document !== 'undefined' && G.dpr) {
       const spr = document.createElement('canvas');
       spr.width = 208 * G.dpr;
@@ -90,15 +92,17 @@ const titleScene = Scene.create({
       const sc = spr.getContext('2d');
       sc.scale(G.dpr, G.dpr);
       sc.shadowColor = R.colors.orange;
-      sc.shadowBlur = 25;
+      sc.shadowBlur = glowBlur;
       R.pixelText(sc, 'MYTHIKA', 20, 18, R.colors.gold, 6);
       this.data.titleSprite = spr;
     }
     if (this.data.titleSprite) {
+      ctx.shadowBlur = glowBlur;
       ctx.drawImage(this.data.titleSprite, G.W / 2 - 104, ty - 18, 208, 72);
+      ctx.shadowBlur = 0;
     } else {
       ctx.shadowColor = R.colors.orange;
-      ctx.shadowBlur = 25;
+      ctx.shadowBlur = glowBlur;
       R.pixelText(ctx, 'MYTHIKA', G.W / 2 - 80, ty, R.colors.gold, 6);
       ctx.shadowBlur = 0;
     }
@@ -111,7 +115,7 @@ const titleScene = Scene.create({
     // Title is pre-game — HUD (gold/level) belongs to in-game scenes only
     // (ashram, exploration, etc.). Removed to prevent overlap with wordmark.
 
-    const ver = UI.TextDim(G.W / 2, G.H - 30, 'v1.0 - A Mythic Idle RPG');
+    const ver = UI.TextDim(G.W / 2, G.H - 20, 'v1.0 - A Mythic Idle RPG');
     ver.render(ctx);
   }
 });

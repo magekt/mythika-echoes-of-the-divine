@@ -729,16 +729,25 @@ const combatScene = Scene.create({
     if (this.data.turnState === 'playerTurn') {
       const currentActor = Combat.getCurrentActor();
       if (currentActor && currentActor.ref) {
-        R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, 4, R.colors.hpBarBackground);
-        R.textCenter(ctx, '\u25B6 ' + currentActor.ref.name + '\'s Turn', G.W / 2, 88, R.colors.green, R.fonts.sm);
+        // Gold background strip for player turn
+        R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, R.radius.m, R.colors.gold);
+        R.textCenter(ctx, '\u25B6 ' + currentActor.ref.name + '\'s Turn', G.W / 2, 88, R.colors.white, R.fonts.md);
       }
       if (Combat.comboCount >= 2) {
         const multiplier = 1.0 + Math.min(10, Combat.comboCount - 1) * 0.1;
-        R.textCenter(ctx, 'COMBO x' + Combat.comboCount + ' (' + multiplier.toFixed(1) + 'x DMG)', G.W / 2, 104, R.colors.red, R.fonts.sm);
+        // Gold combo text (not red — gold feels more rewarding)
+        const comboText = 'COMBO x' + Combat.comboCount + ' (' + multiplier.toFixed(1) + 'x DMG)';
+        // Subtle glow effect: draw background rect first, then text
+        ctx.fillStyle = R.colors.gold;
+        ctx.globalAlpha = 0.3;
+        ctx.fillRect(G.W / 2 - 60, 100, 120, 24);
+        ctx.globalAlpha = 1;
+        R.textCenter(ctx, comboText, G.W / 2, 104, R.colors.gold, R.fonts.sm);
       }
     } else if (this.data.turnState === 'enemyTurn') {
-      R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, 4, R.colors.damageBarBackground);
-      R.textCenter(ctx, '\u25C0 Enemy Turn', G.W / 2, 88, R.colors.red, R.fonts.sm);
+      // Red background strip for enemy turn
+      R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, R.radius.m, R.colors.red);
+      R.textCenter(ctx, '\u25C0 Enemy Turn', G.W / 2, 88, R.colors.white, R.fonts.md);
     }
 
     // Enemy display area - PremiumShell panel with selected enemy sprite, name, HP bar
@@ -756,7 +765,7 @@ const combatScene = Scene.create({
       if (selectedEnemy.sprite) {
         R.drawEnemy(ctx, selectedEnemy.id, content.x + content.w / 2, content.y + 10, 22);
       }
-      R.textCenter(ctx, selectedEnemy.name, content.x + content.w / 2, content.y + 38, selectedEnemy.hp > 0 ? R.colors.red : R.colors.textDim, R.fonts.sm);
+      R.textCenter(ctx, selectedEnemy.name, content.x + content.w / 2, content.y + 38, selectedEnemy.hp > 0 ? R.colors.red : R.colors.textDim, R.fonts.lg);
       
       // HP bar inside panel
       const hpBar = UI.ProgressBar(content.x + 20, content.y + 50, content.w - 40, 8, R.colors.gold, R.colors.borderHairline);
@@ -823,8 +832,9 @@ const combatScene = Scene.create({
       const logSlice = this.data.log.slice(-4);
       let logY = this.getActionAreaTop() - 78;
       for (const msg of logSlice) {
-        R.roundRect(ctx, 14, logY - 1, G.W - 28, 16, 3, R.colors.panel);
-        R.textCenter(ctx, msg, G.W / 2, logY + 11, R.colors.text, R.fonts.sm);
+        // 8px padding inside panel for text breathing room
+        R.roundRect(ctx, 14, logY - 1, G.W - 28, 24, 3, R.colors.panel);
+        R.textCenter(ctx, msg, G.W / 2, logY + 15, R.colors.text, R.fonts.xs);
         logY += 18;
       }
     }
@@ -836,8 +846,30 @@ const combatScene = Scene.create({
     ctx.clip();
     ctx.translate(0, top - 6 - this.data.scrollY);
     
-    // Viewport culling: only render buttons visible within the scroll area
-    const vis = Scene.cullButtons(this.data.actionButtons, this.data.scrollY, this.getActionAreaHeight());
+    // Draw subtle separator lines between action categories
+    // Buttons are positioned: index 0 (Attack) at y=38, index 1 (Defend) at y=72, 
+    // then skills at y=106, 140, etc. (34px increments after initial 38 offset)
+    // Separator 1: between top row (Attack/Defend) and Skills category
+    if (this.data.actionButtons.length > 2) {
+      ctx.strokeStyle = R.colors.borderHairline;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(8, 72);
+      ctx.lineTo(G.W - 8, 72);
+      ctx.stroke();
+    }
+    // Separator 2: after Skills category (after top 2 buttons + all skill buttons)
+    const skillCount = (Combat.getCurrentActor() && Combat.getCurrentActor().type === 'hero') 
+      ? (Combat.getCurrentActor().ref.skills || []).length : 0;
+    const skillsSepY = 38 + 34 * (2 + skillCount);
+    if (skillCount > 0) {
+      ctx.strokeStyle = R.colors.borderHairline;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(8, skillsSepY);
+      ctx.lineTo(G.W - 8, skillsSepY);
+      ctx.stroke();
+    }
 
     const actionContentH = this.data.actionButtons.length * 42 + 120;
     R.roundRect(ctx, 10, 6, G.W - 20, actionContentH, 8, R.colors.overlayDark);
