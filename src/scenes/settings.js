@@ -19,8 +19,8 @@ const settingsScene = Scene.create({
     this.data.scrollY = 0;
   },
 
-  getContentTop: function() { return 86; },
-  getContentHeight: function() { return G.H - this.getContentTop(); },
+  getContentTop: function() { return G.CONTENT_TOP; },
+  getContentHeight: function() { return G.H - this.getContentTop() - 44; },
 
   clampScroll: function() {
     const ch = this.data.contentHeight;
@@ -37,21 +37,37 @@ const settingsScene = Scene.create({
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
-    const sfxBtn = UI.Button(20, y, G.W - 40, 30, 'SFX: ' + (Audio.sfxOn ? 'ON' : 'OFF'));
+    // --- Section Header (26px, panel bg, gold accent) ---
+    const secHh = 26;
+    const secHdr = UI.Button(14, y, G.W - 28, secHh, '', 'transparent');
+    secHdr._label = 'Settings';
+    secHdr._color = R.colors.gold;
+    secHdr.render = function(ctx) {
+      R.roundRect(ctx, this.x, this.y, this.w, this.h, 6, R.colors.panel);
+      R.textCenter(ctx, this._label, this.x + this.w / 2, this.y + this.h / 2 + 4, this._color, R.fonts.sm);
+    };
+    this.data.buttons.push(secHdr);
+    y += secHh + 8;
+
+    // --- Audio Section ---
+    // SFX toggle button - primary action, 38px minimum height
+    const sfxBtn = UI.Button(20, y, G.W - 40, 38, 'SFX: ' + (Audio.sfxOn ? 'ON' : 'OFF'));
     sfxBtn.onClick = function() { Audio.sfxOn = !Audio.sfxOn; settingsScene.buildButtons(); };
     this.data.buttons.push(sfxBtn);
-    y += 36;
+    y += 44;
 
-    const musicBtn = UI.Button(20, y, G.W - 40, 30, 'Music: ' + (Audio.musicOn ? 'ON' : 'OFF'));
+    // Music toggle button
+    const musicBtn = UI.Button(20, y, G.W - 40, 38, 'Music: ' + (Audio.musicOn ? 'ON' : 'OFF'));
     musicBtn.onClick = function() { Audio.musicOn = !Audio.musicOn; settingsScene.buildButtons(); };
     this.data.buttons.push(musicBtn);
-    y += 36;
+    y += 44;
 
-    // Accessibility: cycle UI text scale (persisted with the save).
+    // --- Accessibility Section ---
+    // Text Size cycle button - primary action, 38px minimum height
     const scales = [1, 1.15, 1.3];
     const labels = ['Normal', 'Large', 'Largest'];
     const cur = scales.indexOf(G.state.uiFontScale || 1) === -1 ? 0 : scales.indexOf(G.state.uiFontScale || 1);
-    const fontBtn = UI.Button(20, y, G.W - 40, 30, 'Text Size: ' + labels[cur]);
+    const fontBtn = UI.Button(20, y, G.W - 40, 38, 'Text Size: ' + labels[cur]);
     fontBtn.onClick = function() {
       const next = scales[(cur + 1) % scales.length];
       G.state.uiFontScale = next;
@@ -60,11 +76,10 @@ const settingsScene = Scene.create({
       settingsScene.buildButtons();
     };
     this.data.buttons.push(fontBtn);
-    y += 36;
+    y += 44;
 
-    // Accessibility: gate screen shake, death bursts, combo/level-up flashes
-    // and enter animations. Persists with the save (whole-state clone).
-    const rmBtn = UI.Button(20, y, G.W - 40, 30, 'Reduce Motion: ' + (G.state.reduceMotion ? 'ON' : 'OFF'));
+    // Reduce Motion toggle button
+    const rmBtn = UI.Button(20, y, G.W - 40, 38, 'Reduce Motion: ' + (G.state.reduceMotion ? 'ON' : 'OFF'));
     rmBtn.onClick = function() {
       G.state.reduceMotion = !G.state.reduceMotion;
       G.state.rmUserSet = true;
@@ -72,33 +87,38 @@ const settingsScene = Scene.create({
       settingsScene.buildButtons();
     };
     this.data.buttons.push(rmBtn);
-    y += 36;
+    y += 44;
 
-    const saveBtn = UI.BtnGold(20, y, G.W - 40, 30, 'Save Game');
+    // --- Save/Load Section ---
+    // Save Game button - primary CTA, 38px minimum height
+    const saveBtn = UI.Button(20, y, G.W - 40, 38, 'Save Game');
     saveBtn.onClick = function() {
       if (SaveSystem.save()) { Notify.show('Game saved!', 2); }
       else { Notify.show('Save failed!', 2); }
     };
     this.data.buttons.push(saveBtn);
-    y += 36;
+    y += 44;
 
-    const loadBtn = UI.Button(20, y, G.W - 40, 30, 'Load Game');
+    // Load Game button
+    const loadBtn = UI.Button(20, y, G.W - 40, 38, 'Load Game');
     loadBtn.onClick = function() {
       if (SaveSystem.load()) { Notify.show('Game loaded!', 2); }
       else { Notify.show('No save found!', 2); }
     };
     this.data.buttons.push(loadBtn);
-    y += 36;
+    y += 44;
 
-    const exportBtn = UI.Button(20, y, G.W - 40, 30, 'Export Save to File');
+    // Export Save to File button
+    const exportBtn = UI.Button(20, y, G.W - 40, 38, 'Export Save to File');
     exportBtn.onClick = function() {
       if (SaveSystem.exportFile()) { Notify.show('Save exported!', 2, R.colors.green); }
       else { Notify.show('Export failed!', 2, R.colors.red); }
     };
     this.data.buttons.push(exportBtn);
-    y += 36;
+    y += 44;
 
-    const importBtn = UI.Button(20, y, G.W - 40, 30, 'Import Save from File');
+    // Import Save from File button
+    const importBtn = UI.Button(20, y, G.W - 40, 38, 'Import Save from File');
     importBtn.onClick = function() {
       const input = document.createElement('input');
       input.type = 'file';
@@ -112,9 +132,10 @@ const settingsScene = Scene.create({
       input.click();
     };
     this.data.buttons.push(importBtn);
-    y += 36;
+    y += 44;
 
-    const deleteBtn = UI.Button(20, y, G.W - 40, 30, 'Delete Save');
+    // Delete Save button
+    const deleteBtn = UI.Button(20, y, G.W - 40, 38, 'Delete Save');
     deleteBtn.onClick = function() {
       UI.Modal.confirm('Delete Save', 'This cannot be undone!', function(confirmed) {
         if (confirmed) {
@@ -124,9 +145,11 @@ const settingsScene = Scene.create({
       });
     };
     this.data.buttons.push(deleteBtn);
-    y += 40;
+    y += 44;
 
-    const updateBtn = UI.Button(20, y, G.W - 40, 30, 'Check for Game Updates');
+    // --- Updates Section ---
+    // Check for Game Updates button - primary action, 38px minimum height
+    const updateBtn = UI.Button(20, y, G.W - 40, 38, 'Check for Game Updates');
     updateBtn.onClick = function() {
       Notify.show('Fetching updates...', 2);
       Promise.all([
@@ -140,8 +163,9 @@ const settingsScene = Scene.create({
       });
     };
     this.data.buttons.push(updateBtn);
-    y += 40;
+    y += 44;
 
+    // --- Save Info (optional) ---
     const info = SaveSystem.getSaveInfo();
     if (info) {
       SD.push({ text: ['Save Info:', 22, y + 2, R.colors.textDim, R.fonts.sm] });
@@ -152,8 +176,9 @@ const settingsScene = Scene.create({
       y += 20;
     }
 
+    // --- Back button (primary action, 38px minimum) ---
     this.data.buttons.push(Scene.backButton(y + 4, { fade: true }));
-    y += 44;
+    y += 52;
 
     this.data.contentHeight = y;
   },

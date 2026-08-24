@@ -19,8 +19,8 @@ const cultivationScene = Scene.create({
     this.data.scrollY = 0;
   },
 
-  getContentTop: function() { return 74; },
-  getContentHeight: function() { return G.H - this.getContentTop(); },
+  getContentTop: function() { return G.CONTENT_TOP; },
+  getContentHeight: function() { return G.H - this.getContentTop() - 44; },
 
   clampScroll: function() {
     const ch = this.data.contentHeight;
@@ -35,25 +35,76 @@ const cultivationScene = Scene.create({
     this.data.scrollY = 0;
     let y = this.getContentTop();
 
-    const realm = CultivationSystem.getRealmData();
-    const progress = CultivationSystem.getRealmProgress();
-    const canBreak = CultivationSystem.canBreakthrough();
-    const stats = CultivationSystem.getBreakthroughStats(getRealmIndex(G.state.realm));
+    // --- Realm Progress Section Header (26px, panel bg, gold accent) ---
+    const secHh = 26;
+    const hdr = UI.Button(14, y, G.W - 28, secHh, '', 'transparent');
+    hdr._label = 'Cultivation Realm';
+    hdr._color = R.colors.gold;
+    hdr.render = function(ctx) {
+      R.roundRect(ctx, this.x, this.y, this.w, this.h, 6, R.colors.panel);
+      R.textCenter(ctx, this._label, this.x + this.w / 2, this.y + this.h / 2 + 4, this._color, R.fonts.sm);
+    };
+    this.data.buttons.push(hdr);
+    y += secHh + 8;
 
-    const infoH = 240;
-    y += infoH + 10;
+    // --- 3-Column Grid Cards (86px height per design system) ---
+    const gridCols = 3;
+    const gridGap = 8;
+    const mx = 14;
+    const cw = (G.W - mx * 2 - gridGap * (gridCols - 1)) / gridCols;
+    const ch = 86; // was 70px — upgraded for tap target
 
-    // Meditate button - Primary (Gold)
+    // Prana card
+    const pranaBtn = UI.Button(14, y, cw, ch, '', R.colors.surface);
+    pranaBtn.render = function(ctx) {
+      R.roundRect(ctx, this.x, this.y, this.w, this.h, 8, R.colors.surface);
+      ctx.strokeStyle = 'rgba(232,160,48,0.08)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(this.x + 0.5, this.y + 0.5, this.w - 1, this.h - 1);
+      R.textCenter(ctx, 'Prana', this.x + this.w / 2, this.y + 12, R.colors.gold, R.fonts.xl);
+      R.textCenter(ctx, Math.floor(G.state.prana || 0), this.x + this.w / 2, this.y + this.h / 2, R.colors.text, R.fonts.md);
+    };
+    this.data.buttons.push(pranaBtn);
+
+    // Cultivation Rate card
+    const rateBtn = UI.Button(14 + cw + gridGap, y, cw, ch, '', R.colors.surface);
+    rateBtn.render = function(ctx) {
+      R.roundRect(ctx, this.x, this.y, this.w, this.h, 8, R.colors.surface);
+      ctx.strokeStyle = 'rgba(232,160,48,0.08)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(this.x + 0.5, this.y + 0.5, this.w - 1, this.h - 1);
+      R.textCenter(ctx, 'Rate/s', this.x + this.w / 2, this.y + 12, R.colors.textDim, R.fonts.sm);
+      R.textCenter(ctx, '+' + CultivationSystem.getCultivationPerSecond().toFixed(1), this.x + this.w / 2, this.y + this.h / 2, R.colors.green, R.fonts.md);
+    };
+    this.data.buttons.push(rateBtn);
+
+    // Breakthrough Status card
+    const statusBtn = UI.Button(14 + 2 * (cw + gridGap), y, cw, ch, '', R.colors.surface);
+    statusBtn.render = function(ctx) {
+      R.roundRect(ctx, this.x, this.y, this.w, this.h, 8, R.colors.surface);
+      ctx.strokeStyle = 'rgba(232,160,48,0.08)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(this.x + 0.5, this.y + 0.5, this.w - 1, this.h - 1);
+      const canBreak = CultivationSystem.canBreakthrough();
+      R.textCenter(ctx, canBreak ? 'Ready' : 'Building', this.x + this.w / 2, this.y + 12, canBreak ? R.colors.green : R.colors.textDim, R.fonts.sm);
+      R.textCenter(ctx, canBreak ? 'for breakthrough!' : '', this.x + this.w / 2, this.y + this.h - 12, canBreak ? R.colors.green : R.colors.textDim, R.fonts.xs);
+    };
+    this.data.buttons.push(statusBtn);
+    y += ch + 8;
+
+    // --- Primary Action Buttons ---
+    // Meditate button - Primary (Gold), minimum 38px height
     const medAmt = 5 + Math.max(0, (G.state.ashramLevel || 1) - 1) * 2;
     const medBtn = UI.MagneticBtn(60, y, G.W - 120, 48, 'Meditate', { trailingIcon: 'arrow-right' });
     medBtn.onClick = function() {
-      CultivationSystem.addCultivationBase(5 + Math.max(0, (G.state.ashramLevel || 1) - 1) * 2);
+      CultivationSystem.addCultivationBase(medAmt);
       return true;
     };
     this.data.buttons.push(medBtn);
     y += 56;
 
     // Attempt Breakthrough button - Secondary (Surface with gold border)
+    const canBreak = CultivationSystem.canBreakthrough();
     const bt = UI.MagneticBtn(60, y, G.W - 120, 48, 'Attempt Breakthrough', { trailingIcon: 'arrow-right' });
     bt.enabled = canBreak;
     bt._variant = 'secondary';
@@ -190,7 +241,7 @@ const cultivationScene = Scene.create({
     iy += 20;
 
     const progress = CultivationSystem.getRealmProgress();
-    const pb = UI.ProgressBar(40, iy, G.W - 80, 12, R.colors.gold, '#2a1510');
+    const pb = UI.ProgressBar(40, iy, G.W - 80, 8, R.colors.gold, R.colors.borderHairline);
     pb.setProgress(progress.current, progress.needed);
     pb.render(ctx);
     iy += 20;

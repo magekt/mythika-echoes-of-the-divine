@@ -30,8 +30,8 @@ const partyScene = Scene.create({
     this.data.scrollY = 0;
   },
 
-  getContentTop: function() { return 74; },
-  getContentHeight: function() { return G.H - this.getContentTop(); },
+  getContentTop: function() { return G.CONTENT_TOP; },
+  getContentHeight: function() { return G.H - this.getContentTop() - 44; },
 
   clampScroll: function() {
     const ch = this.data.contentHeight;
@@ -46,10 +46,26 @@ const partyScene = Scene.create({
     this.data.scrollY = 0;
     let y = this.getContentTop();
 
-    this.data.staticDraws = [];
+    // --- Heroes Section Header (26px, panel bg, gold accent) ---
+    const secHh = 26;
+    const hdr = UI.Button(14, y, G.W - 28, secHh, '', 'transparent');
+    hdr._label = 'My Party';
+    hdr._color = R.colors.gold;
+    hdr.render = function(ctx) {
+      R.roundRect(ctx, this.x, this.y, this.w, this.h, 6, R.colors.panel);
+      R.textCenter(ctx, this._label, this.x + this.w / 2, this.y + this.h / 2 + 4, this._color, R.fonts.sm);
+    };
+    this.data.buttons.push(hdr);
+    y += secHh + 8;
+
+    // --- 3-Column Grid Cards (86px height per design system) ---
+    // Since party list is effectively 1-column on mobile, use 86px cards
+    // with full-width layout matching the grid pattern
+    const cardH = 86; // was 66px — upgraded for tap target (44×44 minimum)
+
     for (const hero of G.state.party) {
       const alive = hero.hp > 0;
-      const btn = UI.Button(14, y, G.W - 28, 66, '', alive ? R.colors.panel : R.colors.btn);
+      const btn = UI.Button(14, y, G.W - 28, cardH, '', alive ? R.colors.panel : R.colors.btn);
       btn._hero = hero;
       btn._alive = alive;
       btn.render = function(ctx) {
@@ -59,30 +75,35 @@ const partyScene = Scene.create({
         ctx.lineWidth = 1;
         ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
         if (!this._alive) ctx.globalAlpha = 0.5;
-        R.drawHero(ctx, this._hero.id, bx + 10, by + 8, 20);
+        R.drawHero(ctx, this._hero.id, bx + 10, by + 14, 32);
         R.text(ctx, this._hero.name, bx + 40, by + 14, this._alive ? R.colors.gold : R.colors.textDim, R.fonts.md);
         const cls = this._hero.role + (this._hero.className ? ' ' + this._hero.className : '');
-        R.text(ctx, 'Lv.' + this._hero.level + ' ' + cls, bx + 40, by + 30, R.colors.text, R.fonts.sm);
+        R.text(ctx, 'Lv.' + this._hero.level + ' ' + cls, bx + 40, by + 36, R.colors.text, R.fonts.sm);
         const hpPct = this._hero.hp / Math.max(1, this._hero.maxHp);
         const mpPct = this._hero.mp / Math.max(1, this._hero.maxMp);
-        R.roundRect(ctx, bx + 40, by + 44, bw - 56, 4, 2, 'rgba(200,48,48,0.2)');
-        R.roundRect(ctx, bx + 40, by + 44, Math.max(0, (bw - 56) * hpPct), 4, 2, R.colors.hp);
-        R.roundRect(ctx, bx + 40, by + 50, bw - 56, 3, 2, 'rgba(48,128,200,0.2)');
-        R.roundRect(ctx, bx + 40, by + 50, Math.max(0, (bw - 56) * mpPct), 3, 2, R.colors.mp);
-        R.text(ctx, Math.floor(this._hero.hp) + '/' + this._hero.maxHp, bx + 40, by + 62, R.colors.white, R.fonts.xs);
-        R.text(ctx, Math.floor(this._hero.mp) + '/' + this._hero.maxMp, bx + 40 + 80, by + 62, R.colors.white, R.fonts.xs);
+        // HP bar: 8px height, R.colors.hp fill, borderHairline track
+        R.roundRect(ctx, bx + 40, by + 52, bw - 56, 8, 4, R.colors.borderHairline);
+        ctx.fillStyle = R.colors.hp;
+        R.roundRect(ctx, bx + 40, by + 52, Math.max(0, (bw - 56) * hpPct), 8, 4, ctx.fillStyle);
+        R.text(ctx, Math.floor(this._hero.hp) + '/' + this._hero.maxHp, bx + 40, by + 68, R.colors.white, R.fonts.xs);
+        // MP bar: 8px height, R.colors.mp fill
+        R.roundRect(ctx, bx + 40, by + 64, bw - 56, 8, 4, 'rgba(48,128,200,0.1)');
+        ctx.fillStyle = R.colors.mp;
+        R.roundRect(ctx, bx + 40, by + 64, Math.max(0, (bw - 56) * mpPct), 8, 4, ctx.fillStyle);
+        R.text(ctx, Math.floor(this._hero.mp) + '/' + this._hero.maxMp, bx + 40 + 80, by + 68, R.colors.white, R.fonts.xs);
         ctx.globalAlpha = 1;
       };
       btn.onClick = function() { partyScene.selectHero(this._hero); };
       this.data.buttons.push(btn);
-      y += 72;
+      y += cardH + 4; // 4px gap between cards instead of 72px
     }
 
     // Recruit Hall: grow the party toward the full pantheon (max 5 heroes).
     if (G.state.party.length < 5) {
       const cost = this.data.recruitCosts[G.state.party.length - 1] || 14000;
       const canAfford = (G.state.gold || 0) >= cost;
-      const rec = UI.Button(14, y + 4, G.W - 28, 36, 'Recruit Hero (' + cost + 'g)', canAfford ? R.colors.btnGold : R.colors.btn);
+      // Primary action button: minimum 38px height, prefer 38px
+      const rec = UI.Button(14, y + 4, G.W - 28, 38, 'Recruit Hero (' + cost + 'g)', canAfford ? R.colors.btnGold : R.colors.btn);
       rec.enabled = canAfford;
       rec.onClick = function() {
         partyScene.data.view = 'recruit';
@@ -90,13 +111,14 @@ const partyScene = Scene.create({
         partyScene.buildRecruitList();
       };
       this.data.buttons.push(rec);
-      y += 48;
+      y += 44;
     }
 
-    const back = UI.Button(60, y + 6, G.W - 120, 32, 'Back to Ashram', R.colors.btnGold);
+    // Back to Ashram button - Primary action (38px minimum height)
+    const back = UI.Button(60, y + 6, G.W - 120, 38, 'Back to Ashram', R.colors.btnGold);
     back.onClick = function() { gScene('ashram', true); };
     this.data.buttons.push(back);
-    y += 50;
+    y += 48;
 
     this.data.contentHeight = y;
   },
