@@ -207,9 +207,7 @@ function fitGame() {
   const el = document.getElementById('game-container');
   if (!el) return;
   // Clamp so a zero-sized viewport (hidden iframe) can never scale the game to nothing.
-  // Use the container's actual size for scaling
-  const containerRect = el.getBoundingClientRect();
-  const scale = Math.max(0.2, Math.min(window.innerWidth / containerRect.width, window.innerHeight / containerRect.height, 1));
+  const scale = Math.max(0.2, Math.min(window.innerWidth / 404, window.innerHeight / 724, 1));
   el.style.transform = 'scale(' + scale + ')';
   el.style.transformOrigin = 'center center';
   // Landscape phones get a squeezed viewport; nudge the player upright (once).

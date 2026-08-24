@@ -1,7 +1,7 @@
-// Mythika service worker v3
+// Mythika service worker v4
 // Assets: cache-first (instant loads, refreshed in background).
 // index.html: network-first so deploys land immediately.
-const CACHE = 'mythika-v3';
+const CACHE = 'mythika-v4';
 
 const ASSETS = [
 'src/engine/game.js',
