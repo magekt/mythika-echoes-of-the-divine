@@ -715,12 +715,12 @@ const combatScene = Scene.create({
     R.drawZoneBackground(ctx, G.state.currentZone);
     UI.HUD().render(ctx);
     if (this.data.damageFlash > 0) {
-      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillStyle = R.colors.subtleWhite;
       ctx.fillRect(0, 0, G.W, G.H);
     }
 
     R.roundRect(ctx, 10, 6, G.W - 20, 96, 8, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
+    ctx.strokeStyle = R.colors.borderHairline;
     ctx.lineWidth = 1;
     ctx.strokeRect(10.5, 6.5, G.W - 21, 95);
 
@@ -729,7 +729,7 @@ const combatScene = Scene.create({
     if (this.data.turnState === 'playerTurn') {
       const currentActor = Combat.getCurrentActor();
       if (currentActor && currentActor.ref) {
-        R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, 4, 'rgba(48,200,48,0.2)');
+        R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, 4, R.colors.hpBarBackground);
         R.textCenter(ctx, '\u25B6 ' + currentActor.ref.name + '\'s Turn', G.W / 2, 88, R.colors.green, R.fonts.sm);
       }
       if (Combat.comboCount >= 2) {
@@ -737,7 +737,7 @@ const combatScene = Scene.create({
         R.textCenter(ctx, 'COMBO x' + Combat.comboCount + ' (' + multiplier.toFixed(1) + 'x DMG)', G.W / 2, 104, R.colors.red, R.fonts.sm);
       }
     } else if (this.data.turnState === 'enemyTurn') {
-      R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, 4, 'rgba(200,48,48,0.2)');
+      R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, 4, R.colors.damageBarBackground);
       R.textCenter(ctx, '\u25C0 Enemy Turn', G.W / 2, 88, R.colors.red, R.fonts.sm);
     }
 
@@ -806,7 +806,7 @@ const combatScene = Scene.create({
         // Same ghost trail as hero bars (see above).
         if (typeof e._ghostHp !== 'number' || e.hp > e._ghostHp) e._ghostHp = e.hp;
         e._ghostHp += (e.hp - e._ghostHp) * Math.min(1, G.dt * 6);
-        R.roundRect(ctx, ex - 48, ey + 34, 48, 4, 2, 'rgba(200,48,48,0.2)');
+        R.roundRect(ctx, ex - 48, ey + 34, 48, 4, 2, R.colors.damageBarBackground);
         const gw = 48 * Math.min(1, Math.max(0, e._ghostHp / e.maxHp));
         if (gw > 0) R.roundRect(ctx, ex - 48, ey + 34, gw, 4, 2, R.colors.white);
         R.roundRect(ctx, ex - 48, ey + 34, 48 * Math.min(1, Math.max(0, e.hp / e.maxHp)), 4, 2, R.colors.hp);
@@ -840,11 +840,11 @@ const combatScene = Scene.create({
     const vis = Scene.cullButtons(this.data.actionButtons, this.data.scrollY, this.getActionAreaHeight());
 
     const actionContentH = this.data.actionButtons.length * 42 + 120;
-    R.roundRect(ctx, 10, 6, G.W - 20, actionContentH, 8, 'rgba(0,0,0,0.6)');
+    R.roundRect(ctx, 10, 6, G.W - 20, actionContentH, 8, R.colors.overlayDark);
 
     const logLine = this.data.encounterStory && this.data.turnState !== 'result' ? this.data.encounterStory : '';
     if (logLine) {
-      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillStyle = R.colors.overlayMuted;
       R.roundRect(ctx, 12, 10, G.W - 24, 20, 4, ctx.fillStyle);
       R.textCenter(ctx, logLine, G.W / 2, 23, R.colors.textDim, R.fonts.sm);
     }
@@ -860,7 +860,7 @@ const combatScene = Scene.create({
       }
     } else if (this.data.turnState === 'enemyTurn') {
       ly += 8;
-      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillStyle = R.colors.overlayMedium;
       R.roundRect(ctx, 80, ly, 240, 28, 6, ctx.fillStyle);
       R.textCenter(ctx, 'Enemy is acting...', G.W / 2, ly + 19, R.colors.textDim, R.fonts.md);
     } else if (this.data.turnState !== 'result') {
@@ -899,7 +899,7 @@ const combatScene = Scene.create({
         const maxTrack = vh - barH;
         const scrollFrac = this.data.scrollY / maxScroll;
         const barY = top + scrollFrac * maxTrack;
-        R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, 'rgba(232,160,48,0.25)');
+        R.roundRect(ctx, G.W - 4, barY, 3, barH, 2, R.colors.goldMuted);
       }
     }
 
