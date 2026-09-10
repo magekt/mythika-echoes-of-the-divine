@@ -1,14 +1,13 @@
-// Mythika service worker v5
+// Mythika service worker v8
 // Assets: cache-first (instant loads). Files missing from the precache list
 // are fetched from network, cached at runtime on success, and NEVER reject
 // (a rejected FetchEvent promise surfaces as net::ERR_FAILED and can leave
 // the game half-booted with dead buttons).
 // index.html: network-first so deploys land immediately.
-const CACHE = 'mythika-v7';
+const CACHE = 'mythika-v8';
 
 const ASSETS = [
 'src/engine/firebase-config.js',
-'src/engine/localAuth.js',
 'src/engine/auth.js',
 'src/engine/game.js',
   'src/engine/scene.js',

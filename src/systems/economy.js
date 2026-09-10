@@ -78,10 +78,15 @@ Economy.removeItemByName = function(itemName, qty) {
   for (let i = G.state.inventory.length - 1; i >= 0 && qty > 0; i--) {
     const item = G.state.inventory[i];
     if (item.name === itemName) {
-      if (item.qty && item.qty > 1) {
-        const removed = Math.min(item.qty, qty);
-        item.qty -= removed;
-        qty -= removed;
+      if (item.qty !== undefined && item.qty !== null) {
+        const available = Math.max(0, Number(item.qty) || 0);
+        if (available > qty) {
+          item.qty = available - qty;
+          qty = 0;
+        } else {
+          qty -= available;
+          G.state.inventory.splice(i, 1);
+        }
       } else {
         G.state.inventory.splice(i, 1);
         qty--;
@@ -98,7 +103,13 @@ Economy.hasItem = function(itemName) {
 Economy.getItemCount = function(itemName) {
   let count = 0;
   for (const i of (G.state.inventory || [])) {
-    if (i.name === itemName) count += i.qty || 1;
+    if (i.name === itemName) {
+      // Legacy inventory entries without a quantity represent one item;
+      // explicit zero quantities represent an empty/depleted stack.
+      count += i.qty === undefined || i.qty === null
+        ? 1
+        : Math.max(0, Number(i.qty) || 0);
+    }
   }
   return count;
 };

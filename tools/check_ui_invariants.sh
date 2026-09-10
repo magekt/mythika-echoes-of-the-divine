@@ -6,9 +6,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC_DIR="$(cd "$SCRIPT_DIR/../src" && pwd)"
+INDEX_FILE="$(cd "$SCRIPT_DIR/.." && pwd)/index.html"
 
 if [ ! -d "$SRC_DIR" ]; then
   echo "FAIL: src dir not found at $SRC_DIR"
+  exit 1
+fi
+if [ ! -f "$INDEX_FILE" ]; then
+  echo "FAIL: index.html not found at $INDEX_FILE"
   exit 1
 fi
 
@@ -51,6 +56,26 @@ while IFS= read -r f; do
     fi
   done
 done < <(find "$SRC_DIR" -name '*.js' -type f | sort)
+
+# ── 3. Invariant: every gameplay system is loaded exactly once ─────────
+echo "=== Checking system script loading ==="
+SYSTEM_COUNT=0
+while IFS= read -r f; do
+  SYSTEM_COUNT=$((SYSTEM_COUNT + 1))
+  rel="src/systems/$(basename "$f")"
+  expected="<script src=\"$rel\"></script>"
+  occurrences="$(grep -F -c -- "$expected" "$INDEX_FILE" 2>/dev/null || true)"
+  if [ "$occurrences" -ne 1 ]; then
+    echo "FAIL: $rel appears $occurrences times in index.html (expected exactly once)"
+    FAIL=1
+  fi
+done < <(find "$SRC_DIR/systems" -maxdepth 1 -name '*.js' -type f | sort)
+if [ "$SYSTEM_COUNT" -eq 0 ]; then
+  echo "FAIL: no system JS files found under $SRC_DIR/systems (scan misconfigured)"
+  FAIL=1
+else
+  echo "checked $SYSTEM_COUNT system scripts"
+fi
 
 # ── Summary ────────────────────────────────────────────────────────────
 if [ "$FAIL" -ne 0 ]; then

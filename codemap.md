@@ -4,7 +4,7 @@
 A mobile-first, offline-capable idle/cultivation RPG with turn-based combat, built in vanilla JavaScript (ES6+) targeting HTML5 Canvas. 25-30 hours base playtime, 40+ hours completionist. Premium $7.99 + optional cosmetic DLC.
 
 ## System Entry Points
-- `index.html` — Script loading order (63 scripts), PWA manifest, service worker
+- `index.html` — Script loading order (70 scripts), PWA manifest, service worker
 - `src/main.js` — Boot sequence, scene registration, `bootGame()` idempotent entry
 - `src/engine/game.js` — Global state (`G`), game loop (`gLoop`), scene manager (`gScene`), `Notify`, `Fade`
 - `package.json` — (Not present — no build step, direct script loading)
@@ -45,7 +45,7 @@ DuelSystem → Tournament PvP combat
 
 ### Data Flow (Simplified)
 ```
-index.html loads 63 scripts in dependency order
+index.html loads 70 scripts in dependency order
     ↓
 main.js: bootGame() → gInit() → gLoop()
     ↓

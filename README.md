@@ -80,6 +80,13 @@ node --check src/engine/<file>.js
 4. Copy config to `src/engine/firebase-config.js`
 5. Set security rules for `game_saves/{userId}`
 
+For GitHub Pages, keep the config file out of git. Add these repository Actions
+secrets so the workflow generates it before verification and deployment:
+`FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`,
+`FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, and `FIREBASE_APP_ID`.
+`FIREBASE_MEASUREMENT_ID` is optional. The workflow fails before publishing if
+one of the required values is missing.
+
 ---
 
 ## License
