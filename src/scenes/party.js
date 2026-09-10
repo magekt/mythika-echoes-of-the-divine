@@ -75,22 +75,27 @@ const partyScene = Scene.create({
         ctx.lineWidth = 1;
         ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
         if (!this._alive) ctx.globalAlpha = 0.5;
-        R.drawHero(ctx, this._hero.id, bx + 10, by + 14, 32);
-        R.text(ctx, this._hero.name, bx + 40, by + 14, this._alive ? R.colors.gold : R.colors.textDim, R.fonts.md);
+        // Sprite gutter (left 64px): sprite + its auto label stay clear of
+        // all text and bars (previously the sprite bled past the card edge).
+        R.drawHero(ctx, this._hero.id, bx + 30, by + 16, 28);
+        const tx = bx + 64;
+        const right = bx + bw - 14;
+        const barW = bw - 64 - 14 - 64;
+        R.text(ctx, this._hero.name, tx, by + 22, this._alive ? R.colors.gold : R.colors.textDim, R.fonts.md);
         const cls = this._hero.role + (this._hero.className ? ' ' + this._hero.className : '');
-        R.text(ctx, 'Lv.' + this._hero.level + ' ' + cls, bx + 40, by + 36, R.colors.text, R.fonts.sm);
+        R.text(ctx, 'Lv.' + this._hero.level + ' ' + cls, tx, by + 40, R.colors.text, R.fonts.sm);
         const hpPct = this._hero.hp / Math.max(1, this._hero.maxHp);
         const mpPct = this._hero.mp / Math.max(1, this._hero.maxMp);
-        // HP bar: 8px height, R.colors.hp fill, borderHairline track
-        R.roundRect(ctx, bx + 40, by + 52, bw - 56, 8, 4, R.colors.borderHairline);
+        // HP bar with its value reserved in the right gutter (never painted over)
+        R.roundRect(ctx, tx, by + 50, barW, 8, 4, R.colors.borderHairline);
         ctx.fillStyle = R.colors.hp;
-        R.roundRect(ctx, bx + 40, by + 52, Math.max(0, (bw - 56) * hpPct), 8, 4, ctx.fillStyle);
-        R.text(ctx, Math.floor(this._hero.hp) + '/' + this._hero.maxHp, bx + 40, by + 68, R.colors.white, R.fonts.xs);
-        // MP bar: 8px height, R.colors.mp fill
-        R.roundRect(ctx, bx + 40, by + 64, bw - 56, 8, 4, 'rgba(48,128,200,0.1)');
+        R.roundRect(ctx, tx, by + 50, Math.max(0, barW * hpPct), 8, 4, ctx.fillStyle);
+        R.text(ctx, Math.floor(this._hero.hp) + '/' + this._hero.maxHp, right, by + 58, R.colors.white, R.fonts.xs, 'right');
+        // MP bar, same pattern
+        R.roundRect(ctx, tx, by + 62, barW, 8, 4, 'rgba(48,128,200,0.1)');
         ctx.fillStyle = R.colors.mp;
-        R.roundRect(ctx, bx + 40, by + 64, Math.max(0, (bw - 56) * mpPct), 8, 4, ctx.fillStyle);
-        R.text(ctx, Math.floor(this._hero.mp) + '/' + this._hero.maxMp, bx + 40 + 80, by + 68, R.colors.white, R.fonts.xs);
+        R.roundRect(ctx, tx, by + 62, Math.max(0, barW * mpPct), 8, 4, ctx.fillStyle);
+        R.text(ctx, Math.floor(this._hero.mp) + '/' + this._hero.maxMp, right, by + 70, R.colors.white, R.fonts.xs, 'right');
         ctx.globalAlpha = 1;
       };
       btn.onClick = function() { partyScene.selectHero(this._hero); };
