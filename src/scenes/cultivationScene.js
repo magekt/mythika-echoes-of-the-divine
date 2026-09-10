@@ -30,67 +30,17 @@ const cultivationScene = Scene.create({
     if (this.data.scrollY < 0) this.data.scrollY = 0;
   },
 
+  // Info panel height (must match renderInfoPanel below): shell 200px.
+  infoPanelH: 200,
+
   buildButtons: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
-    let y = this.getContentTop();
+    // Actions start below the scrolled info panel — one flow, no overlaps.
+    let y = this.getContentTop() + this.infoPanelH + 12;
 
-    // --- Realm Progress Section Header (26px, panel bg, gold accent) ---
-    const secHh = 26;
-    const hdr = UI.Button(14, y, G.W - 28, secHh, '', 'transparent');
-    hdr._label = 'Cultivation Realm';
-    hdr._color = R.colors.gold;
-    hdr.render = function(ctx) {
-      R.roundRect(ctx, this.x, this.y, this.w, this.h, 6, R.colors.panel);
-      R.textCenter(ctx, this._label, this.x + this.w / 2, this.y + this.h / 2 + 4, this._color, R.fonts.sm);
-    };
-    this.data.buttons.push(hdr);
-    y += secHh + 8;
-
-    // --- 3-Column Grid Cards (86px height per design system) ---
-    const gridCols = 3;
-    const gridGap = 8;
-    const mx = 14;
-    const cw = (G.W - mx * 2 - gridGap * (gridCols - 1)) / gridCols;
-    const ch = 86; // was 70px — upgraded for tap target
-
-    // Prana card
-    const pranaBtn = UI.Button(14, y, cw, ch, '', R.colors.surface);
-    pranaBtn.render = function(ctx) {
-      R.roundRect(ctx, this.x, this.y, this.w, this.h, 8, R.colors.surface);
-      ctx.strokeStyle = 'rgba(232,160,48,0.08)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(this.x + 0.5, this.y + 0.5, this.w - 1, this.h - 1);
-      R.textCenter(ctx, 'Prana', this.x + this.w / 2, this.y + 12, R.colors.gold, R.fonts.xl);
-      R.textCenter(ctx, Math.floor(G.state.prana || 0), this.x + this.w / 2, this.y + this.h / 2, R.colors.text, R.fonts.md);
-    };
-    this.data.buttons.push(pranaBtn);
-
-    // Cultivation Rate card
-    const rateBtn = UI.Button(14 + cw + gridGap, y, cw, ch, '', R.colors.surface);
-    rateBtn.render = function(ctx) {
-      R.roundRect(ctx, this.x, this.y, this.w, this.h, 8, R.colors.surface);
-      ctx.strokeStyle = 'rgba(232,160,48,0.08)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(this.x + 0.5, this.y + 0.5, this.w - 1, this.h - 1);
-      R.textCenter(ctx, 'Rate/s', this.x + this.w / 2, this.y + 12, R.colors.textDim, R.fonts.sm);
-      R.textCenter(ctx, '+' + CultivationSystem.getCultivationPerSecond().toFixed(1), this.x + this.w / 2, this.y + this.h / 2, R.colors.green, R.fonts.md);
-    };
-    this.data.buttons.push(rateBtn);
-
-    // Breakthrough Status card
-    const statusBtn = UI.Button(14 + 2 * (cw + gridGap), y, cw, ch, '', R.colors.surface);
-    statusBtn.render = function(ctx) {
-      R.roundRect(ctx, this.x, this.y, this.w, this.h, 8, R.colors.surface);
-      ctx.strokeStyle = 'rgba(232,160,48,0.08)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(this.x + 0.5, this.y + 0.5, this.w - 1, this.h - 1);
-      const canBreak = CultivationSystem.canBreakthrough();
-      R.textCenter(ctx, canBreak ? 'Ready' : 'Building', this.x + this.w / 2, this.y + 12, canBreak ? R.colors.green : R.colors.textDim, R.fonts.sm);
-      R.textCenter(ctx, canBreak ? 'for breakthrough!' : '', this.x + this.w / 2, this.y + this.h - 12, canBreak ? R.colors.green : R.colors.textDim, R.fonts.xs);
-    };
-    this.data.buttons.push(statusBtn);
-    y += ch + 8;
+    // (Stat cards removed — all info lives in the scrolled panel above,
+    // so nothing duplicates or overlaps. Actions follow directly.)
 
     // --- Primary Action Buttons ---
     // Meditate button - Primary (Gold), minimum 38px height
@@ -222,52 +172,46 @@ const cultivationScene = Scene.create({
     this.data.contentHeight = y;
   },
 
-  renderInfo: function(ctx, offsetY) {
-    let y = offsetY;
-
-    R.drawCultivationAura(ctx, G.W / 2, y + 36, G.state.totalPlayTime);
-
-    R.roundRect(ctx, 10, y, G.W - 20, 240, 8, R.colors.panel);
-    ctx.strokeStyle = 'rgba(232,160,48,0.12)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, y + 0.5, G.W - 21, 239);
+  // Info panel drawn INSIDE the scrollable clip (single flow with the
+  // actions below it). A fixed panel here used to paint over the content.
+  // Shell is infoPanelH tall; keep rows within content bounds (~172px).
+  renderInfoPanel: function(ctx, py) {
+    const shell = UI.PremiumShell(10, py, G.W - 20, this.infoPanelH, { outerR: 12 });
+    shell.render(ctx);
+    const content = shell.contentRect();
 
     const realm = CultivationSystem.getRealmData();
-    let iy = y + 12;
-    R.textCenter(ctx, 'Cultivation', G.W / 2, iy, R.colors.gold, R.fonts.lg);
-    iy += 22;
-
-    R.textCenter(ctx, 'Realm: ' + realm.name, G.W / 2, iy, R.colors.text, R.fonts.md);
-    iy += 18;
-    R.textCenter(ctx, 'Stage: ' + G.state.realmStage + '/' + realm.stages, G.W / 2, iy, R.colors.text, R.fonts.sm);
-    iy += 20;
-
     const progress = CultivationSystem.getRealmProgress();
-    const pb = UI.ProgressBar(40, iy, G.W - 80, 8, R.colors.gold, R.colors.borderHairline);
+    const canBreak = CultivationSystem.canBreakthrough();
+    const stats = CultivationSystem.getBreakthroughStats(getRealmIndex(G.state.realm));
+
+    let iy = content.y + 10;
+    R.textCenter(ctx, 'Cultivation Realm', content.x + content.w / 2, iy, R.colors.gold, R.fonts.md);
+    iy += 20;
+    R.textCenter(ctx, 'Realm: ' + realm.name, content.x + content.w / 2, iy, R.colors.text, R.fonts.md);
+    iy += 16;
+    R.textCenter(ctx, 'Stage: ' + G.state.realmStage + '/' + realm.stages, content.x + content.w / 2, iy, R.colors.text, R.fonts.sm);
+    iy += 18;
+
+    const pb = UI.ProgressBar(content.x + 14, iy, content.w - 28, 8, R.colors.gold, R.colors.borderHairline);
     pb.setProgress(progress.current, progress.needed);
     pb.render(ctx);
-    iy += 20;
-    R.textCenter(ctx, 'Cultivation Base: ' + Math.floor(progress.current) + ' / ' + progress.needed, G.W / 2, iy, R.colors.textDim, R.fonts.sm);
-    iy += 16;
-
-    R.textCenter(ctx, 'Prana: ' + Math.floor(G.state.prana || 0), G.W / 2, iy, R.colors.blue, R.fonts.sm);
-    iy += 14;
-    R.textCenter(ctx, 'Gathering: +' + CultivationSystem.getCultivationPerSecond().toFixed(1) + '/s', G.W / 2, iy, R.colors.textDim, R.fonts.sm);
-    iy += 14;
-    R.textCenter(ctx, 'Prana Rate: +' + CultivationSystem.getPranaPerSecond().toFixed(1) + '/s', G.W / 2, iy, R.colors.textDim, R.fonts.sm);
     iy += 18;
-
-    const canBreak = CultivationSystem.canBreakthrough();
-    R.textCenter(ctx, canBreak ? 'Ready for breakthrough!' : 'Need more cultivation base', G.W / 2, iy, canBreak ? R.colors.green : R.colors.textDim, R.fonts.sm);
+    R.textCenter(ctx, 'Cultivation Base: ' + Math.floor(progress.current) + ' / ' + progress.needed, content.x + content.w / 2, iy, R.colors.textDim, R.fonts.sm);
     iy += 16;
 
-    const stats = CultivationSystem.getBreakthroughStats(getRealmIndex(G.state.realm));
+    R.textCenter(ctx, 'Prana: ' + Math.floor(G.state.prana || 0) + '  ·  +' + CultivationSystem.getCultivationPerSecond().toFixed(1) + '/s gathering  ·  +' + CultivationSystem.getPranaPerSecond().toFixed(1) + '/s prana', content.x + content.w / 2, iy, R.colors.blue, R.fonts.sm);
+    iy += 16;
+
+    R.textCenter(ctx, canBreak ? 'Ready for breakthrough!' : 'Need more cultivation base', content.x + content.w / 2, iy, canBreak ? R.colors.green : R.colors.textDim, R.fonts.sm);
+    iy += 16;
+
     let statStr = 'Next: +' + stats.hp + 'HP';
     if (stats.str) statStr += ' +' + stats.str + 'STR';
     if (stats.agi) statStr += ' +' + stats.agi + 'AGI';
     if (stats.mag) statStr += ' +' + stats.mag + 'MAG';
     if (stats.def) statStr += ' +' + stats.def + 'DEF';
-    R.textCenter(ctx, statStr, G.W / 2, iy, R.colors.textDim, R.fonts.sm);
+    R.textCenter(ctx, statStr, content.x + content.w / 2, iy, R.colors.textDim, R.fonts.sm);
   },
 
   update: function(dt) {
@@ -281,97 +225,21 @@ const cultivationScene = Scene.create({
     // Render noise/grain overlay for editorial luxury feel
     R.renderNoise(ctx);
 
-    // Hero Moment for Cultivation - using displaySm font and proper styling
-    if (!this._heroMoment) {
-      this._heroMoment = Scene.HeroMoment({
-        title: 'Cultivation',
-        subtitle: 'Refine your spirit, gather prana, and ascend through realms.',
-        ctaLabel: 'Meditate',
-        ctaAction: () => {
-          const medAmt = 5 + Math.max(0, (G.state.ashramLevel || 1) - 1) * 2;
-          CultivationSystem.addCultivationBase(medAmt);
-        },
-        eyebrow: 'INNER PATH',
-        accent: R.colors.gold
-      });
+    // Compact fixed header (no CTA — Meditate lives in the scrollable
+    // actions below; a second CTA here duplicated it and overlapped content).
+    {
+      const cx = G.W/2;
+      R.roundRect(ctx, cx - 80, 24, 160, 24, 12, 'rgba(232,160,48,0.12)');
+      R.textCenter(ctx, 'INNER PATH', cx, 40, R.colors.gold, R.fonts.sm);
+      R.textCenter(ctx, 'Cultivation', cx, 72, R.colors.textPrimary, R.fonts.displaySm);
+      R.textCenter(ctx, 'Refine spirit, gather prana, ascend realms.', cx, 92, R.colors.textSecondary, R.fonts.md);
     }
-    this._heroMoment.render(ctx);
-
-    // Info panel with PremiumShell - Double-bezel depth
-    const realm = CultivationSystem.getRealmData();
-    const progress = CultivationSystem.getRealmProgress();
-    const canBreak = CultivationSystem.canBreakthrough();
-    const stats = CultivationSystem.getBreakthroughStats(getRealmIndex(G.state.realm));
-
-    const infoShell = UI.PremiumShell(10, 110, G.W - 20, 240, { outerR: 16 });
-    infoShell.render(ctx);
-    const content = infoShell.contentRect();
-    let iy = content.y + 12;
-
-    // Title with displaySm font
-    R.textCenter(ctx, 'Cultivation', content.x + content.w/2, iy, R.colors.gold, R.fonts.displaySm);
-    iy += 28;
-
-    // Asymmetric 4-col grid layout for info
-    const col1 = content.x + 20;
-    const col2 = content.x + content.w * 0.35;
-    const col3 = content.x + content.w * 0.6;
-    const col4 = content.x + content.w * 0.85;
-
-    // Column 1: Realm & Stage
-    R.text(ctx, 'Realm', col1, iy, R.colors.textDim, R.fonts.sm);
-    iy += 16;
-    R.text(ctx, realm.name, col1, iy, R.colors.textPrimary, R.fonts.md);
-    iy += 20;
-    R.text(ctx, 'Stage', col1, iy, R.colors.textDim, R.fonts.sm);
-    iy += 16;
-    R.text(ctx, G.state.realmStage + '/' + realm.stages, col1, iy, R.colors.gold, R.fonts.md);
-    iy += 24;
-
-    // Progress Bar - 8px height, gold fill, borderHairline track
-    const pb = UI.ProgressBar(content.x + 20, iy, content.w - 40, 8, R.colors.gold, R.colors.borderHairline);
-    pb.setProgress(progress.current, progress.needed);
-    pb.render(ctx);
-    iy += 20;
-    R.textCenter(ctx, 'Cultivation Base: ' + Math.floor(progress.current) + ' / ' + progress.needed, content.x + content.w/2, iy, R.colors.textDim, R.fonts.sm);
-    iy += 20;
-
-    // Column 2: Prana & Rates (right side)
-    let rightY = content.y + 12 + 28;
-    R.text(ctx, 'Prana', col3, rightY, R.colors.textDim, R.fonts.sm);
-    rightY += 16;
-    R.text(ctx, Math.floor(G.state.prana || 0).toLocaleString(), col3, rightY, R.colors.blue, R.fonts.displaySm);
-    rightY += 24;
-    R.text(ctx, 'Gathering Rate', col3, rightY, R.colors.textDim, R.fonts.sm);
-    rightY += 16;
-    R.text(ctx, '+' + CultivationSystem.getCultivationPerSecond().toFixed(1) + '/s', col3, rightY, R.colors.green, R.fonts.md);
-    rightY += 20;
-    R.text(ctx, 'Prana Rate', col3, rightY, R.colors.textDim, R.fonts.sm);
-    rightY += 16;
-    R.text(ctx, '+' + CultivationSystem.getPranaPerSecond().toFixed(1) + '/s', col3, rightY, R.colors.blue, R.fonts.md);
-    rightY += 24;
-
-    // Breakthrough Status
-    const canBreakText = canBreak ? 'Ready for breakthrough!' : 'Need more cultivation base';
-    const breakColor = canBreak ? R.colors.green : R.colors.textDim;
-    R.text(ctx, canBreakText, col3, rightY, breakColor, R.fonts.sm);
-    rightY += 20;
-
-    // Next Realm Stats
-    const statsData = CultivationSystem.getBreakthroughStats(getRealmIndex(G.state.realm));
-    let statStr = 'Next Realm:';
-    R.text(ctx, statStr, col3, rightY, R.colors.textDim, R.fonts.sm);
-    rightY += 16;
-    R.text(ctx, '+' + statsData.hp + ' HP', col3, rightY, R.colors.textSecondary, R.fonts.sm);
-    rightY += 14;
-    if (statsData.str) { R.text(ctx, '+' + statsData.str + ' STR', col3, rightY, R.colors.textSecondary, R.fonts.sm); rightY += 14; }
-    if (statsData.agi) { R.text(ctx, '+' + statsData.agi + ' AGI', col3, rightY, R.colors.textSecondary, R.fonts.sm); rightY += 14; }
-    if (statsData.mag) { R.text(ctx, '+' + statsData.mag + ' MAG', col3, rightY, R.colors.textSecondary, R.fonts.sm); rightY += 14; }
-    if (statsData.def) { R.text(ctx, '+' + statsData.def + ' DEF', col3, rightY, R.colors.textSecondary, R.fonts.sm); rightY += 14; }
 
     const top = this.getContentTop();
     Scene.clipContent(ctx, this);
 
+    // Single flow: info panel first, then the action buttons below it.
+    this.renderInfoPanel(ctx, top);
     for (const b of this.data.buttons) b.render(ctx);
 
     ctx.restore();
