@@ -60,7 +60,8 @@ const titleScene = Scene.create({
 
     R.textCenter(ctx, 'Echoes of the Divine', G.W / 2, ty + 50, R.colors.textDim, R.fonts.md);
     R.drawEnemy(ctx, 'dragon', G.W / 2, ty + 100, 40);
-    R.textCenter(ctx, 'Mount Meru', G.W / 2, ty + 155, R.colors.textDim, R.fonts.sm);
+    // Caption sits clear below the enemy's auto-drawn name label (~ty+152).
+    R.textCenter(ctx, 'Mount Meru', G.W / 2, ty + 172, R.colors.textDim, R.fonts.sm);
 
     for (const b of this.data.buttons) b.render(ctx);
 

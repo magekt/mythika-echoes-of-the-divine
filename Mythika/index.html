@@ -2,17 +2,68 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-<title>Mythika: Echoes of the Divine</title>
-<link rel="stylesheet" href="styles/game.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mythika: Echoes of the Divine</title>
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#e8a030">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="styles/game.css">
 </head>
 <body>
-<div id="game-container">
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, RecaptchaVerifier, signInWithPhoneNumber, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+  // Make Firebase functions available globally for auth.js
+  window.firebaseAuth = null;
+  window.firebaseDb = null;
+  window.firebaseSignOut = firebaseSignOut;
+  window.firebaseSignUpEmail = createUserWithEmailAndPassword;
+  window.firebaseSignInEmail = signInWithEmailAndPassword;
+  window.firebaseSignInPopup = signInWithPopup;
+  window.firebaseGoogleProvider = new GoogleAuthProvider();
+  window.firebaseRecaptchaVerifier = RecaptchaVerifier;
+  window.firebaseSignInPhone = signInWithPhoneNumber;
+  window.firebaseOnAuthStateChanged = onAuthStateChanged;
+  window.firebaseDoc = doc;
+  window.firebaseSetDoc = setDoc;
+  window.firebaseGetDoc = getDoc;
+  window.firebaseServerTimestamp = serverTimestamp;
+
+  try {
+    const app = initializeApp(window.FIREBASE_CONFIG);
+    window.firebaseApp = app;
+    window.firebaseAuth = getAuth(app);
+    window.firebaseDb = getFirestore(app);
+    console.log('[Mythika] Firebase initialized');
+    // Signal Firebase is ready
+    window.firebaseReady = true;
+    document.dispatchEvent(new Event('firebase-ready'));
+  } catch (e) {
+    console.warn('[Mythika] Firebase init failed:', e.message);
+    window.firebaseReady = false;
+  }
+</script>
+
+<div id="game-container" class="loading">
   <canvas id="game-canvas"></canvas>
   <div id="status-bar"></div>
 </div>
+
+<script src="src/engine/firebase-config.js"></script>
+<script src="src/engine/localAuth.js"></script>
+<script src="src/engine/auth.js"></script>
+<!-- Google Identity Services (for Sign in with Google) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="src/engine/game.js"></script>
+<!-- Firebase SDK (v9 compat for simplicity) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="src/engine/scene.js"></script>
+<script src="src/engine/scene-helpers.js"></script>
 <script src="src/engine/input.js"></script>
 <script src="src/engine/audio.js"></script>
 <script src="src/engine/renderer.js"></script>
@@ -28,14 +79,17 @@
 <script src="src/data/spirit_beasts.js"></script>
 <script src="src/data/quests.js"></script>
 <script src="src/data/achievements.js"></script>
+<script src="src/data/journeys.js"></script>
 <script src="src/systems/economy.js"></script>
+<script src="src/systems/hints.js"></script>
 <script src="src/systems/progression.js"></script>
 <script src="src/systems/combat.js"></script>
+<script src="src/systems/duel.js"></script>
 <script src="src/systems/cultivation_sys.js"></script>
-<script src="src/systems/alchemy.js"></script>
 <script src="src/systems/save.js"></script>
 <script src="src/systems/quest.js"></script>
 <script src="src/systems/achievements.js"></script>
+<script src="src/systems/journey.js"></script>
 <script src="src/ui/button.js"></script>
 <script src="src/ui/panel.js"></script>
 <script src="src/ui/progressBar.js"></script>
@@ -57,14 +111,18 @@
 <script src="src/scenes/spiritBeast.js"></script>
 <script src="src/scenes/forge.js"></script>
 <script src="src/scenes/tournament.js"></script>
+<script src="src/scenes/trials.js"></script>
 <script src="src/scenes/bazaar.js"></script>
 <script src="src/scenes/farm.js"></script>
 <script src="src/scenes/fishing.js"></script>
 <script src="src/scenes/settings.js"></script>
 <script src="src/scenes/questLog.js"></script>
+<script src="src/scenes/equipment.js"></script>
 <script src="src/scenes/achievementsScene.js"></script>
 <script src="src/scenes/debug.js"></script>
 <script src="src/scenes/welcome.js"></script>
+<script src="src/scenes/journeyScene.js"></script>
+<script src="src/scenes/authScene.js"></script>
 <script src="src/main.js"></script>
 </body>
 </html>

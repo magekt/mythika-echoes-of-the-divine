@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mythika motion audit — 2026-08-22</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink:        oklch(0.155 0.006 255);
+      --surface:    oklch(0.195 0.007 255);
+      --surface-2:  oklch(0.235 0.008 255);
+      --paper:      oklch(0.945 0.004 255);
+      --paper-dim:  oklch(0.800 0.006 255);
+      --muted:      oklch(0.680 0.008 255);
+      --faint:      oklch(0.505 0.008 255);
+      --line:       oklch(0.95 0.01 255 / 0.09);
+      --line-strong:oklch(0.95 0.01 255 / 0.16);
+
+      --crit:  oklch(0.655 0.185 25);
+      --imp:   oklch(0.805 0.125 78);
+      --opp:   oklch(0.745 0.135 152);
+      --t-good: var(--opp);
+      --t-mid:  var(--imp);
+      --t-slow: var(--crit);
+
+      --accent:      var(--paper);
+      --accent-soft: var(--paper-dim);
+      --accent-tint: oklch(0.95 0.01 255 / 0.06);
+
+      --display: "Familjen Grotesk", "Hanken Grotesk", system-ui, sans-serif;
+      --sans: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    }
+    :root:has(#theme-light:checked) {
+      --ink:        oklch(0.985 0.003 255);
+      --surface:    oklch(0.965 0.004 255);
+      --surface-2:  oklch(0.940 0.005 255);
+      --paper:      oklch(0.180 0.006 255);
+      --paper-dim:  oklch(0.330 0.008 255);
+      --muted:      oklch(0.475 0.010 255);
+      --faint:      oklch(0.640 0.009 255);
+      --line:       oklch(0.180 0.010 255 / 0.12);
+      --line-strong:oklch(0.180 0.010 255 / 0.22);
+      --crit:  oklch(0.585 0.200 25);
+      --imp:   oklch(0.700 0.140 78);
+      --opp:   oklch(0.560 0.145 152);
+      --t-good: var(--opp);
+      --t-mid:  var(--imp);
+      --t-slow: var(--crit);
+      --accent-tint: oklch(0.18 0.01 255 / 0.05);
+    }
+
+    * { box-sizing: border-box; }
+    body { background: var(--ink); color: var(--paper); font-family: var(--sans); margin: 0; line-height: 1.55; }
+    .wrap { max-width: 1060px; margin: 0 auto; padding: 48px 24px 80px; }
+    a { color: inherit; }
+    code { font-family: var(--mono); font-size: 0.86em; background: var(--accent-tint); padding: 1px 5px; border-radius: 4px; }
+    .mono-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+    .vh { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+    /* theme switch */
+    .theme-switch { display: flex; justify-content: flex-end; margin-bottom: 28px; }
+    .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 100px; overflow: hidden; }
+    .seg label { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 4px 11px; cursor: pointer; user-select: none; transition: background 0.15s ease, color 0.15s ease; }
+    #theme-dark:checked ~ .wrap .theme-switch label[for="theme-dark"],
+    #theme-light:checked ~ .wrap .theme-switch label[for="theme-light"] { background: color-mix(in oklch, var(--paper) 12%, transparent); color: var(--paper); }
+
+    /* header */
+    .eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+    h1.title { font-family: var(--display); font-size: clamp(28px, 4.6vw, 42px); line-height: 1.08; letter-spacing: -0.02em; margin: 0 0 12px; }
+    p.lede { max-width: 68ch; color: var(--paper-dim); margin: 0 0 14px; }
+    .meta-row { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-bottom: 22px; }
+    .stats { display: flex; gap: 26px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 16px; }
+    .stat { text-decoration: none; }
+    .stat b { font-family: var(--display); font-size: 26px; font-weight: 700; display: block; line-height: 1; }
+    .stat span { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    .stat.crit b { color: var(--crit); } .stat.imp b { color: var(--imp); } .stat.opp b { color: var(--opp); }
+
+    section { margin-top: 56px; }
+    h2.sec { font-family: var(--display); font-size: 21px; letter-spacing: -0.01em; margin: 0 0 14px; }
+
+    .assessment p { font-family: var(--display); font-size: 19px; line-height: 1.5; max-width: 76ch; margin: 0; color: var(--paper); }
+    .assessment { border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; background: var(--surface); }
+
+    /* lens table */
+    table.lens-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .lens-table th { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line-strong); }
+    .lens-table td { padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: top; transition: border-color 0.2s ease; }
+    .lens-table tr:hover td { border-color: var(--line-strong); }
+    .weight { display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--line-strong); border-radius: 100px; padding: 2px 8px; color: var(--muted); margin-left: 8px; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; }
+    .dot.strong { background: var(--opp); } .dot.mixed { background: var(--imp); } .dot.concern { background: var(--crit); }
+
+    /* timing figure */
+    .timing-grid { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; border: 1px solid var(--line); border-radius: 12px; padding: 20px; background: var(--surface); }
+    .timing-grid svg { width: 100%; height: auto; display: block; }
+    .zone-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .keylist { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
+    .keylist li { display: flex; gap: 9px; align-items: baseline; padding: 3px 0; }
+    .keylist .kn { font-family: var(--mono); font-size: 10px; color: var(--muted); width: 20px; flex-shrink: 0; text-align: right; }
+    .keylist .kd { font-family: var(--mono); font-size: 10.5px; color: var(--paper-dim); margin-left: auto; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .whats-off { margin-top: 16px; font-size: 13px; color: var(--paper-dim); }
+    .whats-off strong { color: var(--paper); }
+    .band-note { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+
+    /* lens sections */
+    .lens-sec__head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+    .lens-sec__head h3 { font-family: var(--display); font-size: 19px; margin: 0; }
+    p.lens-sec__verdict { margin: 0 0 18px; font-size: 13.5px; color: var(--paper-dim); }
+    .lens-block { margin-bottom: 20px; }
+    .lens-block > .mono-label { display: block; margin-bottom: 8px; }
+    ul.lens-list { list-style: none; margin: 0; padding: 0; font-size: 13.5px; }
+    .lens-list li { padding: 5px 0 5px 24px; position: relative; color: var(--paper-dim); }
+    .lens-list.good li::before { content: "\2713"; position: absolute; left: 2px; color: var(--opp); font-weight: 700; }
+    .lens-list.opp li::before { content: "\1F4A1"; position: absolute; left: 2px; filter: grayscale(0.2); }
+    .lens-list em { color: var(--paper); font-style: normal; }
+    .lens-empty { color: var(--faint); font-style: italic; font-size: 13px; margin: 0; }
+    .lens-take { border-top: 1px solid var(--line); padding-top: 14px; font-size: 14.5px; color: var(--paper); max-width: 76ch; }
+
+    /* finding rows */
+    .finding-row { display: grid; grid-template-columns: 1fr 380px; gap: 22px; border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 16px; background: var(--surface); transition: border-color 0.2s ease; }
+    .finding-row:hover { border-color: var(--line-strong); }
+    .find-tags { display: flex; gap: 6px; margin-bottom: 9px; flex-wrap: wrap; }
+    .chip { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 100px; padding: 2px 9px; border: 1px solid var(--line-strong); color: var(--muted); }
+    .chip.crit { color: var(--crit); border-color: color-mix(in oklch, var(--crit) 55%, transparent); }
+    .chip.imp { color: var(--imp); border-color: color-mix(in oklch, var(--imp) 55%, transparent); }
+    .finding-row h4 { font-family: var(--display); font-size: 16.5px; margin: 0 0 8px; }
+    .find-body p { font-size: 13.5px; margin: 0 0 8px; color: var(--paper-dim); }
+    .find-body .label, .fix .label { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: inline-block; margin-right: 7px; }
+    .fix { background: var(--accent-tint); border-radius: 8px; padding: 9px 12px; margin: 10px 0; font-size: 13.5px; color: var(--paper-dim); }
+    .fix p { margin: 0; }
+    .find-loc { font-family: var(--mono); font-size: 10.5px; color: var(--faint); margin: 8px 0 0 !important; }
+
+    /* demo cards */
+    .demo { position: relative; width: 380px; max-width: 100%; }
+    .demo__bar { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .demo__meta { min-width: 0; }
+    .demo__title { display: block; font-size: 13.5px; font-weight: 600; color: var(--paper); line-height: 1.3; }
+    .demo__timing { display: block; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .demo__controls { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .demo__loop { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+    .demo input[id$="-a"]:checked ~ .demo__bar .seg label[for$="-a"],
+    .demo input[id$="-l"]:checked ~ .demo__bar .seg label[for$="-l"],
+    .demo input[id$="-d"]:checked ~ .demo__bar .seg label[for$="-d"] { background: color-mix(in oklch, var(--paper) 12%, transparent); color: var(--paper); }
+    .demo__stage {
+      --st-bg: var(--surface-2); --st-fg: var(--paper);
+      --st-line: var(--line-strong);
+      --st-dim: color-mix(in oklch, var(--paper) 55%, transparent);
+      background: var(--st-bg); color: var(--st-fg);
+      border: 1px solid var(--line); border-radius: 10px;
+      padding: 32px 24px; min-height: 168px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
+    }
+    .demo input[id$="-l"]:checked ~ .demo__stage {
+      --st-bg: oklch(0.985 0.003 255); --st-fg: oklch(0.180 0.006 255);
+      --st-line: oklch(0.180 0.010 255 / 0.18); --st-dim: oklch(0.180 0.010 255 / 0.45); }
+    .demo input[id$="-d"]:checked ~ .demo__stage {
+      --st-bg: oklch(0.180 0.006 255); --st-fg: oklch(0.985 0.003 255);
+      --st-line: oklch(0.985 0.010 255 / 0.18); --st-dim: oklch(0.985 0.010 255 / 0.50); }
+
+    .ui-btn { display: inline-flex; align-items: center; justify-content: center; padding: 9px 18px; border-radius: 8px; background: var(--st-fg); color: var(--st-bg); font-family: var(--sans); font-size: 13px; font-weight: 600; }
+    .ui-card { background: var(--st-bg); border: 1px solid var(--st-line); border-radius: 10px; padding: 14px 16px; min-width: 180px; box-shadow: 0 8px 24px oklch(0 0 0 / 0.12); }
+    .ui-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--st-fg); }
+    .ui-num { font-family: var(--display); font-size: 34px; font-weight: 700; color: var(--st-fg); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+    .ui-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--st-dim); }
+
+    /* rec tables */
+    .tier-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 4px; }
+    .tier-label.crit { color: var(--crit); } .tier-label.imp { color: var(--imp); } .tier-label.opp { color: var(--opp); }
+    table.rec { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+    .rec th { text-align: left; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding: 7px 10px; border-bottom: 1px solid var(--line-strong); }
+    .rec td { padding: 9px 10px; border-bottom: 1px solid var(--line); color: var(--paper-dim); transition: border-color 0.2s ease; }
+    .rec tr:hover td { border-color: var(--line-strong); }
+
+    /* ref summary */
+    .ref-summary { border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; background: var(--surface); font-size: 13.5px; }
+    .ref-summary p { margin: 0 0 8px; color: var(--paper-dim); }
+    .ref-summary p:first-child strong { color: var(--paper); }
+    footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 10.5px; color: var(--faint); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    @media (max-width: 860px) {
+      .finding-row { grid-template-columns: 1fr; }
+      .timing-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .lens-table thead { display: none; }
+      .lens-table tr { display: block; padding: 10px 4px; border-bottom: 1px solid var(--line); }
+      .lens-table td { display: block; border: none; padding: 2px 10px; }
+    }
+
+    /* ── per-finding motion (n indexed across the whole report) ── */
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes m1 {
+        0%       { opacity: 0; transform: scale(0.96); }
+        14%      { opacity: 1; transform: scale(1); }
+        70%      { opacity: 1; transform: translateY(0); }
+        80%      { opacity: 0; transform: translateY(-4px); }
+        83%      { opacity: 0; transform: translateY(-4px); }
+        93%,100% { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      .demo-1__mt .ui-card { animation: m1 3s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+
+      @keyframes m2 {
+        0%       { opacity: 0; transform: translateY(10px); }
+        7%       { opacity: 1; transform: translateY(0); }
+        66%      { opacity: 1; transform: translateY(0); }
+        72%      { opacity: 0; transform: translateY(-4px); }
+        75%      { opacity: 0; transform: translateY(-4px); }
+        85%,100% { opacity: 1; transform: translateY(0); }
+      }
+      .demo-2__mt .ui-card { animation: m2 3s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+
+      @keyframes m3 {
+        0%       { opacity: 0; transform: translateY(-26px); }
+        30%      { opacity: 1; transform: translateY(0); }
+        100%     { opacity: 1; transform: translateY(0); }
+      }
+      .demo-3__mt { animation: m3 3s cubic-bezier(0.16, 1, 0.3, 1) infinite; }
+
+      @keyframes m4 {
+        0%       { box-shadow: 0 0 0 0 color-mix(in oklch, var(--st-fg) 45%, transparent); }
+        12%      { box-shadow: 0 0 0 12px color-mix(in oklch, var(--st-fg) 0%, transparent); }
+        24%      { box-shadow: 0 0 0 0 color-mix(in oklch, var(--st-fg) 40%, transparent); }
+        36%      { box-shadow: 0 0 0 10px color-mix(in oklch, var(--st-fg) 0%, transparent); }
+        46%,100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--st-fg) 0%, transparent); }
+      }
+      .demo-4__mt .gate-chip { animation: m4 3s linear infinite; }
+
+      @keyframes m5u {
+        0%, 30%  { transform: translateX(0); }
+        38%, 66% { transform: translateX(64px); }
+        74%,100% { transform: translateX(0); }
+      }
+      @keyframes m5a {
+        0%, 30%  { opacity: 1; }
+        38%, 66% { opacity: 0; }
+        74%,100% { opacity: 1; }
+      }
+      @keyframes m5b {
+        0%, 30%  { opacity: 0; }
+        38%, 66% { opacity: 1; }
+        74%,100% { opacity: 0; }
+      }
+      .demo-5__mt .tab-under { animation: m5u 3s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+      .demo-5__mt .pane-a { animation: m5a 3s linear infinite; }
+      .demo-5__mt .pane-b { animation: m5b 3s linear infinite; }
+
+      @keyframes m6 {
+        0%       { text-shadow: 0 0 26px color-mix(in oklch, var(--st-fg) 70%, transparent); }
+        20%,100% { text-shadow: 0 0 8px color-mix(in oklch, var(--st-fg) 32%, transparent); }
+      }
+      .demo-6__mt .glow-mark { animation: m6 3s ease-out infinite; text-shadow: 0 0 8px color-mix(in oklch, var(--st-fg) 32%, transparent); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .demo__loop { display: none; }
+      [class*="__mt"], [class*="__mt"] * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+<input class="vh" type="radio" name="theme" id="theme-dark" checked>
+<input class="vh" type="radio" name="theme" id="theme-light">
+<div class="wrap">
+
+  <div class="theme-switch">
+    <div class="seg">
+      <label for="theme-dark">Dark</label>
+      <label for="theme-light">Light</label>
+    </div>
+  </div>
+
+  <header>
+    <div class="eyebrow">Motion Audit · design-motion-principles</div>
+    <h1 class="title">mythika — canvas RPG motion review</h1>
+    <p class="lede">A 400×720 vanilla-JS idle RPG rooted in Indian mythology. Audited after the U-series polish landed (toast/modal entrances, HP ghost-drain, Reduce Motion toggle, header bezels). Weighting: Jakub primary · Jhey secondary · Emil selective.</p>
+    <div class="meta-row">400×720 canvas · vanilla JS, zero dependencies · 23 scenes · audited 2026-08-22</div>
+    <div class="stats">
+      <a class="stat" href="#rec-all"><b>6</b><span>Findings</span></a>
+      <a class="stat crit" href="#rec-crit"><b>3</b><span>Critical</span></a>
+      <a class="stat imp" href="#rec-imp"><b>3</b><span>Important</span></a>
+      <a class="stat opp" href="#rec-opp"><b>5</b><span>Opportunities</span></a>
+    </div>
+  </header>
+
+  <section class="assessment">
+    <span class="mono-label">Overall</span>
+    <p>This codebase is unusually slop-free for its size — no stagger spam, no hover-scale wallpaper, no blur-everything, every effect motivated. The core loop feels juicy where it should (combat) and quiet where it should (menus). What remains are completeness gaps rather than taste problems: the Reduce Motion toggle doesn't reach four ambient loops, dialogs vanish without the exit their entrance promises, tab content snaps, and two timing relationships are inverted (exits outliving enters, a 2.7s linear title crawl).</p>
+  </section>
+
+  <section>
+    <h2 class="sec">01 · Lens summary</h2>
+    <table class="lens-table">
+      <thead><tr><th>Lens</th><th>Verdict</th><th>One-line read</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Jakub Krehel</strong><span class="weight">Primary</span></td><td><span class="dot mixed"></span>Mixed</td><td>Entrances are production-grade; the exit half of his contract is missing on modals and inverted on toasts.</td></tr>
+        <tr><td><strong>Jhey Tompkins</strong><span class="weight">Secondary</span></td><td><span class="dot strong"></span>Strong</td><td>The delight budget is spent exactly where a mythology RPG should spend it — hits, bursts, level-ups.</td></tr>
+        <tr><td><strong>Emil Kowalski</strong><span class="weight">Selective</span></td><td><span class="dot concern"></span>Concern</td><td>Frequency discipline is excellent; accessibility coverage and one per-frame cost need closing.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2 class="sec">02 · Where the timings land</h2>
+    <div class="timing-grid">
+      <svg viewBox="0 0 660 300" role="img" aria-label="Duration budget scatter of mythika animations, 0 to 600ms">
+        <style>
+          .z-band { opacity: 0.16; }
+          .z-good { fill: oklch(0.745 0.135 152); }
+          .z-mid  { fill: oklch(0.805 0.125 78); }
+          .z-slow { fill: oklch(0.655 0.185 25); }
+          .dot-s  { fill: var(--paper); }
+          .dot-h  { fill: none; stroke: var(--paper-dim); stroke-dasharray: 3 3; stroke-width: 1.5; }
+          .dn     { font: 600 9px "Geist Mono", monospace; fill: var(--ink); text-anchor: middle; }
+          .axis   { stroke: var(--line-strong); stroke-width: 1; }
+          .tick   { font: 10px "Geist Mono", monospace; fill: var(--muted); }
+        </style>
+        <rect class="z-band z-good" x="40"  y="60" width="97"  height="180"/>
+        <rect class="z-band z-good" x="137" y="60" width="193" height="180"/>
+        <rect class="z-band z-mid"  x="330" y="60" width="193" height="180"/>
+        <rect class="z-band z-slow" x="523" y="60" width="97"  height="180"/>
+        <text class="zone-label" x="46"  y="54" fill="var(--opp)">Instant</text>
+        <text class="zone-label" x="143" y="54" fill="var(--opp)">Responsive</text>
+        <text class="zone-label" x="336" y="54" fill="var(--imp)">Deliberate</text>
+        <text class="zone-label" x="529" y="54" fill="var(--crit)">Sluggish</text>
+        <line class="axis" x1="40" y1="240" x2="620" y2="240"/>
+        <text class="tick" x="40"  y="258" text-anchor="middle">0</text>
+        <text class="tick" x="137" y="258" text-anchor="middle">100</text>
+        <text class="tick" x="330" y="258" text-anchor="middle">300</text>
+        <text class="tick" x="523" y="258" text-anchor="middle">500</text>
+        <text class="tick" x="617" y="258" text-anchor="middle">600ms+</text>
+
+        <!-- hollow: no transition -->
+        <circle class="dot-h" cx="40" cy="88"  r="9"/><text class="dn" x="40" y="91">1</text>
+        <circle class="dot-h" cx="40" cy="114" r="9"/><text class="dn" x="40" y="117">2</text>
+        <circle class="dot-h" cx="40" cy="140" r="9"/><text class="dn" x="40" y="143">3</text>
+        <circle class="dot-h" cx="40" cy="166" r="9"/><text class="dn" x="40" y="169">4</text>
+        <!-- solid -->
+        <circle class="dot-s" cx="156" cy="105" r="9"/><text class="dn" x="156" y="108">5</text>
+        <circle class="dot-s" cx="185" cy="195" r="9"/><text class="dn" x="185" y="198">6</text>
+        <circle class="dot-s" cx="214" cy="105" r="9"/><text class="dn" x="214" y="108">7</text>
+        <circle class="dot-s" cx="282" cy="195" r="9"/><text class="dn" x="282" y="198">8</text>
+        <circle class="dot-s" cx="330" cy="105" r="9"/><text class="dn" x="330" y="108">9</text>
+        <circle class="dot-s" cx="356" cy="195" r="9"/><text class="dn" x="356" y="198">10</text>
+        <circle class="dot-s" cx="380" cy="105" r="9"/><text class="dn" x="380" y="108">11</text>
+        <circle class="dot-s" cx="523" cy="195" r="9"/><text class="dn" x="523" y="198">12</text>
+        <circle class="dot-s" cx="550" cy="105" r="9"/><text class="dn" x="550" y="108">13</text>
+        <circle class="dot-s" cx="614" cy="195" r="9"/><text class="dn" x="614" y="198">14</text>
+        <circle class="dot-h" cx="614" cy="105" r="9"/><text class="dn" x="614" y="108">15</text>
+      </svg>
+      <ul class="keylist">
+        <li><span class="kn">1</span> Tab content swap <span class="kd">0ms · none</span></li>
+        <li><span class="kn">2</span> Modal dismissal <span class="kd">0ms · none</span></li>
+        <li><span class="kn">3</span> Splash removal <span class="kd">0ms · hard cut</span></li>
+        <li><span class="kn">4</span> Gold/XP counters <span class="kd">0ms · snap</span></li>
+        <li><span class="kn">5</span> Modal enter <span class="kd">120ms · easeOutCubic</span></li>
+        <li><span class="kn">6</span> Toast enter <span class="kd">150ms · linear ramp</span></li>
+        <li><span class="kn">7</span> Button tap flash <span class="kd">120ms · hold-step</span></li>
+        <li><span class="kn">8</span> Scene fade <span class="kd">250ms · linear</span></li>
+        <li><span class="kn">9</span> Screen shake <span class="kd">300ms · decay</span></li>
+        <li><span class="kn">10</span> Combo flash <span class="kd">300ms · fade</span></li>
+        <li><span class="kn">11</span> Banner enter <span class="kd">333ms · linear</span></li>
+        <li><span class="kn">12</span> Toast exit <span class="kd">500ms · linear</span></li>
+        <li><span class="kn">13</span> Banner exit <span class="kd">500ms · linear</span></li>
+        <li><span class="kn">14</span> Death burst <span class="kd">600ms · expand</span></li>
+        <li><span class="kn">15</span> Damage numbers <span class="kd">1000ms · float</span></li>
+        <li><span class="kn">—</span> Title slide-in <span class="kd">2700ms · off scale</span></li>
+      </ul>
+    </div>
+    <p class="whats-off"><strong>What's off:</strong> a hollow cluster at 0ms (tab swaps, modal dismissal, splash cut, counters). Exits outshine enters — <strong>500ms out vs 150–333ms in</strong>. The title entrance doesn't fit the chart at all (<strong>2700ms, linear</strong>). Everything else sits healthily in the instant/responsive bands.</p>
+  </section>
+
+  <!-- ─────────────── 03 · JAKUB (PRIMARY) ─────────────── -->
+  <section class="lens-sec">
+    <div class="lens-sec__head">
+      <h3>Jakub Krehel — Production Polish</h3>
+      <span class="weight">Primary</span>
+    </div>
+    <p class="lens-sec__verdict"><span class="dot mixed"></span><strong>Mixed.</strong> Entrance craft is genuinely subtle and context-varied; the exit side of the polish contract is unfinished.</p>
+
+    <div class="lens-block">
+      <span class="mono-label">What's working well</span>
+      <ul class="lens-list good">
+        <li><em>Modal entrance is textbook</em> — fade + scale 0.96→1 over 120ms easeOutCubic, never from scale(0). <code>src/ui/modal.js:73-85</code></li>
+        <li><em>HP ghost-drain is invisible-quality motion</em> — functional continuity that reads as physics, not decoration; heals snap correctly. <code>src/scenes/combatScene.js:698-704</code></li>
+        <li><em>Press feedback stays quiet</em> — 1px inset + shade shift, no scale bounce, held state mirrored for touch. <code>src/ui/button.js:57-66</code></li>
+        <li><em>Enter vocabulary varies by context</em> — toasts land downward, dialogs scale up, banners bloom: no uniform fade-in slop.</li>
+      </ul>
+    </div>
+
+    <div class="lens-block">
+      <span class="mono-label">Issues to address</span>
+
+      <div class="finding-row" data-sev="crit">
+        <div class="finding-row__prose">
+          <div class="find-tags"><span class="chip crit">Critical</span><span class="chip">Jakub</span></div>
+          <h4>Dialogs disappear instantly after a choreographed entrance</h4>
+          <div class="find-body">
+            <p><span class="label">What</span><code>UI.Modal.dismiss()</code> sets <code>visible=false</code> synchronously; the 120ms staged entrance is answered by a hard cut on exit. Elements that just disappear are a checklist-Critical motion gap, and here the asymmetry is glaring because the enter was deliberately tuned.</p>
+            <p><span class="label">Why it matters</span>Exits subtler than enters is the rule — but zero exits break continuity entirely: the overlay's world snaps shut instead of dissolving.</p>
+            <div class="fix"><p><span class="label">Recommended motion</span>100ms opacity-only ghost fade on dismiss (callback fires immediately; only the visual lingers). Under Reduce Motion: cut instantly, as today.</p></div>
+            <p class="find-loc"><code>src/ui/modal.js:50-60</code></p>
+          </div>
+        </div>
+        <div class="demo">
+          <input class="vh" type="radio" name="st1" id="st1-a" checked>
+          <input class="vh" type="radio" name="st1" id="st1-l">
+          <input class="vh" type="radio" name="st1" id="st1-d">
+          <div class="demo__bar">
+            <div class="demo__meta">
+              <span class="demo__title">Dialog enter + subtle exit</span>
+              <span class="demo__timing">enter 120ms · exit 100ms · ease-out</span>
+            </div>
+            <div class="demo__controls">
+              <div class="seg"><label for="st1-a">Auto</label><label for="st1-l">Light</label><label for="st1-d">Dark</label></div>
+              <span class="demo__loop">&#8635;</span>
+            </div>
+          </div>
+          <div class="demo__stage">
+            <div class="demo-1__mt">
+              <div class="ui-card">
+                <div class="ui-label" style="margin-bottom:6px;">Confirm</div>
+                <div class="ui-row"><span>Sell Iron Bow for 40g?</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-row" data-sev="imp">
+        <div class="finding-row__prose">
+          <div class="find-tags"><span class="chip imp">Important</span><span class="chip">Jakub</span></div>
+          <h4>Toast exit lives 3.3× longer than its entrance</h4>
+          <div class="find-body">
+            <p><span class="label">What</span>Toasts enter in 150ms but fade out over the final 500ms of life (<code>alpha = timer*2</code> with duration ≥1s). The departure is the most prominent beat of the whole lifecycle.</p>
+            <p><span class="label">Why it matters</span>Prominent exits drag attention backward to content the user is done with; the user is moving on.</p>
+            <div class="fix"><p><span class="label">Recommended motion</span>Exit window of 180ms (<code>alpha = timer/0.18</code>) — subtler than the enter, matching the banner family once its own exit tightens.</p></div>
+            <p class="find-loc"><code>src/engine/game.js:63-79</code></p>
+          </div>
+        </div>
+        <div class="demo">
+          <input class="vh" type="radio" name="st2" id="st2-a" checked>
+          <input class="vh" type="radio" name="st2" id="st2-l">
+          <input class="vh" type="radio" name="st2" id="st2-d">
+          <div class="demo__bar">
+            <div class="demo__meta">
+              <span class="demo__title">Toast lifecycle, subtle exit</span>
+              <span class="demo__timing">in 150ms · out 180ms · ease-out</span>
+            </div>
+            <div class="demo__controls">
+              <div class="seg"><label for="st2-a">Auto</label><label for="st2-l">Light</label><label for="st2-d">Dark</label></div>
+              <span class="demo__loop">&#8635;</span>
+            </div>
+          </div>
+          <div class="demo__stage">
+            <div class="demo-2__mt">
+              <div class="ui-card" style="border-radius:8px;">
+                <div class="ui-row"><span style="font-family:'Geist Mono',monospace;font-size:12px;">Not enough gold!</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lens-block">
+      <span class="mono-label">Opportunities</span>
+      <ul class="lens-list opp">
+        <li><em>Asymmetric scene-fade legs</em> — Fade runs 250ms linear both ways; a 150ms out / 250ms in pair would read crisper while staying invisible. <code>src/engine/game.js:74-112</code></li>
+      </ul>
+    </div>
+
+    <p class="lens-take"><strong>Through Jakub's lens:</strong> the entering half of every transition is polished enough to ship unnoticed — now finish the sentence: give modals their ghost exit and let toasts leave before anyone watches them leave.</p>
+  </section>
+
+  <!-- ─────────────── 04 · JHEY (SECONDARY) ─────────────── -->
+  <section class="lens-sec">
+    <div class="lens-sec__head">
+      <h3>Jhey Tompkins — Experimentation &amp; Delight</h3>
+      <span class="weight">Secondary</span>
+    </div>
+    <p class="lens-sec__verdict"><span class="dot strong"></span><strong>Strong.</strong> The game-feel kit is generous and diegetic; only the title moment misfires on pacing.</p>
+
+    <div class="lens-block">
+      <span class="mono-label">What's working well</span>
+      <ul class="lens-list good">
+        <li><em>Combat juice has real weight</em> — shake, expanding spark-ring deaths, floating damage numerals and combo flashes give hits consequence. <code>src/engine/renderer.js:199-265</code></li>
+        <li><em>Level-up is a celebration</em> — 20-particle gravity burst behind a warm screen wash. <code>src/engine/renderer.js:366-379</code></li>
+        <li><em>Ambient world-building</em> — cultivation aura rings, enlightenment screen glow, fishing bobber ripples make screens feel alive without touching readability.</li>
+        <li><em>Glowing pixel wordmark</em> is a legit brand beat on the title screen — the aesthetic intent is right.</li>
+      </ul>
+    </div>
+
+    <div class="lens-block">
+      <span class="mono-label">Issues to address</span>
+
+      <div class="finding-row" data-sev="imp">
+        <div class="finding-row__prose">
+          <div class="find-tags"><span class="chip imp">Important</span><span class="chip">Jhey</span><span class="chip">Emil</span></div>
+          <h4>Title crawls in over 2.7 seconds, linearly, every visit</h4>
+          <div class="find-body">
+            <p><span class="label">What</span><code>titleY</code> advances at a fixed 60px/s from −100 to 60 — about 2.7s of constant-velocity travel with no ease, replayed on <em>every</em> return to the title screen.</p>
+            <p><span class="label">Why it matters</span>Drama earns its duration on a first impression, not on the fifteenth. Un-eased motion reads mechanical, and 2.7s is past any defensible UI budget for repeat visits.</p>
+            <div class="fix"><p><span class="label">Recommended motion</span>~900ms with an ease-out-cubic settle (fast arrival, soft landing) — keep a longer 1.6s variant only for a brand-new save's first visit if the drama is wanted.</p></div>
+            <p class="find-loc"><code>src/scenes/title.js:39,55-58</code></p>
+          </div>
+        </div>
+        <div class="demo">
+          <input class="vh" type="radio" name="st3" id="st3-a" checked>
+          <input class="vh" type="radio" name="st3" id="st3-l">
+          <input class="vh" type="radio" name="st3" id="st3-d">
+          <div class="demo__bar">
+            <div class="demo__meta">
+              <span class="demo__title">Title entrance, eased settle</span>
+              <span class="demo__timing">900ms · ease-out-cubic</span>
+            </div>
+            <div class="demo__controls">
+              <div class="seg"><label for="st3-a">Auto</label><label for="st3-l">Light</label><label for="st3-d">Dark</label></div>
+              <span class="demo__loop">&#8635;</span>
+            </div>
+          </div>
+          <div class="demo__stage">
+            <div class="demo-3__mt" style="text-align:center;">
+              <div style="font-family:'Familjen Grotesk',sans-serif;font-weight:700;font-size:30px;letter-spacing:0.08em;">MYTHIKA</div>
+              <div class="ui-label" style="margin-top:4px;">Echoes of the Divine</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lens-block">
+      <span class="mono-label">Opportunities</span>
+      <ul class="lens-list opp">
+        <li><em>Achievement banners could mirror the toast slide</em> — rare moments deserve the family's best choreography; today they alpha-only. <code>src/engine/game.js:81-99</code></li>
+        <li><em>Reward tickers</em> — count gold/XP up after victories; a 400ms tally is a free dopamine beat the victory screen currently skips.</li>
+        <li><em>Splash crossfade</em> — "Summoning the realms…" cuts away hard on frame one; a 150ms dissolve would land the summon.</li>
+      </ul>
+    </div>
+
+    <p class="lens-take"><strong>Through Jhey's lens:</strong> the delight instincts are already yours — bursts, auras, glow — just spend them with easing curves and let the title make a sharp entrance instead of a long walk.</p>
+  </section>
+
+  <!-- ─────────────── 05 · EMIL (SELECTIVE) ─────────────── -->
+  <section class="lens-sec">
+    <div class="lens-sec__head">
+      <h3>Emil Kowalski — Restraint &amp; Speed</h3>
+      <span class="weight">Selective</span>
+    </div>
+    <p class="lens-sec__verdict"><span class="dot concern"></span><strong>Concern.</strong> Frequency discipline is genuinely excellent; the accessibility coverage claim and one hot-path cost fall short of it.</p>
+
+    <div class="lens-block">
+      <span class="mono-label">What's working well</span>
+      <ul class="lens-list good">
+        <li><em>High-frequency actions stay animation-free</em> — combat action buttons use a 120ms hold-step flash, menu taps respond instantly. <code>src/ui/button.js:17-19</code>, <code>src/engine/input.js:113-123</code></li>
+        <li><em>Reduce Motion exists and persists</em> — a settings toggle wired through saves is rarer than it should be in canvas games. <code>src/scenes/settings.js:59-68</code></li>
+        <li><em>Audio/visual split is correct</em> — gating keeps hit sounds while dropping screen movement. <code>src/engine/renderer.js:381-389</code></li>
+        <li><em>No keyboard-animation violations, no stagger/slop patterns anywhere in 23 scenes.</em></li>
+      </ul>
+    </div>
+
+    <div class="lens-block">
+      <span class="mono-label">Issues to address</span>
+
+      <div class="finding-row" data-sev="crit">
+        <div class="finding-row__prose">
+          <div class="find-tags"><span class="chip crit">Critical</span><span class="chip">Emil</span><span class="chip">Accessibility</span></div>
+          <h4>Four ambient loops ignore the Reduce Motion toggle</h4>
+          <div class="find-body">
+            <p><span class="label">What</span>The toggle gates shakes, bursts, flashes and enter animations — but continuous loops keep running: enlightenment aura rings, cultivation aura pulse, fishing bobber ripple, and title particle drift. Looping animations that can't be paused fail the accessibility mandate.</p>
+            <p><span class="label">Why it matters</span>The setting's name promises the category, not a sample. Vestibular-sensitive players get a toggle that half-works, which is worse than none because trust breaks on discovery.</p>
+            <div class="fix"><p><span class="label">Recommended motion</span>Gate each loop at its render entry: aura pulses freeze at their resting frame, bobber holds center, title particles render static (or skip). One guard clause each — no new systems.</p></div>
+            <p class="find-loc"><code>src/engine/renderer.js:288,415-436,525</code> · <code>src/scenes/title.js:49-52</code></p>
+          </div>
+        </div>
+        <div class="demo">
+          <input class="vh" type="radio" name="st4" id="st4-a" checked>
+          <input class="vh" type="radio" name="st4" id="st4-l">
+          <input class="vh" type="radio" name="st4" id="st4-d">
+          <div class="demo__bar">
+            <div class="demo__meta">
+              <span class="demo__title">Ambient pulse halts under the toggle</span>
+              <span class="demo__timing">pulse ×2 · then gated static</span>
+            </div>
+            <div class="demo__controls">
+              <div class="seg"><label for="st4-a">Auto</label><label for="st4-l">Light</label><label for="st4-d">Dark</label></div>
+              <span class="demo__loop">&#8635;</span>
+            </div>
+          </div>
+          <div class="demo__stage">
+            <div class="demo-4__mt">
+              <div class="gate-chip" style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:100px;border:1px solid var(--st-line);font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.1em;color:var(--st-fg);">
+                ENLIGHTENED&nbsp;4:32
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-row" data-sev="crit">
+        <div class="finding-row__prose">
+          <div class="find-tags"><span class="chip crit">Critical</span><span class="chip">Emil</span></div>
+          <h4>Tab content swaps with zero transition</h4>
+          <div class="find-body">
+            <p><span class="label">What</span>Equipment's three tabs and Bazaar's category lists rebuild <code>staticDraws</code>/buttons and paint the new pane on the next frame. Primary in-scene navigation snapping is a checklist-Critical motion gap.</p>
+            <p><span class="label">Why it matters</span>At 100s of visits these panels are the app's most-repeated state change; a snap makes each switch feel like a reload rather than a reveal, and users lose spatial continuity between panes.</p>
+            <div class="fix"><p><span class="label">Recommended motion</span>90ms content fade keyed to a build timestamp (the modal's <code>_openedAt</code> pattern), content-only — chrome and tabs stay put. Skip under Reduce Motion.</p></div>
+            <p class="find-loc"><code>src/scenes/equipment.js:38-46</code> · <code>src/scenes/bazaar.js:73-112</code></p>
+          </div>
+        </div>
+        <div class="demo">
+          <input class="vh" type="radio" name="st5" id="st5-a" checked>
+          <input class="vh" type="radio" name="st5" id="st5-l">
+          <input class="vh" type="radio" name="st5" id="st5-d">
+          <div class="demo__bar">
+            <div class="demo__meta">
+              <span class="demo__title">Tab crossfade, chrome anchored</span>
+              <span class="demo__timing">90ms · ease-out</span>
+            </div>
+            <div class="demo__controls">
+              <div class="seg"><label for="st5-a">Auto</label><label for="st5-l">Light</label><label for="st5-d">Dark</label></div>
+              <span class="demo__loop">&#8635;</span>
+            </div>
+          </div>
+          <div class="demo__stage">
+            <div class="demo-5__mt" style="min-width:220px;">
+              <div style="position:relative;height:22px;border-bottom:1px solid var(--st-line);margin-bottom:14px;">
+                <span class="ui-label" style="color:var(--st-fg);">Gear</span>
+                <span class="ui-label" style="position:absolute;left:80px;">Stats</span>
+                <span class="tab-under" style="position:absolute;left:0;top:20px;width:64px;height:2px;background:var(--st-fg);"></span>
+              </div>
+              <div style="position:relative;height:40px;">
+                <div class="pane-a ui-row" style="position:absolute;inset:0;"><span>Sword of Karna · ATK +12</span></div>
+                <div class="pane-b ui-row" style="position:absolute;inset:0;opacity:0;"><span>Vitality · HP +340</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-row" data-sev="imp">
+        <div class="finding-row__prose">
+          <div class="find-tags"><span class="chip imp">Important</span><span class="chip">Performance</span></div>
+          <h4><code>shadowBlur = 25</code> repainted every frame on the title screen</h4>
+          <div class="find-body">
+            <p><span class="label">What</span>The MYTHIKA wordmark sets <code>ctx.shadowBlur = 25</code> before drawing pixel text, each frame, for a completely static ornament. Canvas shadow blur is among the slowest 2D operations; on low-end mobile GPUs it taxes the very 60fps budget the new fps probe measures.</p>
+            <p><span class="label">Why it matters</span>Speed is non-negotiable — and this is pure cost: zero information, paid per frame, forever, on the first screen every player sees.</p>
+            <div class="fix"><p><span class="label">Recommended motion</span>Bake once: draw the glowing wordmark to an offscreen canvas in <code>enter()</code>, blit with one <code>drawImage</code> per frame. Identical pixels, ~zero cost.</p></div>
+            <p class="find-loc"><code>src/scenes/title.js:56-58</code></p>
+          </div>
+        </div>
+        <div class="demo">
+          <input class="vh" type="radio" name="st6" id="st6-a" checked>
+          <input class="vh" type="radio" name="st6" id="st6-l">
+          <input class="vh" type="radio" name="st6" id="st6-d">
+          <div class="demo__bar">
+            <div class="demo__meta">
+              <span class="demo__title">Glow baked once, blitted forever</span>
+              <span class="demo__timing">1 bake · 1 drawImage/frame</span>
+            </div>
+            <div class="demo__controls">
+              <div class="seg"><label for="st6-a">Auto</label><label for="st6-l">Light</label><label for="st6-d">Dark</label></div>
+              <span class="demo__loop">&#8635;</span>
+            </div>
+          </div>
+          <div class="demo__stage">
+            <div class="demo-6__mt" style="text-align:center;">
+              <div class="glow-mark" style="font-family:'Familjen Grotesk',sans-serif;font-weight:700;font-size:26px;letter-spacing:0.1em;color:var(--st-fg);">MYTHIKA</div>
+              <div class="ui-label" style="margin-top:6px;">baked at enter() · blit per frame</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lens-block">
+      <span class="mono-label">Opportunities</span>
+      <ul class="lens-list opp">
+        <li><em>Adaptive Reduce Motion</em> — the new <code>?probe</code> fps beacon could auto-enable the toggle when a device sustains &lt;30fps, degrading gracefully instead of stuttering.</li>
+      </ul>
+    </div>
+
+    <p class="lens-take"><strong>Through Emil's lens:</strong> restraint is already the house style — close the loop by making the accessibility promise complete, the repeated navigation continuous, and the one expensive ornament free.</p>
+  </section>
+
+  <!-- ─────────────── 06 · RECOMMENDATIONS ─────────────── -->
+  <section id="rec-all">
+    <h2 class="sec">06 · Combined recommendations</h2>
+
+    <div id="rec-crit" style="margin-top:18px;">
+      <div class="tier-label crit">Critical · must fix (3)</div>
+      <hr style="border:none;border-top:1px solid var(--line-strong);">
+      <table class="rec">
+        <thead><tr><th></th><th>Issue</th><th>File</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>🔴</td><td>Ambient loops bypass Reduce Motion</td><td><code>renderer.js:288,415,525</code></td><td>Gate aura/bobber/particle loops on <code>G.state.reduceMotion</code></td></tr>
+          <tr><td>🔴</td><td>Modal dismissal is a hard cut</td><td><code>modal.js:50-60</code></td><td>100ms ghost fade; callback immediate; RM = instant</td></tr>
+          <tr><td>🔴</td><td>Tab content snaps (equipment, bazaar)</td><td><code>equipment.js:38</code>, <code>bazaar.js:73</code></td><td>90ms build-keyed content fade; RM skip</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="rec-imp" style="margin-top:26px;">
+      <div class="tier-label imp">Important · should fix (3)</div>
+      <hr style="border:none;border-top:1px solid var(--line-strong);">
+      <table class="rec">
+        <thead><tr><th></th><th>Issue</th><th>File</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>🟡</td><td>Title entrance 2700ms linear, every visit</td><td><code>title.js:39</code></td><td>900ms ease-out-cubic settle</td></tr>
+          <tr><td>🟡</td><td>Toast exit 500ms vs 150ms enter</td><td><code>game.js:63</code></td><td>180ms exit window (<code>timer/0.18</code>)</td></tr>
+          <tr><td>🟡</td><td>Per-frame shadowBlur 25 on title</td><td><code>title.js:56-58</code></td><td>Bake wordmark to offscreen canvas once</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="rec-opp" style="margin-top:26px;">
+      <div class="tier-label opp">Opportunities · could enhance (5)</div>
+      <hr style="border:none;border-top:1px solid var(--line-strong);">
+      <table class="rec">
+        <thead><tr><th></th><th>Enhancement</th><th>Where</th><th>Impact</th></tr></thead>
+        <tbody>
+          <tr><td>🟢</td><td>Banner slide-in mirrors toasts</td><td><code>game.js:81</code></td><td>Family consistency on a rare delight beat</td></tr>
+          <tr><td>🟢</td><td>Reward tickers count up post-victory</td><td>victory renders</td><td>Free dopamine on the payoff screen</td></tr>
+          <tr><td>🟢</td><td>Splash-to-frame 150ms crossfade</td><td><code>game.css</code>, <code>game.js</code></td><td>Softens first-impression handoff</td></tr>
+          <tr><td>🟢</td><td>Adaptive Reduce Motion via fps beacon</td><td><code>verify_matrix.py</code> sibling logic</td><td>Weak devices degrade gracefully</td></tr>
+          <tr><td>🟢</td><td>Scene fade legs 150ms out / 250ms in</td><td><code>game.js:74</code></td><td>Crisper nav, still invisible</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ─────────────── 07 · REF SUMMARY ─────────────── -->
+  <section>
+    <h2 class="sec">07 · Lens reference summary</h2>
+    <div class="ref-summary">
+      <p><strong>Most referenced: Jakub Krehel — Production Polish.</strong> Three of the six fixes are his contract applied literally: exits exist, exits are subtler, chrome stays anchored while content transitions. His enter recipe was already followed so faithfully that the remaining work is symmetric.</p>
+      <p>If you want to lean differently:</p>
+      <p>— <strong>More Emil:</strong> after fixing the gaps, consider trimming the banner enter to 250ms and making the scene fade even shorter; nothing else in the codebase wants cutting.</p>
+      <p>— <strong>More Jakub:</strong> adopt the build-timestamp fade pattern everywhere content rebuilds (forge refreshes, quest-log updates), not just tabs.</p>
+      <p>— <strong>More Jhey:</strong> the reward-ticker and splash-crossfade ideas are the highest-smile-per-line items on the board; do them when you want a fun afternoon, not before the criticals.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>mythika · motion audit</span>
+    <span>&#128308; 3 critical · &#128993; 3 important · &#128994; 5 opportunities</span>
+    <span>2026-08-22</span>
+  </footer>
+
+</div>
+</body>
+</html>

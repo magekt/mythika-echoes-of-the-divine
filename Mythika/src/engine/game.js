@@ -146,6 +146,12 @@ const G = {
 };
 
 function gInit() {
+  // Single-loop guard: main.js boots synchronously at parse time, then this
+  // file's own window-load listener fires later — without this, the canvas
+  // gets re-initialized, input listeners double-register, and two rAF loops
+  // run over each other.
+  if (G._loopStarted) return;
+  G._loopStarted = true;
   G.canvas = document.getElementById('game-canvas');
   G.canvas.width = G.W;
   G.canvas.height = G.H;

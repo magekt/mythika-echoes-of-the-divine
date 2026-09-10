@@ -17,6 +17,11 @@ const R = {
   }
 };
 
+// Corner-radius scale (Shape Consistency Lock): xs=3 chips, s=5 buttons and
+// bars, m=8 panels, l=10 large cards. Components must use these, never raw
+// numbers — and never read them without this definition present.
+R.radius = { xs: 3, s: 5, m: 8, l: 10 };
+
 R.rect = function(ctx, x, y, w, h, color) {
   ctx.fillStyle = color;
   ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h));
@@ -47,6 +52,17 @@ R.text = function(ctx, str, x, y, color, font, align) {
 
 R.textCenter = function(ctx, str, x, y, color, font) {
   R.text(ctx, str, x, y, color, font, 'center');
+};
+
+// Scale about rect center: identity at scale 1, identity back-translate.
+// Usage: R.withCenteredScale(ctx, x, y, w, h, scale, () => { drawFn(ctx); });
+R.withCenteredScale = function(ctx, x, y, w, h, scale, drawFn) {
+  ctx.save();
+  ctx.translate(x + w / 2, y + h / 2);
+  ctx.scale(scale, scale);
+  ctx.translate(-(x + w / 2), -(y + h / 2));
+  drawFn(ctx);
+  ctx.restore();
 };
 
 R.pixelChar = function(ctx, ch, x, y, color, size) {
