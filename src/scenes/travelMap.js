@@ -77,11 +77,14 @@ const travelMapScene = Scene.create({
       this.data.buttons.push(hdr);
       y += hh + 8;
 
-      // 3-column cards for zones in this group
+      // Responsive grid: each row shares the full width (1 zone goes
+      // full-width, 2 zones split halves, 3+ use standard 3 columns), so
+      // single-zone realm groups no longer leave dead space on the right.
       const gridCols = 3;
       const gridGap = 8;
       const mx = 14;
-      const cw = (G.W - mx * 2 - gridGap * (gridCols - 1)) / gridCols;
+      const cols = Math.max(1, Math.min(group.zoneIds.length, gridCols));
+      const cw = (G.W - mx * 2 - gridGap * (cols - 1)) / cols;
       const ch = 86; // Card height per design system
 
       let idx = 0;
@@ -93,7 +96,7 @@ const travelMapScene = Scene.create({
         const reqLevel = (G.state.party || []).some(h => h.level >= (zone.reqLevel || 1));
         const unlocked = (reqProgress && reqLevel) || complete;
 
-        const btn = UI.Button(mx + (idx % gridCols) * (cw + gridGap), y + Math.floor(idx / gridCols) * (ch + gridGap), cw, ch, '', unlocked ? R.colors.surface : R.colors.btn);
+        const btn = UI.Button(mx + (idx % cols) * (cw + gridGap), y + Math.floor(idx / cols) * (ch + gridGap), cw, ch, '', unlocked ? R.colors.surface : R.colors.btn);
         btn._zone = zone;
         btn._zoneId = zoneId;
         btn._pct = pct;
@@ -159,7 +162,7 @@ const travelMapScene = Scene.create({
         idx++;
       }
 
-      const rows = Math.ceil(group.zoneIds.length / gridCols);
+      const rows = Math.ceil(group.zoneIds.length / cols);
       y += rows * (ch + gridGap) + 10;
     }
 
