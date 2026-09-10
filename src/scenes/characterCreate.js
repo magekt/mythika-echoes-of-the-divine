@@ -83,7 +83,7 @@ const characterCreateScene = Scene.create({
     } else if (this.data.step === 1) {
       const cls = CLASS_DATA[this.data.selectedClass];
       const icon = { kshatriya: '\u2694', rishi: '\u2727', yogi: '\u262F' }[this.data.selectedClass] || '';
-      R.textCenter(ctx, icon + ' ' + (cls ? cls.name : '?') + ' selected', G.W / 2, 80, R.colors.blueLight, R.fonts.sm);
+      R.textCenter(ctx, (cls ? cls.name : '?') + ' path selected', G.W / 2, 80, R.colors.blueLight, R.fonts.sm);
       R.textCenter(ctx, 'Choose your hero', G.W / 2, 98, R.colors.text, R.fonts.md);
     } else if (this.data.step === 2) {
       const hero = HEROES[this.data.selectedHero];
@@ -153,7 +153,15 @@ const characterCreateScene = Scene.create({
         ctx.fillRect(bx + 4, by + 6, 4, bh - 12);
         R.text(ctx, icon + '  ' + cls.name, bx + 18, by + 20, R.colors.orange, R.fonts.md);
         R.text(ctx, cls.desc + ' \u2014 ' + cls.focus, bx + 18, by + 40, R.colors.textDim, R.fonts.sm);
-        const bonusStr = 'HP+' + cls.startBonus.hp + (cls.startBonus.str ? ' STR+' + cls.startBonus.str : '') + (cls.startBonus.mag ? ' MAG+' + cls.startBonus.mag : '') + (cls.startBonus.mp ? ' MP+' + cls.startBonus.mp : '');
+        // Build only from bonuses the class actually has (Rishi/Yogi get
+        // no HP bonus — printing it unconditionally showed "HP+undefined").
+        const sb = cls.startBonus;
+        const bonusParts = [];
+        if (sb.hp) bonusParts.push('HP+' + sb.hp);
+        if (sb.str) bonusParts.push('STR+' + sb.str);
+        if (sb.mag) bonusParts.push('MAG+' + sb.mag);
+        if (sb.mp) bonusParts.push('MP+' + sb.mp);
+        const bonusStr = bonusParts.join(' ');
         R.text(ctx, bonusStr, bx + 18, by + 60, R.colors.blueLight, R.fonts.sm);
       };
       btn.onClick = function() {
