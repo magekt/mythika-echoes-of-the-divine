@@ -24,15 +24,18 @@ UI.handleButtons = function(buttons, scrollY) {
     b._lastFire = now;
     if (b.enabled === false) {
       // Unavailable target: stone strikes the glass; nothing changes.
-      R.stoneHit(tap.x, tap.y);
+      // Guarded — a missing effect must never kill input.
+      if (R.stoneHit) R.stoneHit(tap.x, tap.y);
       return true;
     }
     Audio.click();
     // Outcome convention: an explicit `false` from a handler marks the
     // action as rejected -> stone-on-glass; anything else counts as valid.
     const outcome = b.onClick ? b.onClick(b.data) : undefined;
-    if (outcome === false) R.stoneHit(tap.x, tap.y);
-    else R.validTick(tap.x, tap.y);
+    // FX calls are guarded: a missing effect must never kill the tap that
+    // already fired (an undefined click-FX once froze the whole loop here).
+    if (outcome === false) { if (R.stoneHit) R.stoneHit(tap.x, tap.y); }
+    else if (R.validTick) R.validTick(tap.x, tap.y);
     return true;
   }
   return false;
@@ -246,9 +249,11 @@ UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
     const bx = this.x, by = this.y, bw = this.w, bh = this.h;
     
     ctx.save();
+    // Scale about the button center: the back-translate must undo the full
+    // forward translate, or draws land at 2x and detach from tap hitboxes.
     ctx.translate(bx + bw/2, by + bh/2);
     ctx.scale(spring.scale, spring.scale);
-    ctx.translate(-bw/2, -bh/2);
+    ctx.translate(-(bx + bw/2), -(by + bh/2));
     
     if (variant === 'primary') {
       // Primary: Gold background, white text

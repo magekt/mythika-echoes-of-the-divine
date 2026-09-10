@@ -115,9 +115,10 @@ const cultivationScene = Scene.create({
       // Spring scale for press feedback
       const scale = this._springScale || 1;
       ctx.save();
+      // Centered scale: undo the FULL forward translate (see button.js).
       ctx.translate(bx + bw/2, by + bh/2);
       ctx.scale(scale, scale);
-      ctx.translate(-bw/2, -bh/2);
+      ctx.translate(-(bx + bw/2), -(by + bh/2));
       
       if (this.enabled) {
         // Secondary variant: surface background, gold border
@@ -180,9 +181,10 @@ const cultivationScene = Scene.create({
       
       const scale = this._springScale || 1;
       ctx.save();
+      // Centered scale: undo the FULL forward translate (see button.js).
       ctx.translate(bx + bw/2, by + bh/2);
       ctx.scale(scale, scale);
-      ctx.translate(-bw/2, -bh/2);
+      ctx.translate(-(bx + bw/2), -(by + bh/2));
       
       // Ghost variant: no background, text only with hover underline
       if (this._hovered && !reduceMotion) {

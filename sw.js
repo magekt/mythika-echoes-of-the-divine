@@ -1,9 +1,15 @@
-// Mythika service worker v4
-// Assets: cache-first (instant loads, refreshed in background).
+// Mythika service worker v5
+// Assets: cache-first (instant loads). Files missing from the precache list
+// are fetched from network, cached at runtime on success, and NEVER reject
+// (a rejected FetchEvent promise surfaces as net::ERR_FAILED and can leave
+// the game half-booted with dead buttons).
 // index.html: network-first so deploys land immediately.
-const CACHE = 'mythika-v4';
+const CACHE = 'mythika-v5';
 
 const ASSETS = [
+'src/engine/firebase-config.js',
+'src/engine/localAuth.js',
+'src/engine/auth.js',
 'src/engine/game.js',
   'src/engine/scene.js',
   'src/engine/scene-helpers.js',
@@ -22,6 +28,7 @@ const ASSETS = [
   'src/data/spirit_beasts.js',
   'src/data/quests.js',
   'src/data/achievements.js',
+  'src/data/journeys.js',
   'src/systems/economy.js',
   'src/systems/hints.js',
   'src/systems/progression.js',
@@ -32,6 +39,7 @@ const ASSETS = [
   'src/systems/save.js',
   'src/systems/quest.js',
   'src/systems/achievements.js',
+  'src/systems/journey.js',
   'src/ui/button.js',
   'src/ui/panel.js',
   'src/ui/progressBar.js',
@@ -63,6 +71,8 @@ const ASSETS = [
   'src/scenes/achievementsScene.js',
   'src/scenes/debug.js',
   'src/scenes/welcome.js',
+  'src/scenes/journeyScene.js',
+  'src/scenes/authScene.js',
   'src/main.js',
   'styles/game.css',
   'manifest.json',
@@ -72,7 +82,13 @@ const ASSETS = [
 
 self.addEventListener('install', function(e) {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS.concat(['./', './index.html'])))
+    caches.open(CACHE).then(function(c) {
+      // Tolerant precache: one missing file must not fail the whole install
+      // (c.addAll is atomic and would pin the old worker in place forever).
+      return Promise.all(ASSETS.concat(['./', './index.html']).map(function(url) {
+        return c.add(url).catch(function() { return null; });
+      }));
+    }).then(function() { return self.skipWaiting(); })
   );
 });
 
@@ -100,10 +116,24 @@ self.addEventListener('fetch', function(e) {
     return;
   }
 
-  // Everything else: pure cache-first. No background refresh — a refetch storm
-  // saturates small servers and stalls the shell (the 'stuck screen' bug).
-  // Users can pull fresh assets explicitly via Settings > Check for Game Updates.
+  // Cache-first with runtime caching and a guaranteed non-rejecting tail:
+  // newly added files are cached on first successful fetch, and if both
+  // cache and network fail we answer (navigations get the shell, anything
+  // else a 503 with an empty body) instead of an unhandled rejection that
+  // kills dependent boot code.
   e.respondWith(
-    caches.match(e.request).then(hit => hit || fetch(e.request))
+    caches.match(e.request).then(function(hit) {
+      if (hit) return hit;
+      return fetch(e.request).then(function(res) {
+        if (res && res.status === 200) {
+          const copy = res.clone();
+          caches.open(CACHE).then(function(c) { c.put(e.request, copy); });
+        }
+        return res;
+      }).catch(function() {
+        if (e.request.mode === 'navigate') return caches.match('./index.html');
+        return new Response('', { status: 503, statusText: 'Service Unavailable' });
+      });
+    })
   );
 });
