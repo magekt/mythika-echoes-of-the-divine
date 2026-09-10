@@ -28,7 +28,9 @@ const ashramScene = Scene.create({
   },
 
   navBarHeight: 44,
-  getContentTop: function() { return G.CONTENT_TOP; },
+  // Content scrolls below the fixed header stack (header 24-92, stats
+  // 100-212, resources 222, zone 236 when active). Set per build in buildMenu.
+  getContentTop: function() { return this.data.contentTop || 230; },
   getContentHeight: function() { return G.H - this.getContentTop() - this.navBarHeight; },
 
   clampScroll: function() {
@@ -151,7 +153,9 @@ const ashramScene = Scene.create({
       }
     ];
 
-    let y = this.getContentTop(); // offset below fixed header (24-92), clip starts at 116
+    // Fixed stack ends at 222 (236 with an active zone); content scrolls below it.
+    this.data.contentTop = G.state.currentZone ? 248 : 230;
+    let y = this.getContentTop();
 
     // Ashram Upgrade: steeper curve 1000*lv^1.5 gold + 5*lv DF → +0.05 cult/s, +0.5 prana/s & unlocks recipe tiers
     {
@@ -288,8 +292,9 @@ const ashramScene = Scene.create({
     // Render noise/grain overlay for editorial luxury feel
     R.renderNoise(ctx);
 
-    // Minimal header — avoids overlap with stats (110-210) and the bento grid (now at ~256)
-    // The full HeroMoment CTA duplicated the Travel bento card and was 130px too tall
+    // Fixed header bands (unclipped) — stacked with no overlaps:
+    // header 24-92, stats 100-212 (player only), resources 222,
+    // zone 236 (when active). Scrollable content starts below at getContentTop().
     {
       const cx = G.W/2;
       R.roundRect(ctx, cx - 80, 24, 160, 24, 12, 'rgba(232,160,48,0.12)');
@@ -298,42 +303,41 @@ const ashramScene = Scene.create({
       R.textCenter(ctx, 'Sanctuary • Cultivate • Forge', cx, 92, R.colors.textSecondary, R.fonts.sm);
     }
 
-    // Player stats panel with PremiumShell
+    // Player stats panel with PremiumShell (100-212; all children inside)
     const p = G.state.player;
     if (p) {
-      const hpPct = Math.floor(p.hp / p.maxHp * 100);
-      const mpPct = Math.floor(p.mp / p.maxMp * 100);
-      
-      // Stats panel using PremiumShell (moved down 10px to y=120 to be fully inside clip at y=116)
-      const statsShell = UI.PremiumShell(10, 120, G.W - 20, 100, { outerR: 16 });
+      const hpPct = Math.max(0, Math.min(100, Math.floor(p.hp / Math.max(1, p.maxHp) * 100)));
+      const mpPct = Math.max(0, Math.min(100, Math.floor(p.mp / Math.max(1, p.maxMp) * 100)));
+
+      const statsShell = UI.PremiumShell(10, 100, G.W - 20, 112, { outerR: 16 });
       statsShell.render(ctx);
       const content = statsShell.contentRect();
-      
-      R.textCenter(ctx, p.name + ' \u2014 Lv.' + p.level + ' ' + (p.className || ''), content.x + content.w/2, content.y + 16, R.colors.textPrimary, R.fonts.md);
-      R.textCenter(ctx, 'Realm: ' + realm.name + ' (Stage ' + G.state.realmStage + '/' + realm.stages + ')', content.x + content.w/2, content.y + 36, R.colors.textSecondary, R.fonts.sm);
+
+      R.textCenter(ctx, p.name + ' \u2014 Lv.' + p.level + ' ' + (p.className || ''), content.x + content.w/2, content.y + 12, R.colors.textPrimary, R.fonts.md);
+      R.textCenter(ctx, 'Realm: ' + realm.name + ' (Stage ' + G.state.realmStage + '/' + realm.stages + ')', content.x + content.w/2, content.y + 30, R.colors.textSecondary, R.fonts.sm);
 
       // HP bar
-      R.roundRect(ctx, content.x + 12, content.y + 50, content.w - 24, 8, 4, 'rgba(200,48,48,0.15)');
+      R.roundRect(ctx, content.x + 12, content.y + 44, content.w - 24, 8, 4, 'rgba(200,48,48,0.15)');
       ctx.fillStyle = p.hp > 0 ? R.colors.hp : R.colors.textDark;
-      R.roundRect(ctx, content.x + 12, content.y + 50, (content.w - 24) * hpPct / 100, 8, 4, ctx.fillStyle);
-      R.textCenter(ctx, Math.floor(p.hp) + '/' + p.maxHp, content.x + content.w/2, content.y + 62, R.colors.white, R.fonts.sm);
+      R.roundRect(ctx, content.x + 12, content.y + 44, Math.max(0, (content.w - 24) * hpPct / 100), 8, 4, ctx.fillStyle);
+      R.textCenter(ctx, Math.floor(p.hp) + '/' + p.maxHp, content.x + content.w/2, content.y + 58, R.colors.white, R.fonts.sm);
 
       // MP bar
-      R.roundRect(ctx, content.x + 12, content.y + 66, content.w - 24, 6, 3, 'rgba(48,128,200,0.15)');
+      R.roundRect(ctx, content.x + 12, content.y + 64, content.w - 24, 6, 3, 'rgba(48,128,200,0.15)');
       ctx.fillStyle = mpPct > 0 ? R.colors.mp : R.colors.textDark;
-      R.roundRect(ctx, content.x + 12, content.y + 66, (content.w - 24) * mpPct / 100, 6, 3, ctx.fillStyle);
-      R.textCenter(ctx, Math.floor(p.mp) + '/' + p.maxMp, content.x + content.w/2, content.y + 78, R.colors.white, R.fonts.sm);
+      R.roundRect(ctx, content.x + 12, content.y + 64, Math.max(0, (content.w - 24) * mpPct / 100), 6, 3, ctx.fillStyle);
+      R.textCenter(ctx, Math.floor(p.mp) + '/' + p.maxMp, content.x + content.w/2, content.y + 76, R.colors.white, R.fonts.sm);
     }
 
-    // Resources row
-    R.textCenter(ctx, '\u26A1 ' + Math.floor(G.state.gold || 0) + ' Gold', G.W / 2 - 95, 140, R.colors.gold, R.fonts.sm);
-    R.textCenter(ctx, '\u2727 ' + Math.floor(G.state.karma || 0) + ' Karma', G.W / 2, 140, R.colors.blueLight, R.fonts.sm);
-    R.textCenter(ctx, '\u2606 ' + (G.state.divineFragments || 0) + ' DF', G.W / 2 + 95, 140, R.colors.orange, R.fonts.sm);
+    // Single-line resources row, clear of every panel
+    R.textCenter(ctx, '\u26A1 ' + Math.floor(G.state.gold || 0) + 'g', G.W / 2 - 110, 222, R.colors.gold, R.fonts.sm);
+    R.textCenter(ctx, '\u2727 ' + Math.floor(G.state.karma || 0), G.W / 2, 222, R.colors.blueLight, R.fonts.sm);
+    R.textCenter(ctx, '\u2606 ' + (G.state.divineFragments || 0) + ' DF', G.W / 2 + 110, 222, R.colors.orange, R.fonts.sm);
 
     if (G.state.currentZone) {
       const zoneName = ZONES[G.state.currentZone] ? ZONES[G.state.currentZone].name : G.state.currentZone;
       const zonePct = G.state.zoneProgress[G.state.currentZone] || 0;
-      R.textCenter(ctx, 'Zone: ' + zoneName + ' (' + zonePct + '%)', G.W / 2, 160, R.colors.textDim, R.fonts.sm);
+      R.textCenter(ctx, 'Zone: ' + zoneName + ' (' + zonePct + '%)', G.W / 2, 236, R.colors.textDim, R.fonts.sm);
     }
 
     const top = this.getContentTop();

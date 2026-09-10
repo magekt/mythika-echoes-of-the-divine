@@ -4,7 +4,7 @@
 // (a rejected FetchEvent promise surfaces as net::ERR_FAILED and can leave
 // the game half-booted with dead buttons).
 // index.html: network-first so deploys land immediately.
-const CACHE = 'mythika-v5';
+const CACHE = 'mythika-v6';
 
 const ASSETS = [
 'src/engine/firebase-config.js',
