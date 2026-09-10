@@ -38,8 +38,10 @@ const alchemyScene = Scene.create({
     const SD = this.data.staticDraws;
     const recipes = AlchemySystem.getLearnedRecipes();
     
-    // Section header: 26px height, panel bg, accent color label
-    const sectionHdr = UI.Button(this.getContentTop() - 14, 0, G.W - 28, 26, '', 'transparent');
+    // Section header in normal content flow (it was constructed with x/y
+    // swapped, painting at the top edge over the fixed header instead).
+    let y = this.getContentTop();
+    const sectionHdr = UI.Button(14, y, G.W - 28, 26, '', 'transparent');
     sectionHdr._label = 'ALCHEMY';
     sectionHdr._color = R.colors.gold;
     sectionHdr.render = function(ctx) {
@@ -47,8 +49,7 @@ const alchemyScene = Scene.create({
       R.textCenter(ctx, this._label, this.x + this.w / 2, this.y + this.h / 2 + 4, this._color, R.fonts.sm);
     };
     this.data.buttons.push(sectionHdr);
-
-    let y = this.getContentTop(); // offset below fixed header
+    y += 26 + 8;
 
     if (recipes.length === 0) {
       y += 10;
@@ -146,21 +147,20 @@ const alchemyScene = Scene.create({
   },
 
   render: function(ctx) {
-    // Section header bar - 26px height, panel bg, accent color label
-    R.roundRect(ctx, 10, 0, G.W - 20, 26, 6, R.colors.panel);
-    R.textCenter(ctx, 'Alchemy Lab', G.W / 2, 4, R.colors.gold, R.fonts.sm);
-    R.textCenter(ctx, 'Concoct magical elixirs', G.W / 2, 20, R.colors.textDim, R.fonts.sm);
+    // Fixed header band (fully above the clip at getContentTop()=86).
+    // Title used to sit at y=4 (clipped by the canvas edge), the subtitle
+    // was drawn twice, and the herb panel straddled the clip boundary.
+    R.roundRect(ctx, 10, 6, G.W - 20, 40, 6, R.colors.panel);
+    R.textCenter(ctx, 'Alchemy Lab', G.W / 2, 26, R.colors.gold, R.fonts.sm);
+    R.textCenter(ctx, 'Concoct magical elixirs', G.W / 2, 42, R.colors.textDim, R.fonts.sm);
 
-    // Resources row above clip
-    R.textCenter(ctx, 'Concoct magical elixirs', G.W / 2, 46, R.colors.textDim, R.fonts.sm);
-
-    // Herb display row
+    // Herb display row — live counts, fully inside the fixed band
     ctx.fillStyle = R.colors.panel;
-    R.roundRect(ctx, 10, 74, G.W - 20, 28, 6, ctx.fillStyle);
+    R.roundRect(ctx, 10, 50, G.W - 20, 28, 6, ctx.fillStyle);
     let hx = 20;
     for (const [hid, herb] of Object.entries(HERB_GROWTH)) {
       const count = AlchemySystem.getHerbCount(hid);
-      R.text(ctx, herb.name + ': ' + count, hx, 92, R.colors.text, R.fonts.sm);
+      R.text(ctx, herb.name + ': ' + count, hx, 68, R.colors.text, R.fonts.sm);
       hx += 90;
     }
 

@@ -216,10 +216,18 @@
           ctx.strokeStyle = 'rgba(232,160,48,0.2)';
           ctx.lineWidth = 1;
           ctx.strokeRect(x+0.5, y+0.5, pillW-1, pillH-1);
-          navItems.forEach((item, i) => {
-            const ix = x + pillW/5 * i + pillW/10;
-            R.textCenter(ctx, item.icon, ix, y + 28, R.colors.textDim, R.fonts.lg);
-            R.textCenter(ctx, item.text, ix, y + 40, R.colors.textDim, R.fonts.xs);
+          // Four primary destinations share the row; the fifth slot belongs
+          // to the hamburger (it toggles the full menu, duplicating 'More',
+          // whose icon used to collide with the hamburger lines). The active
+          // scene's icon renders gold for wayfinding.
+          const rowItems = navItems.slice(0, 4);
+          const rowW = pillW - 44;
+          rowItems.forEach((item, i) => {
+            const ix = x + rowW/4 * i + rowW/8;
+            const active = G.state.scene === item.scene;
+            const col = active ? R.colors.gold : R.colors.textDim;
+            R.textCenter(ctx, item.icon, ix, y + 28, col, R.fonts.lg);
+            R.textCenter(ctx, item.text, ix, y + 40, col, R.fonts.xs);
           });
           const hx = x + pillW - 36, hy = y + 8;
           const lineW = 20;
