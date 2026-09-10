@@ -1,0 +1,531 @@
+const partyScene = Scene.create({
+  name: 'party',
+  data: {
+    selectedHero: null,
+    buttons: [],
+    staticDraws: [],
+    view: 'list',
+    itemsView: false,
+    equipSlot: null,
+    scrollY: 0,
+    contentHeight: 0,
+    recruitCosts: [800, 2500, 6000, 14000]
+  },
+
+  enter: function() {
+    this.data.selectedHero = null;
+    this.data.view = 'list';
+    this.data.itemsView = false;
+    this.data.equipSlot = null;
+    this.data.scrollY = 0;
+    this.buildList();
+  },
+
+  leave: function() {
+    this._heroMoment = null;
+    this._fluidNav = null;
+    this.data.buttons = [];
+    this.data.staticDraws = [];
+    this.data.selectedHero = null;
+    this.data.scrollY = 0;
+  },
+
+  getContentTop: function() { return G.CONTENT_TOP; },
+  getContentHeight: function() { return G.H - this.getContentTop() - 44; },
+
+  clampScroll: function() {
+    const ch = this.data.contentHeight;
+    const vh = this.getContentHeight();
+    const maxScroll = Math.max(0, ch - vh);
+    if (this.data.scrollY > maxScroll) this.data.scrollY = maxScroll;
+    if (this.data.scrollY < 0) this.data.scrollY = 0;
+  },
+
+  buildList: function() {
+    this.data.buttons = [];
+    this.data.scrollY = 0;
+    let y = this.getContentTop();
+
+    // --- Heroes Section Header (26px, panel bg, gold accent) ---
+    const secHh = 26;
+    const hdr = UI.Button(14, y, G.W - 28, secHh, '', 'transparent');
+    hdr._label = 'My Party';
+    hdr._color = R.colors.gold;
+    hdr.render = function(ctx) {
+      R.roundRect(ctx, this.x, this.y, this.w, this.h, 6, R.colors.panel);
+      R.textCenter(ctx, this._label, this.x + this.w / 2, this.y + this.h / 2 + 4, this._color, R.fonts.sm);
+    };
+    this.data.buttons.push(hdr);
+    y += secHh + 8;
+
+    // --- 3-Column Grid Cards (86px height per design system) ---
+    // Since party list is effectively 1-column on mobile, use 86px cards
+    // with full-width layout matching the grid pattern
+    const cardH = 86; // was 66px — upgraded for tap target (44×44 minimum)
+
+    for (const hero of G.state.party) {
+      const alive = hero.hp > 0;
+      const btn = UI.Button(14, y, G.W - 28, cardH, '', alive ? R.colors.panel : R.colors.btn);
+      btn._hero = hero;
+      btn._alive = alive;
+      btn.render = function(ctx) {
+        const bx = this.x, by = this.y, bw = this.w, bh = this.h;
+        R.roundRect(ctx, bx, by, bw, bh, 8, this.color);
+        ctx.strokeStyle = 'rgba(138,138,160,0.1)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+        if (!this._alive) ctx.globalAlpha = 0.5;
+        R.drawHero(ctx, this._hero.id, bx + 10, by + 14, 32);
+        R.text(ctx, this._hero.name, bx + 40, by + 14, this._alive ? R.colors.gold : R.colors.textDim, R.fonts.md);
+        const cls = this._hero.role + (this._hero.className ? ' ' + this._hero.className : '');
+        R.text(ctx, 'Lv.' + this._hero.level + ' ' + cls, bx + 40, by + 36, R.colors.text, R.fonts.sm);
+        const hpPct = this._hero.hp / Math.max(1, this._hero.maxHp);
+        const mpPct = this._hero.mp / Math.max(1, this._hero.maxMp);
+        // HP bar: 8px height, R.colors.hp fill, borderHairline track
+        R.roundRect(ctx, bx + 40, by + 52, bw - 56, 8, 4, R.colors.borderHairline);
+        ctx.fillStyle = R.colors.hp;
+        R.roundRect(ctx, bx + 40, by + 52, Math.max(0, (bw - 56) * hpPct), 8, 4, ctx.fillStyle);
+        R.text(ctx, Math.floor(this._hero.hp) + '/' + this._hero.maxHp, bx + 40, by + 68, R.colors.white, R.fonts.xs);
+        // MP bar: 8px height, R.colors.mp fill
+        R.roundRect(ctx, bx + 40, by + 64, bw - 56, 8, 4, 'rgba(48,128,200,0.1)');
+        ctx.fillStyle = R.colors.mp;
+        R.roundRect(ctx, bx + 40, by + 64, Math.max(0, (bw - 56) * mpPct), 8, 4, ctx.fillStyle);
+        R.text(ctx, Math.floor(this._hero.mp) + '/' + this._hero.maxMp, bx + 40 + 80, by + 68, R.colors.white, R.fonts.xs);
+        ctx.globalAlpha = 1;
+      };
+      btn.onClick = function() { partyScene.selectHero(this._hero); };
+      this.data.buttons.push(btn);
+      y += cardH + 4; // 4px gap between cards instead of 72px
+    }
+
+    // Recruit Hall: grow the party toward the full pantheon (max 5 heroes).
+    if (G.state.party.length < 5) {
+      const cost = this.data.recruitCosts[G.state.party.length - 1] || 14000;
+      const canAfford = (G.state.gold || 0) >= cost;
+      // Primary action button: minimum 38px height, prefer 38px
+      const rec = UI.Button(14, y + 4, G.W - 28, 38, 'Recruit Hero (' + cost + 'g)', canAfford ? R.colors.btnGold : R.colors.btn);
+      rec.enabled = canAfford;
+      rec.onClick = function() {
+        partyScene.data.view = 'recruit';
+        partyScene.data.scrollY = 0;
+        partyScene.buildRecruitList();
+      };
+      this.data.buttons.push(rec);
+      y += 44;
+    }
+
+    // Back to Ashram button - Primary action (38px minimum height)
+    const back = UI.Button(60, y + 6, G.W - 120, 38, 'Back to Ashram', R.colors.btnGold);
+    back.onClick = function() { gScene('ashram', true); };
+    this.data.buttons.push(back);
+    y += 48;
+
+    this.data.contentHeight = y;
+  },
+
+  // Recruit Hall: pick from heroes not yet in the party.
+  buildRecruitList: function() {
+    this.data.buttons = [];
+    this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
+    let y = this.getContentTop();
+
+    const cost = this.data.recruitCosts[G.state.party.length - 1] || 14000;
+    const inParty = G.state.party.map(x => x.id);
+    SD.push({ text: ['Recruit joins at 60% of your leader\'s level — ' + cost + 'g', 18, y + 8, R.colors.gold, R.fonts.sm] });
+    y += 24;
+
+    for (const hid of Object.keys(HEROES)) {
+      if (inParty.indexOf(hid) !== -1) continue;
+      const heroDef = HEROES[hid];
+      const btn = UI.Button(14, y, G.W - 28, 54, '', R.colors.panel);
+      btn._hid = hid;
+      btn.render = function(ctx) {
+        const bx = this.x, by = this.y, bw = this.w, bh = this.h;
+        R.roundRect(ctx, bx, by, bw, bh, 6, R.colors.panel);
+        ctx.strokeStyle = 'rgba(138,138,160,0.1)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+        R.drawHero(ctx, this._hid, bx + 10, by + 8, 20);
+        R.text(ctx, heroDef ? HEROES[this._hid].name : this._hid, bx + 40, by + 16, R.colors.gold, R.fonts.md);
+        R.text(ctx, (heroDef ? HEROES[this._hid].role + ': ' : '') + (heroDef ? HEROES[this._hid].desc : ''), bx + 40, by + 34, R.colors.textDim, R.fonts.xs);
+      };
+      btn.onClick = function() { partyScene.recruitHero(this._hid); };
+      this.data.buttons.push(btn);
+      y += 62;
+    }
+
+    const back = UI.Button(60, y + 8, G.W - 120, 30, 'Back to Party', R.colors.btnGold);
+    back.onClick = function() {
+      partyScene.data.view = 'list';
+      partyScene.data.scrollY = 0;
+      partyScene.buildList();
+    };
+    this.data.buttons.push(back);
+    y += 44;
+
+    this.data.contentHeight = y;
+  },
+
+  recruitHero: function(hid) {
+    const idx = G.state.party.length - 1;
+    const cost = this.data.recruitCosts[idx] || 14000;
+    if (!Economy.spendGoldOrNotify(cost)) return false;
+
+    const recruit = createHeroState(hid);
+    // Allies arrive seasoned: 60% of the leader's level, via real level-ups.
+    // Clamp to the Lv.50 cap and bound the loop — an over-levelled leader
+    // (crafted/migrated save) must never hang the main thread here.
+    const target = Math.min(50, Math.max(1, Math.floor((G.state.player ? G.state.player.level : 1) * 0.6)));
+    let guard = 0;
+    while (recruit.level < target && guard++ < 60) {
+      Progression.addXP(recruit, Progression.xpForLevel(recruit.level));
+    }
+    recruit.hp = recruit.maxHp;
+    recruit.mp = recruit.maxMp;
+
+    G.state.party.push(recruit);
+    Notify.show(recruit.name + ' joins your party!', 3, R.colors.gold);
+    Audio.levelUp();
+    Hints.show('recruit', 'Allies fight alongside you automatically in every battle.');
+    AchievementSystem.check();
+    this.data.view = 'list';
+    this.data.scrollY = 0;
+    this.buildList();
+  },
+
+  selectHero: function(hero) {    this.data.selectedHero = hero;
+    this.data.view = 'detail';
+    this.data.itemsView = false;
+    this.data.equipSlot = null;
+    this.data.scrollY = 0;
+    this.buildDetail();
+  },
+
+  getDetailInfoHeight: function() {
+    const hero = this.data.selectedHero;
+    if (!hero) return 0;
+    let h = 116;
+    h += 20;
+    h += 48;
+    if (hero.skills && hero.skills.length) {
+      h += 16;
+      h += hero.skills.length * 14;
+      if (hero.signalSkill) h += 16;
+    }
+    if (hero.regenHpPct || hero.mpRegen || hero.baseCrit || hero.elementalDmgPct || hero.ailmentDurationBonus || hero.partyHpBuff) {
+      h += 16;
+      let count = 0;
+      if (hero.baseCrit) count++;
+      if (hero.elementalDmgPct) count++;
+      if (hero.ailmentDurationBonus) count++;
+      if (hero.regenHpPct) count++;
+      if (hero.mpRegen) count++;
+      if (hero.partyHpBuff) count++;
+      h += count * 14 + 6;
+    }
+    return h;
+  },
+
+  renderDetailInfo: function(ctx, offsetY) {
+    const hero = this.data.selectedHero;
+    if (!hero) return;
+    let y = offsetY;
+
+    R.roundRect(ctx, 10, y, G.W - 20, 110, 8, R.colors.panel);
+
+    let hy = y + 12;
+    R.drawHero(ctx, hero.id, 22, hy, 28);
+    R.text(ctx, hero.name, 58, hy + 10, R.colors.gold, R.fonts.lg);
+    const titleStr = hero.title || '';
+    const clsStr = hero.role + (hero.className ? ' [' + hero.className + ']' : '');
+    R.text(ctx, 'Lv.' + hero.level + ' ' + clsStr, 58, hy + 30, R.colors.text, R.fonts.sm);
+    if (titleStr) R.text(ctx, '"' + titleStr + '"', 58, hy + 44, R.colors.textDim, R.fonts.sm);
+
+    const hpPct = hero.hp / Math.max(1, hero.maxHp);
+    const mpPct = hero.mp / Math.max(1, hero.maxMp);
+    R.roundRect(ctx, 58, hy + 52, 160, 5, 2, 'rgba(200,48,48,0.2)');
+    R.roundRect(ctx, 58, hy + 52, Math.max(0, 160 * hpPct), 5, 2, R.colors.hp);
+    R.text(ctx, Math.floor(hero.hp) + '/' + hero.maxHp, 220, hy + 56, R.colors.white, R.fonts.xs);
+    R.roundRect(ctx, 58, hy + 60, 160, 5, 2, 'rgba(48,128,200,0.2)');
+    R.roundRect(ctx, 58, hy + 60, Math.max(0, 160 * mpPct), 5, 2, R.colors.mp);
+    R.text(ctx, Math.floor(hero.mp) + '/' + hero.maxMp, 220, hy + 64, R.colors.white, R.fonts.xs);
+
+    y += 116;
+
+    const statLine = 'STR:' + hero.str + '  AGI:' + hero.agi + '  MAG:' + hero.mag + '  DEF:' + hero.def;
+    R.text(ctx, statLine, 18, y, R.colors.text, R.fonts.sm);
+    y += 18;
+
+    const wepName = Scene.gearLabel(hero.weaponEquipped);
+    const equipLine = 'Weapon: ' + wepName + ' (Lv.' + hero.weaponLvl + ')' + (hero.equipAtk ? ' +' + hero.equipAtk + ' ATK' : '');
+    R.text(ctx, equipLine, 18, y, R.colors.textDim, R.fonts.sm);
+    y += 14;
+    const armName = Scene.gearLabel(hero.armorEquipped);
+    R.text(ctx, 'Armor: ' + armName + ' (Lv.' + hero.armorLvl + ')' + (hero.equipDef ? ' +' + hero.equipDef + ' DEF' : ''), 18, y, R.colors.textDim, R.fonts.sm);
+    y += 14;
+    const accName = Scene.gearLabel(hero.accessoryEquipped);
+    R.text(ctx, 'Accessory: ' + accName + ' (Lv.' + hero.accessoryLvl + ')' + (hero.equipAccMag ? ' +' + hero.equipAccMag + ' MAG' : ''), 18, y, R.colors.textDim, R.fonts.sm);
+    y += 20;
+
+    if (hero.skills && hero.skills.length) {
+      R.text(ctx, 'Skills:', 18, y, R.colors.gold, R.fonts.sm);
+      y += 16;
+      for (const s of hero.skills) {
+        R.text(ctx, '\u25C6 ' + s.name + ': ' + s.desc, 22, y, R.colors.text, R.fonts.sm);
+        y += 14;
+      }
+      if (hero.signalSkill) {
+        R.text(ctx, '\u2605 Signal: ' + hero.signalSkill.name, 22, y, R.colors.gold, R.fonts.sm);
+        y += 16;
+      }
+    }
+
+    if (hero.regenHpPct || hero.mpRegen || hero.baseCrit || hero.elementalDmgPct || hero.ailmentDurationBonus || hero.partyHpBuff) {
+      R.text(ctx, 'Passives:', 18, y, R.colors.gold, R.fonts.sm);
+      y += 16;
+      if (hero.baseCrit) { R.text(ctx, '  CRIT: ' + hero.baseCrit + '%', 22, y, R.colors.textDim, R.fonts.sm); y += 14; }
+      if (hero.elementalDmgPct) { R.text(ctx, '  Elemental: +' + hero.elementalDmgPct + '%', 22, y, R.colors.textDim, R.fonts.sm); y += 14; }
+      if (hero.ailmentDurationBonus) { R.text(ctx, '  Ailment Duration: +' + hero.ailmentDurationBonus + ' turns', 22, y, R.colors.textDim, R.fonts.sm); y += 14; }
+      if (hero.regenHpPct) { R.text(ctx, '  HP Regen: ' + hero.regenHpPct + '%/turn', 22, y, R.colors.textDim, R.fonts.sm); y += 14; }
+      if (hero.mpRegen) { R.text(ctx, '  MP Regen: ' + hero.mpRegen + '/turn', 22, y, R.colors.textDim, R.fonts.sm); y += 14; }
+      if (hero.partyHpBuff) { R.text(ctx, '  Party HP: +' + hero.partyHpBuff + '%', 22, y, R.colors.textDim, R.fonts.sm); y += 14; }
+    }
+  },
+
+  buildDetail: function() {
+    this.data.buttons = [];
+    this.data.scrollY = 0;
+    const hero = this.data.selectedHero;
+    const infoH = this.getDetailInfoHeight();
+    let y = infoH + 10;
+    const useItemBtn = UI.Button(30, y, G.W - 60, 28, 'Use Item');
+    useItemBtn.onClick = function() {
+      partyScene.data.itemsView = true;
+      partyScene.data.equipSlot = null;
+      partyScene.data.scrollY = 0;
+      partyScene.buildItemList('consumable');
+    };
+    this.data.buttons.push(useItemBtn);
+    y += 36;
+
+    const equipWeaponBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Weapon (' + Scene.gearLabel(hero.weaponEquipped) + ')');
+    equipWeaponBtn.onClick = function() {
+      partyScene.data.itemsView = true;
+      partyScene.data.equipSlot = 'weapon';
+      partyScene.data.scrollY = 0;
+      partyScene.buildItemList('weapon');
+    };
+    this.data.buttons.push(equipWeaponBtn);
+    y += 34;
+
+    const equipArmorBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Armor (' + Scene.gearLabel(hero.armorEquipped) + ')');
+    equipArmorBtn.onClick = function() {
+      partyScene.data.itemsView = true;
+      partyScene.data.equipSlot = 'armor';
+      partyScene.data.scrollY = 0;
+      partyScene.buildItemList('armor');
+    };
+    this.data.buttons.push(equipArmorBtn);
+    y += 34;
+
+    const equipAccBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Accessory (' + Scene.gearLabel(hero.accessoryEquipped) + ')');
+    equipAccBtn.onClick = function() {
+      partyScene.data.itemsView = true;
+      partyScene.data.equipSlot = 'accessory';
+      partyScene.data.scrollY = 0;
+      partyScene.buildItemList('accessory');
+    };
+    this.data.buttons.push(equipAccBtn);
+    y += 38;
+
+    const back = UI.Button(60, y + 4, G.W - 120, 30, 'Back to Party', R.colors.btnGold);
+    back.onClick = function() {
+      partyScene.data.view = 'list';
+      partyScene.data.itemsView = false;
+      partyScene.data.scrollY = 0;
+      partyScene.buildList();
+    };
+    this.data.buttons.push(back);
+    y += 44;
+
+    this.data.contentHeight = y;
+  },
+
+  buildItemList: function(filterType) {
+    this.data.buttons = [];
+    this.data.scrollY = 0;
+    this.data.staticDraws = [];
+    const SD = this.data.staticDraws;
+    const hero = this.data.selectedHero;
+    let y = this.getContentTop();
+
+    const items = G.state.inventory.filter(function(item) {
+      if (filterType === 'weapon' && item.type === 'weapon') return true;
+      if (filterType === 'armor' && item.type === 'armor') return true;
+      if (filterType === 'accessory' && item.type === 'accessory') return true;
+      if (filterType === 'consumable' && item.type === 'consumable') return true;
+      return false;
+    });
+
+    SD.push({ text: ['Select ' + filterType + ' for ' + hero.name, 18, y + 8, R.colors.gold, R.fonts.sm] });
+    y += 22;
+
+    if (items.length === 0) {
+      SD.push({ text: ['No ' + filterType + 's available.', 18, y, R.colors.textDim, R.fonts.sm] });
+      y += 20;
+    } else {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const idx = G.state.inventory.indexOf(item);
+        const qtyStr = item.qty && item.qty > 1 ? ' x' + item.qty : '';
+        let label = item.name + qtyStr;
+        let comparison = '';
+        if (filterType !== 'consumable') {
+          const currentAtk = hero.equipAtk || 0;
+          const currentDef = hero.equipDef || 0;
+          const currentMag = hero.equipAccMag || 0;
+          const newAtk = item.atk || 0;
+          const newDef = item.def || 0;
+          const newMag = item.mag || 0;
+          const diffs = [];
+          if (newAtk !== currentAtk) diffs.push((newAtk > currentAtk ? '+' : '') + (newAtk - currentAtk) + ' ATK');
+          if (newDef !== currentDef) diffs.push((newDef > currentDef ? '+' : '') + (newDef - currentDef) + ' DEF');
+          if (newMag !== currentMag) diffs.push((newMag > currentMag ? '+' : '') + (newMag - currentMag) + ' MAG');
+          if (diffs.length) comparison = ' (' + diffs.join(', ') + ')';
+        }
+        const btn = UI.Button(14, y, G.W - 28, 28, label + comparison, R.colors.btnGold);
+        btn._item = item;
+        btn._idx = idx;
+        btn._type = filterType;
+        btn._hero = hero;
+        btn.render = function(ctx) {
+          const bx = this.x, by = this.y, bw = this.w, bh = this.h;
+          R.roundRect(ctx, bx, by, bw, bh, 4, R.colors.btnGold);
+          ctx.fillStyle = this._type === 'consumable' ? R.colors.green : R.colors.blue;
+          R.roundRect(ctx, bx, by, 4, bh, 0, ctx.fillStyle);
+          const text = this.text || '';
+          const parenIdx = text.lastIndexOf(' (');
+          if (parenIdx > 0) {
+            R.text(ctx, text.substring(0, parenIdx), bx + 12, by + 16, R.colors.white, R.fonts.sm);
+            const diffText = text.substring(parenIdx);
+            const diffColor = diffText.includes('+') ? R.colors.green : (diffText.includes('-') ? R.colors.red : R.colors.textDim);
+            ctx.font = R.fonts.sm;
+            const mainW = ctx.measureText(text.substring(0, parenIdx)).width;
+            R.text(ctx, diffText, bx + 12 + mainW, by + 16, diffColor, R.fonts.sm);
+          } else {
+            R.text(ctx, text, bx + 12, by + 16, R.colors.white, R.fonts.sm);
+          }
+        };
+        btn.onClick = (function(item, idx, hero, filterType) {
+          return function() {
+            if (filterType === 'consumable') {
+              applyItemEffect(item, hero);
+              Economy.removeItem(idx);
+              Notify.show('Used ' + item.name + ' on ' + hero.name + '!', 2);
+              Audio.heal();
+              partyScene.data.itemsView = false;
+              partyScene.data.scrollY = 0;
+              partyScene.buildDetail();
+            } else if (filterType === 'weapon' || filterType === 'armor' || filterType === 'accessory') {
+              const slot = filterType;
+              if (slot === 'weapon') {
+                if (item.subtype && item.subtype !== hero.weaponType) {
+                  Notify.show(hero.name + ' cannot use ' + item.name + '!', 2);
+                  Audio.error();
+                  return;
+                }
+                hero.weaponEquipped = item;
+                hero.weaponLvl = item.atk ? 1 : hero.weaponLvl;
+                hero.equipAtk = item.atk || 0;
+                hero.equipCrit = item.crit || 0;
+              } else if (slot === 'armor') {
+                hero.armorEquipped = item;
+                hero.armorLvl = item.def ? 1 : hero.armorLvl;
+                hero.equipDef = item.def || 0;
+                hero.equipArmorMag = item.mag || 0;
+              } else if (slot === 'accessory') {
+                hero.accessoryEquipped = item;
+                hero.equipAccMag = item.mag || 0;
+                hero.equipAccDef = item.def || 0;
+                hero.equipAccHp = item.hp || 0;
+                hero.equipCrit = item.crit || 0;
+              }
+              Economy.removeItem(idx);
+              Notify.show('Equipped ' + item.name + '!', 2);
+              Audio.click();
+              partyScene.data.itemsView = false;
+              partyScene.data.scrollY = 0;
+              partyScene.buildDetail();
+            }
+          };
+        })(item, idx, hero, filterType);
+        this.data.buttons.push(btn);
+        y += 34;
+      }
+    }
+
+    y += 6;
+    const back = UI.Button(60, y, G.W - 120, 30, 'Back', R.colors.btnGold);
+    back.onClick = function() {
+      partyScene.data.itemsView = false;
+      partyScene.data.scrollY = 0;
+      partyScene.buildDetail();
+    };
+    this.data.buttons.push(back);
+    y += 44;
+
+    this.data.contentHeight = y;
+  },
+
+  update: function(dt) {
+    Scene.scrollInput(this);
+    UI.updateButtons(this.data.buttons, dt);
+    UI.handleButtons(this.data.buttons, -this.data.scrollY);
+  },
+
+  render: function(ctx) {
+    if (this.data.view === 'list') {
+      Scene.drawHeader(ctx, 62);
+      R.textCenter(ctx, 'Party', G.W / 2, 24, R.colors.gold, R.fonts.lg);
+      R.textCenter(ctx, 'Tap a hero to manage:', G.W / 2, 48, R.colors.text, R.fonts.sm);
+
+      const top = this.getContentTop();
+Scene.clipContent(ctx, this);
+    for (const b of this.data.buttons) b.render(ctx);
+    UI.HUD().render(ctx);
+    ctx.restore();
+
+      Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
+
+    } else if (this.data.itemsView) {
+      const hero = this.data.selectedHero;
+      Scene.drawHeader(ctx, 62);
+      R.textCenter(ctx, hero.name + ' — Items', G.W / 2, 24, R.colors.gold, R.fonts.lg);
+      R.textCenter(ctx, 'Inventory: ' + G.state.inventory.length + ' items', G.W / 2, 48, R.colors.text, R.fonts.sm);
+
+      const top = this.getContentTop();
+      Scene.clipContent(ctx, this);
+      for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
+      Scene.drawStatic(ctx, this.data.staticDraws);
+      ctx.restore();
+
+      Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
+
+    } else {
+      const hero = this.data.selectedHero;
+      Scene.drawHeader(ctx, 62);
+      R.textCenter(ctx, hero.name + ' — ' + (hero.title || ''), G.W / 2, 24, R.colors.gold, R.fonts.lg);
+      R.textCenter(ctx, 'Inventory: ' + G.state.inventory.length + ' items', G.W / 2, 48, R.colors.text, R.fonts.sm);
+
+      const top = this.getContentTop();
+      Scene.clipContent(ctx, this);
+      this.renderDetailInfo(ctx, this.getContentTop());
+      for (const b of this.data.buttons) b.render(ctx);
+      ctx.restore();
+
+      Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
+    }
+  }
+});

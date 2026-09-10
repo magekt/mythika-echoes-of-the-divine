@@ -31,3 +31,9 @@ coverage/
 .env
 .env.local
 .env.*.local
+
+# Never commit real Firebase credentials (matches remote posture).
+# Patterns without a leading slash apply at every tree level, covering
+# both the root-layout game and the Mythika/ layout.
+shots/
+src/engine/firebase-config.js

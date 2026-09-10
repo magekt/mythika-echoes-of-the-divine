@@ -1,0 +1,67 @@
+name: Verify and Deploy to GitHub Pages
+
+# Mythika is a zero-build static site: the repo root IS the deployable
+# artifact. The verify job boots the real game headlessly across the
+# device matrix; only a clean boot publishes.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Boot matrix (desktop / phone / landscape)
+        run: python3 tools/verify_matrix.py --budget 6000
+        env:
+          MYTHIKA_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+          CI: 'true'
+
+      - name: Upload boot screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: boot-shots
+          path: tools/shots/
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site (repo root)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
