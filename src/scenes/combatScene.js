@@ -883,6 +883,11 @@ const combatScene = Scene.create({
 
     let ly = 34;
 
+    // Visible action buttons for this frame (all branches below position
+    // them sequentially). Was an undefined bare `vis` — every render threw
+    // here, skipping restore() and corrupting the canvas state each frame.
+    const vis = this.data.actionButtons;
+
     if (this.data.showEnlightenment) {
       ly += 4;
       for (const b of vis) {
