@@ -74,12 +74,13 @@ const zoneExplorationScene = Scene.create({
     const hh = 26;
     const hdr = UI.Button(14, 134, G.W - 28, hh, '', 'transparent');
     hdr._label = this.data.zone.name;
+    hdr._description = this.data.zone.desc;
     hdr._color = R.colors.gold;
     hdr.render = function(ctx) {
       R.roundRect(ctx, this.x, this.y, this.w, this.h, R.radius.m, R.colors.panel);
       R.textCenter(ctx, this._label, this.x + this.w / 2, this.y + this.h / 2 + 4, this._color, R.fonts.sm);
       // Description line below label
-      R.textCenter(ctx, this.data.zone.desc, this.x + this.w / 2, this.y + this.h - 4, R.colors.textDim, R.fonts.xs);
+      R.textCenter(ctx, this._description, this.x + this.w / 2, this.y + this.h - 4, R.colors.textDim, R.fonts.xs);
     };
     this.data.buttons.push(hdr);
 
