@@ -22,7 +22,7 @@
 | `welcome.js` | First-run onboarding, class selection | Progression (class), SaveSystem |
 | `characterCreate.js` | Name + stat allocation (10 points) | Progression, HEROES data |
 | `ashram.js` | Home base — navigation hub, stats, upgrades | CultivationSystem, Economy, JourneySystem, FluidNav |
-| `travelMap.js` | Zone selection, progress overview | ZONES data, zoneProgress |
+| `travelMap.js` | Zone selection, progress overview; Veteran badge when `tournamentWins >= 3` | ZONES data, zoneProgress |
 | `zoneExploration.js` | Zone gameplay — explore, rest, fish, encounters | Combat (encounters), Economy, Fishing |
 | `cultivationScene.js` | Realm progression, meditation, breakthrough | CultivationSystem, PremiumShell, HeroMoment |
 
@@ -40,10 +40,10 @@
 | Scene | Purpose | Key Systems |
 |-------|---------|-------------|
 | `alchemyScene.js` | Pill crafting from herbs | AlchemySystem, HERB_GROWTH |
-| `forge.js` | Equipment upgrade (+1 to +15), gem socketing | Economy, ITEMS, Progression |
+| `forge.js` | Equipment upgrade (+1 to +15), gem socketing; Quest bonus: -10% upgrade cost when `ary_forge1` completed | Economy, ITEMS, Progression |
 | `bazaar.js` | NPC shop with randomized inventory | Economy, ITEMS, ZONES |
 | `farm.js` | Herb growing (in-game time) | AlchemySystem, HERB_GROWTH |
-| `fishing.js` | Mini-game for rare materials | Economy, RNG |
+| `fishing.js` | Mini-game for rare materials; Calls `QuestSystem.trackFish()` on successful catch | Economy, RNG, QuestSystem |
 
 ### Meta & Progression
 | Scene | Purpose | Key Systems |

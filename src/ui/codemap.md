@@ -12,7 +12,7 @@
 
 ## Component Catalog
 
-### `button.js` (744 lines) — Core Button System
+### `button.js` (746 lines) — Core Button System
 **Exports**: `UI.Button`, `UI.BtnGold`, `UI.BtnSmall`, `UI.BtnWide`, `UI.Input`, `UI.makeTooltip`, `UI.HUD`, `UI.PremiumShell`, `UI.MagneticBtn`, `UI.ScrollReveal`, `UI.FluidNav`, `UI.EmptyState`
 
 **Component Hierarchy**:

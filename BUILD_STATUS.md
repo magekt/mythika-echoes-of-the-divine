@@ -50,6 +50,8 @@ now cleared on every scene transition (a carried dialog could gate a scene's
 update forever), and a Forge empty-party message. Regression coverage: the
 `?probe&selftest` input-chain test and `tools/diag_click.py` CDP diagnostic.
 
+**Screen enrichment and cross-system interdependence**: Equipment accessory magic stat boosts cultivation/prana rates; active spirit beast level adds small cultivation/prana bonus. Quest completion unlocks forge upgrade discounts (-10% for `ary_forge1`). Tournament veterans earn zone badges. Fish catches, exploration progress, and forge upgrades each track quest progress. New fish-herb alchemy recipes bridge farming and crafting. Extended equipment pool with zone-specific drops and new consumables (Fish Stew, Herb Poultice with cleanse). New quest types: collect, explore, fish, forge with chain advancement. Hero class/skills displayed in Equipment Stats tab. NPC Smith special upgrade (+2 weapon levels for 500g) available in Forge.
+
 ## ✅ Motion Audit Fixes & Battle-Aftermath Benefits
 
 From the 2026-08-22 design-motion-principles audit (`motion-audits/mythika-2026-08-22.html`)

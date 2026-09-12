@@ -91,12 +91,12 @@ const JOURNEYS = {
     personal: 'realm',
     realm: 'paramukta',
     nodes: [
-      { id: 'n1', prompt: 'Tapobhumi asks a price: your memories or your strength?', choices: [
+      { id: 'n1', prompt: 'Tapobhumi asks a price: your memories or your strength?', reqRealm: 'paramukta', choices: [
         { text: 'Give memories (-200 XP, +karma)', next: 'n2a', reward: { karma: 5, xp: -200 } },
         { text: 'Give strength (-10 HP)', next: 'n2b', reward: { hp: -10, karma: 3 } }
       ]},
-      { id: 'n2a', prompt: 'Names fade, but purpose sharpens.', choices: [{ text: 'Step forward', next: null, reward: { prana: 100, divineFragments: 3 } }]},
-      { id: 'n2b', prompt: 'Your knees bleed, the ground remembers.', choices: [{ text: 'Endure', next: null, reward: { def: 2, hp: 10, divineFragments: 3 } }]}
+      { id: 'n2a', prompt: 'Names fade, but purpose sharpens.', reqRealm: 'paramukta', choices: [{ text: 'Step forward', next: null, reward: { prana: 100, divineFragments: 3 } }]},
+      { id: 'n2b', prompt: 'Your knees bleed, the ground remembers.', reqRealm: 'paramukta', choices: [{ text: 'Endure', next: null, reward: { def: 2, hp: 10, divineFragments: 3 } }]}
     ]
   },
   karmicCrossroads: {

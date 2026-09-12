@@ -24,7 +24,11 @@ const EQUIPMENT_POOL = {
     { id: 'heavenbow', base: { name: 'Heaven Bow', subtype: 'bow', atk: 40 }, zones: ['svarga'] },
     { id: 'tapasbow', base: { name: 'Tapas Bow', subtype: 'bow', atk: 46 }, zones: ['tapobhumi'] },
     { id: 'rudrahammer', base: { name: 'Rudra Hammer', subtype: 'mace', atk: 50 }, zones: ['tapobhumi'] },
-    { id: 'voidblade', base: { name: 'Void Blade', subtype: 'spear', atk: 48 }, zones: ['tapobhumi'] }
+    { id: 'voidblade', base: { name: 'Void Blade', subtype: 'spear', atk: 48 }, zones: ['tapobhumi'] },
+    { id: 'obsidiancleaver', base: { name: 'Obsidian Cleaver', subtype: 'mace', atk: 24 }, zones: ['meru'] },
+    { id: 'voidlance', base: { name: 'Void Lance', subtype: 'spear', atk: 32 }, zones: ['patala'] },
+    { id: 'heavenlychakram', base: { name: 'Heavenly Chakram', subtype: 'spear', atk: 34 }, zones: ['svarga'] },
+    { id: 'ashvamedha', base: { name: 'Ashvamedha Axe', subtype: 'mace', atk: 36 }, zones: ['svarga'] }
   ],
   armors: [
     { id: 'leather', base: { name: 'Leather', def: 3 }, zones: ['aryavarta'] },
@@ -38,7 +42,9 @@ const EQUIPMENT_POOL = {
     { id: 'celestialrobe', base: { name: 'Celestial Robe', def: 32 }, zones: ['svarga'] },
     { id: 'divinearmor', base: { name: 'Divine Armor', def: 36 }, zones: ['svarga'] },
     { id: 'tapasrobe', base: { name: 'Tapas Robe', def: 42 }, zones: ['tapobhumi'] },
-    { id: 'mahadevaplates', base: { name: 'Mahadeva Plate', def: 46 }, zones: ['tapobhumi'] }
+    { id: 'mahadevaplates', base: { name: 'Mahadeva Plate', def: 46 }, zones: ['tapobhumi'] },
+    { id: 'jadevest', base: { name: 'Jade Vest', def: 11 }, zones: ['dandaka'] },
+    { id: 'titaniumshell', base: { name: 'Titanium Shell', def: 25 }, zones: ['patala'] }
   ],
   accessories: [
     { id: 'ruby', base: { name: 'Ruby Amulet', mag: 3 }, zones: ['aryavarta'] },
@@ -52,7 +58,9 @@ const EQUIPMENT_POOL = {
     { id: 'starlight', base: { name: 'Starlight Amulet', mag: 22, crit: 5 }, zones: ['svarga'] },
     { id: 'divine', base: { name: 'Divine Crown', mag: 25, def: 5 }, zones: ['svarga'] },
     { id: 'pralayaamulet', base: { name: 'Pralaya Amulet', mag: 30, hp: 40 }, zones: ['tapobhumi'] },
-    { id: 'voidcrown', base: { name: 'Void Crown', mag: 32, crit: 7 }, zones: ['tapobhumi'] }
+    { id: 'voidcrown', base: { name: 'Void Crown', mag: 32, crit: 7 }, zones: ['tapobhumi'] },
+    { id: 'sageRing', base: { name: 'Sage Ring', mag: 7, crit: 2 }, zones: ['dandaka'] },
+    { id: 'voidessence', base: { name: 'Void Essence', mag: 20, hp: 15 }, zones: ['tapobhumi'] }
   ]
 };
 
@@ -94,7 +102,9 @@ const ITEMS = {
     mpPotion:     { name: 'MP Potion',      type: 'consumable', heal: 15,  cost: 12,  desc: 'Restores 15 MP' },
     revivalLeaf:  { name: 'Revival Leaf',   type: 'consumable', revive: 50, cost: 100, desc: 'Revives with 50% HP' },
     greaterHPPotion:{name:'Greater HP Potion',type:'consumable', heal: 100, cost: 80,  desc: 'Restores 100 HP' },
-    elixirMana:   { name: 'Elixir of Mana', type: 'consumable', mp: 50,  cost: 70,  desc: 'Restores 50 MP' }
+    elixirMana:   { name: 'Elixir of Mana', type: 'consumable', mp: 50,  cost: 70,  desc: 'Restores 50 MP' },
+    fishStew:     { name: 'Fish Stew',     type: 'consumable', heal: 60,  cost: 25,  desc: 'Restores 60 HP' },
+    herbPoultice: { name: 'Herb Poultice', type: 'consumable', cleanse: true, cost: 40, desc: 'Removes all ailments' }
   }
 };
 
@@ -176,4 +186,5 @@ function applyItemEffect(item, hero) {
   if (item.hp) { hero.maxHp += item.hp; hero.hp = Math.min(hero.hp + item.hp, hero.maxHp); }
   if (item.prana) CultivationSystem.addPrana(item.prana);
   if (item.divineFragments) Economy.addDivineFragments(item.divineFragments);
+  if (item.cleanse && hero.ailments) hero.ailments = {};
 }

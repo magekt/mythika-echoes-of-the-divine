@@ -89,6 +89,62 @@ const ALCHEMY_RECIPES = {
     ingredients: { tulsi: 25, brahmi: 25, ashwa: 25 },
     effect: { tribulationBonus: 30, cultivationBase: 1000 },
     reqAshram: 7
+  },
+  tidalElixir: {
+    id: 'tidalElixir', name: 'Tidal Elixir',
+    desc: '+300 Cultivation Base',
+    ingredients: { tulsi: 3, fish: 2 },
+    effect: { cultivationBase: 300 },
+    reqAshram: 2
+  },
+  serpentsBane: {
+    id: 'serpentsBane', name: "Serpent's Bane",
+    desc: '+2 STR permanently',
+    ingredients: { ashwa: 5, fish: 3 },
+    effect: { str: 2 },
+    reqAshram: 4
+  },
+  sirensGrace: {
+    id: 'sirensGrace', name: "Siren's Grace",
+    desc: '+2 MAG permanently',
+    ingredients: { brahmi: 5, fish: 4 },
+    effect: { mag: 2 },
+    reqAshram: 4
+  },
+  oceansBounty: {
+    id: 'oceansBounty', name: "Ocean's Bounty",
+    desc: '+15% Tribulation success',
+    ingredients: { tulsi: 5, brahmi: 3, fish: 5 },
+    effect: { tribulationBonus: 15 },
+    reqAshram: 3
+  },
+  karmicTincture: {
+    id: 'karmicTincture', name: 'Karmic Tincture',
+    desc: '+100 Prana',
+    ingredients: { tulsi: 4, fish: 3 },
+    effect: { prana: 100 },
+    reqAshram: 2
+  },
+  siddhiEssence: {
+    id: 'siddhiEssence', name: 'Siddhi Essence',
+    desc: '+1 STR and +500 Cultivation Base',
+    ingredients: { ashwa: 6, fish: 4 },
+    effect: { str: 1, cultivationBase: 500 },
+    reqAshram: 3
+  },
+  yogisDraught: {
+    id: 'yogisDraught', name: "Yogi's Draught",
+    desc: '+1 MAG and +200 Prana',
+    ingredients: { brahmi: 6, fish: 4 },
+    effect: { mag: 1, prana: 200 },
+    reqAshram: 3
+  },
+  mokshaNectar: {
+    id: 'mokshaNectar', name: 'Moksha Nectar',
+    desc: '+5 DF, +500 Cultivation Base',
+    ingredients: { tulsi: 8, brahmi: 8, ashwa: 8, fish: 6 },
+    effect: { divineFragments: 5, cultivationBase: 500 },
+    reqAshram: 5
   }
 };
 

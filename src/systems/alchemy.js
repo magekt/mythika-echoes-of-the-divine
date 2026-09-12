@@ -17,10 +17,16 @@ AlchemySystem.canCraft = function(recipeId) {
   if (recipe.reqAshram > (G.state.ashramLevel || 1)) return false;
   if (!G.state.alchemyRecipes || !G.state.alchemyRecipes.includes(recipeId)) return false;
   for (const [herb, qty] of Object.entries(recipe.ingredients)) {
+    if (herb === 'fish') continue;
     const herbName = HERB_GROWTH[herb] ? HERB_GROWTH[herb].name : herb;
     if (Economy.getItemCount(herbName) < qty) {
       return false;
     }
+  }
+  if (recipe.ingredients.fish) {
+    const needed = recipe.ingredients.fish;
+    const available = G.state.fishCaught || 0;
+    if (available < needed) return false;
   }
   return true;
 };
@@ -29,8 +35,12 @@ AlchemySystem.craft = function(recipeId) {
   if (!this.canCraft(recipeId)) return false;
   const recipe = ALCHEMY_RECIPES[recipeId];
   for (const [herb, qty] of Object.entries(recipe.ingredients)) {
+    if (herb === 'fish') continue;
     const herbName = HERB_GROWTH[herb] ? HERB_GROWTH[herb].name : herb;
     Economy.removeItemByName(herbName, qty);
+  }
+  if (recipe.ingredients.fish) {
+    G.state.fishCaught = Math.max(0, (G.state.fishCaught || 0) - recipe.ingredients.fish);
   }
 
   const craftedItem = {

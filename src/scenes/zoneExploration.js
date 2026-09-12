@@ -254,6 +254,7 @@ const zoneExplorationScene = Scene.create({
     this.data.progressGained += pctGain;
     const curPct = G.state.zoneProgress[this.data.zoneId] || 0;
     G.state.zoneProgress[this.data.zoneId] = Math.min(100, curPct + pctGain);
+    QuestSystem.trackExplore(this.data.zoneId, 1);
     G.state.currentEnemies = [enemy];
     G.state.isBossFight = false;
     G.state.returnToExploration = true;

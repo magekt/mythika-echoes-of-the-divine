@@ -135,6 +135,25 @@ QuestSystem.trackRealm = function(realmId) {
   return anyCompleted;
 };
 
+QuestSystem.trackFish = function() {
+  this.init();
+  const allQuests = getAllQuests();
+  let anyCompleted = false;
+  for (const q of allQuests) {
+    if (q.type !== 'fish') continue;
+    const prog = G.state.quests[q.id] || { count: 0, completed: false, claimed: false };
+    if (prog.completed) continue;
+    prog.count = (prog.count || 0) + 1;
+    if (prog.count >= q.count) {
+      prog.completed = true;
+      anyCompleted = true;
+      Notify.show('Quest complete: ' + q.name + '!', 3, R.colors.gold);
+    }
+    G.state.quests[q.id] = prog;
+  }
+  return anyCompleted;
+};
+
 QuestSystem.trackCollect = function(itemName, qty) {
   this.init();
   qty = qty || 1;
@@ -153,7 +172,137 @@ QuestSystem.trackCollect = function(itemName, qty) {
     }
     G.state.quests[q.id] = prog;
   }
+  this._advanceChainForFish();
   return anyCompleted;
+};
+
+QuestSystem.trackExplore = function(zoneId, amount) {
+  this.init();
+  amount = amount || 1;
+  const allQuests = getAllQuests();
+  let anyCompleted = false;
+  for (const q of allQuests) {
+    if (q.type !== 'explore') continue;
+    if (q.target !== zoneId) continue;
+    const prog = G.state.quests[q.id] || { count: 0, completed: false, claimed: false };
+    if (prog.completed) continue;
+    prog.count = (prog.count || 0) + amount;
+    if (prog.count >= q.count) {
+      prog.completed = true;
+      anyCompleted = true;
+      Notify.show('Quest complete: ' + q.name + '!', 3, R.colors.gold);
+    }
+    G.state.quests[q.id] = prog;
+  }
+  this._advanceChainForExplore(zoneId);
+  return anyCompleted;
+};
+
+QuestSystem.trackForge = function(slotId) {
+  this.init();
+  const allQuests = getAllQuests();
+  let anyCompleted = false;
+  for (const q of allQuests) {
+    if (q.type !== 'forge') continue;
+    if (q.target !== 'any' && q.target !== slotId) continue;
+    const prog = G.state.quests[q.id] || { count: 0, completed: false, claimed: false };
+    if (prog.completed) continue;
+    prog.count = (prog.count || 0) + 1;
+    if (prog.count >= q.count) {
+      prog.completed = true;
+      anyCompleted = true;
+      Notify.show('Quest complete: ' + q.name + '!', 3, R.colors.gold);
+    }
+    G.state.quests[q.id] = prog;
+  }
+  this._advanceChainForForge(slotId);
+  return anyCompleted;
+};
+
+QuestSystem._advanceChainForExplore = function(zoneId) {
+  this.init();
+  for (const chainId of Object.keys(G.state.questChains || {})) {
+    const chainProg = G.state.questChains[chainId];
+    if (!chainProg || chainProg.completed) continue;
+    const chain = QUEST_CHAINS[zoneId] ? QUEST_CHAINS[zoneId].find(c => c.id === chainId) : null;
+    if (!chain) continue;
+    const step = chain.steps[chainProg.currentStep];
+    if (!step || step.type !== 'explore' || step.target !== zoneId) continue;
+    const stepProg = G.state.quests[step.id] || { count: 0, completed: false };
+    stepProg.count = (stepProg.count || 0) + 1;
+    if (stepProg.count >= step.count) {
+      stepProg.completed = true;
+      G.state.quests[step.id] = stepProg;
+      if (chainProg.currentStep < chain.steps.length - 1) {
+        chainProg.currentStep++;
+      } else {
+        chainProg.completed = true;
+        Notify.show('Quest chain complete: ' + chain.name + '!', 4, R.colors.gold);
+        Audio.levelUp();
+      }
+      G.state.questChains[chainId] = chainProg;
+    } else {
+      G.state.quests[step.id] = stepProg;
+    }
+  }
+};
+
+QuestSystem._advanceChainForFish = function() {
+  this.init();
+  for (const zoneId of Object.keys(QUEST_CHAINS)) {
+    for (const chain of QUEST_CHAINS[zoneId]) {
+      const chainProg = G.state.questChains[chain.id] || { currentStep: 0, completed: false };
+      if (chainProg.completed) continue;
+      const step = chain.steps[chainProg.currentStep];
+      if (!step || step.type !== 'fish') continue;
+      const stepProg = G.state.quests[step.id] || { count: 0, completed: false };
+      if (stepProg.completed) continue;
+      stepProg.count = (stepProg.count || 0) + 1;
+      if (stepProg.count >= step.count) {
+        stepProg.completed = true;
+        G.state.quests[step.id] = stepProg;
+        if (chainProg.currentStep < chain.steps.length - 1) {
+          chainProg.currentStep++;
+        } else {
+          chainProg.completed = true;
+          Notify.show('Quest chain complete: ' + chain.name + '!', 4, R.colors.gold);
+          Audio.levelUp();
+        }
+        G.state.questChains[chain.id] = chainProg;
+      } else {
+        G.state.quests[step.id] = stepProg;
+      }
+    }
+  }
+};
+
+QuestSystem._advanceChainForForge = function(slotId) {
+  this.init();
+  for (const zoneId of Object.keys(QUEST_CHAINS)) {
+    for (const chain of QUEST_CHAINS[zoneId]) {
+      const chainProg = G.state.questChains[chain.id] || { currentStep: 0, completed: false };
+      if (chainProg.completed) continue;
+      const step = chain.steps[chainProg.currentStep];
+      if (!step || step.type !== 'forge') continue;
+      const stepProg = G.state.quests[step.id] || { count: 0, completed: false };
+      if (stepProg.completed) continue;
+      stepProg.count = (stepProg.count || 0) + 1;
+      if (stepProg.count >= step.count) {
+        stepProg.completed = true;
+        G.state.quests[step.id] = stepProg;
+        if (chainProg.currentStep < chain.steps.length - 1) {
+          chainProg.currentStep++;
+        } else {
+          chainProg.completed = true;
+          Notify.show('Quest chain complete: ' + chain.name + '!', 4, R.colors.gold);
+          Audio.levelUp();
+        }
+        G.state.questChains[chain.id] = chainProg;
+      } else {
+        G.state.quests[step.id] = stepProg;
+      }
+    }
+  }
 };
 
 QuestSystem.canClaim = function(questId) {

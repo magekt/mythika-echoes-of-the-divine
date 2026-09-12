@@ -112,6 +112,18 @@ const forgeScene = Scene.create({
       y += 144;
     }
 
+    if (G.state.party.length > 0) {
+      const npcShell = UI.PremiumShell(14, y, G.W - 28, 80, { outerR: 8 });
+      SD.push({ render: function(ctx) {
+        npcShell.render(ctx);
+        const c = npcShell.contentRect();
+        R.textCenter(ctx, 'NPC Smith', c.x + c.w / 2, c.y + 20, R.colors.gold, R.fonts.md);
+        R.textCenter(ctx, 'Forge a unique weapon from ancient plans', c.x + c.w / 2, c.y + 40, R.colors.textDim, R.fonts.sm);
+        R.textCenter(ctx, 'Cost: 500g per hero', c.x + c.w / 2, c.y + 58, R.colors.textSecondary, R.fonts.sm);
+      }});
+      y += 92;
+    }
+
     // Full-size magnetic navigation target; the shared helper is 30px tall.
     const back = UI.MagneticBtn(60, y + 6, G.W - 120, 48, 'Back to Ashram', {
       trailingIcon: 'arrow-left',
@@ -143,10 +155,17 @@ const forgeScene = Scene.create({
     }});
     y += 84;
 
+    const questForged = !!(G.state.quests && G.state.quests.ary_forge1 && G.state.quests.ary_forge1.completed);
+    const costMultiplier = questForged ? 0.9 : 1;
+    if (questForged) {
+      SD.push({ text: ['Quest Bonus: -10% cost', 14, y, R.colors.green, R.fonts.sm] });
+      y += 20;
+    }
+
     const slots = [
-      { id: 'weapon', label: 'Weapon (' + Scene.gearLabel(hero.weaponEquipped) + ' Lv.' + hero.weaponLvl + ')', cost: this.data.upgradeCosts.weapon },
-      { id: 'armor', label: 'Armor (' + Scene.gearLabel(hero.armorEquipped) + ' Lv.' + hero.armorLvl + ')', cost: this.data.upgradeCosts.armor },
-      { id: 'accessory', label: 'Accessory (' + Scene.gearLabel(hero.accessoryEquipped) + ' Lv.' + hero.accessoryLvl + ')', cost: this.data.upgradeCosts.accessory }
+      { id: 'weapon', label: 'Weapon (' + Scene.gearLabel(hero.weaponEquipped) + ' Lv.' + hero.weaponLvl + ')', cost: Math.floor(this.data.upgradeCosts.weapon * costMultiplier) },
+      { id: 'armor', label: 'Armor (' + Scene.gearLabel(hero.armorEquipped) + ' Lv.' + hero.armorLvl + ')', cost: Math.floor(this.data.upgradeCosts.armor * costMultiplier) },
+      { id: 'accessory', label: 'Accessory (' + Scene.gearLabel(hero.accessoryEquipped) + ' Lv.' + hero.accessoryLvl + ')', cost: Math.floor(this.data.upgradeCosts.accessory * costMultiplier) }
     ];
 
     for (const slot of slots) {
@@ -175,6 +194,23 @@ const forgeScene = Scene.create({
       y += 60; // step between slot options
     }
 
+    // NPC Smith special upgrade
+    if (hero.weaponEquipped && (G.state.gold || 0) >= 500) {
+      const npcBtn = UI.MagneticBtn(60, y, G.W - 120, 44, 'NPC Smith Upgrade', { trailingIcon: 'hammer' });
+      npcBtn._hero = hero;
+      npcBtn.onClick = function() {
+        if (Economy.spendGold(500)) {
+          hero.weaponLvl++;
+          hero.weaponLvl++;
+          Notify.show('NPC Smith forged a blessed upgrade!', 3, R.colors.gold);
+          Audio.levelUp();
+          forgeScene.buildSlotMenu();
+        }
+      };
+      this.data.buttons.push(npcBtn);
+      y += 52;
+    }
+
     // Back button - BtnGold, 44px primary action
     const back = UI.MagneticBtn(60, y + 8, G.W - 120, 48, 'Back to Heroes', {
       trailingIcon: 'arrow-left',
@@ -193,7 +229,8 @@ const forgeScene = Scene.create({
 
   upgradeSlot: function(slotId) {
     const hero = this.data.selectedHero;
-    const cost = this.data.upgradeCosts[slotId];
+    const costMultiplier = (G.state.quests && G.state.quests.ary_forge1 && G.state.quests.ary_forge1.completed) ? 0.9 : 1;
+    const cost = Math.floor(this.data.upgradeCosts[slotId] * costMultiplier);
     const slotName = slotId.charAt(0).toUpperCase() + slotId.slice(1);
 
     if (!Economy.spendGoldOrNotify(cost)) return false;
@@ -201,6 +238,7 @@ const forgeScene = Scene.create({
     else if (slotId === 'armor') { hero.armorLvl++; }
     else if (slotId === 'accessory') { hero.accessoryLvl++; }
     this.data.upgradeCosts[slotId] = Math.floor(cost * 1.5);
+    QuestSystem.trackForge(slotId);
     Notify.show(slotName + ' upgraded to Lv.' + (slotId === 'weapon' ? hero.weaponLvl : slotId === 'armor' ? hero.armorLvl : hero.accessoryLvl) + '!', 2);
     Audio.levelUp();
     this.buildSlotMenu();

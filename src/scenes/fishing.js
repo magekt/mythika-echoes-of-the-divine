@@ -167,6 +167,7 @@ const fishingScene = Scene.create({
         Economy.addGold(reward);
         Progression.addPartyXP(30 + baitBonus);
         AchievementSystem.check();
+        if (typeof QuestSystem !== 'undefined' && QuestSystem.trackFish) QuestSystem.trackFish();
         Notify.show('RARE CATCH! +' + reward + ' Gold!', 3, R.colors.goldLight);
         Audio.levelUp();
       } else {
@@ -187,6 +188,7 @@ const fishingScene = Scene.create({
         Economy.addGold(reward);
         Progression.addPartyXP(8 + this.data.streak * 2 + baitBonus);
         AchievementSystem.check();
+        if (typeof QuestSystem !== 'undefined' && QuestSystem.trackFish) QuestSystem.trackFish();
         Notify.show('Caught a fish! +' + reward + ' Gold', 2);
         Audio.click();
       } else if (diff < 50) {

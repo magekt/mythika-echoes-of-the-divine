@@ -36,12 +36,12 @@ No control flow — data is read-only at runtime. Systems query data via global 
 | `auras.js` | `AURAS` | 24 auras (8 per class path) with effects |
 | `classes.js` | `CLASSES` | 3 class paths (Kshatriya, Rishi, Yogi) + elite classes |
 | `cultivation.js` | `REALMS`, `CULTIVATION_RATES`, helpers | 6 realms, offline cap, rate formulas |
-| `alchemy_recipes.js` | `ALCHEMY_RECIPES`, `HERB_GROWTH` | Pill recipes + herb grow times |
+| `alchemy_recipes.js` | `ALCHEMY_RECIPES`, `HERB_GROWTH` | Pill recipes + herb grow times; includes 4 new fish-herb hybrid recipes for advanced crafting |
 | `spirit_beasts.js` | `SPIRIT_BEASTS` | 3 beasts (Garuda, Nandi, Naga) with passives/actives |
 | `journeys.js` | `JOURNEYS` | Journey definitions with choices/rewards |
-| `quests.js` | `QUESTS` | Quest definitions with objectives/rewards |
+| `quests.js` | `QUESTS` | Quest definitions with objectives/rewards; includes new quest types: collect, explore, fish, forge alongside combat quests; standalone forge quest |
 | `achievements.js` | `ACHIEVEMENTS` | Achievement list with unlock conditions |
-| `items.js` | `ITEMS` | Equipment, consumables, materials |
+| `items.js` | `ITEMS` | Equipment, consumables, materials. Includes zone-specific weapons/armor/accessories with rarity tiers; new entries: obsidiancleaver, voidlance, jadevest, sageRing; consumables: fishStew, herbPoultice |
 | `data.js` | (none) | Re-exports all for convenience |
 
 ## Key Invariants

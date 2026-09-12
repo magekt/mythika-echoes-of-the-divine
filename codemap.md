@@ -161,6 +161,7 @@ gScene('name', fade?) → Fade.toScene() [async] OR immediate
 - **Cultivation Design**: `CULTIVATION_SCENE_DESIGN.md` — Premium UI spec for cultivation scene
 - **Deepwork Progress**: `.slim/deepwork/architecture-audit.md` — This audit with implementation plan
 - **Codemap State**: `.slim/codemap.json` — File hashes for change detection
+- **Enrichment Plan**: Cross-system hooks and data variety additions (equipment→cultivation, quest→forge, tournament→zone, fish→quest)
 
 ## Quick Start for New Agents
 1. Read this atlas (`codemap.md`)

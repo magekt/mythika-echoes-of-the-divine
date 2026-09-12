@@ -6,6 +6,8 @@ const HEROES = {
     ailment: 'rakta', ailmentName: 'Bleed',
     role: 'Ranged DPS',
     desc: 'Master archer of the Pandavas, wields the divine bow Gandiva.',
+    classId: 'kshatriya',
+    skillTypes: ['piercing', 'ranged'],
     skills: [
       { name: 'Gandiva Shot', desc: 'Powerful arrow that causes Bleed', dmg: 1.2, ailment: 'rakta', cost: 0 },
       { name: 'Rain of Arrows', desc: 'Barrage of arrows, high crit chance', dmg: 0.8, hits: 3, cost: 8 }
@@ -19,6 +21,8 @@ const HEROES = {
     ailment: 'vajra', ailmentName: 'Stun',
     role: 'Tank',
     desc: 'The strongest of the Pandavas, wields the iron mace.',
+    classId: 'kshatriya',
+    skillTypes: ['slam', 'tank'],
     skills: [
       { name: 'Gada Slam', desc: 'Ground slam that Stuns enemies', dmg: 1.0, ailment: 'vajra', cost: 0 },
       { name: 'Iron Fortress', desc: 'Raise defense massively', dmg: 0, defBuff: 2.0, cost: 6 }
@@ -32,6 +36,8 @@ const HEROES = {
     ailment: 'agni', ailmentName: 'Burn',
     role: 'Burst DPS',
     desc: 'Son of Surya, gifted with impenetrable armor and the divine spear.',
+    classId: 'kshatriya',
+    skillTypes: ['burn', 'burst'],
     skills: [
       { name: 'Vel Thrust', desc: 'Spear thrust that Burns', dmg: 1.1, ailment: 'agni', cost: 0 },
       { name: 'Solar Flare', desc: 'Sun-powered blast', dmg: 2.0, cost: 12 }
@@ -45,6 +51,8 @@ const HEROES = {
     ailment: 'shila', ailmentName: 'Freeze',
     role: 'Support Mage',
     desc: 'The queen of Indraprastha, blessed with divine wisdom and foresight.',
+    classId: 'rishi',
+    skillTypes: ['heal', 'support'],
     skills: [
       { name: 'Mantra Bind', desc: 'Magical bind that Freezes', dmg: 1.0, ailment: 'shila', cost: 0, mag: true },
       { name: 'Divine Boon', desc: 'Heal party for 20% HP', dmg: -0.2, heal: 0.2, cost: 8, mag: true }
@@ -79,6 +87,8 @@ function createHeroState(id) {
   return {
     id: h.id, name: h.name, title: h.title,
     weapon: h.weapon, weaponType: h.weaponType,
+    classId: h.classId,
+    skillTypes: h.skillTypes || [],
     hp: Math.floor(h.hp * ojasMul), maxHp: Math.floor(h.hp * ojasMul),
     mp: h.mp, maxMp: h.mp,
     str: h.str, agi: h.agi, mag: Math.floor(h.mag * prajnaMul), def: h.def,

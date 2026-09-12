@@ -14,11 +14,29 @@ CultivationSystem.addPrana = function(amount) {
 };
 
 CultivationSystem.getCultivationPerSecond = function() {
-  return getCultivationPerSecond(G.state.ashramLevel || 1);
+  const base = getCultivationPerSecond(G.state.ashramLevel || 1);
+  const hero = (G.state.party || [])[0];
+  const accMag = hero && hero.accessoryEquipped && hero.accessoryEquipped.mag ? hero.accessoryEquipped.mag * 0.5 : 0;
+  let cultPerSec = base + accMag;
+  const activeBeast = (G.state.spiritBeasts || []).find(b => b.id === G.state.activeBeast);
+  if (activeBeast) {
+    const bonus = activeBeast.level * 0.1;
+    cultPerSec += bonus;
+  }
+  return cultPerSec;
 };
 
 CultivationSystem.getPranaPerSecond = function() {
-  return getPranaPerSecond(G.state.ashramLevel || 1);
+  const base = getPranaPerSecond(G.state.ashramLevel || 1);
+  const hero = (G.state.party || [])[0];
+  const accMag = hero && hero.accessoryEquipped && hero.accessoryEquipped.mag ? hero.accessoryEquipped.mag * 0.3 : 0;
+  let pranaPerSec = base + accMag;
+  const activeBeast = (G.state.spiritBeasts || []).find(b => b.id === G.state.activeBeast);
+  if (activeBeast) {
+    const bonus = activeBeast.level * 0.1;
+    pranaPerSec += bonus * 0.5;
+  }
+  return pranaPerSec;
 };
 
 CultivationSystem.tick = function(dt) {

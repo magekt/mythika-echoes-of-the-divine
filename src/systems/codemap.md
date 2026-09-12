@@ -54,8 +54,8 @@
 - `CultivationSystem.getRealmData()` — current `REALMS` entry
 - `CultivationSystem.addCultivationBase(amount)` — `G.state.cultivationBase += amount`
 - `CultivationSystem.addPrana(amount)` — `G.state.prana += amount`
-- `CultivationSystem.getCultivationPerSecond()` — base + ashram bonus
-- `CultivationSystem.getPranaPerSecond()` — base + ashram + enlightenment buff
+- `CultivationSystem.getCultivationPerSecond()` — base + ashram bonus + equipped accessory mag
+- `CultivationSystem.getPranaPerSecond()` — base + ashram + enlightenment buff + equipped accessory mag
 - `CultivationSystem.tick(dt)` — called every frame, adds base/prana per second
 - `CultivationSystem.canBreakthrough()` — checks if base ≥ next realm threshold
 - `CultivationSystem.attemptBreakthrough()` — RNG (40% base + ashram + tribulation), on success: realmStage++, realm advance, party stat bonuses, XP
@@ -145,6 +145,7 @@
 - `QuestSystem.updateProgress(questId, amount)` — increments objectives
 - `QuestSystem.complete(questId)` — moves to complete, grants rewards
 - `QuestSystem.claim(questId)` — moves to claimed
+- `QuestSystem.trackFish()` — advances fish-type quest objectives on successful catch
 
 **Dependencies**: `QUESTS` data, `Economy`, `Progression`, `Notify`, `Audio`
 
@@ -205,13 +206,15 @@ Progression.getChallenge() → used by applyDifficulty() for next zone
 | Combat | G.state.party, G.state.perks, AURAS | G.state.party (HP/ailments), Combat.* | combatScene, duel, tournament |
 | Progression | G.state.challenge, G.state.perks, AURAS, G.state.player | G.state.challenge, hero stats | Combat, Cultivation, Journey, Quest |
 | Cultivation | G.state.realm, G.state.ashramLevel, REALMS | G.state.cultivationBase, G.state.prana, G.state.realm* | gLoopFrame, cultivationScene, SaveSystem |
+| Cultivation (bonus) | G.state.spiritBeasts, G.state.activeBeast, G.state.party | G.state.cultivationBase, G.state.prana | gLoopFrame, cultivationScene |
 | Save | G.state (all) | G.state (all on load) | main.js (boot), ashram (enter/leave), settings |
 | Journey | G.state.journeys, AURAS, QUESTS | G.state.journeys, G.state.auras | Progression (level 10), ashram |
 | Alchemy | G.state.inventory, HERB_GROWTH, ALCHEMY_RECIPES | G.state.alchemyRecipes, G.state.inventory, G.state.prana | alchemyScene, farm |
 | Economy | G.state.gold/karma/DF | G.state.gold/karma/DF | All scenes (shops, rewards, costs) |
 | Achievements | G.state.* (all) | G.state.achievements | Progression (levelUp), Combat, Quest, Journey |
-| Quest | G.state.quests, QUESTS | G.state.quests | journeyScene, zoneExploration, ashram |
-| Duel | Combat, ENEMIES, Progression | G.state.tournamentWins | tournamentScene |
+| Quest | G.state.quests, QUESTS | G.state.quests | journeyScene, zoneExploration, ashram, fishing |
+| Cultivation | (accessory mag stat) | G.state.cultivationBase, G.state.prana (boosted) | gLoopFrame (via accessory-equipped heroes) |
+| Quest | (fishing catch) | G.state.quests.fishProgress | fishing scene |
 
 ## Critical Invariants
 1. **Combat turn order** — sorted by AGI + random(0-5), rebuilt each round

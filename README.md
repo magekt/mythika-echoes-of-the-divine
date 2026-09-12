@@ -8,7 +8,7 @@
 
 Mythika: Echoes of the Divine is an idle/cultivation RPG where players progress their atman toward Moksha — the ultimate liberation. Set against the rich backdrop of Indian mythology, the game features:
 
-- **30+ Scenes** with a full UI overhaul
+- **32+ Scenes** with a full UI overhaul
 - Turn-based combat system
 - Cultivation realm progression
 - Alchemy crafting system
@@ -38,7 +38,7 @@ The game is designed to be **mobile-first** but works perfectly on desktop, with
 
 | Category | Details |
 |----------|---------|
-| **Scenes** | 30+ unique scenes with full UI overhaul |
+| **Scenes** | 32+ unique scenes with full UI overhaul |
 | **Combat** | Turn-based combat system |
 | **Progression** | Cultivation realm progression |
 | **Crafting** | Alchemy crafting system |
@@ -47,6 +47,25 @@ The game is designed to be **mobile-first** but works perfectly on desktop, with
 | **PvP** | Tournament PvP |
 | **Achievements** | Comprehensive achievement system |
 | **Cloud Save** | Firebase optional cloud saves |
+| **Cross-System Interdependence** | Equipment boosts cultivation, spirit beasts aid cultivation, quests unlock forge bonuses, tournament earns veteran badges, fish/explore/forge track quest progress |
+| **Hybrid Alchemy** | Fish-herb hybrid recipes for advanced crafting |
+| **Extended Quests** | Collect, explore, fish, and forge quest types alongside combat quests |
+| **Extended Equipment Pool** | Zone-specific weapons, armor, and accessories with rarity tiers |
+
+---
+
+## Cross-System Hooks
+
+1. **Equipment → Cultivation**: Equipped accessory magic stat boosts `CultivationSystem.getCultivationPerSecond()` and `getPranaPerSecond()`.
+2. **Spirit Beast → Cultivation**: Active spirit beast level adds small cultivation/prana per second bonus.
+3. **Quest → Forge**: Completing the `ary_forge1` quest unlocks a -10% upgrade cost bonus at the Forge.
+4. **Tournament → Zone**: Tournament wins (`tournamentWins >= 3`) award a veteran badge visible on the Travel Map.
+5. **Fish → Quest**: Successful fishing catches call `QuestSystem.trackFish()` to advance fish-type quest objectives.
+6. **Zone → Quest**: Exploration progress calls `QuestSystem.trackExplore()` to advance explore-type quests.
+7. **Forge → Quest**: Equipment upgrades call `QuestSystem.trackForge()` to advance forge-type quests.
+8. **Alchemy → Farm**: Fish-herb hybrid recipes in `ALCHEMY_RECIPES` bridge the farming and crafting systems.
+9. **Consumables → Combat**: Herb Poultice (`cleanse: true`) clears all hero ailments/debuffs in combat.
+10. **Characters → Equipment**: Hero `classId` and `skillTypes` displayed in Equipment Stats tab.
 
 ---
 

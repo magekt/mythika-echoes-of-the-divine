@@ -203,6 +203,16 @@ const equipmentScene = Scene.create({
           SD.push({ text: [label + ': ' + value, 22, y + 14, R.colors.textPrimary, R.fonts.md] });
           y += 28;
         }
+        if (hero.classId) {
+          SD.push({ text: ['Class: ' + hero.classId.charAt(0).toUpperCase() + hero.classId.slice(1), 22, y + 14, R.colors.accent, R.fonts.md] });
+          y += 28;
+        }
+        if (hero.skills) {
+          for (const skill of hero.skills) {
+            SD.push({ text: [skill.name + ': ' + skill.desc, 22, y + 14, R.colors.textSecondary, R.fonts.sm] });
+            y += 24;
+          }
+        }
       }
     }
 

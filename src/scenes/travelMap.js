@@ -104,6 +104,8 @@ const travelMapScene = Scene.create({
         btn._unlocked = unlocked;
         btn._reqLevel = zone.reqLevel || 1;
         btn._reqZone = zone.reqZone;
+        btn._isCurrentZone = zoneId === G.state.currentZone;
+        btn._isVeteran = (G.state.tournamentWins || 0) >= 3;
         btn.data = { id: zoneId, zone };
 
         btn.render = function(ctx) {
@@ -147,6 +149,18 @@ const travelMapScene = Scene.create({
             ctx.fillStyle = R.colors.green;
             ctx.font = R.fonts.sm;
             ctx.fillText('Complete', bx + bw - 14, by + 20);
+            ctx.textAlign = 'left';
+          }
+
+          // Veteran badge on the current zone card
+          if (this._isCurrentZone && this._isVeteran) {
+            const badgeW = 46;
+            const badgeH = 16;
+            R.roundRect(ctx, bx + bw - badgeW - 8, by + bh - badgeH - 6, badgeW, badgeH, 8, R.colors.gold);
+            ctx.textAlign = 'center';
+            ctx.fillStyle = R.colors.textPrimary;
+            ctx.font = R.fonts.xs;
+            ctx.fillText('Veteran', bx + bw - 8 - badgeW / 2, by + bh - 6 - badgeH / 2 + 4);
             ctx.textAlign = 'left';
           }
         };

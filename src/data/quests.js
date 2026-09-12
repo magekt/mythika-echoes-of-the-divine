@@ -7,7 +7,8 @@ const QUEST_CHAINS = {
       steps: [
         { id: 'ary_step1', name: 'First Blood', desc: 'Defeat 3 bandits', type: 'kill', target: 'bandit', count: 3, reward: { gold: 20, xp: 30 } },
         { id: 'ary_step2', name: 'Wolf Pack', desc: 'Defeat 5 wolves', type: 'kill', target: 'wolf', count: 5, reward: { gold: 40, xp: 60 } },
-        { id: 'ary_step3', name: 'Spider Nest', desc: 'Defeat 3 giant spiders', type: 'kill', target: 'giantSpider', count: 3, reward: { gold: 60, xp: 100 } }
+        { id: 'ary_step3', name: 'Spider Nest', desc: 'Defeat 3 giant spiders', type: 'kill', target: 'giantSpider', count: 3, reward: { gold: 60, xp: 100 } },
+        { id: 'ary_collect1', name: 'Herb Gathering', desc: 'Collect 5 Tulsi', type: 'collect', target: 'tulsi', count: 5, reward: { gold: 30, xp: 40 } }
       ],
       finalReward: { gold: 100, xp: 200, karma: 2, item: 'uncommon_weapon' }
     },
@@ -19,7 +20,8 @@ const QUEST_CHAINS = {
       steps: [
         { id: 'ary_hunt1', name: 'Boar Hunt', desc: 'Defeat 4 wild boars', type: 'kill', target: 'wildBoar', count: 4, reward: { gold: 50, xp: 80 } },
         { id: 'ary_hunt2', name: 'Serpent Clearing', desc: 'Defeat 5 snakes', type: 'kill', target: 'snake', count: 5, reward: { gold: 60, xp: 100 } },
-        { id: 'ary_hunt3', name: 'Chieftain Challenge', desc: 'Defeat the Rakshasa Chieftain', type: 'boss', target: 'rakshasa', count: 1, reward: { gold: 150, xp: 250 } }
+        { id: 'ary_hunt3', name: 'Chieftain Challenge', desc: 'Defeat the Rakshasa Chieftain', type: 'boss', target: 'rakshasa', count: 1, reward: { gold: 150, xp: 250 } },
+        { id: 'ary_forge2', name: 'Forge Master', desc: 'Upgrade any equipment twice', type: 'forge', target: 'any', count: 2, reward: { gold: 100, xp: 150 } }
       ],
       finalReward: { gold: 200, xp: 400, karma: 3, item: 'rare_weapon' }
     }
@@ -33,7 +35,8 @@ const QUEST_CHAINS = {
       steps: [
         { id: 'dan_exp1', name: 'Wraith Watch', desc: 'Defeat 3 wraiths', type: 'kill', target: 'wraith', count: 3, reward: { gold: 60, xp: 100 } },
         { id: 'dan_exp2', name: 'Elf Trouble', desc: 'Defeat 4 dark elves', type: 'kill', target: 'darkElf', count: 4, reward: { gold: 80, xp: 140 } },
-        { id: 'dan_exp3', name: 'Shadow Mage', desc: 'Defeat 3 shadow mages', type: 'kill', target: 'shadowMage', count: 3, reward: { gold: 100, xp: 180 } }
+        { id: 'dan_exp3', name: 'Shadow Mage', desc: 'Defeat 3 shadow mages', type: 'kill', target: 'shadowMage', count: 3, reward: { gold: 100, xp: 180 } },
+        { id: 'dan_explore1', name: 'Deep Forest Mapping', desc: 'Explore 50% of Dandaka', type: 'explore', target: 'dandaka', count: 50, reward: { gold: 80, xp: 120 } }
       ],
       finalReward: { gold: 250, xp: 500, karma: 3, item: 'rare_armor' }
     },
@@ -59,7 +62,8 @@ const QUEST_CHAINS = {
       steps: [
         { id: 'mer_asc1', name: 'Asura Assault', desc: 'Defeat 5 asura warriors', type: 'kill', target: 'asuraWarrior', count: 5, reward: { gold: 150, xp: 300 } },
         { id: 'mer_asc2', name: 'Orc Siege', desc: 'Defeat 4 orcs', type: 'kill', target: 'orc', count: 4, reward: { gold: 180, xp: 350 } },
-        { id: 'mer_asc3', name: 'Ogre Slayer', desc: 'Defeat 3 ogres', type: 'kill', target: 'ogre', count: 3, reward: { gold: 200, xp: 400 } }
+        { id: 'mer_asc3', name: 'Ogre Slayer', desc: 'Defeat 3 ogres', type: 'kill', target: 'ogre', count: 3, reward: { gold: 200, xp: 400 } },
+        { id: 'mer_fish1', name: 'Celestial Catch', desc: 'Catch 3 fish', type: 'fish', target: 'any', count: 3, reward: { gold: 100, xp: 150 } }
       ],
       finalReward: { gold: 500, xp: 1000, karma: 5, item: 'legendary_weapon' }
     },
@@ -152,6 +156,18 @@ const QUEST_CHAINS = {
         { id: 'tapo_dis3', name: 'Pralaya Falls', desc: 'Defeat Pralaya, the Dissolver', type: 'boss', target: 'pralaya', count: 1, reward: { gold: 5000, xp: 12000 } }
       ],
       finalReward: { gold: 10000, xp: 20000, karma: 50, item: 'legendary_accessory' }
+    },
+    {
+      id: 'chain_tapo_sage',
+      name: 'Sage Ascension',
+      desc: 'Become a sage of the burning ground',
+      prerequisite: 'chain_tapo_dissolution',
+      steps: [
+        { id: 'tapo_sage1', name: 'Tulsi Harvest', desc: 'Gather 10 Tulsi', type: 'collect', target: 'tulsi', count: 10, reward: { gold: 300, xp: 600 } },
+        { id: 'tapo_sage2', name: 'Brahmi Study', desc: 'Gather 8 Brahmi', type: 'collect', target: 'brahmi', count: 8, reward: { gold: 350, xp: 700 } },
+        { id: 'tapo_sage3', name: 'Divine Convergence', desc: 'Catch 5 fish', type: 'fish', target: 'any', count: 5, reward: { gold: 500, xp: 1000 } }
+      ],
+      finalReward: { gold: 8000, xp: 16000, karma: 40, item: 'legendary_weapon' }
     }
   ]
 };
@@ -206,11 +222,8 @@ function getZoneQuests(zoneId) {
 }
 
 function getAllQuests() {
-  const all = [];
-  for (const zoneId of Object.keys(QUESTS)) {
-    for (const q of QUESTS[zoneId]) {
-      all.push(q);
-    }
-  }
+  const all = [...Object.values(QUESTS).flat()];
+  all.push({ id: 'ary_forge1', name: 'First Upgrade', desc: 'Upgrade any equipment once', type: 'forge', target: 'any', count: 1, reward: { gold: 50, xp: 60 } });
+  all.push({ id: 'mer_forge1', name: 'Master Smith', desc: 'Upgrade any equipment to Lv.3', type: 'forge', target: 'any', count: 3, reward: { gold: 200, xp: 300 } });
   return all;
 }
