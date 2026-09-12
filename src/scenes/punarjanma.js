@@ -3,6 +3,7 @@ const punarjanmaScene = Scene.create({
   data: {
     buttons: [],
     staticDraws: [],
+    rebirthShell: null,
     selectedPerk: null,
     scrollY: 0,
     contentHeight: 0
@@ -18,6 +19,7 @@ const punarjanmaScene = Scene.create({
     this._heroMoment = null;
     this.data.buttons = [];
     this.data.staticDraws = [];
+    this.data.rebirthShell = null;
     this.data.selectedPerk = null;
     this.data.scrollY = 0;
   },
@@ -41,13 +43,12 @@ const punarjanmaScene = Scene.create({
     let y = this.getContentTop();
 
     // PremiumShell rebirth confirm button
-    const canRebirth = G.state.player && G.state.player.level >= 30 && (G.state.karma || 0) >= 10;
+    const canRebirth = !!(G.state.player && G.state.player.level >= 30 && (G.state.karma || 0) >= 10);
     const rb = UI.PremiumShell(20, y, G.W - 40, 44, { outerR: 8 });
-    rb.render(ctx);
-    SD.push({ shell: rb, x: 20, y: y });
+    this.data.rebirthShell = rb;
     y += 50; // premium shell height + gap
 
-    const btn = UI.BtnGold(20, y, G.W - 40, 38, 'Seek Moksha (Liberation)');
+    const btn = UI.BtnGold(20, y, G.W - 40, 44, 'Seek Moksha (Liberation)');
     btn.enabled = canRebirth;
     btn.onClick = function() {
       UI.Modal.confirm('Seek Moksha',
@@ -57,7 +58,7 @@ const punarjanmaScene = Scene.create({
         });
     };
     this.data.buttons.push(btn);
-    y += 48;
+    y += 54;
 
     // Requirements display
     const lvlOk = G.state.player ? G.state.player.level >= 30 : false;
@@ -193,6 +194,7 @@ const punarjanmaScene = Scene.create({
     const top = this.getContentTop();
     Scene.clipContent(ctx, this);
 
+    if (this.data.rebirthShell) this.data.rebirthShell.render(ctx);
     for (const b of this.data.buttons) b.render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);
 

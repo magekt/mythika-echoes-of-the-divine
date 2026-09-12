@@ -119,27 +119,39 @@ const journeyScene = Scene.create({
       const node = JourneySystem.getCurrentNode(selId);
       // Header card with PremiumShell
       const headerShell = UI.PremiumShell(14, y, G.W-28, 86, { outerR: 8 });
-      headerShell.render(ctx);
-      const headerContent = headerShell.contentRect();
-      R.text(ctx, sel.icon + '  ' + sel.name, headerContent.x + 12, headerContent.y + 16, R.colors.gold, R.fonts.md);
-      R.text(ctx, sel.desc, headerContent.x + 12, headerContent.y + 36, R.colors.textDim, R.fonts.sm);
+      SD.push({
+        render: function(ctx) {
+          headerShell.render(ctx);
+          const headerContent = headerShell.contentRect();
+          R.text(ctx, sel.icon + '  ' + sel.name, headerContent.x + 12, headerContent.y + 16, R.colors.gold, R.fonts.md);
+          R.text(ctx, sel.desc, headerContent.x + 12, headerContent.y + 36, R.colors.textDim, R.fonts.sm);
+        }
+      });
       y += 90;
       
       if (!node) {
         // Completed
         const completeShell = UI.PremiumShell(14, y, G.W-28, 86, { outerR: 8 });
-        completeShell.render(ctx);
-        const cc = completeShell.contentRect();
-        R.textCenter(ctx, 'Journey Complete!', cc.x + cc.w/2, cc.y + 20, R.colors.green, R.fonts.md);
-        R.textCenter(ctx, 'Rewards have been claimed.', cc.x + cc.w/2, cc.y + 40, R.colors.textDim, R.fonts.sm);
+        SD.push({
+          render: function(ctx) {
+            completeShell.render(ctx);
+            const cc = completeShell.contentRect();
+            R.textCenter(ctx, 'Journey Complete!', cc.x + cc.w/2, cc.y + 20, R.colors.green, R.fonts.md);
+            R.textCenter(ctx, 'Rewards have been claimed.', cc.x + cc.w/2, cc.y + 40, R.colors.textDim, R.fonts.sm);
+          }
+        });
         y += 90;
       } else {
         // Prompt with PremiumShell
         const promptShell = UI.PremiumShell(14, y, G.W-28, 86, { outerR: 8 });
-        promptShell.render(ctx);
-        const pc = promptShell.contentRect();
-        R.textCenter(ctx, node.prompt, pc.x + pc.w/2, pc.y + 20, R.colors.text, R.fonts.md);
-        y += 70;
+        SD.push({
+          render: function(ctx) {
+            promptShell.render(ctx);
+            const pc = promptShell.contentRect();
+            R.textCenter(ctx, node.prompt, pc.x + pc.w/2, pc.y + 20, R.colors.text, R.fonts.md);
+          }
+        });
+        y += 90;
         
         for (let idx=0; idx<node.choices.length; idx++) {
           const ch = node.choices[idx];
@@ -176,7 +188,7 @@ const journeyScene = Scene.create({
     const back2 = Scene.backButton(y+6, { label: 'Back to Ashram', target: 'ashram', fade: true });
     this.data.buttons.push(back2);
     y += 44;
-    this.data.contentHeight = y;
+    this.data.contentHeight = y - this.getContentTop();
   },
 
   update: function(dt) {
@@ -196,8 +208,12 @@ const journeyScene = Scene.create({
     }
     const top = this.getContentTop();
     Scene.clipContent(ctx, this);
-    for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);
+    // Build-time card data is replayed only while a live Canvas context exists.
+    for (const draw of this.data.staticDraws) {
+      if (draw.render) draw.render(ctx);
+    }
+    for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY + top, this.getContentHeight())) b.render(ctx);
     ctx.restore();
     Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY, 18);
     UI.Modal.render(ctx);

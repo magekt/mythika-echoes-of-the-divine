@@ -9,7 +9,9 @@ const trialsScene = Scene.create({
     enemy: null,
     log: [],
     runGold: 0,
-    runKarma: 0
+    runKarma: 0,
+    staticDraws: [],
+    scrollY: 0
   },
 
   enter: function() {
@@ -21,6 +23,8 @@ const trialsScene = Scene.create({
       this.data.state = 'menu';
     }
     this.data.buttons = [];
+    this.data.staticDraws = [];
+    this.data.scrollY = 0;
     if (this.data.state === 'locked') this.buildLocked();
     else if (this.data.state === 'menu') this.buildMenu();
     else if (this.data.state === 'result') this.buildResult();
@@ -33,27 +37,33 @@ const trialsScene = Scene.create({
     this.data.enemy = null;
     this.data.duel = null;
     this.data.duelHero = null;
+    this.data.staticDraws = [];
     this.data.scrollY = 0;
   },
 
   buildLocked: function() {
-    this.data.buttons.push(Scene.backButton(G.H - 80, { fade: true }));
+    const back = UI.BtnGold(60, G.H - 68, G.W - 120, 44, 'Back to Ashram');
+    back.onClick = function() { gScene('ashram', true); };
+    this.data.buttons.push(back);
   },
 
   buildMenu: function() {
     this.data.buttons = [];
+    this.data.staticDraws = [];
+    this.data.scrollY = 0;
     const canStart = !!G.state.player;
-    // 86px tall begin trial button with PremiumShell
+    // The shell is drawn during render(), after a Canvas context exists.
     const beginShell = UI.PremiumShell(60, 120, G.W - 120, 44, { outerR: 8 });
-    beginShell.render(ctx);
-    this.data.staticDraws.push({ shell: beginShell });
+    this.data.staticDraws.push(beginShell);
     let y = 168; // after premium shell
 
-    const btn = UI.BtnGold(60, y, G.W - 120, 38, 'Begin Trial \u2014 Wave 1');
+    const btn = UI.BtnGold(60, y, G.W - 120, 44, 'Begin Trial \u2014 Wave 1');
     btn.enabled = canStart && !!G.state.flags && G.state.flags.boss_svarga;
     btn.onClick = function() { trialsScene.startRun(); };
     this.data.buttons.push(btn);
-    this.data.buttons.push(Scene.backButton(G.H - 80, { fade: true }));
+    const back = UI.BtnGold(60, G.H - 68, G.W - 120, 44, 'Back to Ashram');
+    back.onClick = function() { gScene('ashram', true); };
+    this.data.buttons.push(back);
   },
 
   startRun: function() {
@@ -64,6 +74,7 @@ const trialsScene = Scene.create({
     this.data.log = ['The Trial begins. Steel your spirit.'];
     this.data.runGold = 0;
     this.data.runKarma = 0;
+    this.data.playerHP = hero.maxHp;
     // The duel engine owns HP/log once a foe exists; hero snapshot scales with the run.
     this.data.duelHero = { str: hero.str, mag: hero.mag, def: hero.def, maxHp: hero.maxHp };
     this.nextWave();
@@ -100,27 +111,27 @@ const trialsScene = Scene.create({
 
   buildFightButtons: function() {
     this.data.buttons = [];
+    this.data.staticDraws = [];
     let y = 196;
-    // Attack - primary action, BtnGold, 38px minimum touch target
-    const atk = UI.BtnGold(30, y, G.W / 2 - 40, 38, 'Attack');
+    // Actions use 44px targets for reliable mobile taps.
+    const atk = UI.BtnGold(30, y, G.W / 2 - 40, 44, 'Attack');
     atk.onClick = function() { trialsScene.doRound('attack'); };
     this.data.buttons.push(atk);
     // Special - secondary action
-    const special = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 38, 'Special');
+    const special = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 44, 'Special');
     special.onClick = function() { trialsScene.doRound('special'); };
     this.data.buttons.push(special);
-    y += 46;
+    y += 52;
     // Heal - secondary action
-    const heal = UI.Button(30, y, G.W / 2 - 40, 38, 'Heal');
+    const heal = UI.Button(30, y, G.W / 2 - 40, 44, 'Heal');
     heal.onClick = function() { trialsScene.doRound('heal'); };
     this.data.buttons.push(heal);
     // Defend - secondary action
-    const def = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 38, 'Defend');
+    const def = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 44, 'Defend');
     def.onClick = function() { trialsScene.doRound('defend'); };
     this.data.buttons.push(def);
-    y += 50;
-    // Retreat - secondary action, 38px tall
-    const flee = UI.Button(60, y, G.W - 120, 38, 'Retreat (keep rewards)', R.colors.btn);
+    y += 52;
+    const flee = UI.Button(60, y, G.W - 120, 44, 'Retreat (keep rewards)', R.colors.btn);
     flee.onClick = function() { trialsScene.endRun('You retreat from the Trial.'); };
     this.data.buttons.push(flee);
   },
@@ -205,16 +216,23 @@ const trialsScene = Scene.create({
 
   buildResult: function() {
     this.data.buttons = [];
-    const btn = UI.BtnGold(60, G.H - 140, G.W - 120, 38, 'Back to Trials Menu');
+    this.data.staticDraws = [];
+    const btn = UI.BtnGold(60, G.H - 144, G.W - 120, 44, 'Back to Trials Menu');
     btn.onClick = function() {
       trialsScene.data.state = 'menu';
       trialsScene.enter();
     };
     this.data.buttons.push(btn);
-    this.data.buttons.push(Scene.backButton(G.H - 90, { fade: true }));
+    const back = UI.BtnGold(60, G.H - 88, G.W - 120, 44, 'Back to Ashram');
+    back.onClick = function() { gScene('ashram', true); };
+    this.data.buttons.push(back);
   },
 
-  update: function(dt) {},
+  update: function(dt) {
+    if (UI.Modal.active) { UI.Modal.handleInput(); return; }
+    UI.updateButtons(this.data.buttons, dt);
+    UI.handleButtons(this.data.buttons);
+  },
 
   render: function(ctx) {
     Scene.drawHeader(ctx, 62, 'Endless Trials');
@@ -227,6 +245,7 @@ const trialsScene = Scene.create({
       R.textCenter(ctx, 'Best Wave: ' + this.data.best, G.W / 2, 200, R.colors.gold, R.fonts.sm);
     } else if (st === 'menu') {
       R.textCenter(ctx, 'Best Wave: ' + this.data.best, G.W / 2, 92, R.colors.gold, R.fonts.md);
+      for (const draw of this.data.staticDraws) draw.render(ctx);
       R.textCenter(ctx, 'Endless waves across all five realms.', G.W / 2, 180, R.colors.textDim, R.fonts.sm);
       R.textCenter(ctx, 'Rewards: Gold every wave, Karma every 3rd,', G.W / 2, 198, R.colors.textDim, R.fonts.sm);
       R.textCenter(ctx, 'XP always. Foes grow stronger each wave.', G.W / 2, 214, R.colors.textDim, R.fonts.sm);
@@ -261,7 +280,7 @@ const trialsScene = Scene.create({
         G.W / 2, 182, R.colors.gold, R.fonts.xs);
 
       // Last few log lines above the bottom buttons (clear of the Retreat button)
-      let ly = st === 'result' ? 300 : 312;
+      let ly = st === 'result' ? 300 : 360;
       for (const msg of this.data.log.slice(-4)) {
         ctx.fillStyle = 'rgba(0,0,0,0.35)';
         R.roundRect(ctx, 14, ly - 1, G.W - 28, 16, 3, ctx.fillStyle);
