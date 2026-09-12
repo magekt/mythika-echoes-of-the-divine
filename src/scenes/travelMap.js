@@ -168,7 +168,7 @@ const travelMapScene = Scene.create({
 
     // Back button to ashram
     const back = UI.Button(60, y + 6, G.W - 120, 32, 'Back to Ashram', R.colors.btnGold);
-    back.onClick = function() { gScene('ashram', true); };
+    back.onClick = function() { gScene('ashram', true, { restoreScroll: true }); };
     this.data.buttons.push(back);
     y += 46;
 
@@ -263,7 +263,7 @@ const travelMapScene = Scene.create({
         this.data.scrollY = 0;
         this.buildZoneButtons();
       } else {
-        gScene('ashram', true);
+        gScene('ashram', true, { restoreScroll: true });
       }
       return;
     }
@@ -282,7 +282,7 @@ const travelMapScene = Scene.create({
         travelMapScene.data.scrollY = 0;
         travelMapScene.buildZoneButtons();
       } else {
-        gScene('ashram', true);
+        gScene('ashram', true, { restoreScroll: true });
       }
     };
     backBtn.render(ctx);

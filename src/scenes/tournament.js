@@ -2,6 +2,7 @@ const tournamentScene = Scene.create({
   name: 'tournament',
   data: {
     buttons: [],
+    exitButton: null,
     state: 'menu',
     staticDraws: [],
     opponent: null,
@@ -11,13 +12,15 @@ const tournamentScene = Scene.create({
     round: 0,
     wins: 0,
     scrollY: 0,
-    contentHeight: 0
+    contentHeight: 0,
+    duel: null
   },
 
   enter: function() {
     this.data.state = 'menu';
     this.data.log = [];
     this.data.opponent = null;
+    this.data.duel = null;
     this.data.round = 0;
     this.data.wins = G.state.tournamentWins || 0;
     this.data.scrollY = 0;
@@ -27,14 +30,28 @@ const tournamentScene = Scene.create({
   leave: function() {
     this._heroMoment = null;
     this.data.buttons = [];
+    this.data.exitButton = null;
     this.data.staticDraws = [];
     this.data.log = [];
     this.data.opponent = null;
+    this.data.duel = null;
     this.data.scrollY = 0;
   },
 
   getContentTop: function() { return 74; },
-  getContentHeight: function() { return G.H - this.getContentTop(); },
+  // Reserve the bottom 54px band for the fixed Ashram exit. G.H is the logical
+  // 720px canvas height, so this remains at y=666 and never scrolls away.
+  getContentHeight: function() { return G.H - this.getContentTop() - 58; },
+
+  buildExitButton: function() {
+    const exitY = G.H - 54;
+    const exit = UI.MagneticBtn(30, exitY, G.W - 60, 48, 'Back to Ashram', {
+      trailingIcon: 'arrow-left',
+      variant: 'primary'
+    });
+    exit.onClick = function() { gScene('ashram', true); };
+    this.data.exitButton = exit;
+  },
 
   clampScroll: function() {
     const ch = this.data.contentHeight;
@@ -52,14 +69,8 @@ const tournamentScene = Scene.create({
     let y = this.getContentTop();
     const cost = 50 + (this.data.wins * 25);
 
-    // PremiumShell entry button
-    const entryShell = UI.PremiumShell(30, y, G.W - 60, 44, { outerR: 8 });
-    entryShell.render(ctx);
-    SD.push({ shell: entryShell, x: 30, y: y });
-    y += 58;
-
-    const canEnter = (G.state.gold || 0) >= cost;
-    const btn = UI.BtnGold(30, y, G.W - 60, 38, 'Enter Tournament (' + cost + 'g)');
+    const canEnter = !!G.state.player && (G.state.gold || 0) >= cost;
+    const btn = UI.MagneticBtn(30, y, G.W - 60, 48, 'Enter Tournament (' + cost + 'g)', { variant: 'primary' });
     btn.enabled = canEnter;
     btn.onClick = function() {
       if (Economy.spendGold(cost)) {
@@ -70,16 +81,14 @@ const tournamentScene = Scene.create({
       }
     };
     this.data.buttons.push(btn);
-    y += 48;
+    y += 58;
 
-    SD.push({ text: ['Wins: ' + this.data.wins, 20, y + 4, R.colors.gold, R.fonts.sm] });
-    SD.push({ text: ['Entry Fee: ' + cost + 'g', 20, y + 20, R.colors.textDim, R.fonts.sm] });
-    y += 44;
-
-    this.data.buttons.push(Scene.backButton(y + 4, { fade: true }));
-    y += 48;
+    SD.push({ text: ['Wins: ' + this.data.wins, 20, y + 4, R.colors.accent, R.fonts.md] });
+    SD.push({ text: ['Entry Fee: ' + cost + 'g', 20, y + 20, R.colors.textSecondary, R.fonts.md] });
+    y += 20;
 
     this.data.contentHeight = y;
+    this.buildExitButton();
   },
 
   startMatch: function() {
@@ -99,6 +108,8 @@ const tournamentScene = Scene.create({
     this.data.duel = Duel.create(G.state.player, foe);
     this.data.playerHP = this.data.duel.playerHP;
     this.data.enemyHP = foe.hp;
+    this.data._ghostPHP = null;
+    this.data._ghostEHP = null;
     this.buildFightButtons();
   },
 
@@ -109,27 +120,27 @@ const tournamentScene = Scene.create({
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
-    // Attack - primary action, BtnGold, 38px minimum
-    const atk = UI.BtnGold(30, y, G.W / 2 - 40, 38, 'Attack');
+    // Attack - primary action, 44px minimum for mobile taps.
+    const atk = UI.MagneticBtn(30, y, G.W / 2 - 40, 48, 'Attack', { variant: 'primary' });
     atk.onClick = function() { tournamentScene.doRound('attack'); };
     this.data.buttons.push(atk);
 
     // Special - secondary action
-    const special = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 38, 'Special');
+    const special = UI.MagneticBtn(G.W / 2 + 10, y, G.W / 2 - 40, 48, 'Special', { variant: 'secondary' });
     special.onClick = function() { tournamentScene.doRound('special'); };
     this.data.buttons.push(special);
-    y += 46;
+    y += 56;
 
     // Heal - secondary action
-    const heal = UI.Button(30, y, G.W / 2 - 40, 38, 'Heal');
+    const heal = UI.MagneticBtn(30, y, G.W / 2 - 40, 48, 'Heal', { variant: 'secondary' });
     heal.onClick = function() { tournamentScene.doRound('heal'); };
     this.data.buttons.push(heal);
 
     // Defend - secondary action
-    const def = UI.Button(G.W / 2 + 10, y, G.W / 2 - 40, 38, 'Defend');
+    const def = UI.MagneticBtn(G.W / 2 + 10, y, G.W / 2 - 40, 48, 'Defend', { variant: 'secondary' });
     def.onClick = function() { tournamentScene.doRound('defend'); };
     this.data.buttons.push(def);
-    y += 50;
+    y += 60;
 
     if (this.data.log.length > 0) {
       for (const msg of this.data.log.slice(-5)) {
@@ -140,7 +151,7 @@ const tournamentScene = Scene.create({
     }
 
     // Forfeit - secondary action
-    const back = UI.Button(60, y + 4, G.W - 120, 38, 'Forfeit', R.colors.btn);
+    const back = UI.MagneticBtn(60, y + 4, G.W - 120, 48, 'Forfeit', { variant: 'secondary' });
     back.onClick = function() {
       tournamentScene.data.state = 'menu';
       tournamentScene.data.log = ['You fled the tournament...'];
@@ -148,9 +159,10 @@ const tournamentScene = Scene.create({
       tournamentScene.buildMenu();
     };
     this.data.buttons.push(back);
-    y += 50;
+    y += 60;
 
     this.data.contentHeight = y;
+    this.buildExitButton();
   },
 
   buildResultButtons: function() {
@@ -160,16 +172,17 @@ const tournamentScene = Scene.create({
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
-    const btn = UI.BtnGold(60, y + 4, G.W - 120, 38, 'Back to Menu');
+    const btn = UI.MagneticBtn(60, y + 4, G.W - 120, 48, 'Back to Menu', { variant: 'primary' });
     btn.onClick = function() {
       tournamentScene.data.state = 'menu';
       tournamentScene.data.scrollY = 0;
       tournamentScene.buildMenu();
     };
     this.data.buttons.push(btn);
-    y += 48;
+    y += 58;
 
     this.data.contentHeight = y;
+    this.buildExitButton();
   },
 
   doRound: function(action) {
@@ -201,9 +214,14 @@ const tournamentScene = Scene.create({
   },
 
   update: function(dt) {
+    if (UI.Modal.active) { UI.Modal.handleInput(); return; }
     Scene.scrollInput(this);
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
+    if (this.data.exitButton) {
+      this.data.exitButton.update(dt);
+      UI.handleButtons([this.data.exitButton]);
+    }
   },
 
   render: function(ctx) {
@@ -233,8 +251,8 @@ const tournamentScene = Scene.create({
       R.roundRect(ctx, 280, 148, 80 * eHPct, 6, 3, R.colors.hp);
       R.textCenter(ctx, Math.floor(this.data.enemyHP) + '/' + (this.data.opponent ? this.data.opponent.maxHp : 100), 320, 162, R.colors.white, R.fonts.xs);
     } else {
-      R.textCenter(ctx, 'Wins: ' + (G.state.tournamentWins || 0), G.W / 2, 88, R.colors.gold, R.fonts.sm);
-      R.textCenter(ctx, 'Conquer all challengers!', G.W / 2, 106, R.colors.textDim, R.fonts.sm);
+      R.textCenter(ctx, 'Wins: ' + (G.state.tournamentWins || 0), G.W / 2, 88, R.colors.accent, R.fonts.md);
+      R.textCenter(ctx, 'Conquer all challengers!', G.W / 2, 106, R.colors.textSecondary, R.fonts.sm);
     }
 
     const top = this.getContentTop();
@@ -246,5 +264,12 @@ const tournamentScene = Scene.create({
     ctx.restore();
 
     Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
+    if (this.data.exitButton) {
+      // Re-anchor in logical canvas coordinates after the clipped content is
+      // restored. G.H is 720, so y=666 leaves the 48px control inside the canvas.
+      this.data.exitButton.y = G.H - 54;
+      this.data.exitButton.h = 48;
+      this.data.exitButton.render(ctx);
+    }
   }
 });

@@ -1,3 +1,16 @@
+function equipmentFitText(ctx, text, maxWidth, font) {
+  ctx.save();
+  ctx.font = font;
+  let value = String(text || '');
+  if (ctx.measureText(value).width <= maxWidth) {
+    ctx.restore();
+    return value;
+  }
+  while (value.length > 1 && ctx.measureText(value + '\u2026').width > maxWidth) value = value.slice(0, -1);
+  ctx.restore();
+  return value.replace(/\s+\S*$/, '') + '\u2026';
+}
+
 const equipmentScene = Scene.create({
   name: 'equipment',
   data: {
@@ -43,12 +56,21 @@ const equipmentScene = Scene.create({
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
-    // --- Tabs (38px height, primary action minimum) ---
-    const tabH = 38;
-    const tabW = 95;
-    const tabGap = 21; // (G.W - 3*95 - 2*gap) / 3 roughly, adjusted for layout
+    // --- Tabs: equal rhythm, with explicit 44px action targets ---
+    const tabH = 48;
+    const tabGap = 8;
+    const tabW = (G.W - 28 - tabGap * 2) / 3;
+    const tabX = function(index) { return 14 + index * (tabW + tabGap); };
 
-    const invBtn = UI.Button(14, y, tabW, tabH, 'Inventory', this.data.tab === 'inventory' ? R.colors.btnGold : R.colors.btn);
+    // MagneticBtn owns the text baseline (center + 4px), keeping each label
+    // visually centered in the full 44px hit area instead of near its top edge.
+    const tabButton = function(index, label, active) {
+      return UI.MagneticBtn(tabX(index), y, tabW, tabH, label, {
+        variant: active ? 'primary' : 'secondary'
+      });
+    };
+
+    const invBtn = tabButton(0, 'Inventory', this.data.tab === 'inventory');
     invBtn.onClick = function() {
       if (equipmentScene.data.tab === 'inventory') return false;
       equipmentScene.data.tab = 'inventory';
@@ -56,7 +78,7 @@ const equipmentScene = Scene.create({
     };
     this.data.buttons.push(invBtn);
 
-    const equipBtn = UI.Button(115, y, tabW, tabH, 'Equipped', this.data.tab === 'equipped' ? R.colors.btnGold : R.colors.btn);
+    const equipBtn = tabButton(1, 'Equipped', this.data.tab === 'equipped');
     equipBtn.onClick = function() {
       if (equipmentScene.data.tab === 'equipped') return false;
       equipmentScene.data.tab = 'equipped';
@@ -64,7 +86,7 @@ const equipmentScene = Scene.create({
     };
     this.data.buttons.push(equipBtn);
 
-    const statsBtn = UI.Button(216, y, tabW, tabH, 'Stats', this.data.tab === 'stats' ? R.colors.btnGold : R.colors.btn);
+    const statsBtn = tabButton(2, 'Stats', this.data.tab === 'stats');
     statsBtn.onClick = function() {
       if (equipmentScene.data.tab === 'stats') return false;
       equipmentScene.data.tab = 'stats';
@@ -72,20 +94,28 @@ const equipmentScene = Scene.create({
     };
     this.data.buttons.push(statsBtn);
 
-    y += tabH + 8; // 8px gap below tabs
+    y += tabH + 12;
 
-    // --- Inventory: 3-column grid, 86px cards ---
+    // --- Inventory: two-column cards keep item names legible ---
     if (this.data.tab === 'inventory') {
       const items = (G.state.inventory || []).filter(i => typeof i === 'object' && i.type && (i.type === 'weapon' || i.type === 'armor' || i.type === 'accessory'));
       const mx = 14;
       const gridGap = 8;
-      const gridCols = 3;
+      const gridCols = 2;
       const cw = (G.W - mx * 2 - gridGap * (gridCols - 1)) / gridCols;
-      const cardH = 86; // upgraded from 36px for tap target
+      const cardH = 100;
 
       if (items.length === 0) {
-        const ty = y + 20;
-        SD.push({ textCenter: ['No equipment found', G.W / 2, ty, R.colors.textDim, R.fonts.sm] });
+        const emptyShell = UI.PremiumShell(mx, y, G.W - mx * 2, 132, { outerR: 10, innerBg: R.colors.surfaceElevated });
+        SD.push({ render: function(ctx) {
+          emptyShell.render(ctx);
+          const c = emptyShell.contentRect();
+          R.roundRect(ctx, c.x + c.w / 2 - 18, c.y + 4, 36, 36, 18, R.colors.accentMuted);
+          R.textCenter(ctx, '◇', c.x + c.w / 2, c.y + 29, R.colors.accent, R.fonts.lg);
+          R.textCenter(ctx, 'Your inventory is quiet', c.x + c.w / 2, c.y + 58, R.colors.textPrimary, R.fonts.md);
+          R.textCenter(ctx, equipmentFitText(ctx, 'Find equipment on the road, then return here to equip it.', c.w - 16, R.fonts.sm), c.x + c.w / 2, c.y + 78, R.colors.textSecondary, R.fonts.sm);
+        }});
+        y += 144;
       }
 
       for (let i = 0; i < items.length; i++) {
@@ -100,22 +130,18 @@ const equipmentScene = Scene.create({
         btn._index = i;
         btn.render = function(ctx) {
           const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-          R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.surface);
-          ctx.strokeStyle = 'rgba(232,160,48,0.08)';
+          R.roundRect(ctx, bx, by, bw, bh, R.radius.m, R.colors.surface);
+          ctx.strokeStyle = R.colors.borderHairline;
           ctx.lineWidth = 1;
           ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
-          R.text(ctx, this._item.name, bx + 10, by + 14, getLootColor(this._item.rarity), R.fonts.md);
-          R.text(ctx, this._item.rarityName, bx + 10, by + 28, R.colors.textDim, R.fonts.sm);
+          R.text(ctx, equipmentFitText(ctx, this._item.name, bw - 20, R.fonts.md), bx + 10, by + 18, getLootColor(this._item.rarity), R.fonts.md);
+          R.text(ctx, equipmentFitText(ctx, this._item.rarityName, bw - 20, R.fonts.md), bx + 10, by + 36, R.colors.textSecondary, R.fonts.md);
           const stats = [];
           if (this._item.atk) stats.push('ATK+' + this._item.atk);
           if (this._item.def) stats.push('DEF+' + this._item.def);
           if (this._item.mag) stats.push('MAG+' + this._item.mag);
-          R.text(ctx, stats.join(' '), bx + bw - 10, by + 14, R.colors.gold, R.fonts.sm);
-          ctx.textAlign = 'right';
-          ctx.fillStyle = R.colors.textDim;
-          ctx.font = R.fonts.sm;
-          ctx.fillText(this._item.type.toUpperCase(), bx + bw - 10, by + 28);
-          ctx.textAlign = 'left';
+          R.textRight(ctx, equipmentFitText(ctx, stats.join(' '), bw - 20, R.fonts.sm), bx + bw - 10, by + 58, R.colors.accent, R.fonts.sm);
+          R.textRight(ctx, this._item.type.toUpperCase(), bx + bw - 10, by + 76, R.colors.textSecondary, R.fonts.md);
         };
         btn.onClick = function() {
           equipmentScene.data.selectedItem = this._item;
@@ -134,20 +160,20 @@ const equipmentScene = Scene.create({
         const slots = ['weapon', 'armor', 'accessory'];
         for (const slot of slots) {
           const equipped = hero[slot + 'Equipped'];
-          const btn = UI.Button(14, y, G.W - 28, 44, '', R.colors.surface); // 44px tall for touch target
+          const btn = UI.Button(14, y, G.W - 28, 56, '', R.colors.surface); // comfortable touch target
           btn._slot = slot;
           btn._item = equipped;
           btn.render = function(ctx) {
             const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-            R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.surface);
-            ctx.strokeStyle = 'rgba(232,160,48,0.08)';
+            R.roundRect(ctx, bx, by, bw, bh, R.radius.m, R.colors.surface);
+            ctx.strokeStyle = R.colors.borderHairline;
             ctx.lineWidth = 1;
             ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
-            R.text(ctx, this._slot.toUpperCase(), bx + 10, by + 14, R.colors.textDim, R.fonts.sm);
+            R.text(ctx, this._slot.toUpperCase(), bx + 10, by + 18, R.colors.textSecondary, R.fonts.sm);
             if (this._item) {
-              R.text(ctx, this._item.name, bx + 10, by + 28, getLootColor(this._item.rarity), R.fonts.md);
+              R.text(ctx, equipmentFitText(ctx, this._item.name, bw - 20, R.fonts.md), bx + 10, by + 40, getLootColor(this._item.rarity), R.fonts.md);
             } else {
-              R.text(ctx, 'Empty', bx + 10, by + 28, R.colors.textDark, R.fonts.md);
+              R.text(ctx, 'Empty', bx + 10, by + 40, R.colors.textDim, R.fonts.md);
             }
           };
           btn.onClick = function() {
@@ -156,7 +182,7 @@ const equipmentScene = Scene.create({
             }
           };
           this.data.buttons.push(btn);
-          y += 48; // 44px height + 4px gap
+          y += 60; // 56px height + 4px gap
         }
       }
     }
@@ -174,16 +200,16 @@ const equipmentScene = Scene.create({
           ['Level', hero.level]
         ];
         for (const [label, value] of stats) {
-          SD.push({ text: [label + ': ' + value, 22, y + 12, R.colors.text, R.fonts.md] });
-          y += 24; // increased spacing
+          SD.push({ text: [label + ': ' + value, 22, y + 14, R.colors.textPrimary, R.fonts.md] });
+          y += 28;
         }
       }
     }
 
-    // --- Back button (primary action, 38px minimum) ---
+    // --- Back button ---
     y += 10;
-    const backBtn = UI.BtnGold(60, y, G.W - 120, 38, 'Back'); // was 32px
-    backBtn.onClick = function() { gScene('ashram', true); };
+    const backBtn = UI.MagneticBtn(60, y, G.W - 120, 48, 'Back', { variant: 'primary' });
+    backBtn.onClick = function() { gScene('ashram', true, { restoreScroll: true }); };
     this.data.buttons.push(backBtn);
     y += 48;
 
@@ -235,7 +261,7 @@ const equipmentScene = Scene.create({
     if (!G.state.inventory) G.state.inventory = [];
     G.state.inventory.push(item);
     
-    Notify.show('Unequipped ' + item.name, 2, R.colors.text);
+    Notify.show('Unequipped ' + item.name, 2, R.colors.textPrimary);
     this.buildUI();
   },
 
@@ -247,9 +273,9 @@ const equipmentScene = Scene.create({
 
   render: function(ctx) {
     Scene.drawHeader(ctx, 104);
-    R.textCenter(ctx, 'Equipment', G.W / 2, 24, R.colors.gold, R.fonts.lg);
+    R.textCenter(ctx, 'Equipment', G.W / 2, 24, R.colors.accent, R.fonts.lg);
     if (this.data.selectedHero) {
-      R.textCenter(ctx, this.data.selectedHero.name + ' Lv.' + this.data.selectedHero.level, G.W / 2, 44, R.colors.text, R.fonts.sm);
+      R.textCenter(ctx, equipmentFitText(ctx, this.data.selectedHero.name + ' Lv.' + this.data.selectedHero.level, G.W - 40, R.fonts.sm), G.W / 2, 44, R.colors.textPrimary, R.fonts.sm);
     }
 
     const top = this.getContentTop();
@@ -261,6 +287,9 @@ const equipmentScene = Scene.create({
     ctx.globalAlpha = ctx.globalAlpha * fade;
     for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);
+    for (const draw of this.data.staticDraws) {
+      if (draw.render) draw.render(ctx);
+    }
     ctx.globalAlpha = 1;
 
     ctx.restore();

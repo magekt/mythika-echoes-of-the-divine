@@ -176,7 +176,7 @@ const bazaarScene = Scene.create({
     const back = isBuy
       ? UI.Button(G.W - 14 - footerButtonW, footerY, footerButtonW, 44, 'Back to Ashram', R.colors.btnGold)
       : UI.Button(G.W / 2 - 100, footerY, 200, 44, 'Back to Ashram', R.colors.btnGold);
-    back.onClick = function() { gScene('ashram', true); };
+    back.onClick = function() { gScene('ashram', true, { restoreScroll: true }); };
     this.data.buttons.push(back);
   },
 

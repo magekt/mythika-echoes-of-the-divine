@@ -98,8 +98,11 @@
   // opts: { label: 'Back to Ashram', target: 'ashram', fade: false }
   Scene.backButton = function(y, opts) {
     const o = opts || {};
+    const target = o.target || 'ashram';
     const btn = UI.Button(60, y, G.W - 120, 30, o.label || 'Back to Ashram', R.colors.btnGold);
-    btn.onClick = function() { gScene(o.target || 'ashram', !!o.fade); };
+    btn.onClick = function() {
+      gScene(target, !!o.fade, target === 'ashram' ? { restoreScroll: true } : undefined);
+    };
     return btn;
   };
 

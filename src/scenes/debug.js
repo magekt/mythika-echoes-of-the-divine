@@ -111,7 +111,7 @@ const debugScene = Scene.create({
     this.data.buttons.push(scrollDn);
 
     const back = UI.Button(290, 78, 70, 44, 'Back');
-    back.onClick = function() { gScene('ashram'); };
+    back.onClick = function() { gScene('ashram', false, { restoreScroll: true }); };
     this.data.buttons.push(back);
   },
 

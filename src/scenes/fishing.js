@@ -89,7 +89,7 @@ const fishingScene = Scene.create({
     this.data.buttons.push(cast);
     by += 44;
     const back = UI.MagneticBtn(G.W / 2 - 100, by, 200, 38, 'Back to Ashram', 'primary');
-    back.onClick = function() { gScene('ashram'); };
+    back.onClick = function() { gScene('ashram', false, { restoreScroll: true }); };
     this.data.buttons.push(back);
   },
 

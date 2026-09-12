@@ -121,7 +121,7 @@ const partyScene = Scene.create({
 
     // Back to Ashram button - Primary action (38px minimum height)
     const back = UI.Button(60, y + 6, G.W - 120, 38, 'Back to Ashram', R.colors.btnGold);
-    back.onClick = function() { gScene('ashram', true); };
+    back.onClick = function() { gScene('ashram', true, { restoreScroll: true }); };
     this.data.buttons.push(back);
     y += 48;
 

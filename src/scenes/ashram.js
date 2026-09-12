@@ -8,13 +8,12 @@ const ashramScene = Scene.create({
     contentHeight: 0
   },
 
-  enter: function() {
+  enter: function(options) {
     Hints.show('welcome', 'Welcome to your Ashram. Tap Travel to begin your journey.');
     if ((G.state.gold || 0) >= 100) Hints.show('bazaar', 'You have coin to spend — the Bazaar buys and sells gear.');
     Audio.playMusic('ashram');
-    this.data.scrollY = 0;
     this.data.popup = null;
-    this.buildMenu();
+    this.buildMenu(!!(options && options.restoreScroll));
     SaveSystem.startAutoSave();
   },
 
@@ -24,7 +23,6 @@ const ashramScene = Scene.create({
     this.data.buttons = [];
     this.data.navButtons = [];
     this.data.popup = null;
-    this.data.scrollY = 0;
   },
 
   navBarHeight: 44,
@@ -106,9 +104,9 @@ const ashramScene = Scene.create({
     }
   },
 
-  buildMenu: function() {
+  buildMenu: function(preserveScroll) {
     this.data.buttons = [];
-    this.data.scrollY = 0;
+    if (!preserveScroll) this.data.scrollY = 0;
     this.buildNavButtons();
 
     const sections = [
@@ -254,6 +252,7 @@ const ashramScene = Scene.create({
     }
 
     this.data.contentHeight = y + 20;
+    this.clampScroll();
   },
 
   update: function(dt) {

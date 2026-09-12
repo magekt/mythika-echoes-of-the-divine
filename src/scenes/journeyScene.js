@@ -1,3 +1,38 @@
+// Canvas text does not wrap by itself. Keep narrative copy inside its shell
+// rather than allowing long prompts to paint over the next panel.
+function journeyTextLines(ctx, text, maxWidth, font, maxLines) {
+  const lines = [];
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  ctx.save();
+  ctx.font = font;
+  let line = '';
+  for (let i = 0; i < words.length; i++) {
+    const next = line ? line + ' ' + words[i] : words[i];
+    if (ctx.measureText(next).width <= maxWidth || !line) {
+      line = next;
+      continue;
+    }
+    lines.push(line);
+    if (lines.length >= maxLines) {
+      line = '';
+      break;
+    }
+    line = words[i];
+  }
+  if (line && lines.length < maxLines) lines.push(line);
+  if (lines.length === maxLines && lines.join(' ').split(/\s+/).length < words.length) {
+    let last = lines[lines.length - 1];
+    while (last.length > 1 && ctx.measureText(last + '\u2026').width > maxWidth) last = last.slice(0, -1);
+    lines[lines.length - 1] = last.replace(/\s+\S*$/, '') + '\u2026';
+  }
+  ctx.restore();
+  return lines.length ? lines : [''];
+}
+
+function journeyFitText(ctx, text, maxWidth, font) {
+  return journeyTextLines(ctx, text, maxWidth, font, 1)[0];
+}
+
 const journeyScene = Scene.create({
   name: 'journeyScene',
   data: {
@@ -73,13 +108,14 @@ const journeyScene = Scene.create({
         const prog = j.progress;
         const isCompleted = prog.completed;
         const isActive = j.id === selId;
-        const statusColor = isCompleted ? R.colors.green : (prog.nodeId ? R.colors.gold : R.colors.textDim);
+        const statusColor = isCompleted ? R.colors.success : (prog.nodeId ? R.colors.accent : R.colors.textDim);
         const statusText = isCompleted ? 'Completed' : (prog.nodeId ? 'In Progress' : 'Available');
         
-        // Use PremiumShell for journey cards (86px height per design system)
-        const shell = UI.PremiumShell(14, y, G.W-28, 86, { outerR: 8 });
+        // A single readable column gives the narrative room on narrow screens.
+        const cardH = 96;
+        const shell = UI.PremiumShell(14, y, G.W-28, cardH, { outerR: 8 });
         
-        const btn = UI.Button(14, y, G.W-28, 86, '', 'transparent');
+        const btn = UI.Button(14, y, G.W-28, cardH, '', R.colors.surface);
         btn._journeyId = j.id;
         btn._shell = shell;
         btn._journey = j;
@@ -92,15 +128,18 @@ const journeyScene = Scene.create({
           const content = this._shell.contentRect();
           
           // Accent bar
-          const accentColor = this._isCompleted ? R.colors.success : (this._journey.progress.nodeId ? R.colors.gold : R.colors.textDim);
+          const accentColor = this._isCompleted ? R.colors.success : (this._journey.progress.nodeId ? R.colors.accent : R.colors.textDim);
           R.roundRect(ctx, content.x, content.y, content.w, R.radius.s, R.radius.s, accentColor);
           
-          // Icon and name
-          R.text(ctx, this._journey.icon + '  ' + this._journey.name, content.x + 12, content.y + 16, R.colors.gold, R.fonts.md);
-          // Description
-          R.text(ctx, this._journey.desc, content.x + 12, content.y + 32, R.colors.textDim, R.fonts.sm);
-          // Status
-          R.text(ctx, this._statusText, content.x + content.w - 8, content.y + 16, this._statusColor, R.fonts.sm, 'right');
+          // Keep the status column clear of the title on compact devices.
+          const statusW = 76;
+          const titleW = Math.max(100, content.w - statusW - 16);
+          R.text(ctx, this._journey.icon + '  ' + journeyFitText(ctx, this._journey.name, titleW, R.fonts.md), content.x + 12, content.y + 18, R.colors.accent, R.fonts.md);
+          R.textRight(ctx, this._statusText, content.x + content.w - 10, content.y + 18, this._statusColor, R.fonts.sm);
+          const descLines = journeyTextLines(ctx, this._journey.desc, content.w - 24, R.fonts.sm, 2);
+          for (let li = 0; li < descLines.length; li++) {
+            R.text(ctx, descLines[li], content.x + 12, content.y + 40 + li * 14, R.colors.textSecondary, R.fonts.sm);
+          }
         };
         btn.onClick = function() {
           journeyScene.data.selectedId = this._journeyId;
@@ -112,22 +151,25 @@ const journeyScene = Scene.create({
           journeyScene.buildUI();
         };
         this.data.buttons.push(btn);
-        y += 94;
+        y += cardH + 10;
       }
     } else {
       // Detail view for selected journey
       const node = JourneySystem.getCurrentNode(selId);
       // Header card with PremiumShell
-      const headerShell = UI.PremiumShell(14, y, G.W-28, 86, { outerR: 8 });
+      const headerShell = UI.PremiumShell(14, y, G.W-28, 96, { outerR: 8 });
       SD.push({
         render: function(ctx) {
           headerShell.render(ctx);
           const headerContent = headerShell.contentRect();
-          R.text(ctx, sel.icon + '  ' + sel.name, headerContent.x + 12, headerContent.y + 16, R.colors.gold, R.fonts.md);
-          R.text(ctx, sel.desc, headerContent.x + 12, headerContent.y + 36, R.colors.textDim, R.fonts.sm);
+          R.text(ctx, sel.icon + '  ' + journeyFitText(ctx, sel.name, headerContent.w - 24, R.fonts.md), headerContent.x + 12, headerContent.y + 18, R.colors.accent, R.fonts.md);
+          const descLines = journeyTextLines(ctx, sel.desc, headerContent.w - 24, R.fonts.sm, 2);
+          for (let li = 0; li < descLines.length; li++) {
+            R.text(ctx, descLines[li], headerContent.x + 12, headerContent.y + 42 + li * 14, R.colors.textSecondary, R.fonts.sm);
+          }
         }
       });
-      y += 90;
+      y += 100;
       
       if (!node) {
         // Completed
@@ -136,26 +178,33 @@ const journeyScene = Scene.create({
           render: function(ctx) {
             completeShell.render(ctx);
             const cc = completeShell.contentRect();
-            R.textCenter(ctx, 'Journey Complete!', cc.x + cc.w/2, cc.y + 20, R.colors.green, R.fonts.md);
+            R.textCenter(ctx, 'Journey Complete!', cc.x + cc.w/2, cc.y + 20, R.colors.success, R.fonts.md);
             R.textCenter(ctx, 'Rewards have been claimed.', cc.x + cc.w/2, cc.y + 40, R.colors.textDim, R.fonts.sm);
           }
         });
         y += 90;
       } else {
-        // Prompt with PremiumShell
-        const promptShell = UI.PremiumShell(14, y, G.W-28, 86, { outerR: 8 });
+        // Derive the frame height from the copy so the narrative never
+        // collides with its border or the choices below it.
+        const promptLines = journeyTextLines(G.ctx, node.prompt, G.W - 64, R.fonts.md, 3);
+        const promptH = Math.max(92, 42 + promptLines.length * 16);
+        const promptShell = UI.PremiumShell(14, y, G.W-28, promptH, { outerR: 8 });
         SD.push({
           render: function(ctx) {
             promptShell.render(ctx);
             const pc = promptShell.contentRect();
-            R.textCenter(ctx, node.prompt, pc.x + pc.w/2, pc.y + 20, R.colors.text, R.fonts.md);
+            const lines = journeyTextLines(ctx, node.prompt, pc.w - 12, R.fonts.md, 3);
+            const startY = pc.y + Math.max(18, (pc.h - (lines.length - 1) * 16) / 2);
+            for (let li = 0; li < lines.length; li++) {
+              R.textCenter(ctx, lines[li], pc.x + pc.w / 2, startY + li * 16, R.colors.textPrimary, R.fonts.md);
+            }
           }
         });
-        y += 90;
+        y += promptH + 10;
         
         for (let idx=0; idx<node.choices.length; idx++) {
           const ch = node.choices[idx];
-          const btn = UI.MagneticBtn(14, y, G.W-28, 44, ch.text, { trailingIcon: 'arrow-right' });
+          const btn = UI.MagneticBtn(14, y, G.W-28, 48, journeyFitText(G.ctx, ch.text, G.W - 82, R.fonts.md), { trailingIcon: 'arrow-right' });
           btn._journeyId = selId;
           btn._choiceIdx = idx;
           btn.onClick = function() {
@@ -170,24 +219,30 @@ const journeyScene = Scene.create({
             }
           };
           this.data.buttons.push(btn);
-          y += 50;
+          y += 56;
         }
         y += 8;
       }
       // Back to list
-      const back = UI.MagneticBtn(60, y, G.W-120, 44, 'Back to Journeys', { trailingIcon: 'arrow-left' });
+      const back = UI.MagneticBtn(60, y, G.W-120, 48, 'Back to Journeys', { trailingIcon: 'arrow-left' });
       back.onClick = function() {
         journeyScene.data.selectedId = null;
         journeyScene.buildUI();
       };
       this.data.buttons.push(back);
-      y += 48;
+      y += 52;
     }
 
     // Global back
-    const back2 = Scene.backButton(y+6, { label: 'Back to Ashram', target: 'ashram', fade: true });
+    // Keep bottom navigation as a full-size magnetic target. The shared
+    // Scene.backButton predates the 44px touch-target standard.
+    const back2 = UI.MagneticBtn(60, y + 6, G.W - 120, 48, 'Back to Ashram', {
+      trailingIcon: 'arrow-left',
+      variant: 'ghost'
+    });
+    back2.onClick = function() { gScene('ashram', true, { restoreScroll: true }); };
     this.data.buttons.push(back2);
-    y += 44;
+    y += 54;
     this.data.contentHeight = y - this.getContentTop();
   },
 
@@ -201,10 +256,10 @@ const journeyScene = Scene.create({
   render: function(ctx) {
     Scene.drawHeader(ctx, 74, 'Journeys', 22);
     const sub = this.data.selectedId ? (JOURNEYS[this.data.selectedId] ? JOURNEYS[this.data.selectedId].name : '') : 'Your paths, your choices';
-    R.textCenter(ctx, sub, G.W/2, 46, R.colors.textDim, R.fonts.sm);
+    R.textCenter(ctx, sub, G.W/2, 46, R.colors.textSecondary, R.fonts.sm);
     if (G.state.journeys && G.state.journeys.active) {
       const activeName = JOURNEYS[G.state.journeys.active] ? JOURNEYS[G.state.journeys.active].name : G.state.journeys.active;
-      R.textCenter(ctx, 'Active: ' + activeName, G.W/2, 62, R.colors.green, R.fonts.sm);
+      R.textCenter(ctx, 'Active: ' + activeName, G.W/2, 62, R.colors.success, R.fonts.sm);
     }
     const top = this.getContentTop();
     Scene.clipContent(ctx, this);

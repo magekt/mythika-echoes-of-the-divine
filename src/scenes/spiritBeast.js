@@ -96,7 +96,7 @@ const spiritBeastScene = Scene.create({
     this.data.buttons.push(deactivate);
 
     const back = UI.MagneticBtn((G.W - 42) / 2 + 18, y + 4, (G.W - 42) / 2, 38, 'Back to Ashram', R.colors.btnGold);
-    back.onClick = function() { gScene('ashram'); };
+    back.onClick = function() { gScene('ashram', false, { restoreScroll: true }); };
     this.data.buttons.push(back);
     y += 48; // 38px button + 8px gap + 2px adjustment
 

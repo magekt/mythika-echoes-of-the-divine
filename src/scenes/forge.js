@@ -1,3 +1,16 @@
+function forgeFitText(ctx, text, maxWidth, font) {
+  ctx.save();
+  ctx.font = font;
+  let value = String(text || '');
+  if (ctx.measureText(value).width <= maxWidth) {
+    ctx.restore();
+    return value;
+  }
+  while (value.length > 1 && ctx.measureText(value + '\u2026').width > maxWidth) value = value.slice(0, -1);
+  ctx.restore();
+  return value.replace(/\s+\S*$/, '') + '\u2026';
+}
+
 const forgeScene = Scene.create({
   name: 'forge',
   data: {
@@ -27,7 +40,7 @@ const forgeScene = Scene.create({
     this.data.scrollY = 0;
   },
 
-  getContentTop: function() { return 86; },
+  getContentTop: function() { return 104; },
   getContentHeight: function() { return G.H - this.getContentTop(); },
 
   clampScroll: function() {
@@ -45,31 +58,37 @@ const forgeScene = Scene.create({
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
-    // 3-column grid: 14px margin, 8px gap, 86px cards
-    const gridCols = 3;
-    const gridGap = 8;
+    // One-column hero cards keep names and upgrade levels legible on mobile.
+    const gridGap = 10;
     const mx = 14;
-    const cw = (G.W - mx * 2 - gridGap * (gridCols - 1)) / gridCols;
-    const ch = 86; // card height per design system
+    const cw = G.W - mx * 2;
+    const ch = 108;
 
     for (let i = 0; i < G.state.party.length; i++) {
       const hero = G.state.party[i];
-      const col = i % gridCols;
-      const row = Math.floor(i / gridCols);
-      const btn = UI.Button(mx + col * (cw + gridGap), y + row * (ch + gridGap), cw, ch, '', R.colors.panel);
+      const by = y + i * (ch + gridGap);
+      const shell = UI.PremiumShell(mx, by, cw, ch, { outerR: 10, innerBg: R.colors.surfaceElevated });
+      const btn = UI.Button(mx, by, cw, ch, '', R.colors.surfaceElevated);
       btn._hero = hero;
+      btn._shell = shell;
       btn.render = function(ctx) {
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-        R.roundRect(ctx, bx, by, bw, bh, R.radius.m, R.colors.surface);
-        ctx.strokeStyle = 'rgba(232,160,48,0.08)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
-        R.drawHero(ctx, this._hero.id, bx + 10, by + 14, 24);
-        R.text(ctx, this._hero.name + ' \u2014 Lv.' + this._hero.level, bx + 40, by + 28, R.colors.gold, R.fonts.md);
-        R.text(ctx, 'Wpn Lv.' + this._hero.weaponLvl + ' | Arm Lv.' + this._hero.armorLvl + ' | Acc Lv.' + this._hero.accessoryLvl, bx + 40, by + 52, R.colors.textDim, R.fonts.sm);
-        // Crafting badge in top-right
-        R.roundRect(ctx, bx + bw - 14, by + 6, 12, 12, 6, R.colors.red);
-        R.textCenter(ctx, 'U', bx + bw - 10, by + 12, R.colors.white, R.fonts.xs);
+        this._shell.render(ctx);
+        const content = this._shell.contentRect();
+        const iconX = content.x + 22;
+        const iconY = content.y + 12;
+        R.drawHero(ctx, this._hero.id, iconX, iconY, 32);
+        const copyX = content.x + 68;
+        const copyW = content.w - 82;
+        // Establish a clear title-to-metadata hierarchy inside the shell.
+        R.text(ctx, forgeFitText(ctx, this._hero.name, copyW - 48, R.fonts.lg), copyX, content.y + 18, R.colors.accent, R.fonts.lg);
+        R.textRight(ctx, 'Lv.' + this._hero.level, content.x + content.w - 10, content.y + 18, R.colors.text, R.fonts.md);
+        R.text(ctx, 'Weapon  ' + this._hero.weaponLvl + '   Armor  ' + this._hero.armorLvl, copyX, content.y + 40, R.colors.text, R.fonts.md);
+        R.text(ctx, 'Accessory  ' + this._hero.accessoryLvl, copyX, content.y + 56, R.colors.text, R.fonts.md);
+        R.text(ctx, 'Choose a hero to tune their gear', copyX, content.y + 76, R.colors.textSecondary, R.fonts.md);
+        // Upgrade marker, kept inside the shell and away from the title.
+        R.roundRect(ctx, content.x + content.w - 24, content.y + content.h - 18, 14, 14, 7, R.colors.danger);
+        R.textCenter(ctx, 'U', content.x + content.w - 17, content.y + content.h - 7, R.colors.textPrimary, R.fonts.xs);
       };
       btn.onClick = function() {
         const h = this._hero;
@@ -79,18 +98,28 @@ const forgeScene = Scene.create({
       };
       this.data.buttons.push(btn);
     }
-    y += Math.ceil(G.state.party.length / gridCols) * (ch + gridGap);
+    y += G.state.party.length * (ch + gridGap);
 
     // Empty state
     if (G.state.party.length === 0) {
-      SD.push({ textCenter: ['No heroes yet.', G.W / 2, y + 22, R.colors.text, R.fonts.md] });
-      SD.push({ textCenter: ['Recruit your first hero at the Party hall.', G.W / 2, y + 40, R.colors.textDim, R.fonts.sm] });
-      y += 56;
+      const emptyShell = UI.PremiumShell(14, y, G.W - 28, 132, { outerR: 10 });
+      SD.push({ render: function(ctx) {
+        emptyShell.render(ctx);
+        const c = emptyShell.contentRect();
+        R.textCenter(ctx, 'Forge awaits its first champion', c.x + c.w / 2, c.y + 30, R.colors.accent, R.fonts.md);
+        R.textCenter(ctx, forgeFitText(ctx, 'Recruit a hero at the Party hall to begin upgrading gear.', c.w - 16, R.fonts.sm), c.x + c.w / 2, c.y + 52, R.colors.textSecondary, R.fonts.sm);
+      }});
+      y += 144;
     }
 
-    // Back button - 38px minimum for primary action
-    this.data.buttons.push(Scene.backButton(y + 6, { fade: true }));
-    y += 44;
+    // Full-size magnetic navigation target; the shared helper is 30px tall.
+    const back = UI.MagneticBtn(60, y + 6, G.W - 120, 48, 'Back to Ashram', {
+      trailingIcon: 'arrow-left',
+      variant: 'primary'
+    });
+    back.onClick = function() { gScene('ashram', true, { restoreScroll: true }); };
+    this.data.buttons.push(back);
+    y += 54;
 
     this.data.contentHeight = y;
   },
@@ -103,9 +132,16 @@ const forgeScene = Scene.create({
 
     this.data.staticDraws = [];
     const SD = this.data.staticDraws;
-    const infoStr = 'Upgrading: ' + hero.name + '  |  Gold: ' + (G.state.gold || 0) + 'g';
-    SD.push({ text: [infoStr, 18, y + 4, R.colors.text, R.fonts.sm] });
-    y += 20;
+    const infoShell = UI.PremiumShell(14, y, G.W - 28, 72, { outerR: 10, innerBg: R.colors.surfaceElevated });
+    SD.push({ render: function(ctx) {
+      infoShell.render(ctx);
+      const c = infoShell.contentRect();
+      R.text(ctx, 'UPGRADING', c.x + 12, c.y + 16, R.colors.textSecondary, R.fonts.md);
+      R.text(ctx, forgeFitText(ctx, hero.name, c.w - 92, R.fonts.lg), c.x + 12, c.y + 36, R.colors.accent, R.fonts.lg);
+      R.textRight(ctx, (G.state.gold || 0) + 'g', c.x + c.w - 12, c.y + 28, R.colors.textPrimary, R.fonts.md);
+      R.textRight(ctx, 'Gold', c.x + c.w - 12, c.y + 44, R.colors.textSecondary, R.fonts.md);
+    }});
+    y += 84;
 
     const slots = [
       { id: 'weapon', label: 'Weapon (' + Scene.gearLabel(hero.weaponEquipped) + ' Lv.' + hero.weaponLvl + ')', cost: this.data.upgradeCosts.weapon },
@@ -115,18 +151,20 @@ const forgeScene = Scene.create({
 
     for (const slot of slots) {
       const canAfford = (G.state.gold || 0) >= slot.cost;
-      // 38px minimum for primary action buttons (BtnGold requirement)
-      const btn = UI.Button(14, y, G.W - 28, 38, '', canAfford ? R.colors.btnGold : R.colors.btn);
+      // Keep upgrade choices comfortably tappable while preserving the
+      // existing cost and economy behavior.
+      const btn = UI.Button(14, y, G.W - 28, 52, '', canAfford ? R.colors.accent : R.colors.surfaceElevated);
       btn._slot = slot;
       btn._canAfford = canAfford;
       btn.render = function(ctx) {
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-        const col = this._canAfford ? R.colors.btnGold : R.colors.btn;
-        R.roundRect(ctx, bx, by, bw, bh, R.radius.s, col);
+        const col = this._canAfford ? R.colors.accent : R.colors.surfaceElevated;
+        R.roundRect(ctx, bx, by, bw, bh, R.radius.m, col);
         if (!this._canAfford) ctx.globalAlpha = 0.5;
-        R.roundRect(ctx, bx, by, 4, bh, 0, R.colors.gold);
-        R.text(ctx, this._slot.label, bx + 14, by + 14, R.colors.text, R.fonts.sm);
-        R.text(ctx, 'Cost: ' + this._slot.cost + 'g', bx + 14, by + 24, this._canAfford ? R.colors.gold : R.colors.red, R.fonts.sm);
+        R.roundRect(ctx, bx, by, 4, bh, 0, R.colors.accent);
+        const label = forgeFitText(ctx, this._slot.label, bw - 120, R.fonts.md);
+        R.text(ctx, label, bx + 14, by + 22, this._canAfford ? R.colors.textPrimary : R.colors.textSecondary, R.fonts.md);
+        R.textRight(ctx, 'Cost ' + this._slot.cost + 'g', bx + bw - 14, by + 22, this._canAfford ? R.colors.textPrimary : R.colors.danger, R.fonts.md);
         ctx.globalAlpha = 1;
       };
       btn.onClick = function() {
@@ -134,18 +172,21 @@ const forgeScene = Scene.create({
         forgeScene.upgradeSlot(s.id);
       };
       this.data.buttons.push(btn);
-      y += 44; // step between slot options
+      y += 60; // step between slot options
     }
 
-    // Back button - BtnGold 38px+ primary action
-    const back = UI.Button(60, y + 8, G.W - 120, 38, 'Back to Heroes', R.colors.btnGold);
+    // Back button - BtnGold, 44px primary action
+    const back = UI.MagneticBtn(60, y + 8, G.W - 120, 48, 'Back to Heroes', {
+      trailingIcon: 'arrow-left',
+      variant: 'secondary'
+    });
     back.onClick = function() {
       forgeScene.data.selectedHero = null;
       forgeScene.data.scrollY = 0;
       forgeScene.buildHeroList();
     };
     this.data.buttons.push(back);
-    y += 44;
+    y += 56;
 
     this.data.contentHeight = y;
   },
@@ -173,12 +214,13 @@ const forgeScene = Scene.create({
   },
 
   render: function(ctx) {
-    Scene.drawHeader(ctx, 86, 'Forge', 22);
-    R.textCenter(ctx, 'Gold: ' + (G.state.gold || 0) + 'g', G.W / 2, 66, R.colors.gold, R.fonts.sm);
+    Scene.drawHeader(ctx, 96);
+    R.textCenter(ctx, 'Forge', G.W / 2, 32, R.colors.accent, R.fonts.xl);
+    R.textCenter(ctx, 'Gold: ' + (G.state.gold || 0) + 'g', G.W / 2, 66, R.colors.accent, R.fonts.md);
     if (this.data.selectedHero) {
-      R.textCenter(ctx, 'Upgrading: ' + this.data.selectedHero.name, G.W / 2, 86, R.colors.text, R.fonts.sm);
+      R.textCenter(ctx, forgeFitText(ctx, 'Upgrading: ' + this.data.selectedHero.name, G.W - 40, R.fonts.md), G.W / 2, 86, R.colors.textPrimary, R.fonts.md);
     } else {
-      R.textCenter(ctx, 'Select a hero to upgrade:', G.W / 2, 86, R.colors.text, R.fonts.sm);
+      R.textCenter(ctx, 'Select a hero to upgrade:', G.W / 2, 86, R.colors.textPrimary, R.fonts.md);
     }
 
     const top = this.getContentTop();
@@ -187,6 +229,9 @@ const forgeScene = Scene.create({
     for (const b of this.data.buttons) b.render(ctx);
     UI.HUD().render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);
+    for (const draw of this.data.staticDraws) {
+      if (draw.render) draw.render(ctx);
+    }
 
     ctx.restore();
 

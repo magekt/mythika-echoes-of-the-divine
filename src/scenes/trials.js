@@ -43,7 +43,7 @@ const trialsScene = Scene.create({
 
   buildLocked: function() {
     const back = UI.BtnGold(60, G.H - 68, G.W - 120, 44, 'Back to Ashram');
-    back.onClick = function() { gScene('ashram', true); };
+    back.onClick = function() { gScene('ashram', true, { restoreScroll: true }); };
     this.data.buttons.push(back);
   },
 
@@ -62,7 +62,7 @@ const trialsScene = Scene.create({
     btn.onClick = function() { trialsScene.startRun(); };
     this.data.buttons.push(btn);
     const back = UI.BtnGold(60, G.H - 68, G.W - 120, 44, 'Back to Ashram');
-    back.onClick = function() { gScene('ashram', true); };
+    back.onClick = function() { gScene('ashram', true, { restoreScroll: true }); };
     this.data.buttons.push(back);
   },
 
@@ -224,7 +224,7 @@ const trialsScene = Scene.create({
     };
     this.data.buttons.push(btn);
     const back = UI.BtnGold(60, G.H - 88, G.W - 120, 44, 'Back to Ashram');
-    back.onClick = function() { gScene('ashram', true); };
+    back.onClick = function() { gScene('ashram', true, { restoreScroll: true }); };
     this.data.buttons.push(back);
   },
 

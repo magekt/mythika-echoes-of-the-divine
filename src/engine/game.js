@@ -129,14 +129,16 @@ const Fade = {
       if ((dir > 0 && this.alpha >= this.target) || (dir < 0 && this.alpha <= this.target)) {
         this.alpha = this.target;
         if (this.pendingScene) {
-          const name = this.pendingScene;
+          const pending = this.pendingScene;
+          const name = typeof pending === 'string' ? pending : pending.name;
+          const enterOptions = typeof pending === 'string' ? undefined : pending.enterOptions;
           this.pendingScene = null;
           Input.clear();
           UI.Modal.clearAll();
           if (G.currentScene && G.currentScene.leave) G.currentScene.leave();
           G.currentScene = G.scenes[name];
           G.state.scene = name;
-          safeEnter(G.currentScene);
+          safeEnter(G.currentScene, enterOptions);
           // Asymmetric legs: covering the screen is quick (150ms), the
           // reveal lets the new scene breathe (250ms).
           this.target = 0;
@@ -153,10 +155,10 @@ const Fade = {
       ctx.globalAlpha = 1;
     }
   },
-  toScene: function(name) {
+  toScene: function(name, enterOptions) {
     if (!name || !G.scenes[name]) return;
     if (this.pendingScene) return;
-    this.pendingScene = name;
+    this.pendingScene = { name: name, enterOptions: enterOptions };
     this.target = 1;
     this.speed = 6.7;
   }
@@ -426,9 +428,9 @@ function drawBackground() {
 
 // Scene enter() runs build code that can throw; a dead enter must never
 // leave a screen with zero buttons — log it, say so, keep the scene alive.
-function safeEnter(scene) {
+function safeEnter(scene, enterOptions) {
   try {
-    if (scene && scene.enter) scene.enter();
+    if (scene && scene.enter) scene.enter(enterOptions);
   } catch (err) {
     if (window.console && console.error) {
       console.error('[Mythika] enter error in ' + (G.state.scene || '?'), err);
@@ -437,17 +439,17 @@ function safeEnter(scene) {
   }
 }
 
-function gScene(name, fade) {
+function gScene(name, fade, enterOptions) {
   if (!G.scenes[name]) return;
   Input.clear();
   UI.Modal.clearAll();
   if (fade && G.currentScene) {
-    Fade.toScene(name);
+    Fade.toScene(name, enterOptions);
   } else {
     if (G.currentScene && G.currentScene.leave) G.currentScene.leave();
     G.currentScene = G.scenes[name];
     G.state.scene = name;
-    safeEnter(G.currentScene);
+    safeEnter(G.currentScene, enterOptions);
   }
 }
 
