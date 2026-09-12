@@ -1,3 +1,10 @@
+const BAIT_TIERS = [
+  { id: 0, name: 'No Bait', cost: 0, fishReq: 0, rareBonus: 0, windowBonus: 0, desc: 'Basic' },
+  { id: 1, name: 'Basic Bait', cost: 40, fishReq: 5, rareBonus: 0.06, windowBonus: 0.3, desc: '+6% rare, +0.3s' },
+  { id: 2, name: 'Quality Bait', cost: 120, fishReq: 20, rareBonus: 0.12, windowBonus: 0.6, desc: '+12% rare, +0.6s' },
+  { id: 3, name: 'Divine Bait', cost: 300, fishReq: 50, rareBonus: 0.20, windowBonus: 1.0, desc: '+20% rare, +1.0s' }
+];
+
 const fishingScene = Scene.create({
   name: 'fishing',
   data: {
@@ -155,11 +162,12 @@ const fishingScene = Scene.create({
         G.state.fishingBestStreak = Math.max(G.state.fishingBestStreak || 0, this.data.streak);
         const streakBonus = Math.floor(this.data.streak * 2);
         const baitBonus = Math.floor(bait.windowBonus * 5);
+        const reward = bonus + streakBonus + baitBonus;
         G.state.fishCaught = (G.state.fishCaught || 0) + 1;
-        Economy.addGold(bonus + streakBonus + baitBonus);
+        Economy.addGold(reward);
         Progression.addPartyXP(30 + baitBonus);
         AchievementSystem.check();
-        Notify.show('RARE CATCH! +' + (bonus + streakBonus + baitBonus) + ' Gold!', 3, R.colors.goldLight);
+        Notify.show('RARE CATCH! +' + reward + ' Gold!', 3, R.colors.goldLight);
         Audio.levelUp();
       } else {
         this.data.streak = 0;
@@ -174,11 +182,12 @@ const fishingScene = Scene.create({
         G.state.fishingBestStreak = Math.max(G.state.fishingBestStreak || 0, this.data.streak);
         const streakBonus = Math.floor(this.data.streak * 2);
         const baitBonus = Math.floor(bait.windowBonus * 3);
+        const reward = 5 + Math.floor(Math.random() * 10) + streakBonus + baitBonus;
         G.state.fishCaught = (G.state.fishCaught || 0) + 1;
-        Economy.addGold(5 + Math.floor(Math.random() * 10) + streakBonus + baitBonus);
+        Economy.addGold(reward);
         Progression.addPartyXP(8 + this.data.streak * 2 + baitBonus);
         AchievementSystem.check();
-        Notify.show('Caught a fish! +' + (5 + streakBonus + baitBonus + Math.floor(Math.random() * 10)) + ' Gold', 2);
+        Notify.show('Caught a fish! +' + reward + ' Gold', 2);
         Audio.click();
       } else if (diff < 50) {
         Economy.addGold(3);

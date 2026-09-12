@@ -52,8 +52,11 @@ const forgeScene = Scene.create({
     const cw = (G.W - mx * 2 - gridGap * (gridCols - 1)) / gridCols;
     const ch = 86; // card height per design system
 
-    for (const hero of G.state.party) {
-      const btn = UI.Button(mx, y, cw, ch, '', R.colors.panel);
+    for (let i = 0; i < G.state.party.length; i++) {
+      const hero = G.state.party[i];
+      const col = i % gridCols;
+      const row = Math.floor(i / gridCols);
+      const btn = UI.Button(mx + col * (cw + gridGap), y + row * (ch + gridGap), cw, ch, '', R.colors.panel);
       btn._hero = hero;
       btn.render = function(ctx) {
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
@@ -75,8 +78,8 @@ const forgeScene = Scene.create({
         forgeScene.buildSlotMenu();
       };
       this.data.buttons.push(btn);
-      y += ch + gridGap;
     }
+    y += Math.ceil(G.state.party.length / gridCols) * (ch + gridGap);
 
     // Empty state
     if (G.state.party.length === 0) {

@@ -64,7 +64,10 @@ const bazaarScene = Scene.create({
     this.data.buyList = null;
     this.data.sellList = null;
     const listY = 125;
-    const listH = G.H - listY - 50;
+    const footerY = G.H - 50;
+    const footerH = 56;
+    const listH = G.H - listY - footerH;
+    const footerButtonW = (G.W - 36) / 2;
 
     if (isBuy) {
       const buyItems = this.data.inventory;
@@ -122,7 +125,7 @@ const bazaarScene = Scene.create({
       list.setItems(buyItems);
       this.data.buyList = list;
 
-      const refreshBtn = UI.Button(20, G.H - 42, 140, 26, 'Refresh (10g)');
+      const refreshBtn = UI.Button(14, footerY, footerButtonW, 44, 'Refresh (10g)');
       refreshBtn.onClick = function() {
         if (Economy.spendGoldOrNotify(10)) {
           bazaarScene.generateInventory();
@@ -170,7 +173,9 @@ const bazaarScene = Scene.create({
       this.data.sellList = list;
     }
 
-    const back = UI.Button(G.W / 2 - 80, G.H - 40, 160, 26, 'Back to Ashram', R.colors.btnGold);
+    const back = isBuy
+      ? UI.Button(G.W - 14 - footerButtonW, footerY, footerButtonW, 44, 'Back to Ashram', R.colors.btnGold)
+      : UI.Button(G.W / 2 - 100, footerY, 200, 44, 'Back to Ashram', R.colors.btnGold);
     back.onClick = function() { gScene('ashram', true); };
     this.data.buttons.push(back);
   },
