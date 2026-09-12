@@ -7,12 +7,16 @@ const questLogScene = Scene.create({
     selectedChain: null,
     scrollY: 0,
     contentHeight: 0,
-    staticDraws: []
+    staticDraws: [],
+    _infoShell: null,
+    _chainShell: null
   },
 
   enter: function() {
     this.data.view = 'list';
     this.data.selectedQuest = null;
+    this.data._infoShell = null;
+    this.data._chainShell = null;
     QuestSystem.init();
     this.data.scrollY = 0;
     this.buildList();
@@ -25,6 +29,8 @@ const questLogScene = Scene.create({
     this.data.selectedQuest = null;
     this.data.selectedChain = null;
     this.data.scrollY = 0;
+    this.data._infoShell = null;
+    this.data._chainShell = null;
   },
 
   getContentTop: function() { return 74; },
@@ -183,8 +189,10 @@ buildList: function() {
     }
 
     y += 8;
-    this.data.buttons.push(Scene.backButton(y));
-    y += 44;
+    const back = UI.MagneticBtn(60, y, G.W - 120, 48, 'Back to Ashram');
+    back.onClick = function() { gScene('ashram', false, { restoreScroll: true }); };
+    this.data.buttons.push(back);
+    y += 56;
 
     this.data.contentHeight = y;
   },
@@ -203,8 +211,7 @@ buildList: function() {
     // Info card using PremiumShell: 86px height with double bezel
     const infoH = 86;
     const infoShell = UI.PremiumShell(10, y, G.W - 20, infoH, { outerR: 8 });
-    infoShell.render(ctx);
-    SD.push({ shell: infoShell });
+    this.data._infoShell = infoShell;
     y += 30; // padding inside premium shell
 
     txt(q.name, 22, y, R.colors.gold, R.fonts.lg);
@@ -227,7 +234,7 @@ buildList: function() {
     y += 10;
 
     if (prog.completed && !prog.claimed) {
-      const claimBtn = UI.BtnGold(60, y, G.W - 120, 36, 'Claim Reward');
+      const claimBtn = UI.BtnGold(60, y, G.W - 120, 44, 'Claim Reward');
       claimBtn.onClick = function() {
         QuestSystem.claim(q.id);
         questLogScene.data.view = 'list';
@@ -235,17 +242,17 @@ buildList: function() {
         questLogScene.buildList();
       };
       this.data.buttons.push(claimBtn);
-      y += 46;
+      y += 52;
     }
 
-    const back = UI.Button(60, y + 6, G.W - 120, 34, 'Back to Quests', R.colors.btnGold);
+    const back = UI.Button(60, y, G.W - 120, 44, 'Back to Quests', R.colors.btnGold);
     back.onClick = function() {
       questLogScene.data.view = 'list';
       questLogScene.data.scrollY = 0;
       questLogScene.buildList();
     };
     this.data.buttons.push(back);
-    y += 46;
+    y += 52;
 
     this.data.contentHeight = y;
   },
@@ -264,8 +271,7 @@ buildList: function() {
     // Chain header card: 86px height with panel bg and orange accent
     const headerH = 86;
     const headerShell = UI.PremiumShell(10, y, G.W - 20, headerH, { outerR: 8 });
-    headerShell.render(ctx);
-    SD.push({ shell: headerShell });
+    this.data._chainShell = headerShell;
     y += 30; // padding inside premium shell
 
     txt(chain.name, 22, y, R.colors.orange, R.fonts.lg);
@@ -327,7 +333,7 @@ buildList: function() {
     }
 
     if (prog.completed && !prog.claimed) {
-      const claimBtn = UI.BtnGold(60, y, G.W - 120, 36, 'Claim Chain Reward');
+      const claimBtn = UI.BtnGold(60, y, G.W - 120, 44, 'Claim Chain Reward');
       claimBtn.onClick = function() {
         QuestSystem.claimChain(chain.id);
         questLogScene.data.view = 'list';
@@ -335,22 +341,23 @@ buildList: function() {
         questLogScene.buildList();
       };
       this.data.buttons.push(claimBtn);
-      y += 46;
+      y += 52;
     }
 
-    const back = UI.Button(60, y + 6, G.W - 120, 34, 'Back to Quests', R.colors.btnGold);
+    const back = UI.Button(60, y, G.W - 120, 44, 'Back to Quests', R.colors.btnGold);
     back.onClick = function() {
       questLogScene.data.view = 'list';
       questLogScene.data.scrollY = 0;
       questLogScene.buildList();
     };
     this.data.buttons.push(back);
-    y += 46;
+    y += 52;
 
     this.data.contentHeight = y;
   },
 
   update: function(dt) {
+    if (UI.Modal.active) { UI.Modal.handleInput(); return; }
     Scene.scrollInput(this);
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
@@ -364,6 +371,9 @@ buildList: function() {
     Scene.clipContent(ctx, this);
 
     Scene.drawStatic(ctx, this.data.staticDraws);
+
+    if (this.data._infoShell) this.data._infoShell.render(ctx);
+    if (this.data._chainShell) this.data._chainShell.render(ctx);
 
     for (const b of this.data.buttons) b.render(ctx);
     UI.HUD().render(ctx);
