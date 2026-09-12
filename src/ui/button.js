@@ -125,6 +125,171 @@ UI.BtnWide = function(x, y, text) {
   return UI.Button(x, y, 160, 32, text);
 };
 
+// Canvas field with a native input overlay. Canvas owns the visual shell so
+// fields keep the same immediate-mode styling as the rest of the game, while
+// the native control provides reliable mobile keyboards, selection and IME
+// behaviour. The overlay is positioned in logical game coordinates; the game
+// container's scale transform then keeps it aligned with the canvas.
+UI.Input = function(x, y, w, h, value, options) {
+  const config = typeof options === 'boolean' ? { password: options } : (options || {});
+  const field = {
+    x, y, w, h: Math.max(44, h || 44),
+    value: value == null ? '' : String(value),
+    label: config.label || '',
+    placeholder: config.placeholder || '',
+    password: !!config.password,
+    type: config.type || (config.password ? 'password' : 'text'),
+    autocomplete: config.autocomplete || (config.password ? 'current-password' : 'off'),
+    inputMode: config.inputMode || (config.type === 'tel' ? 'tel' : undefined),
+    error: config.error || '',
+    enabled: config.enabled !== false,
+    visible: true,
+    scrollY: 0,
+    viewportTop: config.viewportTop || 0,
+    viewportBottom: config.viewportBottom || (typeof G !== 'undefined' ? G.H : 720),
+    _focused: false,
+    _dom: null,
+    _destroyed: false,
+    onChange: config.onChange || null,
+    onSubmit: config.onSubmit || null,
+    onFocus: config.onFocus || null,
+    onBlur: config.onBlur || null,
+
+    contains: function(px, py) {
+      return px >= this.x && px <= this.x + this.w &&
+        py >= this.y && py <= this.y + this.h;
+    },
+
+    _syncDom: function() {
+      const el = this._dom;
+      if (!el || this._destroyed) return;
+      const container = document.getElementById('game-container');
+      if (!container) return;
+
+      const top = this.y - (this.scrollY || 0);
+      const inViewport = this.visible && this.enabled &&
+        top >= this.viewportTop && top + this.h <= this.viewportBottom;
+      el.classList.toggle('is-hidden', !inViewport);
+      el.setAttribute('aria-hidden', inViewport ? 'false' : 'true');
+      if (!inViewport) return;
+
+      el.style.left = this.x + 'px';
+      el.style.top = top + 'px';
+      el.style.width = this.w + 'px';
+      el.style.height = this.h + 'px';
+      if (el.value !== this.value && document.activeElement !== el) el.value = this.value;
+      el.disabled = !this.enabled;
+    },
+
+    render: function(ctx) {
+      if (!this.visible) {
+        this._syncDom();
+        return;
+      }
+
+      const fieldY = this.y;
+      const focused = this._focused;
+      const hasError = !!this.error;
+      R.roundRect(ctx, this.x, fieldY, this.w, this.h, R.radius.m, R.colors.surfaceElevated);
+      ctx.strokeStyle = hasError ? R.colors.danger : (focused ? R.colors.borderFocus : R.colors.borderHairline);
+      ctx.lineWidth = focused || hasError ? 2 : 1;
+      ctx.strokeRect(this.x + 0.5, fieldY + 0.5, this.w - 1, this.h - 1);
+
+      if (this.label) {
+        R.text(ctx, this.label, this.x + 14, fieldY + 15, focused ? R.colors.accent : R.colors.textSecondary, R.fonts.xs);
+      }
+      if (!this.value && !focused && this.placeholder) {
+        R.text(ctx, this.placeholder, this.x + 14, fieldY + this.h - 12, R.colors.textDim, R.fonts.md);
+      }
+      if (hasError) {
+        R.textRight(ctx, this.error, this.x + this.w - 12, fieldY + this.h - 12, R.colors.danger, R.fonts.xs);
+      }
+      this._syncDom();
+    },
+
+    update: function() {
+      this._syncDom();
+    },
+
+    focus: function() {
+      if (this._dom && this.enabled) this._dom.focus();
+    },
+
+    blur: function() {
+      if (this._dom) this._dom.blur();
+    },
+
+    setValue: function(next) {
+      this.value = next == null ? '' : String(next);
+      if (this._dom && document.activeElement !== this._dom) this._dom.value = this.value;
+    },
+
+    setError: function(message) {
+      this.error = message || '';
+      if (this._dom) this._dom.setAttribute('aria-invalid', this.error ? 'true' : 'false');
+    },
+
+    destroy: function() {
+      this._destroyed = true;
+      if (this._dom) {
+        this._dom.removeEventListener('input', this._onInput);
+        this._dom.removeEventListener('change', this._onChange);
+        this._dom.removeEventListener('focus', this._onFocus);
+        this._dom.removeEventListener('blur', this._onBlur);
+        this._dom.removeEventListener('keydown', this._onKeyDown);
+        if (this._dom.parentNode) this._dom.parentNode.removeChild(this._dom);
+      }
+      this._dom = null;
+    }
+  };
+
+  if (typeof document !== 'undefined') {
+    const container = document.getElementById('game-container');
+    if (container) {
+      const el = document.createElement('input');
+      el.className = 'auth-input-overlay is-hidden';
+      el.type = field.type;
+      el.autocomplete = field.autocomplete;
+      el.value = field.value;
+      el.setAttribute('aria-label', field.label || field.placeholder || 'Text input');
+      el.setAttribute('aria-invalid', field.error ? 'true' : 'false');
+      el.spellcheck = false;
+      if (field.inputMode) el.inputMode = field.inputMode;
+      field._onInput = function() {
+        field.value = el.value;
+        if (field.onChange) field.onChange(field.value);
+      };
+      field._onChange = function() {
+        if (field.value !== el.value) field._onInput();
+      };
+      field._onFocus = function() {
+        field._focused = true;
+        if (field.onFocus) field.onFocus(field);
+      };
+      field._onBlur = function() {
+        field._focused = false;
+        if (field.onBlur) field.onBlur(field);
+      };
+      field._onKeyDown = function(event) {
+        if (event.key === 'Enter' && field.onSubmit) {
+          event.preventDefault();
+          field.onSubmit(field.value, event);
+        }
+      };
+      el.addEventListener('input', field._onInput);
+      el.addEventListener('change', field._onChange);
+      el.addEventListener('focus', field._onFocus);
+      el.addEventListener('blur', field._onBlur);
+      el.addEventListener('keydown', field._onKeyDown);
+      container.appendChild(el);
+      field._dom = el;
+      field._syncDom();
+    }
+  }
+
+  return field;
+};
+
 UI.makeTooltip = function(ctx, text, x, y) {
   const lines = text.split('\n');
   const lineH = 16;

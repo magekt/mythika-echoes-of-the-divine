@@ -12,8 +12,8 @@
 
 ## Component Catalog
 
-### `button.js` (576 lines) — Core Button System
-**Exports**: `UI.Button`, `UI.BtnGold`, `UI.BtnSmall`, `UI.BtnWide`, `UI.makeTooltip`, `UI.HUD`, `UI.PremiumShell`, `UI.MagneticBtn`, `UI.ScrollReveal`, `UI.FluidNav`, `UI.EmptyState`
+### `button.js` (744 lines) — Core Button System
+**Exports**: `UI.Button`, `UI.BtnGold`, `UI.BtnSmall`, `UI.BtnWide`, `UI.Input`, `UI.makeTooltip`, `UI.HUD`, `UI.PremiumShell`, `UI.MagneticBtn`, `UI.ScrollReveal`, `UI.FluidNav`, `UI.EmptyState`
 
 **Component Hierarchy**:
 ```
@@ -27,6 +27,12 @@ UI.MagneticBtn (extends BtnGold via composition)
   ├── Spring physics: stiffness=120, damping=22
   ├── Magnetic icon: trailingIcon/leadingIcon with spring follow
   └── Reduced motion: disables magnetic follow, keeps press spring
+
+UI.Input (Canvas shell + native overlay)
+   ├── Native input positioned in logical game coordinates inside #game-container
+   ├── Supports email, current/new password, tel and one-time-code autocomplete
+   ├── Focus, placeholder and validation/error state are drawn on Canvas
+   └── destroy() removes listeners and the DOM overlay on scene leave/rebuild
 
 UI.PremiumShell (double-bezel card)
   ├── Outer: outerR=32, outerBg='rgba(0,0,0,0.05)', outerBorder='rgba(255,255,255,0.08)'
@@ -176,6 +182,7 @@ apply(ctx, el):
 | Component | Used By | Dependencies |
 |-----------|---------|--------------|
 | `UI.Button` | All scenes (30+) | R.colors, R.fonts, R.radius, Input |
+| `UI.Input` | auth | R.colors, R.fonts, R.radius, #game-container |
 | `UI.MagneticBtn` | ashram, cultivation, combat, party, forge, alchemy, journey, etc. | UI.Button, R, Input |
 | `UI.PremiumShell` | ashram, cultivation, journey, party, forge, alchemy, bazaar | R.colors, R.radius |
 | `UI.ProgressBar` | cultivation, combat, zoneExploration, forge, travelMap | R.colors, R.radius |
@@ -194,6 +201,7 @@ apply(ctx, el):
 5. **Reduced motion** — checked via `R.reducedMotion()` in all animated components
 6. **Modal singleton** — only one modal active, `UI.Modal.active` reference
 7. **Scroll offset** — buttons store `scrollY` for correct hit-testing in clipped content
+8. **Native input lifecycle** — Auth destroys every overlay before rebuild and on leave
 
 ## Memory Leak Risks
 | Component | Risk |

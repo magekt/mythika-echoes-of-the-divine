@@ -59,6 +59,7 @@
 | Scene | Purpose |
 |-------|---------|
 | `debug.js` | Dev tools — state inspector, console, perf probe |
+| `authScene.js` | Email, Google, phone and offline authentication form |
 
 ## Data & Control Flow
 

@@ -31,6 +31,37 @@ body {
   height: 720px;
   display: block;
 }
+#game-container .auth-input-overlay {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  min-height: 44px;
+  margin: 0;
+  padding: 17px 14px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--auth-input-text, #e8e0d0);
+  caret-color: var(--auth-input-focus, #e8a030);
+  font: 16px 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 22px;
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+  touch-action: manipulation;
+}
+#game-container .auth-input-overlay:focus-visible {
+  outline: 2px solid var(--auth-input-focus, #e8a030);
+  outline-offset: -2px;
+}
+#game-container .auth-input-overlay:disabled,
+#game-container .auth-input-overlay.is-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+#game-container .auth-input-overlay::placeholder {
+  color: transparent;
+}
 #status-bar { display: none; }
 /* Boot splash: covers the empty canvas until the first rendered frame
    (removed by gLoop via frameCount). Pure CSS, zero JS cost. */

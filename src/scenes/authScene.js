@@ -1,3 +1,18 @@
+function authFitText(ctx, text, maxWidth, font) {
+  const value = String(text || '');
+  if (!ctx) return value;
+  ctx.save();
+  ctx.font = font;
+  if (ctx.measureText(value).width <= maxWidth) {
+    ctx.restore();
+    return value;
+  }
+  let result = value;
+  while (result.length > 1 && ctx.measureText(result + '\u2026').width > maxWidth) result = result.slice(0, -1);
+  ctx.restore();
+  return result + '\u2026';
+}
+
 const authScene = Scene.create({
   name: 'auth',
   data: {
@@ -8,13 +23,18 @@ const authScene = Scene.create({
     verificationId: '',
     code: '',
     buttons: [],
+    inputs: [],
+    staticDraws: [],
     scrollY: 0,
     contentHeight: 0,
     signedInUser: null
   },
 
   enter: function() {
+    this.destroyInputs();
     this.data.buttons = [];
+    this.data.staticDraws = [];
+    this.data.inputs = [];
     this.data.scrollY = 0;
     this.data.signedInUser = Auth.user;
     this.data.phoneNumber = '';
@@ -24,11 +44,23 @@ const authScene = Scene.create({
   },
 
   leave: function() {
+    this.destroyInputs();
     this.data.buttons = [];
+    this.data.inputs = [];
+    this.data.staticDraws = [];
     this.data.signedInUser = null;
+    this.data.scrollY = 0;
+    this.data.contentHeight = 0;
   },
 
-  getContentTop: function() { return 74; },
+  destroyInputs: function() {
+    for (const input of this.data.inputs || []) {
+      if (input && input.destroy) input.destroy();
+    }
+    this.data.inputs = [];
+  },
+
+  getContentTop: function() { return 86; },
   getContentHeight: function() { return G.H - this.getContentTop(); },
 
   clampScroll: function() {
@@ -40,193 +72,209 @@ const authScene = Scene.create({
   },
 
   buildButtons: function() {
+    this.destroyInputs();
     this.data.buttons = [];
+    this.data.staticDraws = [];
     this.data.scrollY = 0;
-    let y = this.getContentTop();
+    const top = this.getContentTop();
+    const contentW = G.W - 40;
+    let y = top + 54;
+    const scene = this;
 
-    // --- PremiumShell form container ---
-    const formShell = UI.PremiumShell(20, y, G.W - 40, 500, { outerR: 12 });
-    this.data.staticDraws.push({ shell: formShell });
-    y += 36; // padding inside premium shell outer bezel
-
-    // --- Title ---
-    const titleBtn = UI.Button(20, y, G.W - 40, 40, 'Mythika: Cloud Save', '');
-    titleBtn._color = R.colors.gold;
-    titleBtn.render = function(ctx) {
-      R.roundRect(ctx, this.x, this.y, this.w, this.h, 6, R.colors.panel);
-      R.textCenter(ctx, this._label || 'Mythika', this.x + this.w / 2, this.y + this.h / 2 + 4, this._color, R.fonts.md);
+    const addInput = function(value, options, onChange) {
+      const input = UI.Input(20, y, contentW, 58, value, options);
+      input.onChange = function(next) {
+        onChange(next);
+        input.setError('');
+      };
+      scene.data.inputs.push(input);
+      y += 70;
+      return input;
     };
-    this.data.buttons.push(titleBtn);
-    y += 56;
 
-    // --- Mode toggle ---
-    const modeBtn = UI.Button(20, y, G.W - 40, 36, this.data.mode === 'signin' ? 'Sign In' : 'Sign Up');
+    const modeBtn = UI.MagneticBtn(20, y, contentW, 48,
+      this.data.mode === 'signin' ? 'Sign in' : 'Sign up', { variant: 'secondary' });
     modeBtn.onClick = function() {
-      this.data.mode = this.data.mode === 'signin' ? 'signup' : 'signin';
-      this.data.email = '';
-      this.data.password = '';
-      this.buildButtons();
-    }.bind(this);
+      scene.data.mode = scene.data.mode === 'signin' ? 'signup' : 'signin';
+      scene.data.email = '';
+      scene.data.password = '';
+      scene.buildButtons();
+    };
     this.data.buttons.push(modeBtn);
-    y += 44;
+    y += 60;
 
-    // --- Email input ---
-    const emailInput = UI.Input(20, y, G.W - 40, 32, this.data.email);
-    emailInput.onChange = function(val) {
-      this.data.email = val;
-    }.bind(this);
-    this.data.buttons.push(emailInput);
-    y += 44;
+    // Canvas-only title keeps the content hierarchy quiet while the form
+    // remains one double-bezel surface on both desktop and mobile.
+    const emailInput = addInput(this.data.email, {
+      label: 'Email address',
+      placeholder: 'name@example.com',
+      type: 'email',
+      autocomplete: 'email',
+      inputMode: 'email'
+    }, function(next) { scene.data.email = next; });
+    const passwordInput = addInput(this.data.password, {
+      label: this.data.mode === 'signin' ? 'Password' : 'Create password',
+      placeholder: this.data.mode === 'signin' ? 'Enter your password' : 'Use 6 or more characters',
+      password: true,
+      autocomplete: this.data.mode === 'signin' ? 'current-password' : 'new-password'
+    }, function(next) { scene.data.password = next; });
 
-    // --- Password input ---
-    const pwInput = UI.Input(20, y, G.W - 40, 32, this.data.password, true);
-    pwInput.onChange = function(val) {
-      this.data.password = val;
-    }.bind(this);
-    this.data.buttons.push(pwInput);
-    y += 52;
-
-    // --- Action button (BtnGold primary) ---
-    const actionBtn = UI.BtnGold(20, y, G.W - 40, 38, this.data.mode === 'signin' ? 'Sign In' : 'Sign Up');
-    actionBtn.onClick = async function() {
-      if (this.data.mode === 'signin') {
-        const result = await Auth.signInEmail(this.data.email, this.data.password);
-        if (result.user) {
-          Notify.show('Signed in as: ' + result.user.email, 2, R.colors.green);
-        } else {
-          Notify.show('Sign in failed: ' + (result.error || 'unknown error'), 3, R.colors.red);
-        }
+    const submitEmail = async function() {
+      const result = scene.data.mode === 'signin'
+        ? await Auth.signInEmail(scene.data.email, scene.data.password)
+        : await Auth.signUpEmail(scene.data.email, scene.data.password);
+      // An auth promise can resolve after the player has navigated away.
+      // Never rebuild a scene that is no longer mounted.
+      if (G.currentScene !== scene) return;
+      if (result.user) {
+        Notify.show((scene.data.mode === 'signin' ? 'Signed in as: ' : 'Account created: ') + result.user.email, 2, R.colors.green);
+        scene.data.signedInUser = Auth.user;
+        scene.data.email = '';
+        scene.data.password = '';
+        scene.buildButtons();
       } else {
-        const result = await Auth.signUpEmail(this.data.email, this.data.password);
-        if (result.user) {
-          Notify.show('Account created: ' + result.user.email, 2, R.colors.green);
-        } else {
-          Notify.show('Sign up failed: ' + (result.error || 'unknown error'), 3, R.colors.red);
-        }
+        Notify.show((scene.data.mode === 'signin' ? 'Sign in failed: ' : 'Sign up failed: ') + (result.error || 'unknown error'), 3, R.colors.red);
+        passwordInput.setError('Check your details');
       }
-      // Refresh scene
-      this.data.signedInUser = Auth.user;
-      this.data.email = '';
-      this.data.password = '';
-      this.buildButtons();
-    }.bind(this);
-    this.data.buttons.push(actionBtn);
-    y += 48;
+    };
+    emailInput.onSubmit = submitEmail;
+    passwordInput.onSubmit = submitEmail;
 
-    // --- Google Sign In button ---
-    const googleBtn = UI.BtnGold(20, y, G.W - 40, 38, 'Sign in with Google');
+    // --- PremiumShell form container is deferred until the measured content
+    // height is known; it is rendered inside the clipped content pass below.
+    const titleY = top + 28;
+    this.data.staticDraws.push({
+      textCenter: ['Cloud save', G.W / 2, titleY, R.colors.accent, R.fonts.displaySm]
+    });
+
+    const actionBtn = UI.MagneticBtn(20, y, contentW, 48,
+      this.data.mode === 'signin' ? 'Sign in' : 'Create account', { trailingIcon: 'arrow-right' });
+    actionBtn.onClick = submitEmail;
+    this.data.buttons.push(actionBtn);
+    y += 60;
+
+    const googleBtn = UI.MagneticBtn(20, y, contentW, 48, 'Continue with Google', { variant: 'secondary' });
     googleBtn.onClick = async function() {
       const result = await Auth.signInGoogle();
+      if (G.currentScene !== scene) return;
       if (result.user) {
         Notify.show('Signed in with Google: ' + result.user.email, 2, R.colors.green);
+        scene.data.signedInUser = Auth.user;
+        scene.buildButtons();
       } else {
         Notify.show('Google sign in failed: ' + (result.error || 'unknown error'), 3, R.colors.red);
       }
-      this.data.signedInUser = Auth.user;
-      this.buildButtons();
-    }.bind(this);
+    };
     this.data.buttons.push(googleBtn);
-    y += 52;
+    y += 68;
 
-    // --- Phone Sign In section ---
-    const phoneInput = UI.Input(20, y, G.W - 40, 32, this.data.phoneNumber);
-    phoneInput.onChange = function(val) {
-      this.data.phoneNumber = val;
-    }.bind(this);
-    this.data.buttons.push(phoneInput);
-    y += 44;
+    // --- Phone sign in ---
+    const phoneInput = addInput(this.data.phoneNumber, {
+      label: 'Phone number',
+      placeholder: '+1 555 123 4567',
+      type: 'tel',
+      autocomplete: 'tel',
+      inputMode: 'tel'
+    }, function(next) { scene.data.phoneNumber = next; });
 
-    const sendCodeBtn = UI.BtnGold(20, y, G.W - 40, 38, 'Send Verification Code');
+    const sendCodeBtn = UI.MagneticBtn(20, y, contentW, 48, 'Send verification code', { trailingIcon: 'arrow-right' });
     sendCodeBtn.onClick = async function() {
-      const result = await Auth.signInPhone(this.data.phoneNumber);
+      const result = await Auth.signInPhone(scene.data.phoneNumber);
+      if (G.currentScene !== scene) return;
       if (result.verificationId) {
-        this.data.verificationId = result.verificationId;
-        Notify.show('Verification code sent to ' + this.data.phoneNumber, 2, R.colors.green);
+        scene.data.verificationId = result.verificationId;
+        Notify.show('Verification code sent to ' + scene.data.phoneNumber, 2, R.colors.green);
       } else {
         Notify.show('Failed to send verification code: ' + (result.error || 'unknown error'), 3, R.colors.red);
+        phoneInput.setError('Enter a valid number');
       }
-    }.bind(this);
+    };
     this.data.buttons.push(sendCodeBtn);
-    y += 52;
+    y += 60;
 
-    const codeInput = UI.Input(20, y, G.W - 40, 32, this.data.code);
-    codeInput.onChange = function(val) {
-      this.data.code = val;
-    }.bind(this);
-    this.data.buttons.push(codeInput);
-    y += 44;
+    const codeInput = addInput(this.data.code, {
+      label: 'Verification code',
+      placeholder: '6-digit code',
+      autocomplete: 'one-time-code',
+      inputMode: 'numeric'
+    }, function(next) { scene.data.code = next; });
 
-    const verifyCodeBtn = UI.BtnGold(20, y, G.W - 40, 38, 'Verify Code');
+    const verifyCodeBtn = UI.MagneticBtn(20, y, contentW, 48, 'Verify code', { trailingIcon: 'arrow-right' });
     verifyCodeBtn.onClick = async function() {
-      const result = await Auth.verifyPhoneCode(this.data.verificationId, this.data.code);
+      const result = await Auth.verifyPhoneCode(scene.data.verificationId, scene.data.code);
+      if (G.currentScene !== scene) return;
       if (result.user) {
         Notify.show('Signed in with phone: ' + result.user.phoneNumber, 2, R.colors.green);
+        scene.data.signedInUser = Auth.user;
+        scene.data.code = '';
+        scene.buildButtons();
       } else {
         Notify.show('Verification failed: ' + (result.error || 'unknown error'), 3, R.colors.red);
+        codeInput.setError('Code not accepted');
       }
-      this.data.signedInUser = Auth.user;
-      this.data.code = '';
-      this.buildButtons();
-    }.bind(this);
+    };
+    codeInput.onSubmit = verifyCodeBtn.onClick;
     this.data.buttons.push(verifyCodeBtn);
-    y += 52;
+    y += 68;
 
-    // --- Continue without account (ghost button) ---
-    const ghostBtn = UI.MagneticBtn(20, y, G.W - 40, 38, 'Continue without account (offline mode)', 'ghost');
+    const ghostBtn = UI.MagneticBtn(20, y, contentW, 48, 'Continue offline', { variant: 'ghost' });
     ghostBtn.onClick = function() {
       Auth.user = null;
-      Notify.show('Playing in offline mode', 2, R.colors.dimGrey);
-      Scene.goTo('ashram');
+      Notify.show('Playing in offline mode', 2, R.colors.textDim);
+      gScene('ashram');
     };
     this.data.buttons.push(ghostBtn);
-    y += 48;
+    y += 60;
 
-    // --- Status area ---
     if (Auth.user) {
       const statusText = Auth.user.email || Auth.user.phoneNumber || Auth.user.uid;
-      const statusBtn = UI.Button(20, y, G.W - 40, 32, 'Signed in as: ' + statusText);
-      statusBtn._color = R.colors.textDim;
-      statusBtn.render = function(ctx) {
-        R.textCenter(ctx, this._label, this.x + this.w / 2, this.y + this.h / 2 + 2, this._color, R.fonts.sm);
-      };
-      this.data.buttons.push(statusBtn);
-      y += 44;
+      this.data.staticDraws.push({
+        text: ['Signed in as: ' + authFitText(G.ctx, statusText, contentW - 24, R.fonts.sm), 32, y + 18, R.colors.textSecondary, R.fonts.sm]
+      });
+      y += 32;
     }
 
-    this.data.contentHeight = y;
+    const shell = UI.PremiumShell(14, top, G.W - 28, y - top + 24, { outerR: 12 });
+    this.data.staticDraws.unshift(shell);
+    this.data.contentHeight = y + 24;
+    this.clampScroll();
   },
 
   update: function(dt) {
     if (UI.Modal.active) { UI.Modal.handleInput(); return; }
+    Scene.scrollInput(this);
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
+    for (const input of this.data.inputs) {
+      input.scrollY = this.data.scrollY;
+      input.viewportTop = this.getContentTop();
+      input.viewportBottom = this.getContentTop() + this.getContentHeight();
+      input.update(dt);
+    }
   },
 
   render: function(ctx) {
     Scene.drawHeader(ctx, 74, 'Authentication', 22);
-    R.textCenter(ctx, 'Sign in with email or create a new account', G.W / 2, 50, R.colors.textDim, R.fonts.sm);
+    R.textCenter(ctx, 'Sign in or create an account for cloud save', G.W / 2, 50, R.colors.textSecondary, R.fonts.sm);
 
     const top = this.getContentTop();
     const contentH = this.getContentHeight();
+    Scene.clipContent(ctx, this);
 
-    // Render PremiumShell and static draws BEFORE clip
+    for (const draw of this.data.staticDraws) {
+      if (draw && draw.render) draw.render(ctx);
+    }
     Scene.drawStatic(ctx, this.data.staticDraws);
-
-    // Clip content area
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, top, G.W, contentH);
-    ctx.clip();
-    ctx.translate(0, -this.data.scrollY);
-
-    // Render visible buttons inside clip
-    const vis = Scene.cullButtons(this.data.buttons, this.data.scrollY, contentH);
-    for (const b of vis) b.render(ctx);
+    for (const input of this.data.inputs) {
+      input.scrollY = this.data.scrollY;
+      input.viewportTop = top;
+      input.viewportBottom = top + contentH;
+      input.render(ctx);
+    }
+    for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY + top, contentH)) b.render(ctx);
 
     ctx.restore();
-
     Scene.drawScrollbar(ctx, top, this.data.contentHeight, contentH, this.data.scrollY);
-
     UI.Modal.render(ctx);
   }
 });
