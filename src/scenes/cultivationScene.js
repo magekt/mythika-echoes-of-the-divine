@@ -29,12 +29,14 @@ const cultivationScene = Scene.create({
   data: {
     buttons: [],
     scrollY: 0,
-    contentHeight: 0
+    contentHeight: 0,
+    breakthroughButton: null
   },
 
   enter: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.breakthroughButton = null;
     this.buildButtons();
   },
 
@@ -43,6 +45,7 @@ const cultivationScene = Scene.create({
     this._infoShell = null;
     this.data.buttons = [];
     this.data.scrollY = 0;
+    this.data.breakthroughButton = null;
   },
 
   getContentTop: function() { return G.CONTENT_TOP; },
@@ -54,6 +57,12 @@ const cultivationScene = Scene.create({
     const maxScroll = Math.max(0, ch - vh);
     if (this.data.scrollY > maxScroll) this.data.scrollY = maxScroll;
     if (this.data.scrollY < 0) this.data.scrollY = 0;
+  },
+
+  syncBreakthroughButton: function() {
+    if (this.data.breakthroughButton) {
+      this.data.breakthroughButton.enabled = CultivationSystem.canBreakthrough();
+    }
   },
 
   // Info panel height (must match renderInfoPanel below). Keep the complete
@@ -84,6 +93,7 @@ const cultivationScene = Scene.create({
     const canBreak = CultivationSystem.canBreakthrough();
     const bt = UI.MagneticBtn(60, y, G.W - 120, 48, 'Attempt Breakthrough', { trailingIcon: 'arrow-right' });
     bt.enabled = canBreak;
+    this.data.breakthroughButton = bt;
     bt._variant = 'secondary';
     bt.render = function(ctx) {
       const bx = this.x, by = this.y, bw = this.w, bh = this.h;
@@ -139,11 +149,12 @@ const cultivationScene = Scene.create({
       if (result.success) {
         Notify.show('Breakthrough! ' + (result.bonusText || ''), 3, R.colors.accent);
         Audio.levelUp();
-        this.buildButtons(); // Rebuild buttons to update state
+        this.syncBreakthroughButton();
         return true;
       }
       Notify.show(result.reason || 'Breakthrough failed!', 3);
       Audio.error();
+      this.syncBreakthroughButton();
       return false;
     }.bind(this);
     this.data.buttons.push(bt);
@@ -212,6 +223,7 @@ const cultivationScene = Scene.create({
 
   update: function(dt) {
     CultivationSystem.tick(dt);
+    this.syncBreakthroughButton();
     Scene.scrollInput(this);
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons, -this.data.scrollY);

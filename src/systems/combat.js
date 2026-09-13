@@ -5,7 +5,9 @@ const Combat = {
   battleOver: false,
   comboCount: 0,
   comboTimer: 0,
-  combos: []
+  combos: [],
+  enemyIntent: null,
+  intentVersion: 0
 };
 
 Combat.AILMENT_EFFECTS = {
@@ -33,6 +35,8 @@ Combat.startBattle = function(heroes, enemies) {
   this.comboCount = 0;
   this.comboTimer = 0;
   this.combos = [];
+  this.enemyIntent = null;
+  this.intentVersion++;
   // Elite-class battle-scoped effects (reset every battle)
   this.firstCritUsed = false;
   this.spellBoostUsed = false;
@@ -284,7 +288,7 @@ Combat.calcMagicDamage = function(attacker, defender, skill) {
   return Math.max(1, dmg);
 };
 
-Combat.performAttack = function(attacker, defender, skill) {
+Combat.performAttack = function(attacker, defender, skill, damageMultiplier) {
   const critChance = ((attacker.baseCrit || 10) + (attacker.equipCrit || 0) + (typeof Progression !== 'undefined' ? Progression.perkValue('drishti') : 0)) / 100;
   const isCrit = Math.random() < critChance;
   let dmg = 0;
@@ -296,6 +300,7 @@ Combat.performAttack = function(attacker, defender, skill) {
   if (skill && !skill.heal && typeof Progression !== 'undefined') {
     dmg = Math.floor(dmg * (1 + Progression.perkValue('gyana') / 100));
   }
+  if (damageMultiplier !== undefined) dmg = Math.floor(dmg * damageMultiplier);
   defender.hp -= dmg;
   if (defender.hp < 0) defender.hp = 0;
 
@@ -370,6 +375,125 @@ Combat.getRandomHero = function() {
   return alive.length > 0 ? alive[Math.floor(Math.random() * alive.length)] : null;
 };
 
+Combat.getTimingGrade = function(elapsed, duration) {
+  const ratio = Math.max(0, Math.min(1, elapsed / Math.max(0.1, duration)));
+  if (ratio <= 0.28) return 'perfect';
+  if (ratio <= 0.62) return 'good';
+  return 'late';
+};
+
+Combat.prepareEnemyIntent = function(enemy) {
+  const target = this.getRandomHero();
+  if (!target) return { enemy: enemy, target: null, skipped: 'no_target', version: this.intentVersion };
+  if (enemy.ailments) {
+    if (enemy.ailments.vajra) {
+      delete enemy.ailments.vajra;
+      return { enemy: enemy, target: target, skipped: 'stunned', version: this.intentVersion };
+    }
+    if (enemy.ailments.confuse) {
+      delete enemy.ailments.confuse;
+      return { enemy: enemy, target: target, skipped: 'confused', version: this.intentVersion };
+    }
+  }
+
+  let ability = null;
+  let step = null;
+  const patterns = Array.isArray(enemy.patterns) && enemy.patterns.length ? enemy.patterns : null;
+  if (patterns) {
+    const index = Number.isFinite(enemy.patternIndex) ? enemy.patternIndex : 0;
+    step = patterns[index % patterns.length];
+    enemy.patternIndex = (index + 1) % patterns.length;
+    if (step !== 'attack') ability = ENEMY_ABILITIES[step] || null;
+    if (!ability && step !== 'attack') step = 'attack';
+  } else if (enemy.abilities && enemy.abilities.length > 0 && Math.random() < 0.4) {
+    const abilityId = enemy.abilities[Math.floor(Math.random() * enemy.abilities.length)];
+    ability = ENEMY_ABILITIES[abilityId] || null;
+    step = ability ? abilityId : 'attack';
+  } else {
+    step = 'attack';
+  }
+
+  const attackType = ability ? (ability.intent || 'melee') : (enemy.attackType || 'melee');
+  const intent = {
+    enemy: enemy,
+    target: target,
+    ability: ability,
+    step: step,
+    name: ability ? ability.name : 'Melee strike',
+    attackType: attackType,
+    interruptible: !!ability,
+    version: this.intentVersion
+  };
+  this.enemyIntent = intent;
+  return intent;
+};
+
+Combat.resolveEnemyIntent = function(intent, damageMultiplier) {
+  if (!intent || intent.skipped || !intent.target || intent.target.hp <= 0) {
+    return { skipped: intent && intent.skipped ? intent.skipped : 'no_target', dmg: 0 };
+  }
+  const mult = damageMultiplier === undefined ? 1 : Math.max(0, damageMultiplier);
+  if (intent.ability) return this.performEnemyAbility(intent.enemy, intent.target, intent.ability, mult);
+  return this.performAttack(intent.enemy, intent.target, null, mult);
+};
+
+Combat.resolveReaction = function(intent, action, grade) {
+  if (!intent || intent.skipped) return { outcome: 'failure', skipped: intent && intent.skipped };
+  const enemy = intent.enemy;
+  const target = intent.target;
+  const perfect = grade === 'perfect';
+  const good = grade === 'good';
+  let mitigation = 1;
+  let outcome = 'failure';
+  let counter = null;
+
+  if (action === 'parry' && intent.attackType === 'melee') {
+    if (perfect || good) {
+      outcome = 'parry';
+      mitigation = 0;
+      if (perfect && target.hp > 0 && enemy.hp > 0) counter = this.performAttack(target, enemy, null);
+    } else if (grade === 'late') {
+      mitigation = 0.55;
+      outcome = 'mitigation';
+    }
+  } else if (action === 'meleeDodge' && intent.attackType === 'melee') {
+    if (perfect || (good && Math.random() < 0.85) || (grade === 'late' && Math.random() < 0.45)) {
+      outcome = 'evade';
+      mitigation = 0;
+    }
+  } else if (action === 'projectileDodge' && intent.attackType === 'ranged') {
+    if (perfect || good || (grade === 'late' && Math.random() < 0.55)) {
+      outcome = 'evade';
+      mitigation = 0;
+    }
+  } else if (action === 'cover' && intent.attackType === 'ranged') {
+    mitigation = perfect ? 0.2 : good ? 0.35 : grade === 'late' ? 0.6 : 1;
+    outcome = mitigation < 1 ? 'mitigation' : 'failure';
+  } else if (action === 'guard') {
+    mitigation = perfect ? 0.25 : good ? 0.4 : grade === 'late' ? 0.6 : 1;
+    outcome = mitigation < 1 ? 'mitigation' : 'failure';
+  } else if (action === 'interrupt' && intent.interruptible) {
+    if (perfect || good) {
+      outcome = 'interrupt';
+      mitigation = 0;
+      if (target.hp > 0 && enemy.hp > 0) counter = this.performAttack(target, enemy, null);
+    } else if (grade === 'late') {
+      mitigation = 0.65;
+      outcome = 'mitigation';
+    }
+  }
+
+  if (outcome === 'evade' || outcome === 'parry' || outcome === 'interrupt') {
+    this.checkBattleEnd();
+    return { outcome: outcome, dmg: 0, counter: counter, target: target, enemy: enemy };
+  }
+  const result = this.resolveEnemyIntent(intent, mitigation);
+  result.outcome = outcome;
+  result.target = target;
+  result.enemy = enemy;
+  return result;
+};
+
 Combat.enemyAI = function(enemy) {
   if (enemy.ailments) {
     if (enemy.ailments.vajra) {
@@ -397,7 +521,7 @@ Combat.enemyAI = function(enemy) {
   return this.performAttack(enemy, target, null);
 };
 
-Combat.performEnemyAbility = function(enemy, target, ability) {
+Combat.performEnemyAbility = function(enemy, target, ability, damageMultiplier) {
   let dmg = 0;
   const hasDamage = ability.dmg && ability.dmg > 0;
   if (hasDamage) {
@@ -406,6 +530,7 @@ Combat.performEnemyAbility = function(enemy, target, ability) {
     const base = Math.max(1, atk - def * 0.5);
     const variance = 0.85 + Math.random() * 0.3;
     dmg = Math.floor(base * variance);
+    if (damageMultiplier !== undefined) dmg = Math.floor(dmg * damageMultiplier);
     dmg = _applyShield(target, dmg);
     dmg = Math.max(1, dmg);
     target.hp -= dmg;

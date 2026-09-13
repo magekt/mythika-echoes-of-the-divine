@@ -65,7 +65,15 @@ const combatScene = Scene.create({
     beastSkillUsed: false,
     beastCooldown: 0,
     scrollY: 0,
-    turnCount: 0
+    turnCount: 0,
+    enemyIntent: null,
+    reactionRemaining: 0,
+    reactionDuration: 1.3,
+    reactionResolved: false,
+    reactionTimer: null,
+    reactionAutoTimer: null,
+    enemyTimer: null,
+    autoTimer: null
   },
 
   enter: function() {
@@ -77,13 +85,19 @@ const combatScene = Scene.create({
     this.data.enemies = JSON.parse(JSON.stringify(G.state.currentEnemies || []));
     if (this.data.enemies.length === 0) {
       this.data.log.push('No enemies found — returning to Ashram.');
-      setTimeout(function(){ if (G.currentScene===combatScene) gScene('ashram',true); }, 600);
+      this.data.runId = (this.data.runId || 0) + 1;
+      const emptyRunId = this.data.runId;
+      this.data.enemyTimer = setTimeout(function(){
+        combatScene.data.enemyTimer = null;
+        if (G.currentScene === combatScene && combatScene.data.runId === emptyRunId) gScene('ashram', true);
+      }, 600);
       return;
     }
     this.data.beastSkillUsed = false;
     this.data.beastCooldown = 0;
     this.data.turnCount = 0;
     this.data.runId = (this.data.runId || 0) + 1;   // invalidates timers from a previous battle
+    this.clearCombatTimers();
     const stories = ENCOUNTER_STORIES[zone] || ENCOUNTER_STORIES.aryavarta;
     this.data.encounterStory = stories[Math.floor(Math.random() * stories.length)];
     this.data.log = ['Battle begins!'];
@@ -97,6 +111,9 @@ const combatScene = Scene.create({
     this.data.scrollY = 0;
     this.data.selectedEnemy = null;
     this.data.enemyButtons = [];
+    this.data.enemyIntent = null;
+    this.data.reactionRemaining = 0;
+    this.data.reactionResolved = false;
 
     Combat.startBattle(this.data.heroes, this.data.enemies);
     const firstAlive = this.data.enemies.find(e => e.hp > 0);
@@ -112,6 +129,8 @@ const combatScene = Scene.create({
   },
 
   leave: function() {
+    this.data.runId = (this.data.runId || 0) + 1;
+    this.clearCombatTimers();
     this._heroMoment = null;
     this._fluidNav = null;
     this.data.buttons = [];
@@ -120,7 +139,19 @@ const combatScene = Scene.create({
     this.data.log = [];
     this.data.heroes = [];
     this.data.enemies = [];
+    this.data.enemyIntent = null;
     Audio.stopMusic();
+  },
+
+  clearCombatTimers: function() {
+    if (this.data.reactionTimer) clearTimeout(this.data.reactionTimer);
+    if (this.data.reactionAutoTimer) clearTimeout(this.data.reactionAutoTimer);
+    if (this.data.enemyTimer) clearTimeout(this.data.enemyTimer);
+    if (this.data.autoTimer) clearTimeout(this.data.autoTimer);
+    this.data.reactionTimer = null;
+    this.data.reactionAutoTimer = null;
+    this.data.enemyTimer = null;
+    this.data.autoTimer = null;
   },
 
   getActionAreaTop: function() { return 270; },
@@ -129,7 +160,7 @@ const combatScene = Scene.create({
   clampScroll: function() {
     if (this.data.actionButtons.length === 0) return;
     const logH = Math.min(4, this.data.log.length) * 18 + 20;
-    const contentH = logH + this.data.actionButtons.length * 34 + 30;
+    const contentH = logH + this.data.actionButtons.length * 46 + 30;
     const maxScroll = Math.max(0, contentH - this.getActionAreaHeight());
     if (this.data.scrollY > maxScroll) this.data.scrollY = maxScroll;
     if (this.data.scrollY < 0) this.data.scrollY = 0;
@@ -140,52 +171,88 @@ const combatScene = Scene.create({
     this.data.actionButtons = [];
     this.data.scrollY = 0;
 
-    if (this.data.turnState === 'playerTurn') {
+    if (this.data.turnState === 'reactionWindow') {
+      const intent = this.data.enemyIntent;
+      let reactionY = 38;
+      const addReaction = function(label, action, color) {
+        const btn = UI.Button(20, reactionY, G.W - 40, 44, label, color || R.colors.btn);
+        btn.onClick = function() { combatScene.resolveReactionAction(action); };
+        combatScene.data.actionButtons.push(btn);
+        reactionY += 46;
+      };
+      addReaction('Parry  |  precise melee answer', 'parry', R.colors.blue);
+      if (intent && intent.attackType === 'melee') {
+        addReaction('Melee Dodge  |  evade the strike', 'meleeDodge', R.colors.green);
+      } else {
+        addReaction('Projectile Dodge  |  evade the attack', 'projectileDodge', R.colors.green);
+        addReaction('Cover  |  reduce ranged damage', 'cover', R.colors.blue);
+      }
+      addReaction('Guard  |  reduce incoming damage', 'guard', R.colors.btnGold);
+      if (intent && intent.interruptible) addReaction('Interrupt  |  stop the technique', 'interrupt', R.colors.red);
+    } else if (this.data.turnState === 'playerTurn') {
       const actor = Combat.getCurrentActor();
       if (actor && actor.type === 'hero') {
         const hero = actor.ref;
         const skills = hero.skills || [];
-        let y = 6;
+        let y = 38;
 
-        const atkBtn = UI.BtnGold(20, y, G.W / 2 - 26, 38, 'Attack');
-        atkBtn.onClick = function() { combatScene.doPlayerAttack(null); };
+        const atkBtn = UI.BtnGold(20, y, G.W / 2 - 26, 44, 'Melee Attack');
+        atkBtn.onClick = function() { combatScene.doPlayerAttack(null, 'melee'); };
         this.data.actionButtons.push(atkBtn);
 
-        const defBtn = UI.Button(G.W / 2 + 6, y, G.W / 2 - 26, 38, 'Defend');
+        const defBtn = UI.Button(G.W / 2 + 6, y, G.W / 2 - 26, 44, 'Guard');
         defBtn.onClick = function() { combatScene.doDefend(); };
         this.data.actionButtons.push(defBtn);
-        y += 40;
+        y += 46;
 
-          for (const skill of skills) {
+        if (hero.weaponType === 'bow' || (hero.skillTypes || []).indexOf('ranged') >= 0) {
+          const rangedBtn = UI.Button(20, y, G.W - 40, 44, 'Ranged Attack', R.colors.blue);
+          rangedBtn.onClick = function() { combatScene.doPlayerAttack(null, 'ranged'); };
+          this.data.actionButtons.push(rangedBtn);
+          y += 46;
+        }
+
+        for (const skill of skills) {
           const label = skill.name + ' (' + (skill.cost || 0) + ' MP)';
-          const btn = UI.Button(20, y, G.W - 40, 38, label);
+          const btn = UI.Button(20, y, G.W - 40, 44, label);
           btn.data = skill;
           btn.enabled = hero.mp >= (skill.cost || 0);
           btn.onClick = function() { combatScene.doPlayerAttack(this.data); };
           this.data.actionButtons.push(btn);
-          y += 40;
+          y += 46;
+        }
+
+        const consumables = (G.state.inventory || []).filter(function(item) {
+          return item && item.type === 'consumable' && (item.qty === undefined || item.qty > 0);
+        }).slice(0, 4);
+        for (const item of consumables) {
+          const itemBtn = UI.Button(20, y, G.W - 40, 44, 'Item: ' + item.name, R.colors.green);
+          itemBtn.data = item;
+          itemBtn.onClick = function() { combatScene.doUseItem(this.data); };
+          this.data.actionButtons.push(itemBtn);
+          y += 46;
         }
 
         const beast = (G.state.spiritBeasts || []).find(b => b.id === G.state.activeBeast);
         if (beast) {
           if (this.data.beastCooldown <= 0) {
             const beastLabel = 'Beast: ' + beast.name + ' \u2192 ' + beast.skill;
-            const beastBtn = UI.Button(20, y, G.W - 40, 38, beastLabel, R.colors.green);
+            const beastBtn = UI.Button(20, y, G.W - 40, 44, beastLabel, R.colors.green);
             beastBtn.onClick = function() { combatScene.doBeastSkill(); };
             this.data.actionButtons.push(beastBtn);
-            y += 40;
+            y += 46;
           } else {
             const cdLabel = this.data.beastSkillUsed ? 'Beast: ' + beast.name + ' (used)' : 'Beast: ' + beast.name + ' (' + this.data.beastCooldown + 't)';
-            const cdBtn = UI.Button(20, y, G.W - 40, 38, cdLabel, R.colors.btn);
+            const cdBtn = UI.Button(20, y, G.W - 40, 44, cdLabel, R.colors.btn);
             cdBtn.enabled = false;
             this.data.actionButtons.push(cdBtn);
-            y += 40;
+            y += 46;
           }
         }
 
         y += 4;
 
-        const autoBtn = UI.Button(20, y, (G.W - 40) / 2 - 3, 32, this.data.autoBattle ? 'Auto: ON' : 'Auto: OFF', this.data.autoBattle ? R.colors.green : R.colors.btn);
+        const autoBtn = UI.Button(20, y, (G.W - 40) / 2 - 3, 44, this.data.autoBattle ? 'Auto: ON' : 'Auto: OFF', this.data.autoBattle ? R.colors.green : R.colors.btn);
         autoBtn.onClick = function() {
           combatScene.data.autoBattle = !combatScene.data.autoBattle;
           combatScene.buildActionButtons();
@@ -193,7 +260,7 @@ const combatScene = Scene.create({
         };
         this.data.actionButtons.push(autoBtn);
 
-        const flee = UI.Button(G.W / 2 + 3, y, (G.W - 40) / 2 - 3, 32, 'Flee');
+        const flee = UI.Button(G.W / 2 + 3, y, (G.W - 40) / 2 - 3, 44, 'Flee');
         flee.onClick = function() { combatScene.doFlee(); };
         this.data.actionButtons.push(flee);
 
@@ -372,7 +439,69 @@ const combatScene = Scene.create({
     R.deathBurst(x, y, isHero ? R.colors.blue : R.colors.red);
   },
 
-  doPlayerAttack: function(skill) {
+  resolveReactionAction: function(action, forcedGrade) {
+    if (this.data.turnState !== 'reactionWindow' || this.data.reactionResolved || !this.data.enemyIntent) return false;
+    this.data.reactionResolved = true;
+    if (this.data.reactionTimer) clearTimeout(this.data.reactionTimer);
+    if (this.data.reactionAutoTimer) clearTimeout(this.data.reactionAutoTimer);
+    this.data.reactionTimer = null;
+    this.data.reactionAutoTimer = null;
+    const elapsed = this.data.reactionDuration - this.data.reactionRemaining;
+    const grade = forcedGrade || Combat.getTimingGrade(elapsed, this.data.reactionDuration);
+    const intent = this.data.enemyIntent;
+    const result = Combat.resolveReaction(intent, action, grade);
+    const target = intent.target;
+    const enemy = intent.enemy;
+    const gradeText = grade.toUpperCase();
+    if (result.outcome === 'evade') {
+      this.data.log.push(target.name + ' ' + action + ' ' + gradeText + ' — evaded ' + intent.name + '!');
+    } else if (result.outcome === 'parry') {
+      this.data.log.push(target.name + ' parried ' + intent.name + ' (' + gradeText + ') — no damage');
+    } else if (result.outcome === 'interrupt') {
+      this.data.log.push(target.name + ' interrupted ' + intent.name + ' (' + gradeText + ')');
+    } else if (result.dmg > 0) {
+      const resultWord = result.outcome === 'mitigation' ? 'mitigated' : 'failed to stop';
+      this.data.log.push(target.name + ' ' + resultWord + ' ' + intent.name + ' (' + gradeText + ') for ' + result.dmg + ' damage');
+    } else {
+      this.data.log.push(target.name + ' ' + gradeText + ' — ' + intent.name + ' had no effect');
+    }
+    if (result.counter && result.counter.dmg > 0) {
+      this.data.log.push('Counter! ' + target.name + ' hits ' + enemy.name + ' for ' + result.counter.dmg);
+      if (enemy.hp <= 0) this.deathBurstAt(enemy, false);
+    }
+    if (result.dmg > 0) {
+      const enemyIdx = this.data.enemies.indexOf(enemy);
+      const targetIdx = this.data.heroes.findIndex(h => h.id === target.id);
+      R.fireProjectile(370 - enemyIdx * 70, 50, targetIdx * 70 + 30, 50, R.colors.red, 200, 'spear');
+      const reactionFxRunId = this.data.runId;
+      setTimeout(function() {
+        if (G.currentScene === combatScene && combatScene.data.runId === reactionFxRunId) {
+          R.damageNumber(G.ctx, targetIdx * 70 + 30, 30, result.dmg, R.colors.red);
+        }
+      }, 200);
+      if (target.hp <= 0) this.deathBurstAt(target, true);
+      R.screenShake(3, 0.15);
+    }
+    this.data.enemyIntent = null;
+    this.data.turnState = 'enemyTurn';
+    if (Combat.battleOver) this.endBattle();
+    else this.advanceTurn();
+    return true;
+  },
+
+  doUseItem: function(item) {
+    const actor = Combat.getCurrentActor();
+    if (!actor || actor.type !== 'hero' || !item) return;
+    const index = (G.state.inventory || []).indexOf(item);
+    if (index < 0 || (item.qty !== undefined && item.qty <= 0)) return;
+    applyItemEffect(item, actor.ref);
+    Economy.removeItem(index);
+    this.data.log.push(actor.ref.name + ' uses ' + item.name + '.');
+    Audio.heal();
+    this.advanceTurn();
+  },
+
+  doPlayerAttack: function(skill, attackMode) {
     const actor = Combat.getCurrentActor();
     if (!actor || actor.type !== 'hero') return;
     const hero = actor.ref;
@@ -400,7 +529,8 @@ const combatScene = Scene.create({
     }
 
     const result = Combat.performAttack(hero, target, skill);
-    this.data.log.push(hero.name + ' attacks ' + target.name + ' for ' + result.dmg + (result.isCrit ? ' CRIT!' : ''));
+    const modeText = attackMode === 'ranged' ? ' with a ranged attack' : '';
+    this.data.log.push(hero.name + modeText + ' attacks ' + target.name + ' for ' + result.dmg + (result.isCrit ? ' CRIT!' : ''));
     this.data.damageFlash = 0.2;
     if (target.hp <= 0) this.deathBurstAt(target, false);
     const heroIdx = this.data.heroes.findIndex(h => h.id === hero.id);
@@ -412,8 +542,11 @@ const combatScene = Scene.create({
     const weaponType = hero.weaponType || 'bow';
     const projType = weaponType === 'bow' ? 'arrow' : weaponType === 'spear' ? 'spear' : 'mace';
     R.fireProjectile(heroX, heroY, enemyX, enemyY, result.isCrit ? R.colors.goldLight : R.colors.gold, 250, projType);
+    const playerFxRunId = this.data.runId;
     setTimeout(function() {
-      R.damageNumber(G.ctx, enemyX, enemyY - 20, result.dmg, result.isCrit ? R.colors.gold : R.colors.red);
+      if (G.currentScene === combatScene && combatScene.data.runId === playerFxRunId) {
+        R.damageNumber(G.ctx, enemyX, enemyY - 20, result.dmg, result.isCrit ? R.colors.gold : R.colors.red);
+      }
     }, 200);
     if (target.hp <= 0) this.deathBurstAt(target, false);
 
@@ -454,6 +587,10 @@ const combatScene = Scene.create({
   },
 
   advanceTurn: function() {
+    if (this.data.autoTimer) {
+      clearTimeout(this.data.autoTimer);
+      this.data.autoTimer = null;
+    }
     Combat.nextTurn();
     this.data.buttons = [];
     this.data.actionButtons = [];
@@ -475,45 +612,50 @@ const combatScene = Scene.create({
       this.buildActionButtons();
       if (this.data.autoBattle) {
         var autoRunId = this.data.runId;
-        setTimeout(function() { if (G.currentScene !== combatScene || combatScene.data.runId !== autoRunId) return; combatScene.doAutoTurn(); }, 300);
+        this.data.autoTimer = setTimeout(function() {
+          combatScene.data.autoTimer = null;
+          if (G.currentScene !== combatScene || combatScene.data.runId !== autoRunId) return;
+          combatScene.doAutoTurn();
+        }, 300);
       }
     }
   },
 
   doEnemyTurn: function(actor) {
     const enemy = actor.ref;
-    const result = Combat.enemyAI(enemy);
-    if (result && result.skipped) {
-      if (result.skipped === 'stunned') this.data.log.push(enemy.name + ' is stunned and skips its turn!');
-      else if (result.skipped === 'confused') this.data.log.push(enemy.name + ' is confused and skips its turn!');
-      else if (result.skipped === 'no_target') this.data.log.push(enemy.name + ' has no target!');
-    } else if (result) {
-      const target = Combat.getRandomHero();
-      if (target) {
-        const abilityText = result.ability ? ' uses ' + result.ability : ' attacks';
-        if (result.dmg > 0) this.data.log.push(enemy.name + abilityText + ' on ' + target.name + ' for ' + result.dmg);
-        else this.data.log.push(enemy.name + abilityText + ' on ' + target.name);
-        const enemyIdx = this.data.enemies.indexOf(enemy);
-        const enemyX = 370 - enemyIdx * 70;
-        const enemyY = 50;
-        const targetIdx = this.data.heroes.findIndex(h => h.id === target.id);
-        const heroX = targetIdx * 70 + 30;
-        const heroY = 50;
-        R.fireProjectile(enemyX, enemyY, heroX, heroY, R.colors.red, 200, 'spear');
-        setTimeout(function() {
-          R.damageNumber(G.ctx, heroX, heroY - 20, result.dmg, R.colors.red);
-        }, 200);
-        if (target.hp <= 0) combatScene.deathBurstAt(target, true);
-        R.screenShake(3, 0.15);
-      }
-    } else {
-      this.data.log.push(enemy.name + ' is confused and skips its turn!');
+    const intent = Combat.prepareEnemyIntent(enemy);
+    this.data.enemyIntent = intent;
+    if (intent.skipped) {
+      if (intent.skipped === 'stunned') this.data.log.push(enemy.name + ' is stunned and skips its turn!');
+      else if (intent.skipped === 'confused') this.data.log.push(enemy.name + ' is confused and skips its turn!');
+      else this.data.log.push(enemy.name + ' has no target!');
+      var enemyRunId = this.data.runId;
+      this.data.enemyTimer = setTimeout(function() {
+        combatScene.data.enemyTimer = null;
+        if (G.currentScene !== combatScene || combatScene.data.runId !== enemyRunId) return;
+        combatScene.advanceTurn();
+      }, 500);
+      return;
     }
-    var enemyRunId = this.data.runId;
-    setTimeout(function() {
-      if (G.currentScene !== combatScene || combatScene.data.runId !== enemyRunId) return;
-      combatScene.advanceTurn();
-    }, 500);
+
+    this.data.turnState = 'reactionWindow';
+    this.data.reactionResolved = false;
+    this.data.reactionDuration = 1.3;
+    this.data.reactionRemaining = this.data.reactionDuration;
+    this.buildActionButtons();
+    var reactionRunId = this.data.runId;
+    var intentVersion = intent.version;
+    this.data.reactionTimer = setTimeout(function() {
+      if (G.currentScene !== combatScene || combatScene.data.runId !== reactionRunId ||
+          !combatScene.data.enemyIntent || combatScene.data.enemyIntent.version !== intentVersion) return;
+      combatScene.resolveReactionAction('guard', 'missed');
+    }, this.data.reactionDuration * 1000);
+    if (this.data.autoBattle) {
+      this.data.reactionAutoTimer = setTimeout(function() {
+        if (G.currentScene !== combatScene || combatScene.data.runId !== reactionRunId || combatScene.data.reactionResolved) return;
+        combatScene.resolveReactionAction('guard');
+      }, 160);
+    }
   },
 
   endBattle: function() {
@@ -702,6 +844,10 @@ const combatScene = Scene.create({
       rw.shownG = Math.min(rw.gold, rw.shownG + Math.max(1, rw.gold * k));
       rw.shownX = Math.min(rw.xp, rw.shownX + Math.max(1, rw.xp * k));
     }
+    if (this.data.turnState === 'reactionWindow' && !this.data.reactionResolved) {
+      this.data.reactionRemaining = Math.max(0, this.data.reactionRemaining - dt);
+      if (this.data.reactionRemaining <= 0) this.resolveReactionAction('guard', 'missed');
+    }
     Scene.scrollInput(this);
     UI.updateButtons(this.data.actionButtons, dt);
     UI.updateButtons(this.data.enemyButtons, dt);
@@ -826,6 +972,20 @@ const combatScene = Scene.create({
       }
       ex -= 90;
     }
+    if (this.data.turnState === 'reactionWindow' && this.data.enemyIntent) {
+      const intent = this.data.enemyIntent;
+      const remain = Math.max(0, this.data.reactionRemaining);
+      const pct = remain / Math.max(0.1, this.data.reactionDuration);
+      R.roundRect(ctx, 12, 108, G.W - 24, 54, 8, R.colors.overlayDark);
+      ctx.strokeStyle = intent.attackType === 'ranged' ? R.colors.blue : R.colors.red;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(12.5, 108.5, G.W - 25, 53);
+      R.text(ctx, 'INCOMING ' + intent.attackType.toUpperCase(), 22, 126, R.colors.red, R.fonts.xs);
+      R.text(ctx, intent.name + ' -> ' + intent.target.name, 22, 144, R.colors.text, R.fonts.md);
+      R.roundRect(ctx, 22, 149, G.W - 44, 6, 3, R.colors.damageBarBackground);
+      R.roundRect(ctx, 22, 149, (G.W - 44) * pct, 6, 3, pct > 0.38 ? R.colors.gold : R.colors.red);
+      R.textRight(ctx, remain.toFixed(1) + 's  PERFECT / GOOD / LATE', G.W - 22, 126, R.colors.textDim, R.fonts.xs);
+    }
     for (const b of this.data.enemyButtons) b.render(ctx);
     // Fixed combat log (does not scroll with action list)
     {
@@ -846,22 +1006,19 @@ const combatScene = Scene.create({
     ctx.clip();
     ctx.translate(0, top - 6 - this.data.scrollY);
     
-    // Draw subtle separator lines between action categories
-    // Buttons are positioned: index 0 (Attack) at y=38, index 1 (Defend) at y=72, 
-    // then skills at y=106, 140, etc. (34px increments after initial 38 offset)
-    // Separator 1: between top row (Attack/Defend) and Skills category
+    // Draw subtle separator lines between action categories.
     if (this.data.actionButtons.length > 2) {
       ctx.strokeStyle = R.colors.borderHairline;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(8, 72);
-      ctx.lineTo(G.W - 8, 72);
+      ctx.moveTo(8, 84);
+      ctx.lineTo(G.W - 8, 84);
       ctx.stroke();
     }
     // Separator 2: after Skills category (after top 2 buttons + all skill buttons)
     const skillCount = (Combat.getCurrentActor() && Combat.getCurrentActor().type === 'hero') 
       ? (Combat.getCurrentActor().ref.skills || []).length : 0;
-    const skillsSepY = 38 + 34 * (2 + skillCount);
+    const skillsSepY = 38 + 46 * (2 + skillCount);
     if (skillCount > 0) {
       ctx.strokeStyle = R.colors.borderHairline;
       ctx.lineWidth = 1;
@@ -871,7 +1028,7 @@ const combatScene = Scene.create({
       ctx.stroke();
     }
 
-    const actionContentH = this.data.actionButtons.length * 42 + 120;
+    const actionContentH = this.data.actionButtons.length * 46 + 120;
     R.roundRect(ctx, 10, 6, G.W - 20, actionContentH, 8, R.colors.overlayDark);
 
     const logLine = this.data.encounterStory && this.data.turnState !== 'result' ? this.data.encounterStory : '';
@@ -905,7 +1062,7 @@ const combatScene = Scene.create({
       for (const b of vis) {
         b.y = ly;
         b.render(ctx);
-        ly += 34;
+        ly += Math.max(46, b.h + 2);
       }
     }
 
@@ -927,7 +1084,7 @@ const combatScene = Scene.create({
 
     if (this.data.actionButtons.length > 0) {
       const logH2 = Math.min(4, this.data.log.length) * 18 + 20;
-      const contentH2 = logH2 + this.data.actionButtons.length * 34 + 30;
+      const contentH2 = logH2 + this.data.actionButtons.length * 46 + 30;
       const maxScroll = Math.max(1, contentH2 - this.getActionAreaHeight());
       if (maxScroll > 0 && this.data.actionButtons.length > 1) {
         const vh = this.getActionAreaHeight();

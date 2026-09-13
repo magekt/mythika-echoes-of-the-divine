@@ -1,22 +1,22 @@
 const ENEMY_ABILITIES = {
-  bite: { name: 'Bite', dmg: 1.2, ailment: null, desc: 'Sharp fangs tear flesh' },
-  poisonBite: { name: 'Poison Bite', dmg: 1.0, ailment: 'visha', desc: 'Venomous fangs inject toxin' },
-  howl: { name: 'Howl', dmg: 0, buff: 'atkBuff', value: 1.2, desc: 'Fearsome roar boosts attack' },
-  webSpray: { name: 'Web Spray', dmg: 0.8, ailment: 'vajra', desc: 'Sticky webs stun prey' },
-  crush: { name: 'Crush', dmg: 1.5, ailment: null, desc: 'Massive force flattens foe' },
-  shadowBolt: { name: 'Shadow Bolt', dmg: 1.3, ailment: 'shila', desc: 'Dark magic freezes target' },
-  lifeDrain: { name: 'Life Drain', dmg: 1.1, heal: 0.3, desc: 'Steals life force from foe' },
-  tailSwipe: { name: 'Tail Swipe', dmg: 1.4, ailment: null, desc: 'Powerful tail sweeps area' },
-  frostBreath: { name: 'Frost Breath', dmg: 1.2, ailment: 'shila', desc: 'Icy breath freezes foe' },
-  fireBreath: { name: 'Fire Breath', dmg: 1.3, ailment: 'agni', desc: 'Scorching flames ignite foe' },
-  thunderStrike: { name: 'Thunder Strike', dmg: 1.5, ailment: 'vajra', desc: 'Lightning smites enemy' },
-  venomSpit: { name: 'Venom Spit', dmg: 0.9, ailment: 'visha', desc: 'Toxic spit corrodes flesh' },
-  soulSiphon: { name: 'Soul Siphon', dmg: 1.0, ailment: null, heal: 0.4, desc: 'Drains spiritual energy' },
-  hellfire: { name: 'Hellfire', dmg: 1.4, ailment: 'agni', desc: 'Infernal flames burn bright' },
-  charm: { name: 'Charm', dmg: 0.8, ailment: 'confuse', desc: 'Bewildering gaze confuses foe' },
-  divineSmite: { name: 'Divine Smite', dmg: 1.6, ailment: 'vajra', desc: 'Celestial power strikes true' },
-  cosmicRays: { name: 'Cosmic Rays', dmg: 1.3, ailment: null, desc: 'Starlight pierces darkness' },
-  heavenFall: { name: 'Heaven Fall', dmg: 1.8, ailment: null, desc: 'Sky collapses on foe' }
+  bite: { name: 'Bite', dmg: 1.2, ailment: null, intent: 'melee', desc: 'Sharp fangs tear flesh' },
+  poisonBite: { name: 'Poison Bite', dmg: 1.0, ailment: 'visha', intent: 'melee', desc: 'Venomous fangs inject toxin' },
+  howl: { name: 'Howl', dmg: 0, buff: 'atkBuff', value: 1.2, intent: 'ranged', desc: 'Fearsome roar boosts attack' },
+  webSpray: { name: 'Web Spray', dmg: 0.8, ailment: 'vajra', intent: 'ranged', desc: 'Sticky webs stun prey' },
+  crush: { name: 'Crush', dmg: 1.5, ailment: null, intent: 'melee', desc: 'Massive force flattens foe' },
+  shadowBolt: { name: 'Shadow Bolt', dmg: 1.3, ailment: 'shila', intent: 'ranged', desc: 'Dark magic freezes target' },
+  lifeDrain: { name: 'Life Drain', dmg: 1.1, heal: 0.3, intent: 'ranged', desc: 'Steals life force from foe' },
+  tailSwipe: { name: 'Tail Swipe', dmg: 1.4, ailment: null, intent: 'melee', desc: 'Powerful tail sweeps area' },
+  frostBreath: { name: 'Frost Breath', dmg: 1.2, ailment: 'shila', intent: 'ranged', desc: 'Icy breath freezes foe' },
+  fireBreath: { name: 'Fire Breath', dmg: 1.3, ailment: 'agni', intent: 'ranged', desc: 'Scorching flames ignite foe' },
+  thunderStrike: { name: 'Thunder Strike', dmg: 1.5, ailment: 'vajra', intent: 'ranged', desc: 'Lightning smites enemy' },
+  venomSpit: { name: 'Venom Spit', dmg: 0.9, ailment: 'visha', intent: 'ranged', desc: 'Toxic spit corrodes flesh' },
+  soulSiphon: { name: 'Soul Siphon', dmg: 1.0, ailment: null, heal: 0.4, intent: 'ranged', desc: 'Drains spiritual energy' },
+  hellfire: { name: 'Hellfire', dmg: 1.4, ailment: 'agni', intent: 'ranged', desc: 'Infernal flames burn bright' },
+  charm: { name: 'Charm', dmg: 0.8, ailment: 'confuse', intent: 'ranged', desc: 'Bewildering gaze confuses foe' },
+  divineSmite: { name: 'Divine Smite', dmg: 1.6, ailment: 'vajra', intent: 'ranged', desc: 'Celestial power strikes true' },
+  cosmicRays: { name: 'Cosmic Rays', dmg: 1.3, ailment: null, intent: 'ranged', desc: 'Starlight pierces darkness' },
+  heavenFall: { name: 'Heaven Fall', dmg: 1.8, ailment: null, intent: 'ranged', desc: 'Sky collapses on foe' }
 };
 
 const ENEMIES = {
@@ -54,6 +54,16 @@ const ENEMIES = {
   indra:       { name: 'Indra',           hp: 300, str: 30, agi: 20, mag: 28, def: 24, ailment: 'vajra',   xp: 300, gold: 60, minLvl: 38, abilities: ['thunderStrike', 'heavenFall', 'divineSmite'] }
 };
 
+// Optional deterministic patterns. Enemies not listed here use their legacy
+// ability chance and still receive a telegraphed fallback intent.
+const ENEMY_PATTERNS = {
+  bandit: ['attack', 'bite'],
+  wolf: ['bite', 'attack', 'howl'],
+  giantSpider: ['poisonBite', 'webSpray', 'attack'],
+  dragonEmerald: ['fireBreath', 'tailSwipe', 'frostBreath'],
+  pralaya: ['heavenFall', 'hellfire', 'crush', 'divineSmite']
+};
+
 const ZONE_ENEMIES = {
   aryavarta:  ['bandit', 'wolf', 'giantSpider', 'rakshasa', 'wildBoar', 'snake'],
   dandaka:    ['wraith', 'darkElf', 'giantSpider', 'naga', 'shadowMage', 'treant'],
@@ -81,6 +91,8 @@ function createEnemyState(id, level, zoneTier) {
     ailments: {},
     ailment: e.ailment,
     abilities: e.abilities || [],
+    patterns: ENEMY_PATTERNS[id] ? ENEMY_PATTERNS[id].slice() : null,
+    patternIndex: 0,
     xp: Math.floor(e.xp * scale),
     gold: Math.floor(e.gold * scale)
   };
