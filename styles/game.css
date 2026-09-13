@@ -80,9 +80,35 @@ body {
   opacity: 1;
   transition: opacity 0.15s linear;
 }
+#game-container.loading::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(50% - 116px);
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  background:
+    linear-gradient(45deg, transparent 40%, #e8a030 41%, #e8a030 59%, transparent 60%),
+    linear-gradient(-45deg, transparent 40%, #e8a030 41%, #e8a030 59%, transparent 60%);
+  transform: translateY(-50%);
+  animation: splash-cross-rotate 1.1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  opacity: 1;
+  transition: opacity 0.15s linear;
+  z-index: 5;
+}
 #game-container.loading.out::after { opacity: 0; }
+#game-container.loading.out::before { opacity: 0; }
+@keyframes splash-cross-rotate {
+  from { transform: translateY(-50%) rotate(0deg); }
+  to { transform: translateY(-50%) rotate(360deg); }
+}
 @media (prefers-reduced-motion: reduce) {
-  #game-container.loading::after { transition: none; }
+  #game-container.loading::before,
+  #game-container.loading::after {
+    animation: none;
+    transition: none;
+  }
 }
 @media (max-width: 420px) {
   #game-container { border: none; border-radius: 0; box-shadow: none; }
