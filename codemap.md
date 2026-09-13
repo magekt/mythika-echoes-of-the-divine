@@ -4,7 +4,7 @@
 A mobile-first, offline-capable idle/cultivation RPG with turn-based combat, built in vanilla JavaScript (ES6+) targeting HTML5 Canvas. 25-30 hours base playtime, 40+ hours completionist. Premium $7.99 + optional cosmetic DLC.
 
 ## System Entry Points
-- `index.html` — Script loading order (70 scripts), PWA manifest, service worker
+- `index.html` — Script loading order (71 scripts), PWA manifest, service worker
 - `src/main.js` — Boot sequence, scene registration, `bootGame()` idempotent entry
 - `src/engine/game.js` — Global state (`G`), game loop (`gLoop`), scene manager (`gScene`), `Notify`, `Fade`
 - `package.json` — (Not present — no build step, direct script loading)
@@ -15,7 +15,7 @@ A mobile-first, offline-capable idle/cultivation RPG with turn-based combat, bui
 |-----------|------------------------|--------------|
 | `src/engine/` | Core game engine — rendering primitives, game loop, scene management, input, audio, global state | [View Map](src/engine/codemap.md) |
 | `src/data/` | Static game data — heroes, enemies, zones, realms, perks, auras, classes, items, journeys, quests, achievements, alchemy | [View Map](src/data/codemap.md) |
-| `src/systems/` | Game logic systems — combat, progression, cultivation, save, journey, alchemy, economy, achievements, quests, duel | [View Map](src/systems/codemap.md) |
+| `src/systems/` | Game logic systems — combat, progression, cultivation, save, zone rewards, journey, alchemy, economy, achievements, quests, duel | [View Map](src/systems/codemap.md) |
 | `src/scenes/` | 30 scene implementations — each a self-contained screen with enter/update/render/leave lifecycle | [View Map](src/scenes/codemap.md) |
 | `src/ui/` | Reusable UI components — buttons, panels, lists, modals, progress bars, tab bars, text, cards | [View Map](src/ui/codemap.md) |
 
@@ -35,6 +35,7 @@ Combat     → Turn-based combat engine
 Progression → XP, leveling, challenge scaling, difficulty
 CultivationSystem → Realm progression, breakthrough, idle tick
 SaveSystem → localStorage persistence, migration, offline progress
+ZoneRewardSystem → idempotent zone progress and completion rewards
 JourneySystem → Narrative journeys, aura unlocks
 AlchemySystem → Pill crafting
 Economy    → Currency transactions
@@ -45,7 +46,7 @@ DuelSystem → Tournament PvP combat
 
 ### Data Flow (Simplified)
 ```
-index.html loads 70 scripts in dependency order
+index.html loads 71 scripts in dependency order
     ↓
 main.js: bootGame() → gInit() → gLoop()
     ↓

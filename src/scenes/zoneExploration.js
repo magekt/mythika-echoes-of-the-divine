@@ -21,6 +21,7 @@ const zoneExplorationScene = Scene.create({
   },
 
   enter: function() {
+    if (typeof ZoneRewardSystem !== 'undefined') ZoneRewardSystem.normalize();
     this.data.zoneId = G.state.currentZone;
     this.data.zone = ZONES[this.data.zoneId];
     // Defensive: a stale/missing currentZone must not crash the scene.
@@ -225,18 +226,10 @@ const zoneExplorationScene = Scene.create({
     if (pct >= 100 && !this.data.zoneComplete) {
       this.data.zoneComplete = true;
       this.data.log.push('Zone fully explored!');
-      const zone = this.data.zone;
-      const rewardGold = 30 + (zone.reqLevel || 1) * 5;
-      Economy.addGold(rewardGold);
-      Economy.addKarma(1);
-      this.data.log.push('Reward: +' + rewardGold + ' Gold, +1 Karma');
-      Notify.show(this.data.zone.name + ' explored! +' + rewardGold + 'g', 3, R.colors.gold);
-      Audio.levelUp();
     }
   },
 
   triggerEncounter: function() {
-    const zone = this.data.zone;
     const playerLvl = G.state.player ? G.state.player.level : 1;
     let enemy = getZoneEnemy(this.data.zoneId, playerLvl);
     let pctGain = 5 + Math.floor(Math.random() * 15);
@@ -251,16 +244,15 @@ const zoneExplorationScene = Scene.create({
       this.data.log.push('A formidable ' + enemy.name + ' appears!');
     }
 
-    this.data.progressGained += pctGain;
-    const curPct = G.state.zoneProgress[this.data.zoneId] || 0;
-    G.state.zoneProgress[this.data.zoneId] = Math.min(100, curPct + pctGain);
-    QuestSystem.trackExplore(this.data.zoneId, 1);
+    this.data.progressGained = pctGain;
+    if (typeof ZoneRewardSystem !== 'undefined') {
+      ZoneRewardSystem.beginPending(this.data.zoneId, pctGain);
+    }
     G.state.currentEnemies = [enemy];
     G.state.isBossFight = false;
     G.state.returnToExploration = true;
     this.data.currentEnemy = enemy;
     this.data.enemyHpPct = enemy.hp / enemy.maxHp * 100;
-    this.checkZoneComplete();
     gScene('combatScene');
   },
 

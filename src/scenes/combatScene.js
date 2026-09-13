@@ -79,6 +79,7 @@ const combatScene = Scene.create({
   enter: function() {
     Hints.show('combat', 'Tap a foe on the right to target it. Chained hits build combo damage.');
     const zone = G.state.currentZone;
+    if (G.state.isBossFight && typeof ZoneRewardSystem !== 'undefined') ZoneRewardSystem.clearPending();
     const musicMap = { aryavarta: 'combat_aryavarta', dandaka: 'combat_dandaka', meru: 'combat_meru', patala: 'combat_patala', svarga: 'combat_svarga' };
     Audio.playMusic(musicMap[zone] || 'combat_aryavarta');
     this.data.heroes = JSON.parse(JSON.stringify(G.state.party.filter(h => h.hp > 0)));
@@ -578,6 +579,7 @@ const combatScene = Scene.create({
     }
     if (Math.random() < 0.5) {
       this.data.log.push('Fled successfully!');
+      if (typeof ZoneRewardSystem !== 'undefined') ZoneRewardSystem.clearPending();
       G.state.fledCombat = true;
       gScene('ashram');
     } else {
@@ -661,6 +663,7 @@ const combatScene = Scene.create({
   endBattle: function() {
     this.data.turnState = 'result';
     const won = this.data.enemies.every(e => e.hp <= 0);
+    const isBossFight = !!G.state.isBossFight;
     const heroes = this.data.heroes;
     const totalHp = heroes.reduce((s, h) => s + Math.max(0, h.hp), 0);
     const totalMax = heroes.reduce((s, h) => s + Math.max(1, h.maxHp), 0);
@@ -684,9 +687,25 @@ const combatScene = Scene.create({
       this.data.rewards = { gold: gainedGold, xp: xpPerHero, shownG: 0, shownX: 0 };
       const leveled = Progression.addPartyXP(xpPerHero);
       for (const e of this.data.enemies) {
-        if (e.hp <= 0) QuestSystem.trackKill(e.id, G.state.currentZone);
+        if (e.hp <= 0) QuestSystem.trackKill(e.id, G.state.currentZone, !!e.isBoss);
       }
       this.data.log.push('Victory! Gained ' + loot.gold + ' gold, ' + xpPerHero + ' XP each');
+
+      let zoneReward = null;
+      if (typeof ZoneRewardSystem !== 'undefined') {
+        zoneReward = isBossFight
+          ? ZoneRewardSystem.completeZone(G.state.currentZone)
+          : ZoneRewardSystem.commitPendingProgress();
+        for (const message of zoneReward.messages || []) this.data.log.push(message);
+        if (zoneReward.changed && zoneReward.messages && zoneReward.messages.length) {
+          const visibleMessages = zoneReward.completionReward ? zoneReward.messages.slice(-2) : zoneReward.messages;
+          Notify.show(visibleMessages.join(' | '), 5, R.colors.gold);
+        }
+      }
+      if (!isBossFight && zoneReward) {
+        const committedAmount = Math.max(0, (zoneReward.progress || 0) - (zoneReward.previousProgress || 0));
+        if (committedAmount > 0) QuestSystem.trackExplore(G.state.currentZone, committedAmount);
+      }
       
       const droppedLoot = [];
       for (const e of this.data.enemies) {
@@ -702,21 +721,13 @@ const combatScene = Scene.create({
           this.data.log.push('Found: ' + item.name + ' (' + item.rarityName + ')');
         }
       }
-      if (G.state.isBossFight) {
-        Economy.addKarma(1);
+      if (isBossFight) {
         if (!G.state.flags) G.state.flags = {};
         G.state.flags.bossesDefeated = (G.state.flags.bossesDefeated || 0) + 1;
         G.state.flags['boss_' + G.state.currentZone] = true;
-        this.data.log.push('Boss defeated! +1 Karma');
-        G.state.zoneProgress[G.state.currentZone] = 100;
-        SaveSystem.save();
-        const zone = ZONES[G.state.currentZone];
-        if (zone) {
-          const rewardGold = 50 + (zone.reqLevel || 1) * 10;
-          Economy.addGold(rewardGold);
-          this.data.log.push('Zone complete! +' + rewardGold + ' Gold');
-        }
+        this.data.log.push('Boss defeated!');
       }
+      if (G.state.isBossFight) G.state.isBossFight = false;
       if (leveled) { this.data.log.push('Level up!'); R.triggerLevelUp(); }
       AchievementSystem.check();
       if (Math.random() < 0.15) {
@@ -745,13 +756,16 @@ const combatScene = Scene.create({
           orig.mp = combatHero.mp;
         }
       }
+      if (zoneReward && zoneReward.changed) SaveSystem.save();
       this.data.result = { won: true };
       this.data.showEnlightenment = true;
       this.buildEnlightenmentButtons();
     } else {
+      if (typeof ZoneRewardSystem !== 'undefined') ZoneRewardSystem.clearPending();
       this.data.log.push('Defeated! Retreating to Ashram...');
       for (const h of G.state.party) h.hp = Math.floor(h.maxHp * 0.3);
       this.data.result = { won: false };
+      if (G.state.isBossFight) G.state.isBossFight = false;
       this.buildContinueButton();
     }
   },

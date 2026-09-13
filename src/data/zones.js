@@ -8,6 +8,10 @@ const ZONES = {
     enemies: ['bandit', 'wolf', 'giantSpider', 'rakshasa', 'wildBoar', 'snake'],
     boss: { id: 'rakshasa', name: 'Rakshasa Chieftain', level: 8, hpMul: 3 },
     explorationMax: 100,
+    rewards: {
+      percentage: { hp: 1 },
+      completion: { hp: 12, str: 1, def: 1, gold: 35, karma: 1 }
+    },
     bgColor: '#0a1a20'
   },
   dandaka: {
@@ -19,6 +23,10 @@ const ZONES = {
     enemies: ['wraith', 'darkElf', 'giantSpider', 'naga', 'shadowMage', 'treant'],
     boss: { id: 'darkElf', name: 'Dark Elf Prince', level: 18, hpMul: 4 },
     explorationMax: 100,
+    rewards: {
+      percentage: { hp: 1 },
+      completion: { hp: 16, str: 1, agi: 1, def: 1, gold: 50, karma: 1 }
+    },
     bgColor: '#0a0a1a'
   },
   meru: {
@@ -30,6 +38,10 @@ const ZONES = {
     enemies: ['asuraWarrior', 'orc', 'ogre', 'iceElemental', 'fireElemental', 'dragonEmerald'],
     boss: { id: 'dragonEmerald', name: 'Emerald Dragon', level: 25, hpMul: 5 },
     explorationMax: 100,
+    rewards: {
+      percentage: { hp: 1 },
+      completion: { hp: 20, str: 1, agi: 1, mag: 1, def: 1, gold: 70, karma: 1 }
+    },
     bgColor: '#1a1a3a'
   },
   patala: {
@@ -41,6 +53,10 @@ const ZONES = {
     enemies: ['asura', 'naga', 'rakshasa', 'kaliya', 'hellHound', 'succubus'],
     boss: { id: 'kaliya', name: 'Kaliya, the Serpent King', level: 35, hpMul: 5 },
     explorationMax: 100,
+    rewards: {
+      percentage: { hp: 1 },
+      completion: { hp: 24, str: 1, agi: 1, mag: 1, def: 1, gold: 90, karma: 1 }
+    },
     bgColor: '#1a0510'
   },
   svarga: {
@@ -52,6 +68,10 @@ const ZONES = {
     enemies: ['celestialGuardian', 'fallenDeva', 'darkApsara', 'indra', 'seraphim', 'vishnuDuta'],
     boss: { id: 'indra', name: 'Indra, the Storm Lord', level: 45, hpMul: 5 },
     explorationMax: 100,
+    rewards: {
+      percentage: { hp: 1 },
+      completion: { hp: 28, str: 1, agi: 1, mag: 1, def: 1, gold: 110, karma: 1 }
+    },
     bgColor: '#1a2040'
   },
   tapobhumi: {
@@ -63,6 +83,10 @@ const ZONES = {
     enemies: ['tapasvi', 'rudra', 'brahmarishi', 'mahadeva', 'seraphim', 'pralaya'],
     boss: { id: 'pralaya', name: 'Pralaya, the Dissolver', level: 58, hpMul: 6 },
     explorationMax: 100,
+    rewards: {
+      percentage: { hp: 1 },
+      completion: { hp: 32, str: 2, agi: 1, mag: 1, def: 2, gold: 140, karma: 1 }
+    },
     bgColor: '#2a1030'
   }
 };

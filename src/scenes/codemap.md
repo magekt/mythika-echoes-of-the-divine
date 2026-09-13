@@ -94,7 +94,7 @@ render(ctx): drawEnemy(); drawHeroParty(); drawActionBar(); drawCombatLog()
 | `cultivationScene` | Cultivation | REALMS, CULTIVATION_RATES | HeroMoment, PremiumShell, MagneticBtn, ProgressBar |
 | `combatScene` | Combat, Progression, AURAS | HEROES, ENEMIES, PERKS | MagneticBtn, ProgressBar (HP/MP) |
 | `travelMap` | — | ZONES, zoneProgress | HeroMoment, PremiumShell, MagneticBtn |
-| `party` | Progression | HEROES, ITEMS, AURAS, CLASSES | PremiumShell, MagneticBtn, TabBar |
+| `party` | Progression | HEROES, ITEMS, AURAS, CLASSES | PremiumShell, MagneticBtn, TabBar; detail action stack uses 48px touch targets |
 | `forge` | Economy, Progression | ITEMS, PERKS | PremiumShell, MagneticBtn, ProgressBar |
 | `alchemyScene` | Alchemy | ALCHEMY_RECIPES, HERB_GROWTH | PremiumShell, MagneticBtn, List |
 | `journeyScene` | Journey, AURAS | JOURNEYS, AURAS | PremiumShell, MagneticBtn, HeroMoment |

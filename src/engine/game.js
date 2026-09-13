@@ -192,6 +192,7 @@ const G = {
     fishCaught: 0,
     alchemyRecipes: [],
     zoneProgress: {},
+    zoneRewardLedger: {},
     tournamentWins: 0,
     totalPlayTime: 0,
     flags: {}

@@ -146,6 +146,7 @@ const Auth = {
       // Merge cloud save with local state
       // Cloud save takes precedence for cross-device sync
       Object.assign(G.state, result.data);
+      if (typeof SaveSystem !== 'undefined' && SaveSystem.migrate) SaveSystem.migrate();
       console.log('[Mythika] Cloud save loaded');
     }
   }

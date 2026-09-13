@@ -59,13 +59,14 @@ QuestSystem.getQuestChainCount = function() {
   return count;
 };
 
-QuestSystem.trackKill = function(enemyId, zoneId) {
+QuestSystem.trackKill = function(enemyId, zoneId, isBoss) {
   this.init();
   const zoneQuests = getZoneQuests(zoneId);
   let anyCompleted = false;
   for (const q of zoneQuests) {
     if (q.type !== 'kill' && q.type !== 'boss') continue;
     if (q.target !== enemyId) continue;
+    if (q.type === 'boss' && isBoss !== true) continue;
     const prog = G.state.quests[q.id] || { count: 0, completed: false, claimed: false };
     if (prog.completed) continue;
     prog.count = (prog.count || 0) + 1;
@@ -77,11 +78,11 @@ QuestSystem.trackKill = function(enemyId, zoneId) {
     G.state.quests[q.id] = prog;
   }
   
-  this.trackChainKill(enemyId, zoneId);
+  this.trackChainKill(enemyId, zoneId, isBoss);
   return anyCompleted;
 };
 
-QuestSystem.trackChainKill = function(enemyId, zoneId) {
+QuestSystem.trackChainKill = function(enemyId, zoneId, isBoss) {
   this.init();
   const chains = QUEST_CHAINS[zoneId] || [];
   for (const chain of chains) {
@@ -93,6 +94,7 @@ QuestSystem.trackChainKill = function(enemyId, zoneId) {
     if (!currentStep) continue;
     if (currentStep.type !== 'kill' && currentStep.type !== 'boss') continue;
     if (currentStep.target !== enemyId) continue;
+    if (currentStep.type === 'boss' && isBoss !== true) continue;
     
     const stepProg = G.state.quests[currentStep.id] || { count: 0, completed: false, claimed: false };
     if (stepProg.completed) continue;
@@ -178,7 +180,8 @@ QuestSystem.trackCollect = function(itemName, qty) {
 
 QuestSystem.trackExplore = function(zoneId, amount) {
   this.init();
-  amount = amount || 1;
+  amount = amount == null ? 1 : Number(amount);
+  if (!isFinite(amount) || amount <= 0) return false;
   const allQuests = getAllQuests();
   let anyCompleted = false;
   for (const q of allQuests) {
@@ -194,7 +197,7 @@ QuestSystem.trackExplore = function(zoneId, amount) {
     }
     G.state.quests[q.id] = prog;
   }
-  this._advanceChainForExplore(zoneId);
+  this._advanceChainForExplore(zoneId, amount);
   return anyCompleted;
 };
 
@@ -219,7 +222,7 @@ QuestSystem.trackForge = function(slotId) {
   return anyCompleted;
 };
 
-QuestSystem._advanceChainForExplore = function(zoneId) {
+QuestSystem._advanceChainForExplore = function(zoneId, amount) {
   this.init();
   for (const chainId of Object.keys(G.state.questChains || {})) {
     const chainProg = G.state.questChains[chainId];
@@ -229,7 +232,7 @@ QuestSystem._advanceChainForExplore = function(zoneId) {
     const step = chain.steps[chainProg.currentStep];
     if (!step || step.type !== 'explore' || step.target !== zoneId) continue;
     const stepProg = G.state.quests[step.id] || { count: 0, completed: false };
-    stepProg.count = (stepProg.count || 0) + 1;
+    stepProg.count = (stepProg.count || 0) + amount;
     if (stepProg.count >= step.count) {
       stepProg.completed = true;
       G.state.quests[step.id] = stepProg;

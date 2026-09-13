@@ -1,7 +1,7 @@
 # src/systems/
 
 ## Responsibility
-10 game logic systems — each encapsulates a distinct gameplay domain (combat, progression, cultivation, save, journey, alchemy, economy, achievements, quests, duel). Systems are stateless operators on `G.state` and global data constants.
+11 game logic systems — each encapsulates a distinct gameplay domain (combat, progression, cultivation, save, zone rewards, journey, alchemy, economy, achievements, quests, duel). Systems are stateless operators on `G.state` and global data constants.
 
 ## Design Patterns
 - **Namespace Objects**: Each system is a `const SystemName = {}` with methods
@@ -86,6 +86,19 @@
 **Dependencies**: `CultivationSystem`, `HERB_GROWTH`, `Notify`, `R.applyFontScale`
 
 **State Mutations**: `G.state.*` (full replace on load), `G.state.cultivationBase`, `G.state.prana`, `G.state.farmPlots`
+
+### Zone Reward System (`zone_rewards.js`)
+**Responsibility**: Save-backed, idempotent percentage and one-time completion rewards for zone exploration.
+
+**Key Exports**:
+- `ZoneRewardSystem.normalize()` — clamps progress and sanitizes or seeds the per-zone reward ledger
+- `ZoneRewardSystem.beginPending(zoneId, amount)` — holds encounter progress until combat victory
+- `ZoneRewardSystem.commitPendingProgress()` — commits pending progress and crossed percentage rewards
+- `ZoneRewardSystem.completeZone(zoneId)` — commits remaining progress and the one-time completion bundle
+
+**Dependencies**: `ZONES`, `Economy`, `G`
+
+**State Mutations**: `G.state.zoneProgress`, `G.state.zoneRewardLedger`, current party stats and completion currencies
 
 ### Journey System (`journey.js` — ~200 lines)
 **Responsibility**: Narrative journeys with choices, aura unlocks, progress tracking.

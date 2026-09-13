@@ -31,7 +31,12 @@ const partyScene = Scene.create({
   },
 
   getContentTop: function() { return G.CONTENT_TOP; },
-  getContentHeight: function() { return G.H - this.getContentTop() - 44; },
+  getContentHeight: function() {
+    // The detail view has no bottom navigation bar. Reclaim that reserved
+    // band so the final 48px action remains readable on the first render.
+    const bottomInset = this.data.view === 'detail' && !this.data.itemsView ? 8 : 44;
+    return G.H - this.getContentTop() - bottomInset;
+  },
 
   clampScroll: function() {
     const ch = this.data.contentHeight;
@@ -71,7 +76,7 @@ const partyScene = Scene.create({
       btn.render = function(ctx) {
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
         R.roundRect(ctx, bx, by, bw, bh, 8, this.color);
-        ctx.strokeStyle = 'rgba(138,138,160,0.1)';
+        ctx.strokeStyle = R.colors.borderHairline;
         ctx.lineWidth = 1;
         ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
         if (!this._alive) ctx.globalAlpha = 0.5;
@@ -92,7 +97,7 @@ const partyScene = Scene.create({
         R.roundRect(ctx, tx, by + 50, Math.max(0, barW * hpPct), 8, 4, ctx.fillStyle);
         R.text(ctx, Math.floor(this._hero.hp) + '/' + this._hero.maxHp, right, by + 58, R.colors.white, R.fonts.xs, 'right');
         // MP bar, same pattern
-        R.roundRect(ctx, tx, by + 62, barW, 8, 4, 'rgba(48,128,200,0.1)');
+        R.roundRect(ctx, tx, by + 62, barW, 8, 4, R.colors.blueDark);
         ctx.fillStyle = R.colors.mp;
         R.roundRect(ctx, tx, by + 62, Math.max(0, barW * mpPct), 8, 4, ctx.fillStyle);
         R.text(ctx, Math.floor(this._hero.mp) + '/' + this._hero.maxMp, right, by + 70, R.colors.white, R.fonts.xs, 'right');
@@ -149,7 +154,7 @@ const partyScene = Scene.create({
       btn.render = function(ctx) {
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
         R.roundRect(ctx, bx, by, bw, bh, 6, R.colors.panel);
-        ctx.strokeStyle = 'rgba(138,138,160,0.1)';
+        ctx.strokeStyle = R.colors.borderHairline;
         ctx.lineWidth = 1;
         ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
         R.drawHero(ctx, this._hid, bx + 10, by + 8, 20);
@@ -211,9 +216,10 @@ const partyScene = Scene.create({
   getDetailInfoHeight: function() {
     const hero = this.data.selectedHero;
     if (!hero) return 0;
-    let h = 116;
-    h += 20;
-    h += 48;
+    // Keep this in lockstep with renderDetailInfo(). The previous estimate
+    // omitted the three equipment rows, which placed the action controls on
+    // top of the lower half of the hero panel.
+    let h = 196;
     if (hero.skills && hero.skills.length) {
       h += 16;
       h += hero.skills.length * 14;
@@ -228,9 +234,29 @@ const partyScene = Scene.create({
       if (hero.regenHpPct) count++;
       if (hero.mpRegen) count++;
       if (hero.partyHpBuff) count++;
-      h += count * 14 + 6;
+      h += count * 14;
     }
     return h;
+  },
+
+  getDetailActionLayout: function() {
+    const infoBottom = this.getContentTop() + this.getDetailInfoHeight();
+    const panelY = infoBottom + 8;
+    const topPad = 16;
+    const buttonH = 48;
+    const gap = 8;
+    const firstButtonY = panelY + topPad;
+    const actionCount = 5;
+    const panelH = topPad + actionCount * buttonH + (actionCount - 1) * gap + 12;
+
+    return {
+      panelY: panelY,
+      panelH: panelH,
+      firstButtonY: firstButtonY,
+      buttonH: buttonH,
+      gap: gap,
+      contentHeight: panelY + panelH + 8
+    };
   },
 
   renderDetailInfo: function(ctx, offsetY) {
@@ -238,7 +264,15 @@ const partyScene = Scene.create({
     if (!hero) return;
     let y = offsetY;
 
-    R.roundRect(ctx, 10, y, G.W - 20, 110, 8, R.colors.panel);
+    const infoShell = UI.PremiumShell(10, y, G.W - 20, 110, {
+      outerR: R.radius.l,
+      innerR: R.radius.m,
+      outerBg: R.colors.surfaceElevated,
+      outerBorder: R.colors.borderHairline,
+      innerBg: R.colors.panel,
+      innerHighlight: R.colors.subtleWhite
+    });
+    infoShell.render(ctx);
 
     let hy = y + 12;
     R.drawHero(ctx, hero.id, 22, hy, 28);
@@ -250,10 +284,10 @@ const partyScene = Scene.create({
 
     const hpPct = hero.hp / Math.max(1, hero.maxHp);
     const mpPct = hero.mp / Math.max(1, hero.maxMp);
-    R.roundRect(ctx, 58, hy + 52, 160, 5, 2, 'rgba(200,48,48,0.2)');
+    R.roundRect(ctx, 58, hy + 52, 160, 5, 2, R.colors.damageBarBackground);
     R.roundRect(ctx, 58, hy + 52, Math.max(0, 160 * hpPct), 5, 2, R.colors.hp);
     R.text(ctx, Math.floor(hero.hp) + '/' + hero.maxHp, 220, hy + 56, R.colors.white, R.fonts.xs);
-    R.roundRect(ctx, 58, hy + 60, 160, 5, 2, 'rgba(48,128,200,0.2)');
+    R.roundRect(ctx, 58, hy + 60, 160, 5, 2, R.colors.blueDark);
     R.roundRect(ctx, 58, hy + 60, Math.max(0, 160 * mpPct), 5, 2, R.colors.mp);
     R.text(ctx, Math.floor(hero.mp) + '/' + hero.maxMp, 220, hy + 64, R.colors.white, R.fonts.xs);
 
@@ -303,49 +337,102 @@ const partyScene = Scene.create({
     this.data.buttons = [];
     this.data.scrollY = 0;
     const hero = this.data.selectedHero;
-    const infoH = this.getDetailInfoHeight();
-    let y = infoH + 10;
-    const useItemBtn = UI.Button(30, y, G.W - 60, 28, 'Use Item');
+    const layout = this.getDetailActionLayout();
+    let y = layout.firstButtonY;
+
+    const drawActionBorder = function(ctx, btn) {
+      const x = btn.x + 0.5;
+      const y = btn.y + 0.5;
+      const w = btn.w - 1;
+      const h = btn.h - 1;
+      const r = R.radius.m;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      ctx.stroke();
+    };
+
+    const makeActionButton = function(label, color, hoverColor, textColor) {
+      const btn = UI.Button(20, y, G.W - 40, layout.buttonH, label, color, hoverColor, textColor);
+      const baseRender = btn.render;
+      btn.render = function(ctx) {
+        baseRender.call(this, ctx);
+        // Secondary actions get a quiet hairline so the group reads as a
+        // deliberate control surface without competing with the primary CTA.
+        if (this.color !== R.colors.btnGold) {
+          ctx.strokeStyle = this._pressed ? R.colors.accent : R.colors.borderHairline;
+          ctx.lineWidth = this._pressed ? 2 : 1;
+          drawActionBorder(ctx, this);
+        }
+      };
+      partyScene.data.buttons.push(btn);
+      y += layout.buttonH + layout.gap;
+      return btn;
+    };
+
+    const useItemBtn = makeActionButton('Use Item', R.colors.btnGold, R.colors.orangeLight, R.colors.bg);
     useItemBtn.onClick = function() {
       partyScene.data.itemsView = true;
       partyScene.data.equipSlot = null;
       partyScene.data.scrollY = 0;
       partyScene.buildItemList('consumable');
     };
-    this.data.buttons.push(useItemBtn);
-    y += 36;
 
-    const equipWeaponBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Weapon (' + Scene.gearLabel(hero.weaponEquipped) + ')');
+    const equipWeaponBtn = makeActionButton(
+      'Equip Weapon (' + Scene.gearLabel(hero.weaponEquipped) + ')',
+      R.colors.surfaceElevated,
+      R.colors.btnHover,
+      R.colors.textPrimary
+    );
     equipWeaponBtn.onClick = function() {
       partyScene.data.itemsView = true;
       partyScene.data.equipSlot = 'weapon';
       partyScene.data.scrollY = 0;
       partyScene.buildItemList('weapon');
     };
-    this.data.buttons.push(equipWeaponBtn);
-    y += 34;
 
-    const equipArmorBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Armor (' + Scene.gearLabel(hero.armorEquipped) + ')');
+    const equipArmorBtn = makeActionButton(
+      'Equip Armor (' + Scene.gearLabel(hero.armorEquipped) + ')',
+      R.colors.surfaceElevated,
+      R.colors.btnHover,
+      R.colors.textPrimary
+    );
     equipArmorBtn.onClick = function() {
       partyScene.data.itemsView = true;
       partyScene.data.equipSlot = 'armor';
       partyScene.data.scrollY = 0;
       partyScene.buildItemList('armor');
     };
-    this.data.buttons.push(equipArmorBtn);
-    y += 34;
 
-    const equipAccBtn = UI.Button(30, y, G.W - 60, 28, 'Equip Accessory (' + Scene.gearLabel(hero.accessoryEquipped) + ')');
+    const equipAccBtn = makeActionButton(
+      'Equip Accessory (' + Scene.gearLabel(hero.accessoryEquipped) + ')',
+      R.colors.surfaceElevated,
+      R.colors.btnHover,
+      R.colors.textPrimary
+    );
     equipAccBtn.onClick = function() {
       partyScene.data.itemsView = true;
       partyScene.data.equipSlot = 'accessory';
       partyScene.data.scrollY = 0;
       partyScene.buildItemList('accessory');
     };
-    this.data.buttons.push(equipAccBtn);
-    y += 38;
 
-    const back = UI.Button(60, y + 4, G.W - 120, 30, 'Back to Party', R.colors.btnGold);
+    const back = UI.Button(20, y, G.W - 40, layout.buttonH, 'Back to Party', R.colors.surface, R.colors.btnHover, R.colors.textPrimary);
+    const backBaseRender = back.render;
+    back.render = function(ctx) {
+      backBaseRender.call(this, ctx);
+      ctx.strokeStyle = this._pressed ? R.colors.accent : R.colors.borderHairline;
+      ctx.lineWidth = this._pressed ? 2 : 1;
+      drawActionBorder(ctx, this);
+    };
     back.onClick = function() {
       partyScene.data.view = 'list';
       partyScene.data.itemsView = false;
@@ -353,9 +440,7 @@ const partyScene = Scene.create({
       partyScene.buildList();
     };
     this.data.buttons.push(back);
-    y += 44;
-
-    this.data.contentHeight = y;
+    this.data.contentHeight = layout.contentHeight;
   },
 
   buildItemList: function(filterType) {
@@ -527,6 +612,16 @@ Scene.clipContent(ctx, this);
       const top = this.getContentTop();
       Scene.clipContent(ctx, this);
       this.renderDetailInfo(ctx, this.getContentTop());
+      const actionLayout = this.getDetailActionLayout();
+      const actionShell = UI.PremiumShell(14, actionLayout.panelY, G.W - 28, actionLayout.panelH, {
+        outerR: R.radius.l,
+        innerR: R.radius.m,
+        outerBg: R.colors.surfaceElevated,
+        outerBorder: R.colors.borderHairline,
+        innerBg: R.colors.surface,
+        innerHighlight: R.colors.subtleWhite
+      });
+      actionShell.render(ctx);
       for (const b of this.data.buttons) b.render(ctx);
       ctx.restore();
 

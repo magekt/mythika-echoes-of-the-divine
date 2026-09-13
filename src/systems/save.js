@@ -7,6 +7,9 @@ const SaveSystem = {
 
 SaveSystem.save = function() {
   try {
+    if (typeof ZoneRewardSystem !== 'undefined' && ZoneRewardSystem.normalize) {
+      ZoneRewardSystem.normalize();
+    }
     const data = {
       state: JSON.parse(JSON.stringify(G.state)),
       version: 1,
@@ -45,6 +48,16 @@ SaveSystem.migrate = function() {
       const n = parseFloat(G.state[field]);
       G.state[field] = isFinite(n) && n >= 0 ? Math.floor(n) : 0;
     }
+  }
+  if (typeof ZoneRewardSystem !== 'undefined' && ZoneRewardSystem.normalize) {
+    ZoneRewardSystem.normalize();
+  }
+  const party = Array.isArray(G.state.party) ? G.state.party : [];
+  if (party.length > 0) {
+    const playerId = G.state.player && G.state.player.id;
+    G.state.player = party.find(hero => playerId != null && hero && hero.id === playerId) || party[0];
+  } else {
+    G.state.player = null;
   }
 };
 
@@ -96,6 +109,9 @@ SaveSystem.load = function() {
 // Download the current save as a JSON file (manual backup).
 SaveSystem.exportFile = function() {
   try {
+    if (typeof ZoneRewardSystem !== 'undefined' && ZoneRewardSystem.normalize) {
+      ZoneRewardSystem.normalize();
+    }
     const data = JSON.stringify({
       state: JSON.parse(JSON.stringify(G.state)),
       version: 1,
@@ -205,6 +221,7 @@ SaveSystem.cloudLoad = async function() {
       const result = await Auth.loadFromCloud();
       if (result.data) {
         Object.assign(G.state, result.data);
+        this.migrate();
         Notify.show('Cloud save loaded', 2, R.colors.green);
         return true;
       }
