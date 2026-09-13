@@ -36,6 +36,7 @@ const ASSETS = [
   'src/systems/cultivation_sys.js',
   'src/systems/alchemy.js',
   'src/systems/save.js',
+  'src/systems/farm.js',
   'src/systems/quest.js',
   'src/systems/achievements.js',
   'src/systems/journey.js',

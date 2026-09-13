@@ -61,7 +61,7 @@ const cultivationScene = Scene.create({
 
   syncBreakthroughButton: function() {
     if (this.data.breakthroughButton) {
-      this.data.breakthroughButton.enabled = CultivationSystem.canBreakthrough();
+      this.data.breakthroughButton.enabled = CultivationSystem.getBreakthroughStatus().canBreakthrough;
     }
   },
 
@@ -90,7 +90,7 @@ const cultivationScene = Scene.create({
     y += 56;
 
     // Attempt Breakthrough button - Secondary (Surface with gold border)
-    const canBreak = CultivationSystem.canBreakthrough();
+    const canBreak = CultivationSystem.getBreakthroughStatus().canBreakthrough;
     const bt = UI.MagneticBtn(60, y, G.W - 120, 48, 'Attempt Breakthrough', { trailingIcon: 'arrow-right' });
     bt.enabled = canBreak;
     this.data.breakthroughButton = bt;
@@ -183,7 +183,8 @@ const cultivationScene = Scene.create({
 
     const realm = CultivationSystem.getRealmData();
     const progress = CultivationSystem.getRealmProgress();
-    const canBreak = CultivationSystem.canBreakthrough();
+    const status = CultivationSystem.getBreakthroughStatus();
+    const canBreak = status.canBreakthrough;
     const stats = CultivationSystem.getBreakthroughStats(getRealmIndex(G.state.realm));
 
     let iy = content.y + 10;
@@ -207,7 +208,7 @@ const cultivationScene = Scene.create({
     }
     iy += pranaLines.length * 14 + 4;
 
-    R.textCenter(ctx, canBreak ? 'Ready for breakthrough!' : 'Need more cultivation base', content.x + content.w / 2, iy, canBreak ? R.colors.success : R.colors.textSecondary, R.fonts.sm);
+    R.textCenter(ctx, canBreak ? 'Ready for breakthrough!' : status.reason, content.x + content.w / 2, iy, canBreak ? R.colors.success : R.colors.textSecondary, R.fonts.sm);
     iy += 16;
 
     let statStr = 'Next: +' + stats.hp + 'HP';

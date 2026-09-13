@@ -353,6 +353,7 @@ function gLoopFrame(time) {
   }
   Fade.update(G.dt);
   if (UI.Modal.active) UI.updateButtons(UI.Modal.active._buttonList, G.dt);
+  if (typeof FarmSystem !== 'undefined' && FarmSystem.tick) FarmSystem.tick(G.dt);
   if (G.currentScene && G.currentScene.update) G.currentScene.update(G.dt);
   G.ctx.clearRect(0, 0, G.W, G.H);
   G.ctx.save();

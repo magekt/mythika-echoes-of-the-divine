@@ -1,10 +1,10 @@
 const REALMS = [
-  { id: 'manushya',     name: 'Manushya',     stages: 3,  maxLvl: 9,  baseCp: 0 },
-  { id: 'sadhaka',      name: 'Sadhaka',      stages: 4,  maxLvl: 19, baseCp: 100 },
-  { id: 'yogi',         name: 'Yogi',         stages: 4,  maxLvl: 29, baseCp: 500 },
-  { id: 'siddha',       name: 'Siddha',       stages: 4,  maxLvl: 39, baseCp: 1500 },
-  { id: 'mukta',        name: 'Mukta',        stages: 4,  maxLvl: 50, baseCp: 5000 },
-  { id: 'paramukta',    name: 'Paramukta',    stages: 4,  maxLvl: 60, baseCp: 15000 }
+  { id: 'manushya',     name: 'Manushya',     stages: 3,  maxLvl: 9,  unlockLevel: 1,  baseCp: 0 },
+  { id: 'sadhaka',      name: 'Sadhaka',      stages: 4,  maxLvl: 19, unlockLevel: 10, baseCp: 100 },
+  { id: 'yogi',         name: 'Yogi',         stages: 4,  maxLvl: 29, unlockLevel: 20, baseCp: 500 },
+  { id: 'siddha',       name: 'Siddha',       stages: 4,  maxLvl: 39, unlockLevel: 30, baseCp: 1500 },
+  { id: 'mukta',        name: 'Mukta',        stages: 4,  maxLvl: 50, unlockLevel: 40, baseCp: 5000 },
+  { id: 'paramukta',    name: 'Paramukta',    stages: 4,  maxLvl: 60, unlockLevel: 50, baseCp: 15000 }
 ];
 
 const CULTIVATION_RATES = {

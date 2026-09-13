@@ -52,6 +52,7 @@ SaveSystem.migrate = function() {
   if (typeof ZoneRewardSystem !== 'undefined' && ZoneRewardSystem.normalize) {
     ZoneRewardSystem.normalize();
   }
+  if (typeof FarmSystem !== 'undefined' && FarmSystem.normalize) FarmSystem.normalize();
   const party = Array.isArray(G.state.party) ? G.state.party : [];
   if (party.length > 0) {
     const playerId = G.state.player && G.state.player.id;
@@ -68,11 +69,14 @@ SaveSystem.load = function() {
     const data = JSON.parse(raw);
     if (data.version !== 1) return false;
     const now = Date.now();
-    const elapsed = data.timestamp ? Math.min((now - data.timestamp) / 1000, 28800) : 0;
+    const elapsed = data.timestamp ? Math.max(0, Math.min((now - data.timestamp) / 1000, 28800)) : 0;
     Object.assign(G.state, data.state);
     this.migrate();
     // Restore the user's text-size preference with the loaded save.
     if (typeof R !== 'undefined' && R.applyFontScale) R.applyFontScale(G.state.uiFontScale || 1);
+    const farmResult = typeof FarmSystem !== 'undefined' && FarmSystem.tick
+      ? FarmSystem.tick(elapsed, { notify: false, save: false })
+      : { changed: false, harvested: 0, ready: 0 };
     if (elapsed > 60) {
       const cultPerSec = getCultivationPerSecond(G.state.ashramLevel || 1);
       const pranaPerSec = getPranaPerSecond(G.state.ashramLevel || 1);
@@ -80,25 +84,12 @@ SaveSystem.load = function() {
       const pranaGain = Math.floor(elapsed * pranaPerSec);
       G.state.cultivationBase = (G.state.cultivationBase || 0) + cultGain;
       G.state.prana = (G.state.prana || 0) + pranaGain;
-      // Offline farm: fast-forward each plot's growTimer so herbs can be
-      // ready even when the farm scene was never active.
-      let farmReady = 0;
-      for (const plot of G.state.farmPlots || []) {
-        if (plot.herb && !plot.harvested) {
-          const herbData = (typeof HERB_GROWTH !== 'undefined' && HERB_GROWTH[plot.herb]) || null;
-          if (herbData) {
-            plot.growTimer = Math.min(herbData.growTime, (plot.growTimer || 0) + elapsed);
-            if (plot.growTimer >= herbData.growTime) {
-              plot.harvested = true;
-              farmReady++;
-            }
-          }
-        }
-      }
       let awayMsg = 'While you were away: +' + cultGain + ' cultivation, +' + pranaGain + ' prana';
-      if (farmReady > 0) awayMsg += ', ' + farmReady + ' herb' + (farmReady > 1 ? 's' : '') + ' ready';
+      if (farmResult.harvested > 0) awayMsg += ', harvested ' + farmResult.harvested + ' herb' + (farmResult.harvested > 1 ? 's' : '');
+      if (farmResult.ready > 0) awayMsg += ', ' + farmResult.ready + ' plot' + (farmResult.ready > 1 ? 's' : '') + ' ready to replant';
       Notify.show(awayMsg, 5, R.colors.gold);
     }
+    if (farmResult.changed) this.save();
     return true;
   } catch (e) {
     console.warn('Load failed:', e);

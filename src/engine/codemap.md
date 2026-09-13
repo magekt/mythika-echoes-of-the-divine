@@ -15,7 +15,7 @@ Core game engine — rendering primitives, game loop, scene management, input ha
 ### Game Loop (`game.js:gLoopFrame`)
 ```
 rAF → dt calc → Notify.update → R.updateEffects → R.updateProjectiles → R.updateLevelUp
-    → R.updateClickFx → Enlightenment decay → Fade.update → Scene.update
+    → R.updateClickFx → Enlightenment decay → Fade.update → FarmSystem.tick → Scene.update
     → clearRect → drawBackground → Scene.render → R.renderProjectiles
     → R.renderEffects → R.renderClickFx → R.renderLevelUp → R.renderEnlightenmentAura
     → Fade.render → Notify.render → Perf probes → Adaptive Reduce Motion

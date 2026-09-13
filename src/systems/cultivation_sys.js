@@ -5,6 +5,12 @@ CultivationSystem.getRealmData = function() {
   return REALMS[idx] || REALMS[0];
 };
 
+CultivationSystem.getPlayerLevel = function() {
+  const player = G.state.player || (G.state.party || [])[0];
+  const level = player && Number(player.level);
+  return isFinite(level) && level >= 1 ? level : 1;
+};
+
 CultivationSystem.addCultivationBase = function(amount) {
   G.state.cultivationBase = (G.state.cultivationBase || 0) + amount;
 };
@@ -46,10 +52,34 @@ CultivationSystem.tick = function(dt) {
   this.addPrana(pranaRate * dt);
 };
 
-CultivationSystem.canBreakthrough = function() {
+CultivationSystem.getBreakthroughStatus = function() {
   const realm = this.getRealmData();
-  const needed = getCultivationForLevel(getRealmIndex(G.state.realm) + 1);
-  return (G.state.cultivationBase || 0) >= needed;
+  const currentIdx = Math.max(0, getRealmIndex(realm.id));
+  const needed = getCultivationForLevel(currentIdx + 1);
+  const current = G.state.cultivationBase || 0;
+  const playerLevel = this.getPlayerLevel();
+  const isRealmTransition = (G.state.realmStage || 1) >= realm.stages;
+  const destination = isRealmTransition ? (REALMS[currentIdx + 1] || null) : null;
+  const levelUnlocked = !destination || playerLevel >= destination.unlockLevel;
+  let reason = '';
+  if (!levelUnlocked) {
+    reason = 'Requires level ' + destination.unlockLevel + ' to unlock ' + destination.name;
+  } else if (current < needed) {
+    reason = 'Not enough cultivation base';
+  }
+  return {
+    current: current,
+    needed: needed,
+    playerLevel: playerLevel,
+    destination: destination,
+    levelUnlocked: levelUnlocked,
+    canBreakthrough: levelUnlocked && current >= needed,
+    reason: reason
+  };
+};
+
+CultivationSystem.canBreakthrough = function() {
+  return this.getBreakthroughStatus().canBreakthrough;
 };
 
 CultivationSystem.getBreakthroughStats = function(realmIdx) {
@@ -64,9 +94,10 @@ CultivationSystem.getBreakthroughStats = function(realmIdx) {
 };
 
 CultivationSystem.attemptBreakthrough = function() {
-  if (!this.canBreakthrough()) return { success: false, reason: 'Not enough cultivation base' };
+  const status = this.getBreakthroughStatus();
+  if (!status.canBreakthrough) return { success: false, reason: status.reason || 'Not enough cultivation base' };
   const realm = this.getRealmData();
-  const needed = getCultivationForLevel(getRealmIndex(G.state.realm) + 1);
+  const needed = status.needed;
   const tribBonus = (G.state.flags && G.state.flags.tribulationBonus) || 0;
   const baseChance = 0.4 + (G.state.ashramLevel || 1) * 0.05 + tribBonus / 100;
   const success = Math.random() < Math.min(0.9, baseChance);
@@ -115,7 +146,7 @@ CultivationSystem.attemptBreakthrough = function() {
 
 CultivationSystem.getRealmProgress = function() {
   const realm = this.getRealmData();
-  const needed = getCultivationForLevel(getRealmIndex(G.state.realm) + 1);
+  const needed = getCultivationForLevel(Math.max(0, getRealmIndex(realm.id)) + 1);
   const current = G.state.cultivationBase || 0;
   return { current, needed, progress: needed > 0 ? Math.min(1, current / needed) : 0 };
 };

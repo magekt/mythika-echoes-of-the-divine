@@ -11,16 +11,7 @@ const farmScene = Scene.create({
     const prithviVal = Progression.perkValue('prithvi');
     const extraPlots = Math.min(3, Math.floor(prithviVal / 50));
     const maxPlots = 3 + extraPlots;
-    if (!G.state.farmPlots || G.state.farmPlots.length === 0) {
-      G.state.farmPlots = [];
-      for (let i = 0; i < maxPlots; i++) {
-        G.state.farmPlots.push({ herb: null, growTimer: 0, harvested: false });
-      }
-    } else if (G.state.farmPlots.length < maxPlots) {
-      for (let i = G.state.farmPlots.length; i < maxPlots; i++) {
-        G.state.farmPlots.push({ herb: null, growTimer: 0, harvested: false });
-      }
-    }
+    FarmSystem.ensurePlots(maxPlots);
     this.data.scrollY = 0;
     this.buildButtons();
   },
@@ -61,10 +52,11 @@ buildButtons: function() {
       const btn = UI.Button(14, y, G.W - 28, 86, '', isReady ? R.colors.green : (hasHerb ? R.colors.panel : R.colors.btn));
       btn._i = i;
       btn._plot = plot;
-      btn._isReady = isReady;
-      btn._hasHerb = hasHerb;
       btn.render = function(ctx) {
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
+        const livePlot = G.state.farmPlots[this._i] || this._plot;
+        const liveHerb = livePlot && livePlot.herb ? HERB_GROWTH[livePlot.herb] : null;
+        const liveReady = !!(livePlot && livePlot.harvested && liveHerb);
         R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.surface);
         ctx.strokeStyle = 'rgba(232,160,48,0.08)';
         ctx.lineWidth = 1;
@@ -73,22 +65,23 @@ buildButtons: function() {
         growthBar.x = bx + 4;
         growthBar.y = by + bh - 12;
         growthBar.w = bw - 8;
-        if (this._isReady) {
-          growthBar.value = this._plot.herb ? HERB_GROWTH[this._plot.herb].growTime : 0;
-          growthBar.maxValue = this._plot.herb ? HERB_GROWTH[this._plot.herb].growTime : 1;
+        if (liveReady) {
+          growthBar.value = liveHerb.growTime;
+          growthBar.maxValue = liveHerb.growTime;
           growthBar.showText = false;
           growthBar.render(ctx);
-          R.text(ctx, '\u2713 ' + (this._plot.herb ? HERB_GROWTH[this._plot.herb].name : '') + ' READY!', bx + 14, by + 20, R.colors.green, R.fonts.sm);
-          R.text(ctx, 'Harvest', bx + bw - 60, by + 16, R.colors.gold, R.fonts.sm);
-        } else if (this._plot.herb) {
-          const remaining = Math.max(0, Math.ceil(HERB_GROWTH[this._plot.herb].growTime - this._plot.growTimer));
-          R.text(ctx, HERB_GROWTH[this._plot.herb].name + ' (' + remaining + 's)', bx + 14, by + 20, R.colors.textDim, R.fonts.sm);
+          const actionLabel = livePlot.readyForReplant ? 'REPLANT' : 'READY!';
+          R.text(ctx, '\u2713 ' + liveHerb.name + ' ' + actionLabel, bx + 14, by + 20, R.colors.green, R.fonts.sm);
+          R.text(ctx, livePlot.readyForReplant ? 'Replant' : 'Harvest', bx + bw - 60, by + 16, R.colors.gold, R.fonts.sm);
+        } else if (liveHerb) {
+          const remaining = Math.max(0, Math.ceil(liveHerb.growTime - (livePlot.growTimer || 0)));
+          R.text(ctx, liveHerb.name + ' (' + remaining + 's)', bx + 14, by + 20, R.colors.textDim, R.fonts.sm);
           // Growth progress bar showing current progress
-          growthBar.value = this._plot.growTimer;
-          growthBar.maxValue = Math.max(1, HERB_GROWTH[this._plot.herb].growTime);
+          growthBar.value = livePlot.growTimer || 0;
+          growthBar.maxValue = Math.max(1, liveHerb.growTime);
           growthBar.render(ctx);
           R.roundRect(ctx, bx + 14, by + bh - 4, bw - 28, 2, 1, 'rgba(138,138,160,0.15)');
-          const frac = Math.min(1, this._plot.growTimer / Math.max(1, HERB_GROWTH[this._plot.herb].growTime));
+          const frac = Math.min(1, (livePlot.growTimer || 0) / Math.max(1, liveHerb.growTime));
           R.roundRect(ctx, bx + 14, by + bh - 4, (bw - 28) * frac, 2, 1, R.colors.green);
         } else {
           R.text(ctx, 'Empty \u2014 tap to plant', bx + 14, by + 30, R.colors.textDim, R.fonts.sm);
@@ -97,18 +90,19 @@ buildButtons: function() {
       btn.onClick = function() {
         const idx = this._i;
         const p = G.state.farmPlots[idx];
-        if (p.harvested) {
-          const herbId = p.herb;
-          const herbName = herbId && HERB_GROWTH[herbId] ? HERB_GROWTH[herbId].name : herbId;
-          p.herb = null;
-          p.harvested = false;
-          p.growTimer = 0;
-          Economy.addItem({ name: herbName, type: 'herb', herbId: herbId, desc: herbName + ' herb' });
-          Progression.addPartyXP(5);
-          Notify.show('Harvested ' + herbName + '! +5 XP', 2);
-          Hints.show('alchemy', 'Herbs go to your inventory \u2014 use them in the Alchemy Lab.');
+        if (p && p.harvested) {
+          const result = FarmSystem.collectOrReplant(idx);
+          if (result.success && result.action === 'harvested') {
+            Notify.show('Harvested ' + result.herb.name + '! +5 XP', 2);
+            Hints.show('alchemy', 'Herbs go to your inventory \u2014 use them in the Alchemy Lab.');
+          } else if (result.success && result.action === 'replanted') {
+            Notify.show('Replanted ' + result.herb.name + '!', 2);
+          } else if (!result.success) {
+            Notify.show(result.reason, 2, R.colors.red);
+            return false;
+          }
           farmScene.buildButtons();
-        } else if (!p.herb) {
+        } else if (p && !p.herb) {
           farmScene.showPlantMenu(idx);
         }
       };
@@ -152,21 +146,20 @@ buildButtons: function() {
           ctx.lineWidth = 2;
           ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
         }
-        if (!this._canBuy) ctx.globalAlpha = 0.5;
+        const canBuy = (G.state.gold || 0) >= this._herb.buyCost;
+        this.enabled = canBuy;
+        if (!canBuy) ctx.globalAlpha = 0.5;
         R.text(ctx, this._herb.name + ' (' + this._herb.buyCost + 'g, ' + this._herb.growTime + 's)', bx + 12, by + 18, R.colors.text, R.fonts.sm);
         ctx.globalAlpha = 1;
       };
       btn.onClick = function() {
         const data = this;
-        const cost = data._herb.buyCost;
-        if (Economy.spendGoldOrNotify(cost)) {
-          G.state.farmPlots[data._plotIdx].herb = data._hid;
-          G.state.farmPlots[data._plotIdx].growTimer = 0;
-          G.state.farmPlots[data._plotIdx].harvested = false;
+        const result = FarmSystem.plantPlot(data._plotIdx, data._hid);
+        if (result.success) {
           Notify.show('Planted ' + data._herb.name + '!', 2);
           farmScene.buildButtons();
         } else {
-          // Rejected: not enough gold -> stone-on-glass feedback.
+          Notify.show(result.reason, 2, R.colors.red);
           return false;
         }
       };
@@ -183,15 +176,6 @@ buildButtons: function() {
   },
 
   update: function(dt) {
-    for (const plot of G.state.farmPlots || []) {
-      if (plot.herb && !plot.harvested) {
-        plot.growTimer += dt;
-        const herbData = HERB_GROWTH[plot.herb];
-        if (plot.growTimer >= herbData.growTime) {
-          plot.harvested = true;
-        }
-      }
-    }
     Scene.scrollInput(this);
     UI.updateButtons(this.data.buttons, dt);
     UI.handleButtons(this.data.buttons, -this.data.scrollY);

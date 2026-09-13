@@ -1,7 +1,7 @@
 # src/systems/
 
 ## Responsibility
-11 game logic systems — each encapsulates a distinct gameplay domain (combat, progression, cultivation, save, zone rewards, journey, alchemy, economy, achievements, quests, duel). Systems are stateless operators on `G.state` and global data constants.
+12 game logic systems — each encapsulates a distinct gameplay domain (combat, progression, cultivation, farm, save, zone rewards, journey, alchemy, economy, achievements, quests, duel). Systems are stateless operators on `G.state` and global data constants.
 
 ## Design Patterns
 - **Namespace Objects**: Each system is a `const SystemName = {}` with methods
@@ -47,7 +47,7 @@
 
 **State Mutations**: `G.state.challenge`, `hero.xp`, `hero.level`, `hero.stats`, `hero.skillPoints`
 
-### Cultivation System (`cultivation_sys.js` — 103 lines)
+### Cultivation System (`cultivation_sys.js` — 151 lines)
 **Responsibility**: Realm progression, cultivation base accumulation, prana generation, breakthrough logic.
 
 **Key Exports**:
@@ -58,6 +58,7 @@
 - `CultivationSystem.getPranaPerSecond()` — base + ashram + enlightenment buff + equipped accessory mag
 - `CultivationSystem.tick(dt)` — called every frame, adds base/prana per second
 - `CultivationSystem.canBreakthrough()` — checks if base ≥ next realm threshold
+- `CultivationSystem.getBreakthroughStatus()` — authoritative base and destination-level lock reason
 - `CultivationSystem.attemptBreakthrough()` — RNG (40% base + ashram + tribulation), on success: realmStage++, realm advance, party stat bonuses, XP
 - `CultivationSystem.getBreakthroughStats(realmIdx)` — static stat bonuses per realm
 - `CultivationSystem.getRealmProgress()` — { current, needed, progress }
@@ -66,7 +67,20 @@
 
 **State Mutations**: `G.state.cultivationBase`, `G.state.prana`, `G.state.realm`, `G.state.realmStage`, `G.state.party` stats
 
-### Save System (`save.js` — 180 lines)
+### Farm System (`farm.js`)
+**Responsibility**: Plot normalization, live/offline crop growth, automatic harvest and paid replanting.
+
+**Key Exports**:
+- `FarmSystem.ensurePlots(count)` — initializes and sanitizes persistent plot state
+- `FarmSystem.plantPlot(plotIdx, herbId)` — charges the configured planting cost and starts a crop
+- `FarmSystem.collectOrReplant(plotIdx)` — handles legacy manual harvests and ready-to-replant plots
+- `FarmSystem.tick(dt)` — advances every plot globally, harvesting into inventory and restarting affordable cycles
+
+**Dependencies**: `HERB_GROWTH`, `Economy`, `Progression`, `SaveSystem`
+
+**State Mutations**: `G.state.farmPlots`, `G.state.gold`, `G.state.inventory`, party XP
+
+### Save System (`save.js` — 224 lines)
 **Responsibility**: Persistence (localStorage), migration, offline progress, import/export.
 
 **Key Exports**:
@@ -77,11 +91,11 @@
 - `SaveSystem.startAutoSave()` / `stopAutoSave()` — 30s interval
 - `SaveSystem.getSaveInfo()` — metadata for UI
 
-**Offline Progress** (load:57-86):
+**Offline Progress** (load:77-92):
 - Caps at 8 hours (28800s)
 - Cultivation gain = elapsed × cultPerSec
 - Prana gain = elapsed × pranaPerSec
-- Farm plots: fast-forward growTimer, mark harvested
+- Farm plots: fast-forward through automatic harvest/replant cycles
 
 **Dependencies**: `CultivationSystem`, `HERB_GROWTH`, `Notify`, `R.applyFontScale`
 
@@ -189,11 +203,18 @@ Scene.update() → player action → Combat.performAttack()
     → battleOver → getLoot() → awardBeastXP() → Progression.addPartyXP()
 ```
 
-### Cultivation Tick (every frame)
+### Cultivation Tick (scene update)
 ```
 gLoopFrame() → CultivationSystem.tick(dt)
     → addCultivationBase(cultPerSec * dt)
     → addPrana(pranaPerSec * dt)
+```
+
+### Farm Tick (every frame and on save load)
+```
+gLoopFrame() → FarmSystem.tick(dt)
+    → grow each valid plot → auto-harvest (+inventory/+XP)
+    → charge buyCost and restart, or retain a visible ready-to-replant plot
 ```
 
 ### Save Cycle
@@ -219,6 +240,7 @@ Progression.getChallenge() → used by applyDifficulty() for next zone
 | Combat | G.state.party, G.state.perks, AURAS | G.state.party (HP/ailments), Combat.* | combatScene, duel, tournament |
 | Progression | G.state.challenge, G.state.perks, AURAS, G.state.player | G.state.challenge, hero stats | Combat, Cultivation, Journey, Quest |
 | Cultivation | G.state.realm, G.state.ashramLevel, REALMS | G.state.cultivationBase, G.state.prana, G.state.realm* | gLoopFrame, cultivationScene, SaveSystem |
+| Farm | G.state.farmPlots, HERB_GROWTH, G.state.gold | G.state.farmPlots, inventory, gold, party XP | gLoopFrame, SaveSystem, farmScene |
 | Cultivation (bonus) | G.state.spiritBeasts, G.state.activeBeast, G.state.party | G.state.cultivationBase, G.state.prana | gLoopFrame, cultivationScene |
 | Save | G.state (all) | G.state (all on load) | main.js (boot), ashram (enter/leave), settings |
 | Journey | G.state.journeys, AURAS, QUESTS | G.state.journeys, G.state.auras | Progression (level 10), ashram |

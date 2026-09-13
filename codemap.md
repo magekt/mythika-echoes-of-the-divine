@@ -4,7 +4,7 @@
 A mobile-first, offline-capable idle/cultivation RPG with turn-based combat, built in vanilla JavaScript (ES6+) targeting HTML5 Canvas. 25-30 hours base playtime, 40+ hours completionist. Premium $7.99 + optional cosmetic DLC.
 
 ## System Entry Points
-- `index.html` — Script loading order (71 scripts), PWA manifest, service worker
+- `index.html` — Script loading order (72 scripts), PWA manifest, service worker
 - `src/main.js` — Boot sequence, scene registration, `bootGame()` idempotent entry
 - `src/engine/game.js` — Global state (`G`), game loop (`gLoop`), scene manager (`gScene`), `Notify`, `Fade`
 - `package.json` — (Not present — no build step, direct script loading)
@@ -34,6 +34,7 @@ Fade       → Scene transition fade (asymmetric 150ms/250ms)
 Combat     → Turn-based combat engine
 Progression → XP, leveling, challenge scaling, difficulty
 CultivationSystem → Realm progression, breakthrough, idle tick
+FarmSystem → Global crop growth, automatic harvest/replant, offline-safe plot normalization
 SaveSystem → localStorage persistence, migration, offline progress
 ZoneRewardSystem → idempotent zone progress and completion rewards
 JourneySystem → Narrative journeys, aura unlocks
@@ -46,12 +47,12 @@ DuelSystem → Tournament PvP combat
 
 ### Data Flow (Simplified)
 ```
-index.html loads 71 scripts in dependency order
+index.html loads 72 scripts in dependency order
     ↓
 main.js: bootGame() → gInit() → gLoop()
     ↓
 gLoopFrame(dt):
-  1. Update: Notify, R.effects, R.projectiles, R.clickFx, Enlightenment, Fade, Scene.update
+  1. Update: Notify, R.effects, R.projectiles, R.clickFx, Enlightenment, Fade, FarmSystem.tick, Scene.update
   2. Render: clearRect → drawBackground → Scene.render → R.projectiles → R.effects → R.clickFx → R.levelUp → R.enlightenmentAura → Fade → Notify
   3. Perf: FPS probe, Adaptive Reduce Motion (auto-enable after 2× sub-30fps)
 ```

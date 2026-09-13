@@ -42,7 +42,7 @@
 | `alchemyScene.js` | Pill crafting from herbs | AlchemySystem, HERB_GROWTH |
 | `forge.js` | Equipment upgrade (+1 to +15), gem socketing; Quest bonus: -10% upgrade cost when `ary_forge1` completed | Economy, ITEMS, Progression |
 | `bazaar.js` | NPC shop with randomized inventory | Economy, ITEMS, ZONES |
-| `farm.js` | Herb growing (in-game time) | AlchemySystem, HERB_GROWTH |
+| `farm.js` | Herb growing with automatic global harvest/replant cycles | FarmSystem, HERB_GROWTH |
 | `fishing.js` | Mini-game for rare materials; Calls `QuestSystem.trackFish()` on successful catch | Economy, RNG, QuestSystem |
 
 ### Meta & Progression
@@ -97,6 +97,7 @@ render(ctx): drawEnemy(); drawHeroParty(); drawActionBar(); drawCombatLog()
 | `party` | Progression | HEROES, ITEMS, AURAS, CLASSES | PremiumShell, MagneticBtn, TabBar; detail action stack uses 48px touch targets |
 | `forge` | Economy, Progression | ITEMS, PERKS | PremiumShell, MagneticBtn, ProgressBar |
 | `alchemyScene` | Alchemy | ALCHEMY_RECIPES, HERB_GROWTH | PremiumShell, MagneticBtn, List |
+| `farm` | FarmSystem | HERB_GROWTH | Button, ProgressBar |
 | `journeyScene` | Journey, AURAS | JOURNEYS, AURAS | PremiumShell, MagneticBtn, HeroMoment |
 
 ## Critical Invariants
@@ -107,6 +108,8 @@ render(ctx): drawEnemy(); drawHeroParty(); drawActionBar(); drawCombatLog()
 5. **`leave()` must clean up** — stop auto-save, null `_heroMoment`, `_fluidNav`, `_shell` refs
 6. **HeroMoment created lazily in `render()`** — cached on `this._heroMoment`
 7. **FluidNav created lazily in `render()`** — cached on `this._fluidNav`
+
+Farm growth is advanced by `FarmSystem.tick()` in the game loop, not by `farmScene.update()`, so plots continue outside the farm screen without duplicate ticking.
 
 ## Memory Leak Risks (Scene-Specific)
 | Scene | Risk | Location |
