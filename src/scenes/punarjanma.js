@@ -4,6 +4,8 @@ const punarjanmaScene = Scene.create({
     buttons: [],
     staticDraws: [],
     rebirthShell: null,
+    benefitShell: null,
+    consequenceShell: null,
     selectedPerk: null,
     scrollY: 0,
     contentHeight: 0
@@ -20,6 +22,8 @@ const punarjanmaScene = Scene.create({
     this.data.buttons = [];
     this.data.staticDraws = [];
     this.data.rebirthShell = null;
+    this.data.benefitShell = null;
+    this.data.consequenceShell = null;
     this.data.selectedPerk = null;
     this.data.scrollY = 0;
   },
@@ -42,35 +46,73 @@ const punarjanmaScene = Scene.create({
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
-    // PremiumShell rebirth confirm button
     const canRebirth = !!(G.state.player && G.state.player.level >= 30 && (G.state.karma || 0) >= 10);
-    const rb = UI.PremiumShell(20, y, G.W - 40, 44, { outerR: 8 });
-    this.data.rebirthShell = rb;
-    y += 50; // premium shell height + gap
-
-    const btn = UI.BtnGold(20, y, G.W - 40, 44, 'Seek Moksha (Liberation)');
-    btn.enabled = canRebirth;
-    btn.onClick = function() {
-      UI.Modal.confirm('Seek Moksha',
-        'Reset to level 1 with permanent stat bonuses.\nKarma Cost: 10',
-        function(confirmed) {
-          if (confirmed) punarjanmaScene.performRebirth();
-        });
+    const panelX = 20;
+    const panelW = G.W - 40;
+    const shellOpts = {
+      outerR: 12,
+      innerR: 8,
+      outerBg: R.colors.surfaceElevated,
+      outerBorder: R.colors.borderHairline,
+      innerBg: R.colors.panel,
+      innerHighlight: R.colors.subtleWhite
     };
-    this.data.buttons.push(btn);
-    y += 54;
+
+    // Before the commit action, make the current state and the trade-off
+    // scannable in one pass. These panels are visual only; all rebirth rules
+    // remain in performRebirth().
+    const summaryH = 136;
+    this.data.rebirthShell = UI.PremiumShell(panelX, y, panelW, summaryH, shellOpts);
+    SD.push({ textCenter: ['Rebirth Preview', G.W / 2, y + 24, R.colors.gold, R.fonts.lg] });
+    SD.push({ text: ['Current state', panelX + 14, y + 50, R.colors.accent, R.fonts.sm] });
+    SD.push({ text: ['Cycle ' + (G.state.rebirthCount || 0) + '  •  Party Lv.' + (G.state.player ? G.state.player.level : 0), panelX + 14, y + 68, R.colors.textPrimary, R.fonts.md] });
+    SD.push({ text: ['Commit cost: 10 Punya Karma', panelX + 14, y + 91, R.colors.textSecondary, R.fonts.sm] });
+    SD.push({ text: [canRebirth ? 'Ready for the next Samsara crossing' : 'Reach Level 30 and hold 10 Punya Karma to begin', panelX + 14, y + 113, canRebirth ? R.colors.green : R.colors.textDim, R.fonts.sm] });
+    y += summaryH + 10;
+
+    const benefitH = 88;
+    this.data.benefitShell = UI.PremiumShell(panelX, y, panelW, benefitH, shellOpts);
+    SD.push({ text: ['What you gain', panelX + 14, y + 22, R.colors.green, R.fonts.md] });
+    SD.push({ text: ['+ Permanent stat bonuses after each crossing', panelX + 18, y + 48, R.colors.textPrimary, R.fonts.sm] });
+    SD.push({ text: ['+ Gold and Karma rewards when you return', panelX + 18, y + 66, R.colors.textPrimary, R.fonts.sm] });
+    y += benefitH + 10;
+
+    const consequenceH = 112;
+    this.data.consequenceShell = UI.PremiumShell(panelX, y, panelW, consequenceH, shellOpts);
+    SD.push({ text: ['What resets', panelX + 14, y + 22, R.colors.danger, R.fonts.md] });
+    SD.push({ text: ['• Party progression returns to Level 1', panelX + 18, y + 48, R.colors.textPrimary, R.fonts.sm] });
+    SD.push({ text: ['• Party XP returns to 0; 10 Karma is spent', panelX + 18, y + 66, R.colors.textPrimary, R.fonts.sm] });
+    SD.push({ text: ['This choice cannot be undone.', panelX + 18, y + 92, R.colors.danger, R.fonts.sm] });
+    y += consequenceH + 10;
+
+    SD.push({ text: ['Requirements', panelX + 2, y + 2, R.colors.accent, R.fonts.sm] });
+    y += 16;
 
     // Requirements display
     const lvlOk = G.state.player ? G.state.player.level >= 30 : false;
     const karmaOk = (G.state.karma || 0) >= 10;
     const reqColor = lvlOk ? R.colors.green : R.colors.red;
     const reqColor2 = karmaOk ? R.colors.green : R.colors.red;
-    SD.push({ text: ['Requirement: ' + (lvlOk ? '\u2713' : '\u2717') + ' Level 30+ (' + (G.state.player ? G.state.player.level : 0) + ')', 22, y + 2, reqColor, R.fonts.sm] });
+    SD.push({ text: ['Level 30+  ' + (lvlOk ? '\u2713 Ready' : '\u2717 Not yet') + '  (' + (G.state.player ? G.state.player.level : 0) + ')', 22, y + 2, reqColor, R.fonts.sm] });
     y += 16;
-    SD.push({ text: ['Requirement: ' + (karmaOk ? '\u2713' : '\u2717') + ' 10 Punya Karma (' + (G.state.karma || 0) + ')', 22, y + 2, reqColor2, R.fonts.sm] });
+    SD.push({ text: ['10 Punya Karma  ' + (karmaOk ? '\u2713 Ready' : '\u2717 Not yet') + '  (' + (G.state.karma || 0) + ')', 22, y + 2, reqColor2, R.fonts.sm] });
     y += 18;
     SD.push({ text: ['Samsara Crossings: ' + (G.state.rebirthCount || 0), 22, y + 2, R.colors.gold, R.fonts.sm] });
     y += 24;
+
+    const btnY = y + 2;
+    const btn = UI.BtnGold(panelX, btnY, panelW, 48, 'Seek Moksha (Liberation)');
+    btn.enabled = canRebirth;
+    btn.onClick = function() {
+      UI.Modal.confirm('Confirm Rebirth',
+        'Party and XP reset to Level 1.\n10 Punya Karma is spent.\nPermanent bonuses remain.',
+        function(confirmed) {
+          if (confirmed) punarjanmaScene.performRebirth();
+        },
+        { buttonHeight: 48, h: 224 });
+    };
+    this.data.buttons.push(btn);
+    y = btnY + 60;
 
     if (Object.keys(PERKS.tier1).length > 0) {
       SD.push({ text: ['\u2501  Siddhis (Spiritual Powers)  \u2501', 22, y + 2, R.colors.gold, R.fonts.sm] });
@@ -195,6 +237,8 @@ const punarjanmaScene = Scene.create({
     Scene.clipContent(ctx, this);
 
     if (this.data.rebirthShell) this.data.rebirthShell.render(ctx);
+    if (this.data.benefitShell) this.data.benefitShell.render(ctx);
+    if (this.data.consequenceShell) this.data.consequenceShell.render(ctx);
     for (const b of this.data.buttons) b.render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);
 

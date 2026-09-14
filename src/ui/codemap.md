@@ -100,6 +100,7 @@ Input.peekTap() → UI.handleButtons(buttons, scrollY)
 - `UI.Modal.render(ctx)` — called from scene.render() after content
 - Backdrop: `rgba(0,0,0,0.85)`, click outside = cancel (configurable)
 - Focus trap: Tab cycles modal buttons only
+- Confirmation buttons support an optional `buttonHeight` override; rebirth uses 48px mobile targets while the existing 32px default remains unchanged
 
 ### `progressBar.js` — Progress Indicators
 **Exports**: `UI.ProgressBar`, `UI.HPBar`, `UI.MPBar`, `UI.XPBar`

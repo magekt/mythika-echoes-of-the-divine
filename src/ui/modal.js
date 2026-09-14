@@ -31,6 +31,7 @@ UI.Modal.show = function(opts) {
     y: opts.y || 200,
     w: opts.w || 320,
     h: opts.h || 200,
+    buttonHeight: opts.buttonHeight || 32,
     visible: true,
     _buttonList: [],
     _buildButtons: function() {
@@ -38,10 +39,10 @@ UI.Modal.show = function(opts) {
       const bw = Math.min(140, (this.w - 40) / Math.max(1, this.buttons.length));
       const totalW = this.buttons.length * bw + (this.buttons.length - 1) * 10;
       let bx = this.x + (this.w - totalW) / 2;
-      const by = this.y + this.h - 44;
+      const by = this.y + this.h - this.buttonHeight - 12;
       for (let i = 0; i < this.buttons.length; i++) {
         const btnDef = this.buttons[i];
-        const btn = UI.Button(bx, by, bw, 32, btnDef.label, btnDef.primary ? R.colors.btnGold : R.colors.btn);
+        const btn = UI.Button(bx, by, bw, this.buttonHeight, btnDef.label, btnDef.primary ? R.colors.btnGold : R.colors.btn);
         btn._modalResult = btnDef.value !== undefined ? btnDef.value : i;
         btn.onClick = function() {
           UI.Modal.dismiss(btn._modalResult);
@@ -155,7 +156,8 @@ UI.Modal.render = function(ctx) {
   UI.Modal._paint(ctx, m);
 };
 
-UI.Modal.confirm = function(title, body, onConfirm) {
+UI.Modal.confirm = function(title, body, onConfirm, options) {
+  const o = options || {};
   return UI.Modal.show({
     title: title,
     body: body,
@@ -163,7 +165,12 @@ UI.Modal.confirm = function(title, body, onConfirm) {
       { label: 'Cancel', value: false },
       { label: 'Confirm', value: true, primary: true }
     ],
-    onResult: function(result) { if (onConfirm) onConfirm(result); }
+    onResult: function(result) { if (onConfirm) onConfirm(result); },
+    buttonHeight: o.buttonHeight,
+    h: o.h,
+    x: o.x,
+    y: o.y,
+    w: o.w
   });
 };
 
