@@ -22,26 +22,28 @@ Milestone: refine existing game into reliable, modular Indian-mythology cultivat
 
 ---
 
-## Phase P02 — Access-Gate Enforcement (Ready to Execute)
+## Phase P02 — Access-Gate Enforcement (Complete ✅)
 
 **Goal**: All gated features validate at system/scene entry, not only via UI.
 
-**Plans:** 2 plans
+**Plans:** 2 plans — all complete
 
 Plans:
-- [ ] 02-01-PLAN.md — Journey + Rebirth + Forge authority gates (3 tasks)
-- [ ] 02-02-PLAN.md — Recruit + Tournament + Trials authority gates + browser UAT (3 tasks)
+- [x] 02-01-PLAN.md — Journey + Rebirth + Forge authority gates (3 tasks)
+- [x] 02-02-PLAN.md — Recruit + Tournament + Trials authority gates + browser UAT (3 tasks)
 
 **Tasks**
-- Journey start eligibility guard (`JourneySystem.start`, `getAvailableJourneys`).
-- Rebirth perk mutation-side validation (`punarjanma.js`, `perks.js`).
-- Persistent forge escalation authority (`forge.js`).
-- Recruit capacity & duplicate validation (party/recruit scenes).
-- Tournament fee/start authority (`tournament.js`, `duel.js`).
-- Trials entry authority (`trials.js`).
-- Per-gate browser tests.
+- [x] Journey start eligibility guard (`JourneySystem.start`, `getAvailableJourneys`).
+- [x] Rebirth perk mutation-side validation (`punarjanma.js`, `perks.js`).
+- [x] Persistent forge escalation authority (`forge.js`).
+- [x] Recruit capacity & duplicate validation (party/recruit scenes).
+- [x] Tournament fee/start authority (`tournament.js`, `duel.js`).
+- [x] Trials entry authority (`trials.js`).
+- [x] Per-gate browser tests.
 
 **Gate**: Each gate has an acceptance-entry test and a failed-attempt side-effect check.
+**Commits**: `71757ef` `352d1bd` `0feb2ea` `8b6c182` `20bad46`
+**UAT**: Automated 6-gate browser UAT via browser-use CDP — all 6 gates pass
 
 ---
 

@@ -24,11 +24,15 @@ Refine the existing cultivation RPG into a reliable, modular game with mythology
 - **Commit**: `f0f150d feat(01): save hydration, equipment authority, zone access, travel map UI`
 
 ### Phase 02 — Access-Gate Enforcement
-- **Status**: PLANNED (Ready to Execute).
+- **Status**: COMPLETE ✅
 - **Goal**: Journey, rebirth, forge, recruit, tournament, trials authority gates.
-- **Plans**: 2 plans in 1 wave
-- **Gate**: Per-gate browser tests; failed-attempt side-effect checks.
-- **Last Activity**: 2026-09-14 — planning complete
+- **Plans:** 2 plans in 1 wave, executed sequentially
+  - ✅ 02-01: JourneyAccess + RebirthAccess + ForgeAccess (`71757ef`, `352d1bd`, `0feb2ea`)
+  - ✅ 02-02: RecruitAccess + TournamentAccess + TrialsAccess + browser UAT (`8b6c182`, `20bad46`)
+- **Gate**: 6-gate browser UAT via browser-use CDP — all 6 gates verified programmatically (status/enter return correct values; blocked attempts show Notify, no state change; scene navigation zero errors)
+- **Commits**: `71757ef` `352d1bd` `0feb2ea` `8b6c182` `20bad46`
+- **Deviations (Rule 1)**: RecruitAccess.costs corrected to actual game values [800/2500/6000/14000] (plan used outdated [200/600/2000/14000]); TournamentAccess fee made dynamic (50+wins*25) rather than plan's hardcoded 50
+- **Last Activity**: 2026-09-14 — all gates implemented and verified
 
 ### Phase 03 — Mythological Narrative Encounters
 - **Status**: PLANNED (future).
@@ -56,6 +60,8 @@ Refine the existing cultivation RPG into a reliable, modular game with mythology
 | `.planning/STATE.md` | — | this file |
 | Phase 01 source changes | `f0f150d` | committed |
 | Phase 01 UAT | `f0f150d` | complete (4/4 pass) |
+| Phase 02 source changes | `71757ef` `352d1bd` `0feb2ea` `8b6c182` `20bad46` | committed (5 atomic commits) |
+| Phase 02 UAT | browser-use CDP | complete (6/6 gates pass) |
 
 ## Open Questions / Risks
 
@@ -64,7 +70,7 @@ Refine the existing cultivation RPG into a reliable, modular game with mythology
 
 ## Next Steps
 
-1. Proceed to Phase 02 (access-gate enforcement) with codebase research + plan check.
-2. Execute Phase 03 after Phase 02 verification passes.
+1. Proceed to Phase 03 (mythological narrative encounters) — journey and flag gates are now reliable via Phase 02.
+2. Phase 04 (combat UI reflow) can safely modify party views — RecruitAccess prevents stale-state recruitment.
 
 ---
