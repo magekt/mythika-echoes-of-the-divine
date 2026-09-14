@@ -30,6 +30,11 @@ const zoneExplorationScene = Scene.create({
       gScene('travelMap', true);
       return;
     }
+    if (!ZoneAccess.status(this.data.zoneId).allowed) {
+      Notify.show('This zone is still locked.', 2, R.colors.warning);
+      gScene('travelMap', true);
+      return;
+    }
     this.data.exploring = true;
     this.data.encounterTimer = 2 + Math.random() * 2;
     this.data.totalEncounterTimer = this.data.encounterTimer;

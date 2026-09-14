@@ -101,22 +101,22 @@ function createHeroState(id) {
     weaponEquipped: heroWeapon ? { name: heroWeapon.name, atk: heroWeapon.atk, type: 'weapon', rarity: 'common', rarityName: 'Common' } : null,
     armorEquipped: heroArmor ? { name: heroArmor.name, def: heroArmor.def, type: 'armor', rarity: 'common', rarityName: 'Common' } : null,
     accessoryEquipped: heroAcc ? { name: heroAcc.name, mag: heroAcc.mag, type: 'accessory', rarity: 'common', rarityName: 'Common' } : null,
-    equipAtk: 0,
-    equipDef: 0,
-    equipAccMag: 0,
     active: true
   };
 }
 
 function calcHeroStats(hero) {
   const lvlBonus = (hero.level - 1) * 0.1;
-  const hpBonus = (hero.equipAccHp || 0);
+  const weapon = hero.weaponEquipped || {};
+  const armor = hero.armorEquipped || {};
+  const accessory = hero.accessoryEquipped || {};
+  const hpBonus = accessory.hp || 0;
   return {
     maxHp: Math.floor(hero.hp * (1 + lvlBonus) + hero.weaponLvl * 2 + hpBonus),
     maxMp: Math.floor(hero.mp * (1 + lvlBonus) + hero.accessoryLvl),
-    str: Math.floor(hero.str * (1 + lvlBonus) + hero.weaponLvl * 0.5 + (hero.equipAtk || 0) * 0.5),
+    str: Math.floor(hero.str * (1 + lvlBonus) + hero.weaponLvl * 0.5 + (weapon.atk || 0) * 0.5),
     agi: Math.floor(hero.agi * (1 + lvlBonus)),
-    mag: Math.floor(hero.mag * (1 + lvlBonus) + hero.accessoryLvl * 0.5 + (hero.equipAccMag || 0) * 0.5 + (hero.equipArmorMag || 0) * 0.5),
-    def: Math.floor(hero.def * (1 + lvlBonus) + hero.armorLvl * 0.8 + (hero.equipDef || 0) * 0.8 + (hero.equipAccDef || 0) * 0.8)
+    mag: Math.floor(hero.mag * (1 + lvlBonus) + hero.accessoryLvl * 0.5 + (weapon.mag || 0) * 0.5 + (armor.mag || 0) * 0.5 + (accessory.mag || 0) * 0.5),
+    def: Math.floor(hero.def * (1 + lvlBonus) + hero.armorLvl * 0.8 + (armor.def || 0) * 0.8 + (accessory.def || 0) * 0.8)
   };
 }

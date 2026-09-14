@@ -23,20 +23,31 @@ SaveSystem.save = function() {
   }
 };
 
+SaveSystem.hydrate = function(state) {
+  if (!state || typeof state !== 'object' || Array.isArray(state)) return false;
+
+  const nextState = G.createDefaultState();
+  for (const key of Object.keys(state)) {
+    if (key !== '__proto__' && key !== 'constructor' && key !== 'prototype') nextState[key] = state[key];
+  }
+  for (const key of Object.keys(G.state)) delete G.state[key];
+  Object.assign(G.state, nextState);
+  this.migrate();
+  return true;
+};
+
 SaveSystem.migrate = function() {
   // Heal saves created before the object-based gear model:
   // - inventory entries must be real objects with a name
   // - gear slots must be objects or null (legacy strings are dropped)
   // - numeric fields must be finite numbers (crafted/corrupt files included)
-  if (Array.isArray(G.state.inventory)) {
-    G.state.inventory = G.state.inventory.filter(i => typeof i === 'object' && i !== null && i.name);
-  }
-  const gearSlots = ['weaponEquipped', 'armorEquipped', 'accessoryEquipped'];
-  for (const hero of G.state.party || []) {
-    for (const slot of gearSlots) {
-      if (typeof hero[slot] === 'string') hero[slot] = null;
-    }
-  }
+  if (!Array.isArray(G.state.inventory)) G.state.inventory = [];
+  G.state.inventory = G.state.inventory.filter(i => typeof i === 'object' && i !== null && i.name);
+  if (!Array.isArray(G.state.party)) G.state.party = [];
+  G.state.party = G.state.party.filter(hero => hero && typeof hero === 'object' && !Array.isArray(hero));
+  if (!G.state.flags || typeof G.state.flags !== 'object' || Array.isArray(G.state.flags)) G.state.flags = {};
+  if (!G.state.perks || typeof G.state.perks !== 'object' || Array.isArray(G.state.perks)) G.state.perks = {};
+  if (typeof EquipmentSystem !== 'undefined' && EquipmentSystem.normalize) EquipmentSystem.normalize();
   if (G.state.challenge != null) {
     const c = parseFloat(G.state.challenge);
     G.state.challenge = isFinite(c) ? Math.max(0.6, Math.min(1.5, c)) : 1.0;
@@ -70,8 +81,7 @@ SaveSystem.load = function() {
     if (data.version !== 1) return false;
     const now = Date.now();
     const elapsed = data.timestamp ? Math.max(0, Math.min((now - data.timestamp) / 1000, 28800)) : 0;
-    Object.assign(G.state, data.state);
-    this.migrate();
+    if (!this.hydrate(data.state)) return false;
     // Restore the user's text-size preference with the loaded save.
     if (typeof R !== 'undefined' && R.applyFontScale) R.applyFontScale(G.state.uiFontScale || 1);
     const farmResult = typeof FarmSystem !== 'undefined' && FarmSystem.tick
@@ -132,8 +142,7 @@ SaveSystem.importFile = function(file, cb) {
       const data = JSON.parse(reader.result);
       if (!data || data.version !== 1 || !data.state) { cb(false, 'Invalid save file'); return; }
       if (!Array.isArray(data.state.party) || !data.state.party.length) { cb(false, 'Save missing party data'); return; }
-      Object.assign(G.state, data.state);
-      this.migrate();
+      if (!this.hydrate(data.state)) { cb(false, 'Invalid save file'); return; }
       // Mirror load(): imported saves may carry a text-size preference.
       if (typeof R !== 'undefined' && R.applyFontScale) R.applyFontScale(G.state.uiFontScale || 1);
       cb(true, 'Save imported!');
@@ -211,8 +220,7 @@ SaveSystem.cloudLoad = async function() {
     try {
       const result = await Auth.loadFromCloud();
       if (result.data) {
-        Object.assign(G.state, result.data);
-        this.migrate();
+        if (!this.hydrate(result.data)) return false;
         Notify.show('Cloud save loaded', 2, R.colors.green);
         return true;
       }

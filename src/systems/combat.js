@@ -168,7 +168,7 @@ Combat.applyAilment = function(target, ailmentId, duration) {
 };
 
 function _getEffectiveAtk(attacker, skill) {
-  let atk = (attacker.str || 1) + (attacker.equipAtk || 0);
+  let atk = attacker.str || 1;
   if (attacker.weaponEquipped && attacker.weaponEquipped.atk) {
     atk += attacker.weaponEquipped.atk;
   }
@@ -193,7 +193,7 @@ function _getEffectiveAtk(attacker, skill) {
 }
 
 function _getEffectiveMag(attacker, skill) {
-  let mag = (attacker.mag || 1) + (attacker.equipAccMag || 0) + (attacker.equipArmorMag || 0);
+  let mag = attacker.mag || 1;
   if (attacker.weaponEquipped && attacker.weaponEquipped.mag) {
     mag += attacker.weaponEquipped.mag;
   }
@@ -223,7 +223,7 @@ function _getEffectiveMag(attacker, skill) {
 }
 
 function _getEffectiveDef(defender) {
-  let def = (defender.def || 0) + (defender.equipDef || 0) + (defender.equipAccDef || 0);
+  let def = defender.def || 0;
   if (defender.armorEquipped && defender.armorEquipped.def) {
     def += defender.armorEquipped.def;
   }
@@ -289,7 +289,10 @@ Combat.calcMagicDamage = function(attacker, defender, skill) {
 };
 
 Combat.performAttack = function(attacker, defender, skill, damageMultiplier) {
-  const critChance = ((attacker.baseCrit || 10) + (attacker.equipCrit || 0) + (typeof Progression !== 'undefined' ? Progression.perkValue('drishti') : 0)) / 100;
+  const weaponCrit = attacker.weaponEquipped && attacker.weaponEquipped.crit || 0;
+  const armorCrit = attacker.armorEquipped && attacker.armorEquipped.crit || 0;
+  const accessoryCrit = attacker.accessoryEquipped && attacker.accessoryEquipped.crit || 0;
+  const critChance = ((attacker.baseCrit || 10) + weaponCrit + armorCrit + accessoryCrit + (typeof Progression !== 'undefined' ? Progression.perkValue('drishti') : 0)) / 100;
   const isCrit = Math.random() < critChance;
   let dmg = 0;
   if (skill && skill.mag) {

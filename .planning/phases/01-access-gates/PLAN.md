@@ -13,8 +13,8 @@ Enforce progression and access rules authoritatively at system/scene entry point
 - [x] Guard direct `zoneExploration` entry in `src/scenes/zoneExploration.js`.
 - [x] Update Ashram badges/actions to reflect `ZoneAccess` in `src/scenes/ashram.js`.
 - [x] Update `codemap.md` and source codemaps.
-- [ ] Browser UAT: hydration, incompatible-equip rejection, stale-save cleanup, locked-zone guards.
-- [ ] Commit Phase 01 changes.
+- [x] Browser UAT: hydration, incompatible-equip rejection, stale-save cleanup, locked-zone guards.
+- [x] Commit Phase 01 changes.
 
 ## Plan
 See `.slim/deepwork/access-gates-combat-ui.md` for implementation plan and decision context.

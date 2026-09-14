@@ -85,8 +85,9 @@
 
 **Key Exports**:
 - `SaveSystem.save()` — deep clone `G.state` → JSON → localStorage (30s auto-save)
-- `SaveSystem.load()` — parse → `Object.assign(G.state, data.state)` → migrate → offline progress calc
-- `SaveSystem.migrate()` — heals legacy inventory/gear, sanitizes numerics
+- `SaveSystem.hydrate(state)` — overlays validated saved data on a fresh default state, then migrates it
+- `SaveSystem.load()` — parse → hydrate → offline progress calc
+- `SaveSystem.migrate()` — heals legacy inventory/gear, removes retired gear caches, sanitizes numerics
 - `SaveSystem.exportFile()` / `importFile()` — manual backup/restore
 - `SaveSystem.startAutoSave()` / `stopAutoSave()` — 30s interval
 - `SaveSystem.getSaveInfo()` — metadata for UI
@@ -99,7 +100,7 @@
 
 **Dependencies**: `CultivationSystem`, `HERB_GROWTH`, `Notify`, `R.applyFontScale`
 
-**State Mutations**: `G.state.*` (full replace on load), `G.state.cultivationBase`, `G.state.prana`, `G.state.farmPlots`
+**State Mutations**: `G.state.*` (fresh-baseline hydration on load), `G.state.cultivationBase`, `G.state.prana`, `G.state.farmPlots`
 
 ### Zone Reward System (`zone_rewards.js`)
 **Responsibility**: Save-backed, idempotent percentage and one-time completion rewards for zone exploration.

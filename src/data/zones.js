@@ -91,6 +91,42 @@ const ZONES = {
   }
 };
 
+const ZoneAccess = {
+  status: function(zoneId) {
+    const zone = ZONES[zoneId];
+    if (!zone) return { allowed: false, reason: 'unknown-zone' };
+
+    const progress = G.state.zoneProgress && typeof G.state.zoneProgress === 'object' && !Array.isArray(G.state.zoneProgress)
+      ? G.state.zoneProgress : {};
+    const percentage = Number(progress[zoneId]) || 0;
+    const complete = percentage >= 100;
+    const prerequisiteMet = !zone.reqZone || (Number(progress[zone.reqZone]) || 0) >= 100;
+    const levelMet = (Array.isArray(G.state.party) ? G.state.party : []).some(function(hero) {
+      return hero && (Number(hero.level) || 0) >= (zone.reqLevel || 1);
+    });
+
+    return {
+      allowed: complete || (prerequisiteMet && levelMet),
+      complete: complete,
+      percentage: percentage,
+      prerequisiteMet: prerequisiteMet,
+      levelMet: levelMet,
+      reason: prerequisiteMet ? 'level-required' : 'prerequisite-required'
+    };
+  },
+
+  enter: function(zoneId) {
+    const status = this.status(zoneId);
+    if (!status.allowed) return status;
+    if (!G.state.zoneProgress || typeof G.state.zoneProgress !== 'object' || Array.isArray(G.state.zoneProgress)) {
+      G.state.zoneProgress = {};
+    }
+    if (G.state.zoneProgress[zoneId] == null) G.state.zoneProgress[zoneId] = 0;
+    G.state.currentZone = zoneId;
+    return status;
+  }
+};
+
 function getZoneTier(zoneId) {
   const zone = ZONES[zoneId];
   const reqLevel = zone.reqLevel || 1;

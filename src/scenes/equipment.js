@@ -233,19 +233,15 @@ const equipmentScene = Scene.create({
     const hero = this.data.selectedHero;
     if (!item || !hero) return;
 
-    const slot = item.type === 'weapon' ? 'weaponEquipped' : item.type === 'armor' ? 'armorEquipped' : 'accessoryEquipped';
-    const oldItem = hero[slot];
-    
-    // Swap only real inventory items back into the bag; legacy string slots are discarded.
-    if (oldItem && typeof oldItem === 'object') {
-      const idx = G.state.inventory.indexOf(oldItem);
-      if (idx >= 0) G.state.inventory.splice(idx, 1);
-      G.state.inventory.push(oldItem);
+    const result = EquipmentSystem.equip(hero, item);
+    if (!result.ok) {
+      const message = result.reason === 'incompatible-weapon'
+        ? hero.name + ' cannot use ' + item.name + '!'
+        : 'Cannot equip ' + item.name + '.';
+      Notify.show(message, 2, R.colors.red);
+      Audio.error();
+      return;
     }
-
-    const invIdx = G.state.inventory.indexOf(item);
-    if (invIdx >= 0) G.state.inventory.splice(invIdx, 1);
-    hero[slot] = item;
 
     Notify.show('Equipped ' + item.name, 2, getLootColor(item.rarity));
     this.buildUI();
@@ -254,24 +250,10 @@ const equipmentScene = Scene.create({
   unequipItem: function(slotType) {
     const hero = this.data.selectedHero;
     if (!hero) return;
+    const result = EquipmentSystem.unequip(hero, slotType);
+    if (!result.ok) return;
     
-    const slot = slotType + 'Equipped';
-    const item = hero[slot];
-    if (!item) return;
-
-    hero[slot] = null;
-
-    // Legacy saves may hold plain strings in gear slots — discard instead of re-inventorying.
-    if (typeof item === 'string') {
-      Notify.show('Removed legacy gear', 2, R.colors.textDim);
-      this.buildUI();
-      return;
-    }
-
-    if (!G.state.inventory) G.state.inventory = [];
-    G.state.inventory.push(item);
-    
-    Notify.show('Unequipped ' + item.name, 2, R.colors.textPrimary);
+    Notify.show('Unequipped ' + result.item.name, 2, R.colors.textPrimary);
     this.buildUI();
   },
 
