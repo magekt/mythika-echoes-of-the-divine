@@ -1,3 +1,21 @@
+const RecruitAccess = {
+  costs: [800, 2500, 6000, 14000],  // cost indexed by current party length (1→4 heroes)
+  status: function(heroId) {
+    const party = G.state.party || [];
+    const cost = RecruitAccess.costs[party.length - 1] || 14000;
+    const gold = G.state.gold || 0;
+    if (party.length >= 5) return { allowed: false, reason: 'Party is full (max 5)', cost: cost };
+    if (party.some(h => h && h.id === heroId)) return { allowed: false, reason: heroId + ' already in party', cost: cost };
+    if (gold < cost) return { allowed: false, reason: 'Need ' + cost + 'g (' + gold + 'g available)', cost: cost };
+    return { allowed: true, reason: '', cost: cost };
+  },
+  enter: function(heroId) {
+    const s = this.status(heroId);
+    if (!s.allowed) return s;
+    return { ...s, allowed: true };
+  }
+};
+
 const partyScene = Scene.create({
   name: 'party',
   data: {
@@ -9,7 +27,7 @@ const partyScene = Scene.create({
     equipSlot: null,
     scrollY: 0,
     contentHeight: 0,
-    recruitCosts: [800, 2500, 6000, 14000]
+    recruitCosts: RecruitAccess.costs
   },
 
   enter: function() {
@@ -109,12 +127,11 @@ const partyScene = Scene.create({
     }
 
     // Recruit Hall: grow the party toward the full pantheon (max 5 heroes).
-    if (G.state.party.length < 5) {
-      const cost = this.data.recruitCosts[G.state.party.length - 1] || 14000;
-      const canAfford = (G.state.gold || 0) >= cost;
+    const recruitStatus = RecruitAccess.status(null);  // null = just checking capacity + gold
+    if (recruitStatus.cost !== undefined) {
       // Primary action button: minimum 38px height, prefer 38px
-      const rec = UI.Button(14, y + 4, G.W - 28, 38, 'Recruit Hero (' + cost + 'g)', canAfford ? R.colors.btnGold : R.colors.btn);
-      rec.enabled = canAfford;
+      const rec = UI.Button(14, y + 4, G.W - 28, 38, 'Recruit Hero (' + recruitStatus.cost + 'g)', recruitStatus.allowed ? R.colors.btnGold : R.colors.btn);
+      rec.enabled = recruitStatus.allowed;
       rec.onClick = function() {
         partyScene.data.view = 'recruit';
         partyScene.data.scrollY = 0;
@@ -141,16 +158,20 @@ const partyScene = Scene.create({
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
-    const cost = this.data.recruitCosts[G.state.party.length - 1] || 14000;
+    const recruitInfo = RecruitAccess.status(null);
+    const cost = recruitInfo.cost;
     const inParty = G.state.party.map(x => x.id);
     SD.push({ text: ['Recruit joins at 60% of your leader\'s level — ' + cost + 'g', 18, y + 8, R.colors.gold, R.fonts.sm] });
     y += 24;
 
     for (const hid of Object.keys(HEROES)) {
       if (inParty.indexOf(hid) !== -1) continue;
+      const heroStatus = RecruitAccess.status(hid);
+      if (!heroStatus.allowed && heroStatus.reason.indexOf('already') !== -1) continue;
       const heroDef = HEROES[hid];
-      const btn = UI.Button(14, y, G.W - 28, 54, '', R.colors.panel);
+      const btn = UI.Button(14, y, G.W - 28, 54, '', heroStatus.allowed ? R.colors.panel : R.colors.btn);
       btn._hid = hid;
+      btn.enabled = heroStatus.allowed;
       btn.render = function(ctx) {
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
         R.roundRect(ctx, bx, by, bw, bh, 6, R.colors.panel);
@@ -179,8 +200,12 @@ const partyScene = Scene.create({
   },
 
   recruitHero: function(hid) {
-    const idx = G.state.party.length - 1;
-    const cost = this.data.recruitCosts[idx] || 14000;
+    const gate = RecruitAccess.enter(hid);
+    if (!gate.allowed) {
+      Notify.show(gate.reason, 2, R.colors.red);
+      return false;
+    }
+    const cost = gate.cost;
     if (!Economy.spendGoldOrNotify(cost)) return false;
 
     const recruit = createHeroState(hid);
