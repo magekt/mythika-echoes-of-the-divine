@@ -1,0 +1,16 @@
+{
+  "mode": "yolo",
+  "granularity": "fine",
+  "parallelization": false,
+  "commit_docs": true,
+  "model_profile": "smart",
+  "workflow": {
+    "research": true,
+    "research_before_questions": true,
+    "plan_check": true,
+    "verifier": true,
+    "nyquist_validation": true,
+    "auto_advance": true
+  },
+  "research_instructions": "Before each plan, review the existing codebase, established patterns, reusable modules, lore-sensitive design, technical risks, error feedback, and debugging loops."
+}
