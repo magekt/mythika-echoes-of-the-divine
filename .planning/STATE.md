@@ -18,12 +18,10 @@ Refine the existing cultivation RPG into a reliable, modular game with mythology
 ## Phases
 
 ### Phase 01 — Save Hydration & Equipment Authority
-- **Status**: ACTIVE (implementation complete, UAT in progress).
+- **Status**: COMPLETE ✅
 - **Goal**: Authoritative save hydration; canonical equipment; safe zone access.
-- **Gate**: UAT results reviewed; Phase 1 UAT document satisfied.
-- **Blocked by**: User manual review of Phase 1 UAT (Test 1); unavailable external review (oracle/council).
-- **Committed**: `.planning/PROJECT.md` (d06975b), `.planning/config.json` (5a88997).
-- **Uncommitted**: Phase 1 source changes in `save.js`, `items.js`, `combat.js`, `zones.js`, `travelMap.js`, `zoneExploration.js`, `ashram.js`, `party.js`, `equipment.js`.
+- **Gate**: UAT 4/4 passed via browser-use automated verification.
+- **Commit**: `f0f150d feat(01): save hydration, equipment authority, zone access, travel map UI`
 
 ### Phase 02 — Access-Gate Enforcement
 - **Status**: DEFERRED (awaiting Phase 01 completion).
@@ -51,24 +49,20 @@ Refine the existing cultivation RPG into a reliable, modular game with mythology
 |------|--------|--------|
 | `.planning/PROJECT.md` | `d06975b` | committed |
 | `.planning/config.json` | `5a88997` | committed |
-| `.planning/REQUIREMENTS.md` | — | pending commit |
-| `.planning/ROADMAP.md` | — | pending commit |
+| `.planning/REQUIREMENTS.md` | `e4ea4aa` | committed |
+| `.planning/ROADMAP.md` | `e4ea4aa` | committed |
 | `.planning/STATE.md` | — | this file |
-| Phase 01 source changes | — | uncommitted |
-| Phase 01 UAT | `.planning/phases/01-access-gates/1-UAT.md` | incomplete |
+| Phase 01 source changes | `f0f150d` | committed |
+| Phase 01 UAT | `f0f150d` | complete (4/4 pass) |
 
 ## Open Questions / Risks
 
-1. Phase 01 UAT Test 1 awaiting user response (manual browser review required).
-2. External oracle/council review unavailable — relying on internal + user manual review.
-3. Combat UI overlap fix deferred until Phase 01 completes to avoid merge conflicts.
-4. Encounter system must route through existing canonical APIs to avoid new stat-gold mutation paths.
+1. Combat UI overlap fix deferred to Phase 04 — no merge conflicts now that Phase 01 is committed.
+2. Encounter system must route through existing canonical APIs to avoid new stat-gold mutation paths.
 
 ## Next Steps
 
-1. Complete Phase 01 UAT (user manual browser review).
-2. Commit Phase 01 changes.
-3. Proceed to Phase 02 (access-gate enforcement) with codebase research + plan check.
-4. Execute Phase 03 after Phase 02 verification passes.
+1. Proceed to Phase 02 (access-gate enforcement) with codebase research + plan check.
+2. Execute Phase 03 after Phase 02 verification passes.
 
 ---
