@@ -24,9 +24,11 @@ Refine the existing cultivation RPG into a reliable, modular game with mythology
 - **Commit**: `f0f150d feat(01): save hydration, equipment authority, zone access, travel map UI`
 
 ### Phase 02 — Access-Gate Enforcement
-- **Status**: DEFERRED (awaiting Phase 01 completion).
-- **Goal**: Journey, rebirth, forge, recruit, tournament, trials authority.
+- **Status**: PLANNED (Ready to Execute).
+- **Goal**: Journey, rebirth, forge, recruit, tournament, trials authority gates.
+- **Plans**: 2 plans in 1 wave
 - **Gate**: Per-gate browser tests; failed-attempt side-effect checks.
+- **Last Activity**: 2026-09-14 — planning complete
 
 ### Phase 03 — Mythological Narrative Encounters
 - **Status**: PLANNED (future).

@@ -22,9 +22,15 @@ Milestone: refine existing game into reliable, modular Indian-mythology cultivat
 
 ---
 
-## Phase P02 — Access-Gate Enforcement (Future)
+## Phase P02 — Access-Gate Enforcement (Ready to Execute)
 
 **Goal**: All gated features validate at system/scene entry, not only via UI.
+
+**Plans:** 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Journey + Rebirth + Forge authority gates (3 tasks)
+- [ ] 02-02-PLAN.md — Recruit + Tournament + Trials authority gates + browser UAT (3 tasks)
 
 **Tasks**
 - Journey start eligibility guard (`JourneySystem.start`, `getAvailableJourneys`).
