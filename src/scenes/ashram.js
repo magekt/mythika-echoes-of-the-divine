@@ -46,7 +46,7 @@ const ashramScene = Scene.create({
       { text: 'Party', scene: 'party', icon: '\u263A' },
       { text: 'Shop', scene: 'bazaar', icon: '\u2699' },
       { text: 'Rest', scene: '', icon: '\u266B' },
-      { text: 'More', scene: '_more', icon: '\u2630' }
+      { text: 'More', scene: 'settings', icon: '\u2630' }
     ];
     const navY = G.H - this.navBarHeight;
     const navW = G.W / navItems.length;
@@ -94,8 +94,6 @@ const ashramScene = Scene.create({
             h.mp = h.maxMp;
           }
           Notify.show('Party restored to full vitality', 2, R.colors.green);
-        } else if (this._scene === '_more') {
-          gScene('settings', true);
         } else {
           gScene(this._scene, true);
         }

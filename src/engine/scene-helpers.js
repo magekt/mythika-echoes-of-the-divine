@@ -189,11 +189,48 @@
       { text: 'Party', scene: 'party', icon: '☺' },
       { text: 'Shop', scene: 'bazaar', icon: '⚙' },
       { text: 'Rest', scene: '', icon: '♪' },
-      { text: 'More', scene: '_more', icon: '≡' }
+      { text: 'More', scene: 'settings', icon: '≡' }
     ];
     
     let expanded = false;
     const spring = { rotation: 0, targetRotation: 0, stagger: [] };
+
+    const collapsedLayout = function() {
+      const pillW = 280, pillH = 44;
+      const pillX = G.W / 2 - pillW / 2;
+      const pillY = G.H - pillH - 12;
+      const rowW = pillW - 44;
+      return {
+        pillW: pillW,
+        pillH: pillH,
+        pillX: pillX,
+        pillY: pillY,
+        itemW: rowW / 4,
+        rowX: pillX,
+        hamburgerX: pillX + pillW - 36,
+        hamburgerY: pillY + 8,
+        hamburgerW: 20
+      };
+    };
+
+    const expandedRowY = function(index, animated) {
+      const baseY = G.H / 2 - 60 + index * 50;
+      if (!animated) return baseY;
+      const itemState = spring.stagger[index];
+      return baseY + (itemState ? (1 - itemState.progress) * 30 : 0);
+    };
+
+    const activateItem = function(item) {
+      if (item.scene === '') {
+        for (const h of G.state.party) {
+          h.hp = h.maxHp;
+          h.mp = h.maxMp;
+        }
+        Notify.show('Party restored to full vitality', 2, R.colors.green);
+        return;
+      }
+      gScene(item.scene, true);
+    };
     
     return {
       toggle: function() {
@@ -213,8 +250,9 @@
       },
       render: function(ctx) {
         if (!expanded) {
-          const pillW = 280, pillH = 44;
-          const x = G.W/2 - pillW/2, y = G.H - pillH - 12;
+          const layout = collapsedLayout();
+          const pillW = layout.pillW, pillH = layout.pillH;
+          const x = layout.pillX, y = layout.pillY;
           R.roundRect(ctx, x, y, pillW, pillH, 22, 'rgba(26,26,48,0.9)');
           ctx.strokeStyle = 'rgba(232,160,48,0.2)';
           ctx.lineWidth = 1;
@@ -224,16 +262,15 @@
           // whose icon used to collide with the hamburger lines). The active
           // scene's icon renders gold for wayfinding.
           const rowItems = navItems.slice(0, 4);
-          const rowW = pillW - 44;
           rowItems.forEach((item, i) => {
-            const ix = x + rowW/4 * i + rowW/8;
+            const ix = layout.rowX + layout.itemW * i + layout.itemW / 2;
             const active = G.state.scene === item.scene;
             const col = active ? R.colors.gold : R.colors.textDim;
             R.textCenter(ctx, item.icon, ix, y + 28, col, R.fonts.lg);
             R.textCenter(ctx, item.text, ix, y + 40, col, R.fonts.xs);
           });
-          const hx = x + pillW - 36, hy = y + 8;
-          const lineW = 20;
+          const hx = layout.hamburgerX, hy = layout.hamburgerY;
+          const lineW = layout.hamburgerW;
           ctx.strokeStyle = R.colors.gold;
           ctx.lineWidth = 2;
           ctx.lineCap = 'round';
@@ -255,7 +292,7 @@
           ctx.fillRect(0, 0, G.W, G.H);
           navItems.forEach((item, i) => {
             const s = spring.stagger[i];
-            const y = G.H/2 - 60 + i * 50 + (1 - s.progress) * 30;
+            const y = expandedRowY(i, true);
             const alpha = s.progress;
             ctx.globalAlpha = alpha;
             R.textCenter(ctx, item.icon + '  ' + item.text, G.W/2, y, R.colors.gold, R.fonts.lg);
@@ -265,20 +302,31 @@
       },
       handleTap: function(x, y) {
         if (!expanded) {
-          const pillW = 280, pillH = 44;
-          const pillX = G.W/2 - pillW/2, pillY = G.H - pillH - 12;
-          if (x >= pillX && x <= pillX + pillW && y >= pillY && y <= pillY + pillH) {
+          const layout = collapsedLayout();
+          const inPillY = y >= layout.pillY && y <= layout.pillY + layout.pillH;
+          const inHamburger = x >= layout.hamburgerX - 8 &&
+            x <= layout.hamburgerX + layout.hamburgerW + 8 &&
+            y >= layout.hamburgerY - 6 &&
+            y <= layout.hamburgerY + 28;
+
+          if (inHamburger && inPillY) {
             this.toggle();
             return true;
           }
+          if (inPillY && x >= layout.rowX && x < layout.rowX + layout.itemW * 4) {
+            const index = Math.floor((x - layout.rowX) / layout.itemW);
+            activateItem(navItems[index]);
+            return true;
+          }
         } else {
-          navItems.forEach((item, i) => {
-            const itemY = G.H/2 - 60 + i * 50;
-            if (Math.abs(y - itemY) < 30 && item.scene) {
-              gScene(item.scene);
+          for (let i = 0; i < navItems.length; i++) {
+            const itemY = expandedRowY(i, true);
+            if (x >= 24 && x <= G.W - 24 && Math.abs(y - itemY) <= 22) {
+              activateItem(navItems[i]);
               this.toggle();
+              return true;
             }
-          });
+          }
           return true;
         }
         return false;

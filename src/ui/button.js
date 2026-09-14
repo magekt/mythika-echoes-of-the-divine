@@ -572,7 +572,7 @@ UI.FluidNav = function() {
     { text: 'Party', scene: 'party', icon: '☺' },
     { text: 'Shop', scene: 'bazaar', icon: '⚙' },
     { text: 'Rest', scene: '', icon: '♪' },
-    { text: 'More', scene: '_more', icon: '≡' }
+    { text: 'More', scene: 'settings', icon: '≡' }
   ];
   
   let expanded = false;
