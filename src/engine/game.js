@@ -164,12 +164,8 @@ const Fade = {
   }
 };
 
-const G = {
-  W: 400, H: 720,
-  SCROLL_SPEED: 0.5,
-  CONTENT_TOP: 116,
-  canvas: null, ctx: null,
-  state: {
+function createDefaultGameState() {
+  return {
     scene: 'title',
     player: null,
     party: [],
@@ -195,8 +191,18 @@ const G = {
     zoneRewardLedger: {},
     tournamentWins: 0,
     totalPlayTime: 0,
-    flags: {}
-  },
+    flags: {},
+    encounters: {}
+  };
+}
+
+const G = {
+  W: 400, H: 720,
+  SCROLL_SPEED: 0.5,
+  CONTENT_TOP: 116,
+  canvas: null, ctx: null,
+  state: createDefaultGameState(),
+  createDefaultState: createDefaultGameState,
   frameCount: 0,
   dt: 0,
   lastTime: 0,

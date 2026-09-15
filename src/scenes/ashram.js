@@ -74,9 +74,7 @@ const ashramScene = Scene.create({
         if (this._text === 'Map') {
           for (const [id, zone] of Object.entries(ZONES)) {
             const pct = G.state.zoneProgress[id] || 0;
-            const reqProgress = !zone.reqZone || (G.state.zoneProgress[zone.reqZone] || 0) >= 100;
-            const reqLevel = (G.state.party || []).some(h => h.level >= (zone.reqLevel || 1));
-            if (pct < 100 && reqProgress && reqLevel) badge++;
+            if (pct < 100 && ZoneAccess.status(id).allowed) badge++;
           }
         } else if (this._text === 'Party') {
           const hero = G.state.player;

@@ -155,7 +155,7 @@ const combatScene = Scene.create({
     this.data.autoTimer = null;
   },
 
-  getActionAreaTop: function() { return 270; },
+  getActionAreaTop: function() { return 248; },
   getActionAreaHeight: function() { return G.H - this.getActionAreaTop(); },
 
   clampScroll: function() {
@@ -879,19 +879,19 @@ const combatScene = Scene.create({
       ctx.fillRect(0, 0, G.W, G.H);
     }
 
-    R.roundRect(ctx, 10, 6, G.W - 20, 96, 8, R.colors.panel);
+    R.roundRect(ctx, 10, 4, G.W - 20, 52, 8, R.colors.panel);
     ctx.strokeStyle = R.colors.borderHairline;
     ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 6.5, G.W - 21, 95);
+    ctx.strokeRect(10.5, 4.5, G.W - 21, 51);
 
-    R.textCenter(ctx, '\u2694 Combat ' + (G.state.isBossFight ? '\u2605 BOSS' : ''), G.W / 2, 22, G.state.isBossFight ? R.colors.red : R.colors.gold, R.fonts.lg);
+    R.textCenter(ctx, '\u2694 Combat ' + (G.state.isBossFight ? '\u2605 BOSS' : ''), G.W / 2, 20, G.state.isBossFight ? R.colors.red : R.colors.gold, R.fonts.lg);
 
     if (this.data.turnState === 'playerTurn') {
       const currentActor = Combat.getCurrentActor();
       if (currentActor && currentActor.ref) {
         // Gold background strip for player turn
-        R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, R.radius.m, R.colors.gold);
-        R.textCenter(ctx, '\u25B6 ' + currentActor.ref.name + '\'s Turn', G.W / 2, 88, R.colors.white, R.fonts.md);
+        R.roundRect(ctx, G.W / 2 - 70, 34, 140, 16, R.radius.m, R.colors.gold);
+        R.textCenter(ctx, '\u25B6 ' + currentActor.ref.name + '\'s Turn', G.W / 2, 42, R.colors.white, R.fonts.md);
       }
       if (Combat.comboCount >= 2) {
         const multiplier = 1.0 + Math.min(10, Combat.comboCount - 1) * 0.1;
@@ -900,23 +900,23 @@ const combatScene = Scene.create({
         // Subtle glow effect: draw background rect first, then text
         ctx.fillStyle = R.colors.gold;
         ctx.globalAlpha = 0.3;
-        ctx.fillRect(G.W / 2 - 60, 100, 120, 24);
+        ctx.fillRect(G.W / 2 - 60, 58, 120, 24);
         ctx.globalAlpha = 1;
-        R.textCenter(ctx, comboText, G.W / 2, 104, R.colors.gold, R.fonts.sm);
+        R.textCenter(ctx, comboText, G.W / 2, 62, R.colors.gold, R.fonts.sm);
       }
     } else if (this.data.turnState === 'enemyTurn') {
       // Red background strip for enemy turn
-      R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, R.radius.m, R.colors.red);
-      R.textCenter(ctx, '\u25C0 Enemy Turn', G.W / 2, 88, R.colors.white, R.fonts.md);
+      R.roundRect(ctx, G.W / 2 - 70, 34, 140, 16, R.radius.m, R.colors.red);
+      R.textCenter(ctx, '\u25C0 Enemy Turn', G.W / 2, 42, R.colors.white, R.fonts.md);
     }
 
     // Enemy display area - PremiumShell panel with selected enemy sprite, name, HP bar
     const selectedEnemy = this.data.enemies.find(e => e.hp > 0);
     if (selectedEnemy) {
       const panelW = 170;
-      const panelH = 80;
+      const panelH = 68;
       const panelX = G.W - panelW;
-      const panelY = 32;
+      const panelY = 112;
       const premiumShell = UI.PremiumShell(panelX, panelY, panelW, panelH, { outerR: 16 });
       premiumShell.render(ctx);
       const content = premiumShell.contentRect();
@@ -925,18 +925,18 @@ const combatScene = Scene.create({
       if (selectedEnemy.sprite) {
         R.drawEnemy(ctx, selectedEnemy.id, content.x + content.w / 2, content.y + 10, 22);
       }
-      R.textCenter(ctx, selectedEnemy.name, content.x + content.w / 2, content.y + 38, selectedEnemy.hp > 0 ? R.colors.red : R.colors.textDim, R.fonts.lg);
-      
+      R.textCenter(ctx, selectedEnemy.name, content.x + content.w / 2, content.y + 36, selectedEnemy.hp > 0 ? R.colors.red : R.colors.textDim, R.fonts.lg);
+
       // HP bar inside panel
-      const hpBar = UI.ProgressBar(content.x + 20, content.y + 50, content.w - 40, 8, R.colors.gold, R.colors.borderHairline);
+      const hpBar = UI.ProgressBar(content.x + 20, content.y + 46, content.w - 40, 8, R.colors.gold, R.colors.borderHairline);
       hpBar.setProgress(selectedEnemy.hp, selectedEnemy.maxHp);
       hpBar.render(ctx);
-      R.textCenter(ctx, Math.floor(selectedEnemy.hp) + '/' + selectedEnemy.maxHp, content.x + content.w / 2, content.y + 62, R.colors.white, R.fonts.sm);
+      R.textCenter(ctx, Math.floor(selectedEnemy.hp) + '/' + selectedEnemy.maxHp, content.x + content.w / 2, content.y + 56, R.colors.white, R.fonts.sm);
     }
     
     let hx = 12;
     const heroStep = this.data.heroes.length <= 3 ? 90 : 68;   // keep 4-5 hero bars on-canvas
-    const hy = 32;
+    const hy = 62;
     for (const h of this.data.heroes) {
       const col = h.hp > 0 ? R.colors.text : R.colors.textDim;
       R.drawHero(ctx, h.id, hx + 12, hy, 22);
@@ -990,15 +990,15 @@ const combatScene = Scene.create({
       const intent = this.data.enemyIntent;
       const remain = Math.max(0, this.data.reactionRemaining);
       const pct = remain / Math.max(0.1, this.data.reactionDuration);
-      R.roundRect(ctx, 12, 108, G.W - 24, 54, 8, R.colors.overlayDark);
+      R.roundRect(ctx, 12, 184, G.W - 24, 54, 8, R.colors.overlayDark);
       ctx.strokeStyle = intent.attackType === 'ranged' ? R.colors.blue : R.colors.red;
       ctx.lineWidth = 1;
-      ctx.strokeRect(12.5, 108.5, G.W - 25, 53);
-      R.text(ctx, 'INCOMING ' + intent.attackType.toUpperCase(), 22, 126, R.colors.red, R.fonts.xs);
-      R.text(ctx, intent.name + ' -> ' + intent.target.name, 22, 144, R.colors.text, R.fonts.md);
-      R.roundRect(ctx, 22, 149, G.W - 44, 6, 3, R.colors.damageBarBackground);
-      R.roundRect(ctx, 22, 149, (G.W - 44) * pct, 6, 3, pct > 0.38 ? R.colors.gold : R.colors.red);
-      R.textRight(ctx, remain.toFixed(1) + 's  PERFECT / GOOD / LATE', G.W - 22, 126, R.colors.textDim, R.fonts.xs);
+      ctx.strokeRect(12.5, 184.5, G.W - 25, 53);
+      R.text(ctx, 'INCOMING ' + intent.attackType.toUpperCase(), 22, 202, R.colors.red, R.fonts.xs);
+      R.text(ctx, intent.name + ' -> ' + intent.target.name, 22, 220, R.colors.text, R.fonts.md);
+      R.roundRect(ctx, 22, 225, G.W - 44, 6, 3, R.colors.damageBarBackground);
+      R.roundRect(ctx, 22, 225, (G.W - 44) * pct, 6, 3, pct > 0.38 ? R.colors.gold : R.colors.red);
+      R.textRight(ctx, remain.toFixed(1) + 's  PERFECT / GOOD / LATE', G.W - 22, 202, R.colors.textDim, R.fonts.xs);
     }
     for (const b of this.data.enemyButtons) b.render(ctx);
     // Fixed combat log (does not scroll with action list)
