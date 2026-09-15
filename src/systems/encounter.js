@@ -154,6 +154,11 @@ EncounterSystem.choose = function(id, choiceIdx) {
     AchievementSystem.check();
   }
 
+  // --- Quest tracking for encounter completion ---
+  if (typeof QuestSystem !== 'undefined' && QuestSystem.trackEncounter) {
+    QuestSystem.trackEncounter(id);
+  }
+
   return {
     id: id,
     choiceIdx: choiceIdx,
