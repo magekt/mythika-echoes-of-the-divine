@@ -35,14 +35,14 @@ Refine the existing cultivation RPG into a reliable, modular game with mythology
 - **Last Activity**: 2026-09-14 — all gates implemented and verified
 
 ### Phase 03 — Mythological Narrative Encounters
-- **Status**: IN PROGRESS 🔄
+- **Status**: COMPLETE ✅
 - **Goal**: Zone/travel encounter triggers, choice system, persistent consequences.
 - **Plans:** 3 plans in 3 waves, executed sequentially
   - ✅ 03-01: Encounter core system (`5cbba94`, `05ff895`, `c2edf0c`)
-  - 🔄 03-02: Encounter scene UI + triggers
-  - 🔄 03-03: 8 lore encounters + marker chains + browser UAT
-- **Gate**: Trigger → branch → consequence persistence; canonical reward routing; 8 lore encounters.
-- **Commits**: `5cbba94` `05ff895` `c2edf0c` `abe118b`
+  - ✅ 03-02: Encounter scene UI + triggers (`603bdc4`)
+  - ✅ 03-03: 8 lore encounters + marker chains (`603bdc4`)
+- **Gate**: 8 encounters with marker chains, karma gates, flagsReq, canonical reward routing.
+- **Commits**: `603bdc4 feat(03): encounter UI, triggers, 8 lore encounters with marker chains`
 
 ### Phase 04 — Combat UI Reflow
 - **Status**: PLANNED (future).
