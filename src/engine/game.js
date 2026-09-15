@@ -191,7 +191,8 @@ function createDefaultGameState() {
     zoneRewardLedger: {},
     tournamentWins: 0,
     totalPlayTime: 0,
-    flags: {}
+    flags: {},
+    encounters: {}
   };
 }
 

@@ -47,6 +47,12 @@ SaveSystem.migrate = function() {
   G.state.party = G.state.party.filter(hero => hero && typeof hero === 'object' && !Array.isArray(hero));
   if (!G.state.flags || typeof G.state.flags !== 'object' || Array.isArray(G.state.flags)) G.state.flags = {};
   if (!G.state.perks || typeof G.state.perks !== 'object' || Array.isArray(G.state.perks)) G.state.perks = {};
+  if (!G.state.encounters || typeof G.state.encounters !== 'object' || Array.isArray(G.state.encounters)) {
+    G.state.encounters = {};
+  }
+  if (!G.state.encounters.seen || typeof G.state.encounters.seen !== 'object' || Array.isArray(G.state.encounters.seen)) {
+    G.state.encounters.seen = {};
+  }
   if (typeof EquipmentSystem !== 'undefined' && EquipmentSystem.normalize) EquipmentSystem.normalize();
   if (G.state.challenge != null) {
     const c = parseFloat(G.state.challenge);
