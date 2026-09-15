@@ -75,15 +75,19 @@ Plans:
 
 ---
 
-## Phase P04 — Combat UI Reflow (Future)
+## Phase P04 — Combat UI Reflow (Planned)
 
 **Goal**: Combat UI legible on all party sizes and screen heights.
 
+**Plans:** 1 plan in 1 wave
+Plans:
+- [ ] 04-01-PLAN.md — Reflow combat layout: vertical stacking of hero strip and enemy panel (2 tasks)
+
 **Tasks**
-- Fix hero status strip overlap with selected-enemy header for party sizes 4–5.
-- Maintain ≥48px tap targets for all combat actions.
-- Ensure intent/reaction flow works after reflow.
-- Verify reduced motion compliance.
+- [ ] Fix hero status strip overlap with selected-enemy header for party sizes 4–5.
+- [ ] Maintain ≥48px tap targets for all combat actions.
+- [ ] Ensure intent/reaction flow works after reflow.
+- [ ] Verify reduced motion compliance.
 
 **Gate**: Mobile screenshot at party 5; `?probe` frame pass.
 
