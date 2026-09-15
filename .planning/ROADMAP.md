@@ -47,9 +47,16 @@ Plans:
 
 ---
 
-## Phase P03 — Mythological Narrative Encounters (Future)
+## Phase P03 — Mythological Narrative Encounters
 
 **Goal**: Travel and zone exploration surface mythology-driven choices with immediate + persistent consequences.
+
+**Plans:** 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Encounter core system: data registry, EncounterSystem, EncounterTrigger, state integration (2 tasks)
+- [ ] 03-02-PLAN.md — Encounter UI scene + trigger wiring in zoneExploration and travelMap (2 tasks)
+- [ ] 03-03-PLAN.md — Lore encounter library + marker chain + browser UAT (3 tasks)
 
 **Tasks**
 - Encounter trigger system (zone-based, karma/flag-driven spawn; no unbounded array growth).
