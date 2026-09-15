@@ -51,13 +51,14 @@ Refine the existing cultivation RPG into a reliable, modular game with mythology
 - **Commit**: `a985acd feat(04-01): reflow combat layout`
 
 ### Phase 05 — Connected Systems Polish
-- **Status**: IN PROGRESS
+- **Status**: COMPLETE ✅
 - **Goal**: Cross-system loop coherence; performance/memory safety.
 - **Plans:** 3 plans in 2 waves
   - ✅ 05-01: Cross-system hooks — QuestSystem.trackEncounter + achievement (`8fc1d56`, `74be246`, `fc05ca0`)
-  - ⬜ 05-02: Loop coherence — encounter Continue button + journey routing + browser walkthrough (Wave 2)
-  - ⬜ 05-03: Performance audit — code audit + browser probe/memory check (Wave 2)
-- **Gate**: Ashram→Travel→Encounter→Combat→Ashram walk-through; probe + memory check.
+  - ✅ 05-02: Loop coherence — Continue button + journey routing (`59fed48`)
+  - ✅ 05-03: Performance audit — all 4 checks pass
+- **Gate**: Canonical reward routing; scene cleanup verified; unbounded arrays none.
+- **Commits**: `8fc1d56` `74be246` `fc05ca0` `59fed48`
 - **Requirements**: REQ-005, REQ-004, REQ-012
 
 ## Deliverables
