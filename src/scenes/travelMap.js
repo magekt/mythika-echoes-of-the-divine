@@ -194,6 +194,13 @@ const travelMapScene = Scene.create({
           Notify.show('This zone is still locked.', 2, R.colors.warning);
           return;
         }
+        // Travel-lane narrative encounter roll
+        const narrId = (typeof EncounterTrigger !== 'undefined' && EncounterTrigger.rollTravel) ? EncounterTrigger.rollTravel(G.state.currentZone, travelMapScene.data.selectedZone) : null;
+        if (narrId) {
+          travelMapScene.data._pendingTravel = travelMapScene.data.selectedZone;
+          gScene('encounterScene', true, { encounterId: narrId, origin: 'travelMap', pendingZone: travelMapScene.data.selectedZone });
+          return;
+        }
         gScene('zoneExploration', true);
       };
       this.data.buttons.push(explore);
