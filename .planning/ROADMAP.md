@@ -93,14 +93,25 @@ Plans:
 
 ---
 
-## Phase P05 — Connected Systems Polish (Future)
+## Phase P05 — Connected Systems Polish (Planned)
 
-**Goal**: Existing systems feel coherently linked; no isolated loops.
+**Goal**: Cross-system loop coherence; performance/memory safety.
+
+**Plans:** 3 plans in 2 waves
+Plans:
+- [ ] 05-01-PLAN.md — Cross-system hooks: QuestSystem.trackEncounter + achievement (3 tasks)
+- [ ] 05-02-PLAN.md — Loop coherence audit: encounter Continue button + journey grant routing + browser walkthrough (3 tasks)
+- [ ] 05-03-PLAN.md — Performance & state audit: code audit + browser probe/memory check (2 tasks)
 
 **Tasks**
-- Cross-system hooks where encounter rewards feed quests/achievements.
-- Badge/action parity review across Ashram → map → zone → encounter → Ashram loop.
-- Performance/memory checks: no new unbounded arrays, scene leave cleanup valid.
+- [ ] Add `QuestSystem.trackEncounter` to quest.js.
+- [ ] Wire `encounter.js choose()` to call `QuestSystem.trackEncounter`.
+- [ ] Add `narrative_enthusiast` achievement to achievements.js.
+- [ ] Add Continue button to encounter result panel.
+- [ ] Route encounter journey grants through `JourneySystem.start`.
+- [ ] Browser walkthrough of full Ashram → Travel → Encounter → Combat → Ashram loop.
+- [ ] Code audit: state mutation paths, scene cleanup, unbounded arrays, save serialization.
+- [ ] Browser probe + memory check (2-3 min gameplay).
 
 **Gate**: Full-screen walk-through from Ashram → Travel → Encounter → Combat → Ashram; probe + memory check.
 
@@ -115,4 +126,4 @@ Plans:
 
 ---
 
-*Last updated: 2026-09-14 — fine-grained sequential delivery via YOLO mode.*
+*Last updated: 2026-09-15 — Phase 05 plans created.*
