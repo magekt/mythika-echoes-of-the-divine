@@ -138,6 +138,21 @@ EncounterSystem.choose = function(id, choiceIdx) {
     granted.push({ type: 'karmaBonus', amount: choice.karma });
   }
 
+  // --- Journey grant routing ---
+  if (r.journey) {
+    if (typeof JourneySystem !== 'undefined' && JourneySystem.start) {
+      const jResult = JourneySystem.start(r.journey);
+      if (jResult) {
+        granted.push({ type: 'journey', id: r.journey });
+      }
+    } else {
+      // Fallback if JourneySystem not loaded — preserve existing behavior
+      if (!G.state.journeys) G.state.journeys = { active: null, progress: {} };
+      G.state.journeys.progress[r.journey] = true;
+      granted.push({ type: 'journey', id: r.journey });
+    }
+  }
+
   // --- Write flags (story markers) ---
   if (choice.flags) {
     for (const [k, v] of Object.entries(choice.flags)) {
