@@ -45,9 +45,10 @@ Refine the existing cultivation RPG into a reliable, modular game with mythology
 - **Commits**: `603bdc4 feat(03): encounter UI, triggers, 8 lore encounters with marker chains`
 
 ### Phase 04 — Combat UI Reflow
-- **Status**: PLANNED (future).
+- **Status**: COMPLETE ✅
 - **Goal**: Fix hero status/selected-enemy header overlap for party 4–5.
-- **Gate**: Mobile screenshot, tap-target audit, reduced motion check.
+- **Gate**: Compact header (52px), vertical stacking, code-verified layout.
+- **Commit**: `a985acd feat(04-01): reflow combat layout`
 
 ### Phase 05 — Connected Systems Polish
 - **Status**: PLANNED (future).
