@@ -27,7 +27,7 @@ patterns-established:
   - "Cross-system hooks use typeof guard before calling sibling system methods"
 requirements-completed: ["REQ-005"]
 # Metrics
-duration: 15min
+duration: 23min
 completed: 2026-09-15
 ---
 
@@ -35,7 +35,7 @@ completed: 2026-09-15
 **Encounter choices now feed quest objectives and achievement checks, closing the connected player loop (REQ-005).**
 
 ## Performance
-- **Duration:** 15min
+- **Duration:** 23min
 - **Started:** 2026-09-15T10:31:22Z
 - **Completed:** 2026-09-15T10:45:00Z
 - **Tasks:** 3/3
