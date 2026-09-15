@@ -1,6 +1,6 @@
 # Mythika: Echoes of the Divine — Milestone State
 
-Last updated: 2026-09-14
+Last updated: 2026-09-15
 
 ## Milestone
 Refine the existing cultivation RPG into a reliable, modular game with mythology-driven narrative encounters and polished cross-device UX. Preserve Canvas architecture, existing systems, and save compatibility.
@@ -35,9 +35,14 @@ Refine the existing cultivation RPG into a reliable, modular game with mythology
 - **Last Activity**: 2026-09-14 — all gates implemented and verified
 
 ### Phase 03 — Mythological Narrative Encounters
-- **Status**: PLANNED (future).
+- **Status**: IN PROGRESS 🔄
 - **Goal**: Zone/travel encounter triggers, choice system, persistent consequences.
-- **Gate**: Trigger → branch → consequence persistence; canonical reward routing; 6–10 sample encounters.
+- **Plans:** 3 plans in 3 waves, executed sequentially
+  - ✅ 03-01: Encounter core system (`5cbba94`, `05ff895`, `c2edf0c`)
+  - 🔄 03-02: Encounter scene UI + triggers
+  - 🔄 03-03: 8 lore encounters + marker chains + browser UAT
+- **Gate**: Trigger → branch → consequence persistence; canonical reward routing; 8 lore encounters.
+- **Commits**: `5cbba94` `05ff895` `c2edf0c` `abe118b`
 
 ### Phase 04 — Combat UI Reflow
 - **Status**: PLANNED (future).

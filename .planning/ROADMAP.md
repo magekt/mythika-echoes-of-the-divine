@@ -54,17 +54,22 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Encounter core system: data registry, EncounterSystem, EncounterTrigger, state integration (2 tasks)
+- [x] 03-01-PLAN.md — Encounter core system: data registry, EncounterSystem, EncounterTrigger, state integration (3 tasks)
 - [ ] 03-02-PLAN.md — Encounter UI scene + trigger wiring in zoneExploration and travelMap (2 tasks)
 - [ ] 03-03-PLAN.md — Lore encounter library + marker chain + browser UAT (3 tasks)
 
 **Tasks**
-- Encounter trigger system (zone-based, karma/flag-driven spawn; no unbounded array growth).
-- Encounter data format with choices, immediate rewards, and persistent flag writes.
-- Encounter choice handler that routes rewards through canonical systems (`Economy`, `Progression`, `AchievementSystem`, `QuestSystem`).
-- Marker storage in `G.state` readable by future encounters, quests, achievements.
-- UI screen for encounter display (choices, rewards, consequences preview).
-- 6–10 sample encounters grounded in Indian mythology (devas, asuras, rishis, yakshas, nagas) — respectful tone.
+- [x] ENCOUNTERS registry with prerequisite/pool helpers (nagaBargain, marutCrossing)
+- [x] EncounterSystem lifecycle (start/choose/setFlag/getChoices) with canonical reward routing
+- [x] EncounterTrigger rollZone/rollTravel with NARRATIVE_CHANCE probability gate
+- [x] Default state encounters: {} + save migration for encounters.seen ledger
+- [ ] encounterScene choice UI (prompt, choice cards, result panel, origin resume)
+- [ ] Zone exploration narrative roll hook
+- [ ] Travel map narrative roll hook
+- [ ] 8 lore-grounded encounters (5 zone + 3 travel)
+- [ ] Choice-level flagsReq support
+- [ ] Marker chain (nagaBargain → nagaElder)
+- [ ] Phase-wide verification sweep + browser UAT
 
 **Gate**: Encounter triggers → branch → consequence persists across save/load; no direct state mutation outside canonical APIs.
 
