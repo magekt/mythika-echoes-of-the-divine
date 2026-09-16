@@ -1,166 +1,143 @@
-# Mythika: Echoes of the Divine — Requirements
+# Mythika: Echoes of the Divine — Milestone 2 Requirements
 
-Status legend: `VALIDATED` (works today) · `ACTIVE` (in this milestone) · `DEFERRED` (later roadmap)
-
----
-
-## 1. Player Experience
-
-### REQ-001 — Trustworthy Progression (ACTIVE)
-The player must be able to trust that access, reward, equipment, and save outcomes are correct regardless of UI state.
-
-**Acceptance criteria**
-- Every locked feature refuses entry at the system/scene entry-point level, not only via disabled buttons.
-- No stale-session state leaks across scenes (gold, flags, perks, zone progress).
-- Equipment operations use one canonical rule set shared by all screens.
-- A battle cannot double-count stats from stale gear caches.
-
-**Evidence**: Browser test of each gate: attempt entry while locked → verified blocked; hydrate from stale save → verified cleared; equip invalid item → rejected.
-
-### REQ-002 — Reliable Save & Migration (ACTIVE)
-Saves load, hydrate, migrate, and persist without data loss or corruption.
-
-**Acceptance criteria**
-- `SaveSystem.hydrate()` rebuilds from defaults and then applies migrations deterministically.
-- Old saves migrate without losing player identity, party, or progress.
-- Malformed localStorage entries fail safe (defaults) instead of crashing.
-- Autosave and offline progress remain correct after hydration changes.
-
-**Evidence**: Hydration test with stale save (partial completion status); migration test with legacy save; malformed-entry test.
-
-### REQ-003 — Meaningful Mythological Encounters (ACTIVE)
-Travel and exploration surface mythology-driven narrative encounters whose choices matter.
-
-**Acceptance criteria**
-- Encounters appear during zone exploration and travel with lore-grounded characters (devas, asuras, rishis, yakshas, nagas — always respectful of Indian mythology).
-- Each encounter offers at least two choices with visibly different outcomes.
-- Choices resolve immediately (reward granted, scene updated) and leave persistent markers.
-
-**Evidence**: Encounter triggered in a zone; both branches grant distinct rewards; save/load preserves the choice marker.
-
-### REQ-004 — Persistent Consequences (ACTIVE)
-Encounter choices must echo forward into the world, not just grant one-shot loot.
-
-**Acceptance criteria**
-- Choices write durable flags/karma/world-state entries into `G.state`.
-- Future encounters (or quests/achievements) can read those markers and branch.
-- Consequences survive save/load and are visible to the player (text, badges, or effects).
-
-**Evidence**: Choose branch A in encounter 1 → encounter 2 (or quest/achievement) reacts; marker persists across reload.
-
-### REQ-005 — Connected Player Loop (ACTIVE)
-Existing systems (zones, journeys, quests, achievements, economy, farm, alchemy, forge) must feel connected, not isolated.
-
-**Acceptance criteria**
-- Encounter rewards feed existing systems through their canonical APIs (Economy, Progression, AchievementSystem, QuestSystem).
-- No new backdoor currency/stat mutation paths are introduced.
-- Travel → encounter → combat → Ashram progression loop is coherent.
-
-**Evidence**: Encounter grant flows through existing system functions; no direct `G.state` currency edits in new code.
+Status legend: `VALIDATED` (delivered previously) · `ACTIVE` (in this milestone) · `DEFERRED` (later roadmap)
 
 ---
 
-## 2. Reliability & Rules
+## 1. Living Map
 
-### REQ-006 — Authoritative Access Gates (ACTIVE)
-All feature entry points enforce ownership, capacity, cost, and progress rules authoritatively.
-
-**Scope (Phase 01 — in progress)**
-- Zone map/actions/entry (`ZoneAccess`) — implemented, uncommitted.
-- Save hydration + canonical `EquipmentSystem` — implemented, uncommitted.
-- Combat gear cache removal — implemented, uncommitted.
-
-**Scope (Phase 02 — pending)**
-- Journey start eligibility (`getAvailableJourneys` + `JourneySystem.start`).
-- Rebirth perk mutation-side validation (`punarjanma.js` / `perks.js`).
-- Persistent forge escalation authority (`forge.js` / `game.js`).
-- Recruit capacity & duplicate validation (party/recruit scenes).
-- Tournament fee/start authority (`tournament.js`, `duel.js`).
-- Trials entry authority (`trials.js`).
+### REQ-013 — Distinct Visual Regions (ACTIVE)
+The player can navigate a visual world map where every existing zone has a distinct, recognizable regional representation.
 
 **Acceptance criteria**
-- Each gated call site validates state, cost, and ownership before mutating.
-- Invalid attempts return `false`/`null` without side effects and surface a user message.
-- UI mirrors the authority (buttons disabled + reason text), but never replaces it.
+- The Travel Map presents existing zones as spatial regions or nodes rather than only as a vertical list.
+- Each region is visually distinguishable while preserving its canonical name, realm, lock state, and completion progress.
+- Selecting a region clearly reveals its status and available next action.
+- No new zones are introduced.
 
-**Evidence**: Per-gate browser test matrix; failed attempts leave state unchanged.
+**Evidence**: Mobile and desktop map walkthrough covering locked, available, active, and completed zones.
 
-### REQ-007 — Combat Integrity (ACTIVE)
-Combat math must be stable, free of double-counting, and legible in the UI.
+### REQ-014 — Discoverable Landmarks (ACTIVE)
+The player can discover and inspect points of interest attached to existing zones.
 
 **Acceptance criteria**
-- Stat sources resolve once: base + gear (canonical) + buffs + passives; no duplicate stacking.
-- Battlefield header does not overlap hero status strip at party sizes 3–5.
-- Intents, reactions, and turn flow remain functional after any UI reflow.
+- Landmarks are data-driven and reference canonical existing zone IDs.
+- Discovery conditions use existing progress, encounter flags, or world-state values.
+- Undiscovered, newly discovered, and discovered landmarks have clear map states.
+- A discovered landmark can be tapped to inspect its name, description, and relevance or available action.
+- Discovery persists across save/load without duplicating rewards or notices.
 
-**Evidence**: Combat smoke test party of 5; `?probe` frame checks; no overlap screenshot.
+**Evidence**: Trigger one landmark discovery, inspect it, reload, and verify its discovered state remains.
 
 ---
 
-## 3. UI/UX
+## 2. Persistent World State
 
-### REQ-008 — Legible Mobile Combat UI (ACTIVE)
-Combat must remain readable and tappable on mobile and desktop.
-
-**Acceptance criteria**
-- All actions ≥48px effective tap targets.
-- Enemy intent and party status not occluded at any party size.
-- Reduced motion respected for animations.
-
-**Evidence**: Overlap screenshot fixed; reduced-motion run.
-
-### REQ-009 — Clear Travel Map & Locked-State UX (ACTIVE)
-The Travel Map clearly communicates what a player can do, why zones are locked, and what to do next.
+### REQ-015 — Durable World-State Continuity (ACTIVE)
+The living world's mutable state is safe, deterministic, and persistent across sessions.
 
 **Acceptance criteria**
-- Locked zones show requirement text and disabled actions (implemented, uncommitted — verify and commit).
-- Selected-zone info panel works on mobile heights.
-- Route preview: next unlocked zone is obvious.
+- `G.state` has a canonical world-state shape covering regional state, influence/control, landmark discoveries, narrative echoes, and world events.
+- Save hydration rebuilds missing world-state fields from defaults and migrates legacy/partial state without losing player progress.
+- Malformed world-state entries fail safe instead of crashing the map.
+- Reloading restores the same observable map state and does not replay one-time transitions.
 
-**Evidence**: Mobile-height screenshot; locked-zone click shows reason; disabled actions non-interactive.
+**Evidence**: Default, legacy, partial, malformed, and round-trip save tests for world state.
 
-### REQ-010 — Cross-Screen Consistency (ACTIVE)
-Reachable screens must respect the same access/state rules the core systems enforce.
+### REQ-016 — Regional Influence & Control (ACTIVE)
+Canonical player actions can alter regional influence or control, and the player can see that impact.
 
 **Acceptance criteria**
-- Ashram, Journey, Party, Equipment, Forge, Bazaar, Trials, Tournament badges and buttons match authoritative state.
-- No navigation path reaches a locked feature.
+- Existing actions such as zone progress, encounters, journeys, or bosses feed influence through one authoritative world-state API.
+- Influence changes are bounded and deterministic; repeated rendering or scene entry cannot apply them again.
+- Regions visibly communicate current alignment/control and meaningful progress toward the next state.
+- The player can identify what changed and which action caused it.
 
-**Evidence**: Walk-through of all nav paths from Ashram; badge/action parity check.
+**Evidence**: Complete a qualifying action, observe one influence transition, reload, and verify the same control state remains.
+
+### REQ-017 — Environmental Narrative Echoes (ACTIVE)
+Persistent narrative choices visibly alter the map environment.
+
+**Acceptance criteria**
+- Existing encounter consequence flags map to lore-appropriate region markers, labels, descriptions, or effects.
+- At least two distinct encounter branches produce visibly different map outcomes.
+- The map explains the consequence without requiring the player to inspect raw flags.
+- Narrative echoes persist across save/load and respect reduced motion.
+
+**Evidence**: Compare two save states with opposing encounter choices and capture their distinct regional presentation.
 
 ---
 
-## 4. Cross-Device & Performance
+## 3. Dynamic World Activity
 
-### REQ-011 — Mobile-First Responsiveness (ACTIVE)
-The game must be comfortable on both small phones and desktop-scaled canvas.
-
-**Acceptance criteria**
-- No required tap target under 48px; no content clipped on 360×640.
-- Desktop 900×1600+ canvas scales without layout breakage.
-- Scrolling, tap queue, swipe inputs work after UI changes.
-
-**Evidence**: Screenshots at 360×640 and 900×1600; input smoke tests.
-
-### REQ-012 — Performance & Memory Stability (ACTIVE)
-No regressions in frame time, memory, or save cost from this milestone.
+### REQ-018 — Periodic World Events (ACTIVE)
+The player can see, inspect, and resolve periodic local world events on the map.
 
 **Acceptance criteria**
-- Scene leave paths clean up per-scene UI state (no binding leak regressions).
-- No unbounded array growth introduced by encounters.
-- `?probe` FPS and 30-min memory check pass.
+- Events appear only in eligible existing zones and expose clear active, expiring, resolved, and expired states.
+- Selecting an event shows its location, narrative context, remaining duration or expiry, and available action.
+- Event generation and expiry remain correct after app suspension, offline time, and save/load.
+- Resolving an event uses canonical gameplay/reward APIs and cannot grant completion twice.
+- Active/history records are bounded so events cannot grow save data indefinitely.
 
-**Evidence**: Probe run; 30-min session memory trace.
+**Evidence**: Generate, inspect, resolve, reload, and expire events using controlled timestamps; verify no duplicate reward.
 
 ---
 
-## 5. Deferred (Later Roadmap)
+## 4. Interaction & Performance
 
-- **DEF-001** Living-map landmarks and world-state visualization.
-- **DEF-002** Deep companion/relationship systems.
-- **DEF-003** Broad new zones, hero rosters, live-service backend.
-- **DEF-004** Framework/UI architecture replacement (Canvas preserved).
+### REQ-019 — Mobile-First Map Interaction (ACTIVE)
+Touch users can navigate and inspect the living map smoothly and without accidental activation.
+
+**Acceptance criteria**
+- Region, landmark, event, back, and primary-action targets meet the existing minimum touch-target convention.
+- Pan/scroll gestures do not accidentally trigger selections, and taps select the intended overlapping map object.
+- Selection details remain readable without obscuring essential map context on the 400×720 logical viewport.
+- Pointer/mouse navigation remains coherent on desktop.
+
+**Evidence**: Touch and mouse walkthrough of pan, select, inspect, close/back, and primary action flows.
+
+### REQ-020 — Smooth, Stable Map Rendering (ACTIVE)
+The living map remains responsive and memory-stable on representative mobile hardware.
+
+**Acceptance criteria**
+- Normal navigation, selection, influence changes, and event updates remain smooth under `?probe` on a representative mid-range mobile profile.
+- Map rendering avoids per-frame unbounded allocations and culls or simplifies offscreen/nonessential detail.
+- Repeated map enter/leave cycles do not retain buttons, effects, timers, or event listeners.
+- Reduced-motion mode removes nonessential motion while retaining readable state distinctions.
+
+**Evidence**: Probe run, repeated scene-cycle check, and reduced-motion walkthrough with no console errors or growing retained state.
 
 ---
 
-*Last updated: 2026-09-14 — derived from PROJECT.md and codebase research.*
+## 5. Validated from Milestone 1
+
+- REQ-001 through REQ-012 are validated by the completed Milestone 1 roadmap and remain regression constraints.
+- In particular, reliable hydration, authoritative access gates, persistent encounter consequences, connected canonical APIs, mobile readability, reduced motion, and performance stability must not regress.
+
+## 6. Deferred
+
+- New zones or realms.
+- Multiplayer or shared regional control.
+- Backend-driven live events or cross-device world-state synchronization.
+- Deep companion relationship systems.
+
+---
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| REQ-013 | Phase 7 | Pending |
+| REQ-014 | Phase 8 | Pending |
+| REQ-015 | Phase 6 | Pending |
+| REQ-016 | Phase 9 | Pending |
+| REQ-017 | Phase 10 | Pending |
+| REQ-018 | Phase 11 | Pending |
+| REQ-019 | Phase 7 | Pending |
+| REQ-020 | Phase 12 | Pending |
+
+**Coverage:** 8/8 active Milestone 2 requirements mapped exactly once.
+
+---
+*Defined for Milestone 2: Living Map & World State — 2026-09-15*

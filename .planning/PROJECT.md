@@ -4,67 +4,68 @@
 
 Mythika is a mobile-first cultivation RPG inspired by Indian mythology and lore. It combines idle progression with active tactical combat, party and build choices, exploration, farming, alchemy, and journeys through ascending realms.
 
-This milestone evolves the existing game from a collection of idle-RPG systems and screens into a coherent mythic adventure where travel, narrative encounters, tactical choices, rewards, and return-to-Ashram progression feel connected and trustworthy on desktop and mobile.
+Milestone 2 transforms the existing Travel Map from a zone list into a living world. Existing regions gain a visual geography, discoverable landmarks, persistent influence and control states, narrative consequences, and periodic world events—all within the current vanilla JavaScript, Canvas, localStorage, and PWA architecture.
 
 ## Core Value
 
-Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, and trusts that their progress and rewards persist correctly.
+Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
 
 ## Requirements
 
 ### Validated
 
-- ✓ Active turn-based combat with reactions, intent telegraphs, party actions, rewards, and results — existing
-- ✓ Cultivation, realm breakthroughs, farming, alchemy, party, equipment, journeys, zones, bosses, and rebirth systems — existing
-- ✓ Canvas-based mobile-first screen architecture with semantic visual tokens and reduced-motion support — existing
-- ✓ Save-backed local progression and PWA/service-worker delivery — existing
+- ✓ Active turn-based combat, cultivation, journeys, quests, achievements, economy, farming, alchemy, forge, party, equipment, and zone progression systems exist.
+- ✓ Authoritative access gates, safe save hydration, canonical equipment handling, and stable combat math were established in Milestone 1.
+- ✓ Mythology-driven narrative encounters already record persistent flags and consequences through save-backed local state.
+- ✓ Canvas-based mobile-first screen architecture, semantic visual tokens, reduced-motion support, and PWA delivery are established.
 
-### Active
+### Active — Milestone 2: Living Map & World State
 
-- [ ] Enforce progression and access rules at authoritative mutation and entry points rather than relying on presentation-only UI gates.
-- [ ] Make save hydration and equipment handling consistent, safe, and resistant to stale-session state leakage.
-- [ ] Add mythology-driven narrative encounters whose choices trade immediate rewards and lasting future consequences.
-- [ ] Improve Combat, Travel, and connected screen UX so key information, next actions, and outcomes remain legible on mobile and desktop.
-- [ ] Refactor touched gameplay and UI boundaries into clear reusable systems without changing intended game balance.
-- [ ] Reuse existing heroes, beasts, journeys, Siddhis, equipment, farming, alchemy, and zone systems in a more connected player loop.
+- [ ] Replace the zone-list Travel Map with a visual map whose existing regions are geographically distinct and retain clear progression/lock information.
+- [ ] Add discoverable, inspectable landmarks tied to existing zones and progression without introducing new zones.
+- [ ] Establish a durable local world-state model that safely hydrates and migrates across old and current saves.
+- [ ] Let canonical player actions alter regional influence and control, with the result visible on the map.
+- [ ] Reflect persistent narrative encounter choices through environmental map markers, labels, or effects.
+- [ ] Surface periodic world events on the map with clear location, status, duration, and resolution.
+- [ ] Keep touch navigation, selection, and inspection intuitive on mobile while remaining usable on desktop.
+- [ ] Keep the living map smooth and memory-stable on mid-range phones, including reduced-motion behavior.
 
 ### Out of Scope
 
-- Living-map landmarks and world-state visualization beyond the existing Travel Map — deferred to a later roadmap phase after narrative encounters are established.
-- Deep character-relationship or companion-bond systems — deferred until encounter consequences have a stable persistence model.
-- Broad new zones, hero rosters, or live-service backend features — this milestone prioritizes coherence and reliability of existing systems.
-- Replacing the Canvas architecture with a framework UI — preserve the existing vanilla JavaScript Canvas implementation.
+- New zones, realms, or a broad expansion of the world geography.
+- Backend synchronization, multiplayer control, live-service scheduling, or server-authoritative events.
+- Replacing the immediate-mode Canvas architecture or introducing a frontend framework.
+- A broad rewrite of combat, cultivation, economy, or encounter systems beyond the integration points needed to affect world state.
+- Deep companion-relationship systems or unrelated content expansion.
 
 ## Context
 
 - Existing codebase: vanilla ES6, HTML5 Canvas 2D, Web Audio API, localStorage, PWA; `index.html` loads scripts in dependency order.
-- Existing documentation: root `codemap.md`, folder codemaps, and `.slim/deepwork/access-gates-combat-ui.md`.
-- Completed recent work includes active combat reactions, cultivation level locks, automatic farming, zone-clear rewards, and several screen UI passes.
-- Current uncommitted hardening work covers full-state save hydration, canonical equipment handling, authoritative zone access, and Travel Map locked-state UX; it requires UAT before commit.
-- The user wants a cultivation game grounded in Indian mythology that is not merely idle: tactical battles, meaningful journeys, build crafting, and world mastery all matter.
+- The current `travelMap` scene is a scrollable grouped zone list with authoritative `ZoneAccess` integration.
+- Existing encounter flags and consequence markers provide the foundation for environmental storytelling.
+- Existing zone progress, journey, encounter, quest, achievement, and economy APIs should remain the canonical sources of player actions and rewards.
+- Root and folder `codemap.md` files document scene, system, data, UI, and engine boundaries.
 
 ## Constraints
 
-- **Architecture**: Preserve vanilla JS and immediate-mode Canvas — existing scenes/systems use global game state and script-order dependencies.
-- **Gameplay**: Preserve intended current balance and successful existing mechanics unless an approved requirement changes them.
-- **Cross-device UX**: Maintain readable mobile touch targets and coherent desktop-scaled Canvas presentation.
-- **Reliability**: Access, reward, equipment, and save rules must be authoritative in systems/entry points, not only visually implied by UI.
-- **Cultural direction**: Use Indian mythology and lore respectfully as the world and narrative foundation.
+- **Architecture**: Preserve vanilla JavaScript, global namespace conventions, script-order dependencies, and immediate-mode Canvas rendering.
+- **Content**: Use existing zones and add landmarks within them; do not create new zones.
+- **Persistence**: All world state remains local and save-compatible; malformed or legacy state must fail safe.
+- **Interaction**: Design for touch first, with readable targets and coherent desktop behavior.
+- **Performance**: The map must render smoothly on mid-range phones without unbounded effects, event records, or scene-local leaks.
+- **Accessibility**: Respect `R.reducedMotion()` and existing semantic color/radius conventions.
+- **Cultural direction**: Environmental details and event language must treat Indian mythology respectfully.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| First new world-immersion focus is narrative encounters | It is the smallest connected way to make travel and choices feel meaningful now | — Pending |
-| Encounter choices affect immediate rewards and future consequences | Combines short-term agency with lasting story/world impact | — Pending |
-| Technical reliability is a milestone must-have | Players must trust gate, equipment, save, and reward outcomes before new content expands them | — Pending |
-| Preserve Canvas and modularize touched boundaries | Reduces regression risk while enabling future feature reuse | — Pending |
-
-## Evolution
-
-This document evolves at phase transitions and milestone boundaries.
-
-After each phase transition: revisit validated, active, and out-of-scope requirements; record new decisions; and ensure this description remains accurate. After the milestone: reassess core value, deferred world features, and the game’s integrated player loop.
+| Build on existing zones rather than adding geography | The milestone is about making the known world feel alive, not expanding scope | Existing zone IDs remain canonical |
+| Establish persistent world state before visual reactions | Influence, landmarks, narrative echoes, and events need one safe source of truth | World-state continuity is the first delivery boundary |
+| Treat the map as a vertical feature, not separate model/API/UI layers | Each phase should produce an observable player capability | Phases progress through complete map behaviors |
+| Derive environmental storytelling from existing encounter flags | Reuses Milestone 1 consequences and avoids parallel narrative state | Encounter markers become map inputs |
+| Run world events locally | Meets offline/PWA constraints and avoids backend scope | Event lifecycle uses deterministic local timestamps/state |
+| Preserve authoritative gameplay APIs | Map actions must not create backdoor reward or progression mutations | Existing systems remain mutation owners |
 
 ---
-*Last updated: 2026-09-14 after project initialization*
+*Updated for Milestone 2: Living Map & World State — 2026-09-15*

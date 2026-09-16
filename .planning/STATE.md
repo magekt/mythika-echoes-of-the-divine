@@ -1,97 +1,102 @@
-# Mythika: Echoes of the Divine — Milestone State
+# Project State
 
-Last updated: 2026-09-15
+## Project Reference
 
-## Milestone
-Refine the existing cultivation RPG into a reliable, modular game with mythology-driven narrative encounters and polished cross-device UX. Preserve Canvas architecture, existing systems, and save compatibility.
+See: `.planning/PROJECT.md` (updated 2026-09-15)
 
-## Global Decisions
-- **YOLO mode** (auto-approve planning/phase progression where possible).
-- **Fine granularity** (tightly bounded phases).
-- **Sequential execution** (one plan at a time).
-- **Research-before-planning required** (codebase, patterns, class reuse, lore sensitivity, technical risk, debugging loops).
-- **Plan check required** (goal-achievement verification before execution).
-- **Post-phase verifier required** (requirements evidence after each phase).
-- **Smart model profile** (separate models for research/planning vs execution/verification).
-- **All planning docs committed to git** (version-tracked).
+**Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
+**Current focus:** Phase 6 — World-State Continuity
 
-## Phases
+## Current Position
 
-### Phase 01 — Save Hydration & Equipment Authority
-- **Status**: COMPLETE ✅
-- **Goal**: Authoritative save hydration; canonical equipment; safe zone access.
-- **Gate**: UAT 4/4 passed via browser-use automated verification.
-- **Commit**: `f0f150d feat(01): save hydration, equipment authority, zone access, travel map UI`
+Phase: 6 of 12 (Milestone 2 phase 1 of 7 — World-State Continuity)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-09-15 — Milestone 2 requirements and roadmap created
 
-### Phase 02 — Access-Gate Enforcement
-- **Status**: COMPLETE ✅
-- **Goal**: Journey, rebirth, forge, recruit, tournament, trials authority gates.
-- **Plans:** 2 plans in 1 wave, executed sequentially
-  - ✅ 02-01: JourneyAccess + RebirthAccess + ForgeAccess (`71757ef`, `352d1bd`, `0feb2ea`)
-  - ✅ 02-02: RecruitAccess + TournamentAccess + TrialsAccess + browser UAT (`8b6c182`, `20bad46`)
-- **Gate**: 6-gate browser UAT via browser-use CDP — all 6 gates verified programmatically (status/enter return correct values; blocked attempts show Notify, no state change; scene navigation zero errors)
-- **Commits**: `71757ef` `352d1bd` `0feb2ea` `8b6c182` `20bad46`
-- **Deviations (Rule 1)**: RecruitAccess.costs corrected to actual game values [800/2500/6000/14000] (plan used outdated [200/600/2000/14000]); TournamentAccess fee made dynamic (50+wins*25) rather than plan's hardcoded 50
-- **Last Activity**: 2026-09-14 — all gates implemented and verified
+Progress: [░░░░░░░░░░] 0%
 
-### Phase 03 — Mythological Narrative Encounters
-- **Status**: COMPLETE ✅
-- **Goal**: Zone/travel encounter triggers, choice system, persistent consequences.
-- **Plans:** 3 plans in 3 waves, executed sequentially
-  - ✅ 03-01: Encounter core system (`5cbba94`, `05ff895`, `c2edf0c`)
-  - ✅ 03-02: Encounter scene UI + triggers (`603bdc4`)
-  - ✅ 03-03: 8 lore encounters + marker chains (`603bdc4`)
-- **Gate**: 8 encounters with marker chains, karma gates, flagsReq, canonical reward routing.
-- **Commits**: `603bdc4 feat(03): encounter UI, triggers, 8 lore encounters with marker chains`
+## Performance Metrics
 
-### Phase 04 — Combat UI Reflow
-- **Status**: COMPLETE ✅
-- **Goal**: Fix hero status/selected-enemy header overlap for party 4–5.
-- **Gate**: Compact header (52px), vertical stacking, code-verified layout.
-- **Commit**: `a985acd feat(04-01): reflow combat layout`
+**Velocity:**
+- Milestone 2 plans completed: 0
+- Average duration: -
+- Total execution time: 0 hours
 
-### Phase 05 — Connected Systems Polish
-- **Status**: COMPLETE ✅
-- **Goal**: Cross-system loop coherence; performance/memory safety.
-- **Plans:** 3 plans in 2 waves
-  - ✅ 05-01: Cross-system hooks — QuestSystem.trackEncounter + achievement (`8fc1d56`, `74be246`, `fc05ca0`)
-  - ✅ 05-02: Loop coherence — Continue button + journey routing (`59fed48`)
-  - ✅ 05-03: Performance audit — all 4 checks pass
-- **Gate**: Canonical reward routing; scene cleanup verified; unbounded arrays none.
-- **Commits**: `8fc1d56` `74be246` `fc05ca0` `59fed48`
-- **Requirements**: REQ-005, REQ-004, REQ-012
+**By Phase:**
 
-## Milestone Complete ✅
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| 6. World-State Continuity | 0/TBD | - | - |
+| 7. Visual Region Map | 0/TBD | - | - |
+| 8. Landmark Discovery | 0/TBD | - | - |
+| 9. Regional Influence & Control | 0/TBD | - | - |
+| 10. Environmental Narrative Echoes | 0/TBD | - | - |
+| 11. Dynamic World Events | 0/TBD | - | - |
+| 12. Living Map Performance & Stability | 0/TBD | - | - |
 
-All 5 phases executed. Milestone goal achieved:
-1. **Phase 01** — Save hydration & equipment authority
-2. **Phase 02** — Access-gate enforcement (6 gates)
-3. **Phase 03** — Mythological narrative encounters (8 encounters)
-4. **Phase 04** — Combat UI reflow (layout stacking)
-5. **Phase 05** — Connected systems polish (quest hooks, performance)
+**Recent Trend:**
+- Last 5 plans: -
+- Trend: Not enough Milestone 2 data
 
-## Deliverables
+*Updated after each plan completion.*
 
-| File | Commit | Status |
-|------|--------|--------|
-| `.planning/PROJECT.md` | `d06975b` | committed |
-| `.planning/config.json` | `5a88997` | committed |
-| `.planning/REQUIREMENTS.md` | `e4ea4aa` | committed |
-| `.planning/ROADMAP.md` | `e4ea4aa` | committed |
-| `.planning/STATE.md` | — | this file |
-| Phase 01 source changes | `f0f150d` | committed |
-| Phase 01 UAT | `f0f150d` | complete (4/4 pass) |
-| Phase 02 source changes | `71757ef` `352d1bd` `0feb2ea` `8b6c182` `20bad46` | committed (5 atomic commits) |
-| Phase 02 UAT | browser-use CDP | complete (6/6 gates pass) |
+## Accumulated Context
 
-## Open Questions / Risks
+### Decisions
 
-1. Combat UI overlap fix deferred to Phase 04 — no merge conflicts now that Phase 01 is committed.
-2. Encounter system must route through existing canonical APIs to avoid new stat-gold mutation paths.
+Decisions are logged in `.planning/PROJECT.md` Key Decisions.
+Recent decisions affecting current work:
 
-## Next Steps
+- [Milestone 2]: Continue phase numbering after completed Milestone 1; work begins at Phase 6.
+- [Phase 6]: Establish one canonical local world-state shape before map features consume it.
+- [Phase 7]: Replace the zone list with a visual map while retaining authoritative `ZoneAccess` rules and existing zone IDs.
+- [Phase 8]: Landmarks attach to existing zones and are revealed by existing progress/flags/world state; no new zones.
+- [Phase 9]: Influence changes enter through one authoritative API and canonical gameplay hooks, never render-time mutation.
+- [Phase 10]: Environmental storytelling derives from existing encounter consequence flags.
+- [Phase 11]: World events use deterministic local timestamps and bounded state; no backend.
+- [Phase 12]: Mobile probe, scene cleanup, save growth, and reduced motion are explicit milestone gates.
 
-1. Milestone complete — all phases executed and committed.
-2. Optional: Run cross-AI review (/gsd-review) or begin a new milestone via /gsd-new-milestone.
+### Project Skill Constraints
 
----
+- Project-local skill indexes were reviewed; available Firebase and Xcode skills do not apply to this offline Canvas/localStorage milestone.
+- Preserve immediate-mode Canvas, global namespace, scene lifecycle, semantic renderer tokens, radius scale, touch conventions, and `R.reducedMotion()` checks documented by the repository.
+- Before phase implementation, read the relevant folder `codemap.md` and load only applicable skill rules.
+
+### Pending Todos
+
+None yet.
+
+### Blockers/Concerns
+
+- The current Travel Map is a scrollable zone list; visual-map interaction must preserve locked-state explanations and authoritative entry behavior.
+- World-state migration must tolerate saves that predate every Milestone 2 field.
+- Local timestamp handling for events must be deterministic across suspension/offline time and guarded against duplicate resolution.
+- Immediate-mode rendering can create allocation pressure if decorative geometry, labels, or effects are rebuilt inefficiently each frame.
+- Overlapping touch targets for regions, landmarks, and events need explicit hit-order and drag-vs-tap behavior.
+
+## Deferred Items
+
+| Category | Item | Status | Deferred At |
+|----------|------|--------|-------------|
+| World expansion | New zones and realms | Deferred | Milestone 2 definition |
+| Online systems | Backend sync, multiplayer control, live-service scheduling | Deferred | Milestone 2 definition |
+| Narrative | Deep companion-relationship systems | Deferred | Milestone 2 definition |
+
+## Previous Milestone
+
+Milestone 1 completed Phases 1–5 on 2026-09-15:
+- Save Hydration & Equipment Authority
+- Access-Gate Enforcement
+- Mythological Narrative Encounters
+- Combat UI Reflow
+- Connected Systems Polish
+
+Milestone 1 completion state remains available in git history (`d339303`).
+
+## Session Continuity
+
+Last session: 2026-09-15
+Stopped at: Milestone 2 roadmap created with 8/8 active requirements mapped across Phases 6–12
+Resume file: `.planning/ROADMAP.md`
+Next command: `/gsd-plan-phase 6`
