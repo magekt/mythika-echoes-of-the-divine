@@ -121,8 +121,8 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 6. World-State Continuity | 1/2 | In Progress | - |
-| 7. Visual Region Map | 0/TBD | Not started | - |
+| 6. World-State Continuity | 2/2 | Complete | 2026-09-16 |
+| 7. Visual Region Map | 1/2 | In Progress | - |
 | 8. Landmark Discovery | 0/TBD | Not started | - |
 | 9. Regional Influence & Control | 0/TBD | Not started | - |
 | 10. Environmental Narrative Echoes | 0/TBD | Not started | - |
