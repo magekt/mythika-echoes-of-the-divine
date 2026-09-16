@@ -159,3 +159,7 @@ function getZoneBoss(zoneId) {
   e.gold *= 5;
   return e;
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { ZONES, ZoneAccess, getZoneTier, getZoneEnemy, getZoneBoss };
+}

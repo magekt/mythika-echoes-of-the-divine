@@ -221,3 +221,7 @@ WorldState.recordTransition = function(transitionId, metadata) {
   world.transitions[transitionId] = record;
   return true;
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { WorldState };
+}
