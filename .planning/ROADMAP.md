@@ -27,7 +27,12 @@ Milestone 2 turns the existing Travel Map into a persistent, touch-first world s
   2. Regional state, discovered landmarks, influence/control, narrative echoes, and event state survive save/load round trips.
   3. Partial or malformed world-state data falls back safely without crashing or making the Travel Map inaccessible.
   4. Reloading does not replay one-time discoveries, transitions, or resolved-event outcomes.
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Define and test the canonical defensive world-state contract.
+- [ ] 06-02-PLAN.md — Integrate legacy-safe save migration and prove round-trip continuity.
+
 **UI hint**: yes
 
 ### Phase 7: Visual Region Map
