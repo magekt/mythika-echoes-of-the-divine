@@ -1,3 +1,18 @@
+const TrialsAccess = {
+  status: function() {
+    const hasBoss = !!(G.state.flags && G.state.flags.boss_svarga);
+    const hasPlayer = !!G.state.player;
+    if (!hasPlayer) return { allowed: false, reason: 'No hero available' };
+    if (!hasBoss) return { allowed: false, reason: 'Defeat the Svarga boss to unlock Trials' };
+    return { allowed: true, reason: '' };
+  },
+  enter: function() {
+    const s = this.status();
+    if (!s.allowed) return s;
+    return { ...s, allowed: true };
+  }
+};
+
 const trialsScene = Scene.create({
   name: 'trials',
   data: {
@@ -51,14 +66,15 @@ const trialsScene = Scene.create({
     this.data.buttons = [];
     this.data.staticDraws = [];
     this.data.scrollY = 0;
-    const canStart = !!G.state.player;
+    const trialsStatus = TrialsAccess.status();
+    const canStart = trialsStatus.allowed;
     // The shell is drawn during render(), after a Canvas context exists.
     const beginShell = UI.PremiumShell(60, 120, G.W - 120, 44, { outerR: 8 });
     this.data.staticDraws.push(beginShell);
     let y = 168; // after premium shell
 
     const btn = UI.BtnGold(60, y, G.W - 120, 44, 'Begin Trial \u2014 Wave 1');
-    btn.enabled = canStart && !!G.state.flags && G.state.flags.boss_svarga;
+    btn.enabled = canStart;
     btn.onClick = function() { trialsScene.startRun(); };
     this.data.buttons.push(btn);
     const back = UI.BtnGold(60, G.H - 68, G.W - 120, 44, 'Back to Ashram');
@@ -67,6 +83,11 @@ const trialsScene = Scene.create({
   },
 
   startRun: function() {
+    const gate = TrialsAccess.enter();
+    if (!gate.allowed) {
+      Notify.show(gate.reason, 2, R.colors.red);
+      return;
+    }
     const hero = G.state.player;
     if (!hero) return;
     this.data.state = 'fighting';

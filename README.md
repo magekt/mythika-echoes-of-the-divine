@@ -1,122 +1,164 @@
+<!-- generated-by: gsd-doc-writer -->
 # Mythika: Echoes of the Divine
 
-**Mythika** is a mobile-first idle/cultivation RPG rooted in Indian mythology. Cultivate your atman toward Moksha through combat, alchemy, farming, fishing, and spiritual journeys.
-
----
+**Mythika** is a mobile-first, offline-capable idle/cultivation RPG inspired by Indian mythology, built for players progressing their atman toward Moksha through combat, exploration, crafting, and spiritual choices.
 
 ## Game Overview
 
-Mythika: Echoes of the Divine is an idle/cultivation RPG where players progress their atman toward Moksha — the ultimate liberation. Set against the rich backdrop of Indian mythology, the game features:
+Build a party of heroes, explore mythic regions, fight turn-based battles, cultivate spiritual power, and make persistent choices in narrative encounters. The game runs directly in the browser, scales from phones to desktop screens, and can be installed as a portrait-oriented progressive web app.
 
-- **32+ Scenes** with a full UI overhaul
-- Turn-based combat system
-- Cultivation realm progression
-- Alchemy crafting system
-- Spirit beast companions
-- Farming and fishing mechanics
-- Tournament PvP
-- Achievement system
-- Cloud save via Firebase (optional)
+### Highlights
 
-The game is designed to be **mobile-first** but works perfectly on desktop, with a progressive web app (PWA) experience and service worker for offline play.
-
----
+- Turn-based party combat with ailments, combos, equipment, and progression
+- Cultivation realms, breakthroughs, rebirth, and offline advancement
+- Farming, fishing, alchemy, forge upgrades, quests, and achievements
+- Spirit beast companions, recruitable heroes, trials, and tournament duels
+- Eight mythology-driven zone and travel encounters with visible consequences
+- Persistent encounter markers, karma requirements, and choice-dependent follow-ups
+- Authoritative access checks for journeys, rebirth, forging, recruitment, tournaments, and trials
+- Optional Firebase Authentication and Firestore cloud saves
+- Local `localStorage` saves and service-worker-backed offline play
+- Responsive combat layout for full parties and reduced-motion support
 
 ## Tech Stack
 
-- **Vanilla JS (ES6+)** — No frameworks, no build step required
-- **HTML5 Canvas 2D** — Renderer for all graphics
-- **Web Audio API** — Sound and music
-- **PWA** — Service worker for offline play
-- **Firebase** — Optional auth and cross-device saves
+- **Vanilla JavaScript (ES6+)** — direct script loading with no framework or compilation step
+- **HTML5 Canvas 2D** — immediate-mode rendering for scenes, combat, effects, and reusable UI
+- **Web Audio API** — procedural sound effects and music
+- **Web Storage API** — local saves and offline progress
+- **Progressive Web App** — manifest and service worker for installation and offline use
+- **Firebase (optional)** — authentication and Firestore-backed cross-device saves
 
-> **No build step required** — Simply open `index.html` or use `npx serve` to play locally.
+## Installation
 
----
-
-## Features
-
-| Category | Details |
-|----------|---------|
-| **Scenes** | 32+ unique scenes with full UI overhaul |
-| **Combat** | Turn-based combat system |
-| **Progression** | Cultivation realm progression |
-| **Crafting** | Alchemy crafting system |
-| **Companions** | Spirit beast companions |
-| **Gameplay** | Farming and fishing mechanics |
-| **PvP** | Tournament PvP |
-| **Achievements** | Comprehensive achievement system |
-| **Cloud Save** | Firebase optional cloud saves |
-| **Cross-System Interdependence** | Equipment boosts cultivation, spirit beasts aid cultivation, quests unlock forge bonuses, tournament earns veteran badges, fish/explore/forge track quest progress |
-| **Hybrid Alchemy** | Fish-herb hybrid recipes for advanced crafting |
-| **Extended Quests** | Collect, explore, fish, and forge quest types alongside combat quests |
-| **Extended Equipment Pool** | Zone-specific weapons, armor, and accessories with rarity tiers |
-
----
-
-## Cross-System Hooks
-
-1. **Equipment → Cultivation**: Equipped accessory magic stat boosts `CultivationSystem.getCultivationPerSecond()` and `getPranaPerSecond()`.
-2. **Spirit Beast → Cultivation**: Active spirit beast level adds small cultivation/prana per second bonus.
-3. **Quest → Forge**: Completing the `ary_forge1` quest unlocks a -10% upgrade cost bonus at the Forge.
-4. **Tournament → Zone**: Tournament wins (`tournamentWins >= 3`) award a veteran badge visible on the Travel Map.
-5. **Fish → Quest**: Successful fishing catches call `QuestSystem.trackFish()` to advance fish-type quest objectives.
-6. **Zone → Quest**: Exploration progress calls `QuestSystem.trackExplore()` to advance explore-type quests.
-7. **Forge → Quest**: Equipment upgrades call `QuestSystem.trackForge()` to advance forge-type quests.
-8. **Alchemy → Farm**: Fish-herb hybrid recipes in `ALCHEMY_RECIPES` bridge the farming and crafting systems.
-9. **Consumables → Combat**: Herb Poultice (`cleanse: true`) clears all hero ailments/debuffs in combat.
-10. **Characters → Equipment**: Hero `classId` and `skillTypes` displayed in Equipment Stats tab.
-
----
-
-## Development
-
-### Local Development
+There are no package dependencies to install and no build step. Clone the repository and serve its root directory with any static HTTP server:
 
 ```bash
-# Start local dev server
+git clone https://github.com/magekt/mythika-echoes-of-the-divine.git
+cd mythika-echoes-of-the-divine
 python3 -m http.server 3000
-
-# Run boot verification (3 profiles)
-python3 tools/verify_matrix.py --budget 6000
-
-# Syntax check individual files
-node --check src/engine/<file>.js
 ```
 
-### Design References
-
-- **Visual Design System**: `.slim/deepwork/DESIGN-SYSTEM.md`
-- **Verification Workflow**: `.slim/deepwork/verification-playbook.md`
-
----
-
-## Firebase Setup (Optional)
-
-1. Create a Firebase project
-2. Enable Email/Password auth
-3. Create Firestore database
-4. Copy config to `src/engine/firebase-config.js`
-5. Set security rules for `game_saves/{userId}`
-
-For GitHub Pages, keep the config file out of git. Add these repository Actions
-secrets so the workflow generates it before verification and deployment:
-`FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`,
-`FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, and `FIREBASE_APP_ID`.
-`FIREBASE_MEASUREMENT_ID` is optional. The workflow fails before publishing if
-one of the required values is missing.
-
----
-
-## License
-
-Check if `LICENSE` exists in the repo root. If not, add a license note appropriate for the project.
-
----
+Google Chrome or another modern browser with Canvas 2D, Web Audio, service-worker, and ES6 support is recommended. Opening `index.html` directly also works, but service-worker registration is skipped for `file://` URLs.
 
 ## Quick Start
 
-1. Open `index.html` in your browser
-2. Or start a local server: `python3 -m http.server 3000`
-3. Navigate to `http://localhost:3000`
-4. Begin your cultivation journey toward Moksha!
+1. Start the local server:
+
+   ```bash
+   python3 -m http.server 3000
+   ```
+
+2. Open `http://localhost:3000` in a browser.
+3. Choose **Continue offline** to play without Firebase, then create a character and enter the ashram.
+
+## Gameplay
+
+### Explore and fight
+
+Use the Travel Map to enter an unlocked zone. Zone exploration alternates between combat and eligible narrative encounters. Combat rewards flow into the same progression, economy, quest, and achievement systems used throughout the game.
+
+### Cultivate and craft
+
+Return to the ashram to cultivate, attempt breakthroughs, manage the party, brew alchemy recipes, tend the farm, fish, or improve equipment at the forge. Equipment and the active spirit beast contribute to cultivation and prana gains.
+
+### Make persistent choices
+
+Narrative encounters can appear during zone exploration or travel. Each choice previews its consequences and may award experience, gold, karma, prana, cultivation, or permanent stat changes. Choices are recorded in the save state, can unlock later encounter branches, and advance encounter quests and achievements.
+
+## Major Systems
+
+| Area | Implementation | Responsibility |
+|---|---|---|
+| Engine | `src/engine/` | Game loop, global state, renderer, input, audio, scene management, authentication |
+| Data | `src/data/` | Heroes, enemies, zones, items, quests, achievements, journeys, and encounters |
+| Systems | `src/systems/` | Combat, progression, cultivation, saves, economy, crafting, quests, journeys, and encounter resolution |
+| Scenes | `src/scenes/` | Self-contained Canvas screens with enter, update, render, and leave lifecycles |
+| UI | `src/ui/` | Reusable buttons, panels, cards, lists, text, progress bars, tabs, and modals |
+
+The browser loads source files in dependency order from `index.html`. `src/main.js` registers available scenes defensively and starts the game through an idempotent boot sequence. Shared singletons such as `G`, `R`, `UI`, `Combat`, `Progression`, and `SaveSystem` coordinate state and behavior.
+
+For a detailed repository map, see [`codemap.md`](codemap.md).
+
+## Cross-System Integration
+
+- Equipped accessory magic and active spirit beast levels improve cultivation and prana generation.
+- Quest completion can reduce forge upgrade costs.
+- Fishing, exploration, forging, and narrative choices advance their corresponding quest objectives.
+- Tournament victories add a veteran badge to the Travel Map.
+- Fish-and-herb recipes connect gathering with alchemy.
+- Consumables can heal heroes or cleanse combat ailments.
+- Encounter rewards use the canonical economy, progression, cultivation, quest, and achievement APIs.
+- Encounter scenes release buttons and cached drawing state when left, avoiding retained UI growth.
+
+## Development
+
+Run the game from a local server while editing files; changes are consumed directly by the browser.
+
+```bash
+python3 -m http.server 3000
+```
+
+Verify boot behavior across desktop, phone, and phone-landscape profiles:
+
+```bash
+python3 tools/verify_matrix.py --budget 6000
+```
+
+The verification harness requires a local Chrome, Chromium, or Microsoft Edge executable. Set `MYTHIKA_CHROME` to select a specific browser binary.
+
+Check a changed JavaScript file for syntax errors:
+
+```bash
+node --check src/engine/game.js
+```
+
+Useful runtime diagnostics:
+
+- Add `?probe` to the local URL for FPS logging.
+- Add `?probe&selftest` to run the input-chain self-test.
+- Enable the operating system's reduced-motion setting, or set `G.state.reduceMotion = true` in the browser console, to test reduced-motion behavior.
+
+## Firebase Setup (Optional)
+
+Offline play does not require Firebase. To enable account-based cloud saves:
+
+1. Create a Firebase project.
+2. Enable the desired Authentication providers; the game includes email/password, Google, and phone-auth flows.
+3. Create a Firestore database and secure the `game_saves/{userId}` documents so users can access only their own save.
+4. Copy `src/engine/firebase-config.template.js` to `src/engine/firebase-config.js`.
+5. Replace every placeholder in `window.FIREBASE_CONFIG` with the web-app configuration from the Firebase project.
+
+`src/engine/firebase-config.js` is ignored by Git and must not be committed. For GitHub Pages deployment, the workflow generates it from these repository secrets:
+
+- `FIREBASE_API_KEY`
+- `FIREBASE_AUTH_DOMAIN`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_STORAGE_BUCKET`
+- `FIREBASE_MESSAGING_SENDER_ID`
+- `FIREBASE_APP_ID`
+- `FIREBASE_MEASUREMENT_ID` (optional)
+
+The GitHub Pages workflow verifies the game on desktop, phone, and landscape profiles before publishing the static repository root.
+
+## Project Structure
+
+```text
+.
+├── index.html              # Browser entry point and dependency loading order
+├── manifest.json           # Installable PWA metadata
+├── sw.js                   # Offline asset caching
+├── styles/game.css         # Canvas container and responsive presentation
+├── src/
+│   ├── main.js             # Boot sequence and scene registration
+│   ├── engine/             # Runtime, rendering, input, audio, auth, and scene helpers
+│   ├── data/               # Static gameplay definitions
+│   ├── systems/            # Stateful game rules and progression systems
+│   ├── scenes/             # Canvas screen implementations
+│   └── ui/                 # Reusable immediate-mode UI components
+└── tools/                  # Boot verification and diagnostic utilities
+```
+
+## License
+
+No license file or package license declaration is currently present in the repository.

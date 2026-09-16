@@ -1,5 +1,24 @@
 const JourneySystem = {};
 
+const JourneyAccess = {
+  status: function(journeyId) {
+    const j = JOURNEYS[journeyId];
+    if (!j) return { allowed: false, reason: 'Unknown journey' };
+    const p = JourneySystem.getProgress(journeyId);
+    if (p.completed) return { allowed: false, reason: 'Journey already completed' };
+    if (G.state.journeys && G.state.journeys.active && G.state.journeys.active !== journeyId) {
+      return { allowed: false, reason: 'Another journey is active — complete it first' };
+    }
+    if (!j.nodes || !j.nodes[0]) return { allowed: false, reason: 'Journey has no content' };
+    return { allowed: true, reason: '', journey: j };
+  },
+  enter: function(journeyId) {
+    const s = this.status(journeyId);
+    if (!s.allowed) return s;
+    return { ...s, allowed: true };
+  }
+};
+
 JourneySystem.init = function() {
   if (!G.state.journeys) G.state.journeys = { active: null, progress: {} };
   if (!G.state.journeys.progress) G.state.journeys.progress = {};
@@ -19,17 +38,18 @@ JourneySystem.getAvailable = function() {
   const state = G.state;
   const all = typeof getAvailableJourneys === 'function' ? getAvailableJourneys(state) : Object.values(JOURNEYS);
   return all.map(j => {
-    const p = this.getProgress(j.id);
-    return { ...j, progress: p, status: p.completed ? 'completed' : (p.nodeId ? 'in_progress' : 'available') };
+    const p = JourneySystem.getProgress(j.id);
+    const access = JourneyAccess.status(j.id);
+    return { ...j, progress: p, status: p.completed ? 'completed' : (p.nodeId ? 'in_progress' : 'available'), access };
   });
 };
 
 JourneySystem.start = function(journeyId) {
   this.init();
+  const gate = JourneyAccess.enter(journeyId);
+  if (!gate.allowed) return false;
   const j = JOURNEYS[journeyId];
-  if (!j || !j.nodes || !j.nodes[0]) return false;
   const p = this.getProgress(journeyId);
-  if (p.completed) return false;
   if (!p.nodeId) {
     p.nodeId = j.nodes[0].id;
     G.state.journeys.progress[journeyId] = p;

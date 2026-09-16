@@ -21,17 +21,17 @@
 | `title.js` | Entry point, animated logo, continue/new/settings | Audio (title music), SaveSystem |
 | `welcome.js` | First-run onboarding, class selection | Progression (class), SaveSystem |
 | `characterCreate.js` | Name + stat allocation (10 points) | Progression, HEROES data |
-| `ashram.js` | Home base — navigation hub, stats, upgrades | CultivationSystem, Economy, JourneySystem, FluidNav |
-| `travelMap.js` | Zone selection, progress overview; Veteran badge when `tournamentWins >= 3` | ZONES data, zoneProgress |
-| `zoneExploration.js` | Zone gameplay — explore, rest, fish, encounters | Combat (encounters), Economy, Fishing |
+| `ashram.js` | Home base — navigation hub, stats, upgrades | CultivationSystem, Economy, JourneySystem, ZoneAccess, FluidNav |
+| `travelMap.js` | Zone selection, progress overview; Veteran badge when `tournamentWins >= 3` | ZONES data, ZoneAccess, zoneProgress |
+| `zoneExploration.js` | Zone gameplay — explore, rest, fish, encounters | ZoneAccess, Combat (encounters), Economy, Fishing |
 | `cultivationScene.js` | Realm progression, meditation, breakthrough | CultivationSystem, PremiumShell, HeroMoment |
 
 ### Combat & Party
 | Scene | Purpose | Key Systems |
 |-------|---------|-------------|
 | `combatScene.js` | Turn-based combat with timing taps | Combat, Progression, AURAS, SpiritBeasts |
-| `party.js` | Hero management — equip, skills, stats | Progression, ITEMS, AURAS, CLASSES |
-| `equipment.js` | Gear inspection, comparison, salvage | ITEMS, Economy, Forge |
+| `party.js` | Hero management — equip, skills, stats | Progression, EquipmentSystem, ITEMS, AURAS, CLASSES |
+| `equipment.js` | Gear inspection, comparison, salvage | EquipmentSystem, ITEMS, Economy, Forge |
 | `trials.js` | Endless wave survival | Combat, Progression, Economy |
 | `tournament.js` | Procedural AI opponents | Combat, Economy, Progression |
 | `duel.js` | (System) PvP-style combat logic | Combat |
@@ -93,7 +93,7 @@ render(ctx): drawEnemy(); drawHeroParty(); drawActionBar(); drawCombatLog()
 | `ashram` | Cultivation, Economy, Journey, Quest | REALMS, ZONES, PERKS | HeroMoment, PremiumShell, MagneticBtn, FluidNav, ProgressBar |
 | `cultivationScene` | Cultivation | REALMS, CULTIVATION_RATES | HeroMoment, PremiumShell, MagneticBtn, ProgressBar |
 | `combatScene` | Combat, Progression, AURAS | HEROES, ENEMIES, PERKS | MagneticBtn, ProgressBar (HP/MP) |
-| `travelMap` | — | ZONES, zoneProgress | HeroMoment, PremiumShell, MagneticBtn |
+| `travelMap` | — | ZONES, zoneProgress | PremiumShell, ProgressBar; two-column mobile cards and 48px action controls |
 | `party` | Progression | HEROES, ITEMS, AURAS, CLASSES | PremiumShell, MagneticBtn, TabBar; detail action stack uses 48px touch targets |
 | `forge` | Economy, Progression | ITEMS, PERKS | PremiumShell, MagneticBtn, ProgressBar |
 | `alchemyScene` | Alchemy | ALCHEMY_RECIPES, HERB_GROWTH | PremiumShell, MagneticBtn, List |

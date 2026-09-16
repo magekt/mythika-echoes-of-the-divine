@@ -1,3 +1,28 @@
+const RebirthAccess = {
+  status: function() {
+    const lvl = G.state.player ? G.state.player.level : 0;
+    const karma = G.state.karma || 0;
+    const levelOk = lvl >= 30;
+    const karmaOk = karma >= 10;
+    return {
+      allowed: levelOk && karmaOk,
+      levelOk: levelOk,
+      karmaOk: karmaOk,
+      level: lvl,
+      karma: karma,
+      reason: !levelOk ? 'Requires Level 30+' : (!karmaOk ? 'Requires 10 Punya Karma' : '')
+    };
+  },
+  enter: function() {
+    const s = this.status();
+    if (!s.allowed) return s;
+    if ((G.state.karma || 0) < 10) {
+      return { allowed: false, reason: 'Insufficient Punya Karma', levelOk: s.levelOk, karmaOk: false, level: s.level, karma: G.state.karma || 0 };
+    }
+    return { ...s, allowed: true };
+  }
+};
+
 const punarjanmaScene = Scene.create({
   name: 'punarjanma',
   data: {
@@ -46,7 +71,8 @@ const punarjanmaScene = Scene.create({
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
-    const canRebirth = !!(G.state.player && G.state.player.level >= 30 && (G.state.karma || 0) >= 10);
+    const rebirthStatus = RebirthAccess.status();
+    const canRebirth = rebirthStatus.allowed;
     const panelX = 20;
     const panelW = G.W - 40;
     const shellOpts = {
@@ -67,7 +93,7 @@ const punarjanmaScene = Scene.create({
     SD.push({ text: ['Current state', panelX + 14, y + 50, R.colors.accent, R.fonts.sm] });
     SD.push({ text: ['Cycle ' + (G.state.rebirthCount || 0) + '  •  Party Lv.' + (G.state.player ? G.state.player.level : 0), panelX + 14, y + 68, R.colors.textPrimary, R.fonts.md] });
     SD.push({ text: ['Commit cost: 10 Punya Karma', panelX + 14, y + 91, R.colors.textSecondary, R.fonts.sm] });
-    SD.push({ text: [canRebirth ? 'Ready for the next Samsara crossing' : 'Reach Level 30 and hold 10 Punya Karma to begin', panelX + 14, y + 113, canRebirth ? R.colors.green : R.colors.textDim, R.fonts.sm] });
+    SD.push({ text: [canRebirth ? 'Ready for the next Samsara crossing' : rebirthStatus.reason || 'Reach Level 30 and hold 10 Punya Karma to begin', panelX + 14, y + 113, canRebirth ? R.colors.green : R.colors.textDim, R.fonts.sm] });
     y += summaryH + 10;
 
     const benefitH = 88;
@@ -187,13 +213,9 @@ const punarjanmaScene = Scene.create({
   },
 
   performRebirth: function() {
-    const player = G.state.player;
-    if (!player || player.level < 30) {
-      Notify.show('Atman not ready \u2014 need level 30+', 2, R.colors.red);
-      return;
-    }
-    if ((G.state.karma || 0) < 10) {
-      Notify.show('Need 10 Punya Karma to transcend Samsara', 2, R.colors.red);
+    const gate = RebirthAccess.enter();
+    if (!gate.allowed) {
+      Notify.show(gate.reason, 2, R.colors.red);
       return;
     }
     Economy.spendKarma(10);

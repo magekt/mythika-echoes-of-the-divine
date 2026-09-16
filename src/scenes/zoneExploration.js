@@ -30,6 +30,11 @@ const zoneExplorationScene = Scene.create({
       gScene('travelMap', true);
       return;
     }
+    if (!ZoneAccess.status(this.data.zoneId).allowed) {
+      Notify.show('This zone is still locked.', 2, R.colors.warning);
+      gScene('travelMap', true);
+      return;
+    }
     this.data.exploring = true;
     this.data.encounterTimer = 2 + Math.random() * 2;
     this.data.totalEncounterTimer = this.data.encounterTimer;
@@ -261,6 +266,15 @@ const zoneExplorationScene = Scene.create({
     if (this.data.state === 'exploring' && !this.data.zoneComplete) {
       this.data.encounterTimer -= dt;
       if (this.data.encounterTimer <= 0) {
+        // Narrative encounter roll — replaces one enemy slot if eligible
+        const narrId = (typeof EncounterTrigger !== 'undefined' && EncounterTrigger.rollZone) ? EncounterTrigger.rollZone(this.data.zoneId) : null;
+        if (narrId) {
+          this.data.log.push('Something stirs in the ' + (this.data.zone ? this.data.zone.name : 'wilds') + '...');
+          gScene('encounterScene', true, { encounterId: narrId, origin: 'zoneExploration' });
+          this.data.encounterTimer = 2 + Math.random() * 2;
+          this.data.totalEncounterTimer = this.data.encounterTimer;
+          return;
+        }
         this.data.log.push('An enemy appears!');
         this.triggerEncounter();
         this.data.encounterTimer = 2 + Math.random() * 2;

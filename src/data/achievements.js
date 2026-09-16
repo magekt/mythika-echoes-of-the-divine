@@ -21,5 +21,6 @@ const ACHIEVEMENTS = [
   { id: 'trial_adept', name: 'Trial Adept', desc: 'Reach wave 10 in Endless Trials', icon: 'T', check: function() { return (G.state.trialBest || 0) >= 10; } },
   { id: 'trial_master', name: 'Trial Master', desc: 'Reach wave 25 in Endless Trials', icon: 'T', check: function() { return (G.state.trialBest || 0) >= 25; } },
   { id: 'tapobhumi_conqueror', name: 'Conqueror of Tapobhumi', desc: 'Fully explore Tapobhumi', icon: 'P', check: function() { return (G.state.zoneProgress && (G.state.zoneProgress.tapobhumi || 0) >= 100); } },
-  { id: 'full_pantheon', name: 'Full Pantheon', desc: 'Recruit all 5 heroes', icon: 'F', check: function() { return G.state.party && G.state.party.length >= 5; } }
+  { id: 'full_pantheon', name: 'Full Pantheon', desc: 'Recruit all 5 heroes', icon: 'F', check: function() { return G.state.party && G.state.party.length >= 5; } },
+  { id: 'narrative_enthusiast', name: 'Narrative Enthusiast', desc: 'Complete 5 narrative encounters', icon: 'N', check: function() { return Object.keys((G.state.encounters && G.state.encounters.seen) || {}).length >= 5; } }
 ];

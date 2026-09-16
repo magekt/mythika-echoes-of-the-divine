@@ -112,6 +112,72 @@ function getItemCost(item) {
   return item.cost || 0;
 }
 
+const EquipmentSystem = {
+  slots: {
+    weapon: 'weaponEquipped',
+    armor: 'armorEquipped',
+    accessory: 'accessoryEquipped'
+  },
+
+  normalizeHero: function(hero) {
+    if (!hero || typeof hero !== 'object') return;
+    for (const type of Object.keys(this.slots)) {
+      const slot = this.slots[type];
+      const item = hero[slot];
+      if (!item || typeof item !== 'object' || Array.isArray(item) || item.type !== type ||
+          (type === 'weapon' && item.subtype && item.subtype !== hero.weaponType)) {
+        hero[slot] = null;
+      }
+    }
+    // Equipped slot objects are the canonical gear source. Old cache fields
+    // mirrored those values and caused the Party equip route to double-count.
+    for (const field of ['equipAtk', 'equipDef', 'equipAccMag', 'equipArmorMag', 'equipAccDef', 'equipAccHp', 'equipCrit']) {
+      delete hero[field];
+    }
+  },
+
+  normalize: function() {
+    for (const hero of Array.isArray(G.state.party) ? G.state.party : []) this.normalizeHero(hero);
+  },
+
+  equip: function(hero, item) {
+    if (!hero || !Array.isArray(G.state.party) || G.state.party.indexOf(hero) < 0) {
+      return { ok: false, reason: 'invalid-hero' };
+    }
+    if (!item || typeof item !== 'object' || !this.slots[item.type]) {
+      return { ok: false, reason: 'invalid-item' };
+    }
+    if (!Array.isArray(G.state.inventory)) return { ok: false, reason: 'invalid-inventory' };
+    const inventoryIndex = G.state.inventory.indexOf(item);
+    if (inventoryIndex < 0) return { ok: false, reason: 'not-owned' };
+    if (item.type === 'weapon' && item.subtype && item.subtype !== hero.weaponType) {
+      return { ok: false, reason: 'incompatible-weapon' };
+    }
+
+    const slot = this.slots[item.type];
+    const replaced = hero[slot];
+    G.state.inventory.splice(inventoryIndex, 1);
+    if (replaced && typeof replaced === 'object' && !Array.isArray(replaced)) G.state.inventory.push(replaced);
+    hero[slot] = item;
+    this.normalizeHero(hero);
+    return { ok: true, slot: slot, item: item };
+  },
+
+  unequip: function(hero, type) {
+    if (!hero || !Array.isArray(G.state.party) || G.state.party.indexOf(hero) < 0 || !this.slots[type]) {
+      return { ok: false, reason: 'invalid-hero-or-slot' };
+    }
+    const slot = this.slots[type];
+    const item = hero[slot];
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return { ok: false, reason: 'empty-slot' };
+    if (!Array.isArray(G.state.inventory)) G.state.inventory = [];
+    hero[slot] = null;
+    G.state.inventory.push(item);
+    this.normalizeHero(hero);
+    return { ok: true, item: item };
+  }
+};
+
 function generateLoot(zoneId, enemyLevel) {
   const loot = [];
   const dropChance = 0.35;
