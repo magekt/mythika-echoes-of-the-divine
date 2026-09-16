@@ -45,7 +45,11 @@ Plans:
   2. Locked, available, active, and completed regions are distinguishable, with requirements and progress still readable.
   3. A tap selects the intended region and reveals its status and next available action without accidental activation during pan/scroll.
   4. The full select, inspect, back/close, and enter flow works on the 400×720 touch viewport and with a desktop pointer.
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Define map layout data and MapHelpers (zone status, lock reasons, influence queries).
+- [ ] 07-02-PLAN.md — Rewrite travelMap.js as a spatial visual region map with touch pan and detail panel.
 **UI hint**: yes
 
 ### Phase 8: Landmark Discovery
