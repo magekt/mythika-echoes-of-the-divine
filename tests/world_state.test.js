@@ -7,15 +7,23 @@ const vm = require('node:vm');
 const ROOT = path.resolve(__dirname, '..');
 const GAME_PATH = path.join(ROOT, 'src/engine/game.js');
 const WORLD_STATE_PATH = path.join(ROOT, 'src/systems/world_state.js');
+const SAVE_PATH = path.join(ROOT, 'src/systems/save.js');
 const INDEX_PATH = path.join(ROOT, 'index.html');
 
-function loadContract() {
+function loadContract(options = {}) {
+  const storage = new Map();
+  const localStorage = {
+    getItem: key => storage.has(key) ? storage.get(key) : null,
+    setItem: (key, value) => storage.set(key, String(value)),
+    removeItem: key => storage.delete(key)
+  };
   const context = vm.createContext({
     console,
     setTimeout,
     clearTimeout,
     performance: { now: () => 0 },
     location: { search: '' },
+    localStorage,
     document: { getElementById: () => null, addEventListener: () => {} },
     window: {
       innerWidth: 400,
@@ -29,12 +37,26 @@ function loadContract() {
   const gameSource = fs.readFileSync(GAME_PATH, 'utf8');
   vm.runInContext(gameSource + '\n;globalThis.G = G;', context, { filename: GAME_PATH });
 
-  const worldStateSource = fs.readFileSync(WORLD_STATE_PATH, 'utf8');
-  vm.runInContext(worldStateSource + '\n;globalThis.WorldState = WorldState;', context, {
-    filename: WORLD_STATE_PATH
-  });
+  if (!options.withoutWorldState) {
+    const worldStateSource = fs.readFileSync(WORLD_STATE_PATH, 'utf8');
+    vm.runInContext(worldStateSource + '\n;globalThis.WorldState = WorldState;', context, {
+      filename: WORLD_STATE_PATH
+    });
+  }
 
-  return { G: context.G, WorldState: context.WorldState };
+  if (options.withSave) {
+    const saveSource = fs.readFileSync(SAVE_PATH, 'utf8');
+    vm.runInContext(saveSource + '\n;globalThis.SaveSystem = SaveSystem;', context, {
+      filename: SAVE_PATH
+    });
+  }
+
+  return {
+    G: context.G,
+    WorldState: context.WorldState,
+    SaveSystem: context.SaveSystem,
+    localStorage
+  };
 }
 
 function assertPlainObject(value, message) {
@@ -192,6 +214,112 @@ test('repeatable mutations validate identifiers and normalize influence/control'
   assert.equal(WorldState.setInfluence('__proto__', 5, 'player'), false);
   assert.equal(WorldState.setNarrativeEcho('constructor', 'unsafe'), false);
   assert.equal(WorldState.setEventActive('prototype', { bad: true }), false);
+});
+
+test('legacy save hydration adds canonical world state without changing unrelated progress', () => {
+  const { G, SaveSystem } = loadContract({ withSave: true });
+  const legacyState = {
+    player: { id: 'hero-1', name: 'Arjun' },
+    party: [{ id: 'hero-1', name: 'Arjun', hp: 80 }],
+    gold: 4321,
+    karma: 17,
+    flags: { pilgrimageComplete: true },
+    encounters: { seen: { hermit: true } },
+    zoneProgress: { forest: 6 }
+  };
+
+  assert.equal(SaveSystem.hydrate(legacyState), true);
+  assert.deepEqual(toHost(G.state.world), {
+    regions: {},
+    landmarks: { discovered: {}, notified: {} },
+    influence: {},
+    narrativeEchoes: {},
+    events: { active: {}, resolved: {} },
+    transitions: {}
+  });
+  assert.equal(G.state.gold, 4321);
+  assert.equal(G.state.karma, 17);
+  assert.deepEqual(toHost(G.state.party), legacyState.party);
+  assert.deepEqual(toHost(G.state.flags), legacyState.flags);
+  assert.deepEqual(toHost(G.state.encounters), legacyState.encounters);
+  assert.deepEqual(toHost(G.state.zoneProgress), legacyState.zoneProgress);
+});
+
+test('save migration repairs partial and malformed world branches during load', () => {
+  const { G, SaveSystem, localStorage } = loadContract({ withSave: true });
+  const state = G.createDefaultState();
+  state.gold = 99;
+  state.zoneProgress = { coast: 3 };
+  state.world = JSON.parse(`{
+    "regions":{"coast":{"explored":true},"__proto__":{"polluted":true}},
+    "landmarks":{"discovered":{"shrine":{"foundAt":12}},"notified":[]},
+    "influence":{"coast":{"value":999,"control":"player"},"void":{"value":null,"control":"enemy"}},
+    "narrativeEchoes":"invalid",
+    "events":{"active":{"storm":{"stage":2}},"resolved":42},
+    "transitions":{"intro":{"at":1}}
+  }`);
+  localStorage.setItem(SaveSystem.SAVE_KEY, JSON.stringify({ state, version: 1, timestamp: Date.now() }));
+
+  assert.equal(SaveSystem.load(), true);
+  assert.deepEqual(toHost(G.state.world), {
+    regions: { coast: { explored: true } },
+    landmarks: { discovered: { shrine: { foundAt: 12 } }, notified: {} },
+    influence: {
+      coast: { value: 100, control: 'player' },
+      void: { value: 0, control: 'enemy' }
+    },
+    narrativeEchoes: {},
+    events: { active: { storm: { stage: 2 } }, resolved: {} },
+    transitions: { intro: { at: 1 } }
+  });
+  assert.equal(G.state.gold, 99);
+  assert.deepEqual(toHost(G.state.zoneProgress), { coast: 3 });
+  assert.equal({}.polluted, undefined);
+});
+
+test('every world domain and replay guard survives a save-load round trip', () => {
+  const { G, WorldState, SaveSystem } = loadContract({ withSave: true });
+  G.state.gold = 777;
+  G.state.zoneProgress = { mountain: 9 };
+  G.state.world = WorldState.normalize({
+    regions: { mountain: { explored: true, tier: 2 } },
+    landmarks: {
+      discovered: { summit: { source: 'quest' } },
+      notified: { summit: { notifiedAt: 20 } }
+    },
+    influence: { mountain: { value: 44, control: 'contested' } },
+    narrativeEchoes: { oath: { choice: 'kept' } },
+    events: {
+      active: { monsoon: { stage: 3 } },
+      resolved: { eclipse: { result: 'sealed' } }
+    },
+    transitions: { mapIntroduced: { scene: 'travel' } }
+  });
+  const expectedWorld = toHost(G.state.world);
+
+  assert.equal(SaveSystem.save(), true);
+  G.state = G.createDefaultState();
+  assert.equal(SaveSystem.load(), true);
+  assert.deepEqual(toHost(G.state.world), expectedWorld);
+  assert.equal(G.state.gold, 777);
+  assert.deepEqual(toHost(G.state.zoneProgress), { mountain: 9 });
+
+  assert.equal(WorldState.recordLandmarkDiscovery('summit', { source: 'repeat' }), false);
+  assert.equal(WorldState.markLandmarkNotified('summit'), false);
+  assert.equal(WorldState.recordTransition('mapIntroduced', { scene: 'title' }), false);
+  assert.equal(WorldState.resolveEvent('eclipse', { result: 'escaped' }), false);
+  assert.deepEqual(toHost(G.state.world.landmarks.discovered.summit), { source: 'quest' });
+  assert.deepEqual(toHost(G.state.world.transitions.mapIntroduced), { scene: 'travel' });
+  assert.deepEqual(toHost(G.state.world.events.resolved.eclipse), { result: 'sealed' });
+});
+
+test('migration falls back to a canonical default when WorldState is unavailable', () => {
+  const { G, SaveSystem } = loadContract({ withSave: true, withoutWorldState: true });
+  const state = G.createDefaultState();
+  state.world = { regions: [] };
+
+  assert.equal(SaveSystem.hydrate(state), true);
+  assert.deepEqual(toHost(G.state.world), toHost(G.createDefaultState().world));
 });
 
 test('WorldState is registered after zone data and before SaveSystem', () => {
