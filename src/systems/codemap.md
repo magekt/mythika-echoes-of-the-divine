@@ -87,7 +87,7 @@
 - `SaveSystem.save()` — deep clone `G.state` → JSON → localStorage (30s auto-save)
 - `SaveSystem.hydrate(state)` — overlays validated saved data on a fresh default state, then migrates it
 - `SaveSystem.load()` — parse → hydrate → offline progress calc
-- `SaveSystem.migrate()` — heals legacy inventory/gear, removes retired gear caches, sanitizes numerics
+- `SaveSystem.migrate()` — heals legacy inventory/gear, removes retired gear caches, sanitizes numerics, and normalizes canonical world state
 - `SaveSystem.exportFile()` / `importFile()` — manual backup/restore
 - `SaveSystem.startAutoSave()` / `stopAutoSave()` — 30s interval
 - `SaveSystem.getSaveInfo()` — metadata for UI
@@ -98,7 +98,7 @@
 - Prana gain = elapsed × pranaPerSec
 - Farm plots: fast-forward through automatic harvest/replant cycles
 
-**Dependencies**: `CultivationSystem`, `HERB_GROWTH`, `Notify`, `R.applyFontScale`
+**Dependencies**: `CultivationSystem`, `WorldState`, `HERB_GROWTH`, `Notify`, `R.applyFontScale`
 
 **State Mutations**: `G.state.*` (fresh-baseline hydration on load), `G.state.cultivationBase`, `G.state.prana`, `G.state.farmPlots`
 
