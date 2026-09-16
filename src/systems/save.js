@@ -69,6 +69,11 @@ SaveSystem.migrate = function() {
   if (typeof ZoneRewardSystem !== 'undefined' && ZoneRewardSystem.normalize) {
     ZoneRewardSystem.normalize();
   }
+  if (typeof WorldState !== 'undefined' && WorldState.normalize) {
+    G.state.world = WorldState.normalize(G.state.world);
+  } else {
+    G.state.world = G.createDefaultState().world;
+  }
   if (typeof FarmSystem !== 'undefined' && FarmSystem.normalize) FarmSystem.normalize();
   const party = Array.isArray(G.state.party) ? G.state.party : [];
   if (party.length > 0) {
