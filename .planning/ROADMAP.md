@@ -30,7 +30,7 @@ Milestone 2 turns the existing Travel Map into a persistent, touch-first world s
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Define and test the canonical defensive world-state contract.
+- [x] 06-01-PLAN.md — Define and test the canonical defensive world-state contract.
 - [ ] 06-02-PLAN.md — Integrate legacy-safe save migration and prove round-trip continuity.
 
 **UI hint**: yes
@@ -112,7 +112,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 6. World-State Continuity | 0/TBD | Not started | - |
+| 6. World-State Continuity | 1/2 | In Progress | - |
 | 7. Visual Region Map | 0/TBD | Not started | - |
 | 8. Landmark Discovery | 0/TBD | Not started | - |
 | 9. Regional Influence & Control | 0/TBD | Not started | - |

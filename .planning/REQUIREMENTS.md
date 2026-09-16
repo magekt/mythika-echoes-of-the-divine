@@ -130,7 +130,7 @@ The living map remains responsive and memory-stable on representative mobile har
 |-------------|-------|--------|
 | REQ-013 | Phase 7 | Pending |
 | REQ-014 | Phase 8 | Pending |
-| REQ-015 | Phase 6 | Pending |
+| REQ-015 | Phase 6 | Complete |
 | REQ-016 | Phase 9 | Pending |
 | REQ-017 | Phase 10 | Pending |
 | REQ-018 | Phase 11 | Pending |
