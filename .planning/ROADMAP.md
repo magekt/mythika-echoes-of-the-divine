@@ -77,7 +77,11 @@ Plans:
   2. The map clearly shows each region's current alignment/control and progress toward its next state.
   3. After an influence change, the player can identify what changed and which action caused it.
   4. Regional control remains bounded, deterministic, and unchanged by merely rendering or reopening the map.
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Create influence rules data (influence_rules.js) and authoritative influence engine (influence.js).
+- [ ] 09-02-PLAN.md — Wire zone completion, boss defeat, encounter choice, and journey completion into Influence API.
 **UI hint**: yes
 
 ### Phase 10: Environmental Narrative Echoes
