@@ -22,7 +22,7 @@ tech-stack:
 
 key-files:
   created: []
-  modified: [src/systems/save.js, tests/world_state.test.js]
+  modified: [src/systems/save.js, tests/world_state.test.js, src/systems/codemap.md]
 
 key-decisions:
   - "Keep version-1 save envelopes valid and normalize the nested world branch during the existing migration pass."
@@ -50,7 +50,7 @@ completed: 2026-09-16
 - **Started:** 2026-09-16T09:15:51Z
 - **Completed:** 2026-09-16T09:21:57Z
 - **Tasks:** 1 TDD feature
-- **Files modified:** 2
+- **Files modified:** 3
 
 ## Accomplishments
 
@@ -65,6 +65,7 @@ The TDD feature was committed through its required gates:
 
 1. **RED: Add failing save continuity tests** - `54ce72e` (test)
 2. **GREEN: Normalize world state during save hydration** - `00eca77` (feat)
+3. **Codemap maintenance: Document save-system world migration** - `96ff115` (docs)
 
 No refactor commit was needed after GREEN; the integration is a single focused migration branch.
 
@@ -72,6 +73,7 @@ No refactor commit was needed after GREEN; the integration is a single focused m
 
 - `src/systems/save.js` - Normalizes the hydrated world branch and falls back to canonical defaults when the global contract is unavailable.
 - `tests/world_state.test.js` - Exercises legacy migration, malformed repair, unrelated progress retention, full round trips, and replay guards.
+- `src/systems/codemap.md` - Records the save migration's canonical world-state responsibility and dependency.
 
 ## Decisions Made
 
@@ -101,4 +103,4 @@ None. Empty values in `SaveSystem.migrate` are intentional canonical repairs for
 ## Self-Check: PASSED
 
 - Summary file exists at the required phase path.
-- RED commit `54ce72e` and GREEN commit `00eca77` are present in git history.
+- RED commit `54ce72e`, GREEN commit `00eca77`, and codemap commit `96ff115` are present in git history.
