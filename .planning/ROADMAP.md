@@ -31,7 +31,7 @@ Milestone 2 turns the existing Travel Map into a persistent, touch-first world s
 
 Plans:
 - [x] 06-01-PLAN.md — Define and test the canonical defensive world-state contract.
-- [ ] 06-02-PLAN.md — Integrate legacy-safe save migration and prove round-trip continuity.
+- [x] 06-02-PLAN.md — Integrate legacy-safe save migration and prove round-trip continuity.
 
 **UI hint**: yes
 
