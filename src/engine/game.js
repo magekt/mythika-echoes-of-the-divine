@@ -192,7 +192,15 @@ function createDefaultGameState() {
     tournamentWins: 0,
     totalPlayTime: 0,
     flags: {},
-    encounters: {}
+    encounters: {},
+    world: {
+      regions: {},
+      landmarks: { discovered: {}, notified: {} },
+      influence: {},
+      narrativeEchoes: {},
+      events: { active: {}, resolved: {} },
+      transitions: {}
+    }
   };
 }
 
