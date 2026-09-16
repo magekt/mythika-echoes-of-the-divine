@@ -61,7 +61,11 @@ Plans:
   2. Progress, encounter choices, or world-state conditions can reveal a landmark once without duplicate rewards or notices.
   3. Tapping a discovered landmark shows its lore, regional relevance, and any available action in a readable detail view.
   4. A discovered landmark remains discovered after leaving the map and reloading the game.
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Create landmark data definitions and discovery engine (landmarks.js + landmarks system).
+- [ ] 08-02-PLAN.md — Integrate landmark indicators and detail view into travel map scene.
 **UI hint**: yes
 
 ### Phase 9: Regional Influence & Control
