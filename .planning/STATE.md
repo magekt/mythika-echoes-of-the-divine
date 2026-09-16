@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-15)
 
 **Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Phase 06 — World-State Continuity
+**Current focus:** Phase 08 — Landmark Discovery
 
 ## Current Position
 
-Phase: 07 (Visual Region Map) — EXECUTING
-Plan: 1 of 2
-Status: Completed 07-01-PLAN.md — ready for 07-02
-Last activity: 2026-09-16
+Phase: 08 (Landmark Discovery) — PLANNING
+Plan: 0 of 2
+Status: 09 plans complete — ready for execution
+Last activity: 2026-09-17
 
 Progress: [██████████] 100%
 
@@ -47,7 +47,7 @@ Progress: [██████████] 100%
 | 6. World-State Continuity | 2/2 | 14min | 7min |
 | 7. Visual Region Map | 1/2 | 4min | 4min |
 | 8. Landmark Discovery | 0/TBD | - | - |
-| 9. Regional Influence & Control | 0/TBD | - | - |
+| 9. Regional Influence & Control | 2 plans | - | - |
 | 10. Environmental Narrative Echoes | 0/TBD | - | - |
 | 11. Dynamic World Events | 0/TBD | - | - |
 | 12. Living Map Performance & Stability | 0/TBD | - | - |
