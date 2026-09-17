@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-09-17T09:32:36.000Z"
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-09-17T09:56:00.000Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 9
-  completed_plans: 6
-  percent: 67
+  completed_plans: 7
+  percent: 78
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: `.planning/PROJECT.md` (updated 2026-09-15)
 
 ## Current Position
 
-Phase: 09 (Regional Influence & Control) — PLANNING
-Plan: 1 of 2
-Status: Ready to execute
+Phase: 09 (Regional Influence & Control) — EXECUTING
+Plan: 2 of 2
+Status: Plan 09-01 complete; ready to execute 09-02
 Last activity: 2026-09-17
 
-Progress: [███████░░░] 67%
+Progress: [████████░░] 78%
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Progress: [███████░░░] 67%
 | Phase 07 P02 | 21min | 2 tasks | 1 files |
 | Phase 08 P01 | 13min | 2 tasks | 5 files |
 | Phase 08 P02 | 26min | 2 tasks | 2 files |
+| Phase 09 P01 | 6min | 1 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Keep landmark definitions declarative and index them once by zone for bounded runtime checks.
 - [Phase ?]: Expose WorldState.getWorld as the normalized read contract required by landmark queries.
 - [Phase ?]: Return enriched copies from Landmarks.getAll so callers cannot mutate canonical discovery definitions.
+- [Phase 09]: Resolve regional control from data-defined positive thresholds, mirroring qualifying negative magnitude to enemy control.
+- [Phase 09]: Record the action transition only after WorldState accepts the bounded influence mutation, rolling back if the replay guard loses a race.
 
 ### Project Skill Constraints
 

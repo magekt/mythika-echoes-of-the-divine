@@ -80,7 +80,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — Create influence rules data (influence_rules.js) and authoritative influence engine (influence.js).
+- [x] 09-01-PLAN.md — Create influence rules data (influence_rules.js) and authoritative influence engine (influence.js).
 - [ ] 09-02-PLAN.md — Wire zone completion, boss defeat, encounter choice, and journey completion into Influence API.
 **UI hint**: yes
 
