@@ -64,7 +64,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Create landmark data definitions and discovery engine (landmarks.js + landmarks system).
+- [x] 08-01-PLAN.md — Create landmark data definitions and discovery engine (landmarks.js + landmarks system).
 - [ ] 08-02-PLAN.md — Integrate landmark indicators and detail view into travel map scene.
 **UI hint**: yes
 

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-09-17T04:54:37.052Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-09-17T06:45:03.598Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 9
-  completed_plans: 4
-  percent: 44
+  completed_plans: 5
+  percent: 56
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-15)
 ## Current Position
 
 Phase: 08 (Landmark Discovery) — PLANNING
-Plan: 1 of 2
+Plan: 2 of 2
 Status: Ready to execute
 Last activity: 2026-09-17
 
@@ -62,6 +62,7 @@ Progress: [██████████] 100%
 | Phase 06 P02 | 6min | 1 tasks | 2 files |
 | Phase 07 P01 | 4min | 2 tasks | 5 files |
 | Phase 07 P02 | 21min | 2 tasks | 1 files |
+| Phase 08 P01 | 13min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,9 @@ Recent decisions affecting current work:
 - [Phase 06]: Preserve unrelated top-level progress and restore one-time records without invoking mutation side effects during load.
 - [Phase 07]: Use a 15px movement threshold to distinguish intentional region taps from map panning. — Prevents accidental region activation during touch and pointer drag gestures.
 - [Phase 07]: Keep zone entry authoritative by rechecking MapHelpers status before transitioning to zoneExploration. — Avoids stale selection state bypassing canonical zone access rules.
+- [Phase ?]: Keep landmark definitions declarative and index them once by zone for bounded runtime checks.
+- [Phase ?]: Expose WorldState.getWorld as the normalized read contract required by landmark queries.
+- [Phase ?]: Return enriched copies from Landmarks.getAll so callers cannot mutate canonical discovery definitions.
 
 ### Project Skill Constraints
 
@@ -127,7 +131,7 @@ Milestone 1 completion state remains available in git history (`d339303`).
 
 ## Session Continuity
 
-Last session: 2026-09-17T04:53:58.148Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-09-17T06:45:03.592Z
+Stopped at: Completed 08-01-PLAN.md
 Resume file: None
 Next command: `/gsd-execute-phase 7`
