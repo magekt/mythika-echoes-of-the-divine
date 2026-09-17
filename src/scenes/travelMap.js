@@ -20,6 +20,8 @@ const travelMapScene = Scene.create({
     startMapX: 0,
     startMapY: 0,
     didDrag: false,
+    selectedLandmark: null,
+    newlyDiscovered: [],
     backBtn: null,
     enterBtn: null,
     closeBtn: null
@@ -29,6 +31,7 @@ const travelMapScene = Scene.create({
     Hints.show('map', 'Tap a region to inspect it. Drag to pan.');
     this.resetState();
     this.buildButtons();
+    this.checkLandmarkDiscoveries();
   },
 
   leave: function() {
@@ -48,6 +51,8 @@ const travelMapScene = Scene.create({
     this.data.startMapX = 0;
     this.data.startMapY = 0;
     this.data.didDrag = false;
+    this.data.selectedLandmark = null;
+    this.data.newlyDiscovered = [];
     this.data.backBtn = null;
     this.data.enterBtn = null;
     this.data.closeBtn = null;
@@ -80,13 +85,33 @@ const travelMapScene = Scene.create({
     });
     closeBtn.visible = false;
     closeBtn.onClick = () => {
-      this.selectZone(null);
+      if (this.data.selectedLandmark) {
+        this.data.selectedLandmark = null;
+      } else {
+        this.selectZone(null);
+      }
     };
 
     this.data.backBtn = backBtn;
     this.data.enterBtn = enterBtn;
     this.data.closeBtn = closeBtn;
     this.data.buttons = [backBtn, enterBtn, closeBtn];
+  },
+
+  checkLandmarkDiscoveries: function() {
+    const progress = G.state.zoneProgress || {};
+    const discovered = [];
+    for (const zoneId of Object.keys(ZONES)) {
+      if ((Number(progress[zoneId]) || 0) <= 0) continue;
+      const newly = Landmarks.checkZone(zoneId);
+      for (const landmarkId of newly) {
+        discovered.push(landmarkId);
+        if (!WorldState.markLandmarkNotified(landmarkId)) continue;
+        const landmark = LANDMARKS[landmarkId];
+        Notify.show('Discovered: ' + (landmark ? landmark.name : landmarkId), 3, R.colors.gold);
+      }
+    }
+    this.data.newlyDiscovered = discovered;
   },
 
   getMapViewport: function() {
@@ -160,12 +185,50 @@ const travelMapScene = Scene.create({
 
   selectZone: function(zoneId) {
     this.data.selectedZone = zoneId;
+    this.data.selectedLandmark = null;
     const hasSelection = Boolean(zoneId);
     const unlocked = hasSelection && MapHelpers.getStatus(zoneId) !== MapLayout.ZONE_STATE.LOCKED;
-    this.data.closeBtn.visible = hasSelection;
-    this.data.enterBtn.visible = Boolean(unlocked);
-    this.data.enterBtn.enabled = Boolean(unlocked);
+    if (this.data.closeBtn) this.data.closeBtn.visible = hasSelection;
+    if (this.data.enterBtn) {
+      this.data.enterBtn.visible = Boolean(unlocked);
+      this.data.enterBtn.enabled = Boolean(unlocked);
+    }
     this.clampPan();
+  },
+
+  getLandmarkHitAreas: function(zoneId) {
+    const entry = MapLayout.getEntry(zoneId);
+    if (!entry) return [];
+    const rect = this.getRegionRect(entry);
+    const landmarks = Landmarks.getAll(zoneId);
+    const discoveredIds = Landmarks.getDiscovered(zoneId);
+    const gap = 24;
+    const startX = rect.x + rect.w - 14 - Math.max(0, landmarks.length - 1) * gap;
+    const centerY = rect.y + 19;
+    const areas = [];
+
+    for (let i = 0; i < landmarks.length; i++) {
+      if (discoveredIds.indexOf(landmarks[i].id) === -1) continue;
+      areas.push({
+        landmarkId: landmarks[i].id,
+        x: startX + i * gap - 11,
+        y: centerY - 11,
+        w: 22,
+        h: 22
+      });
+    }
+    return areas;
+  },
+
+  hitTestLandmark: function(x, y) {
+    if (!this.data.selectedZone) return null;
+    const areas = this.getLandmarkHitAreas(this.data.selectedZone);
+    for (const area of areas) {
+      if (x >= area.x && x <= area.x + area.w && y >= area.y && y <= area.y + area.h) {
+        return area.landmarkId;
+      }
+    }
+    return null;
   },
 
   hitTestZone: function(x, y) {
@@ -181,6 +244,11 @@ const travelMapScene = Scene.create({
 
   handleTap: function(tap) {
     if (!tap || !this.isInMapArea(tap.x, tap.y)) return false;
+    const landmarkId = this.hitTestLandmark(tap.x, tap.y);
+    if (landmarkId) {
+      this.data.selectedLandmark = landmarkId;
+      return true;
+    }
     const zoneId = this.hitTestZone(tap.x, tap.y);
     this.selectZone(zoneId);
     return true;
@@ -233,7 +301,8 @@ const travelMapScene = Scene.create({
     ctx.fillRect(0, 0, G.W, G.H);
     this.renderHeader(ctx);
     this.renderMap(ctx);
-    if (this.data.selectedZone) this.renderDetailPanel(ctx);
+    if (this.data.selectedLandmark) this.renderLandmarkDetail(ctx);
+    else if (this.data.selectedZone) this.renderDetailPanel(ctx);
     for (const button of this.data.buttons) {
       if (button.visible !== false) button.render(ctx);
     }
@@ -332,7 +401,96 @@ const travelMapScene = Scene.create({
       R.roundRect(ctx, barX, barY, barW, 3, R.colors.overlayDark);
       if (completion > 0) R.roundRect(ctx, barX, barY, barW * completion / 100, 3, statusColor);
     }
+
+    this.renderLandmarkIndicators(ctx, entry, rect, locked);
     ctx.restore();
+  },
+
+  renderLandmarkIndicators: function(ctx, entry, rect, locked) {
+    const landmarks = Landmarks.getAll(entry.zoneId);
+    if (!landmarks.length) return;
+    const discoveredIds = Landmarks.getDiscovered(entry.zoneId);
+    const gap = 24;
+    const startX = rect.x + rect.w - 14 - Math.max(0, landmarks.length - 1) * gap;
+    const centerY = rect.y + 19;
+
+    for (let i = 0; i < landmarks.length; i++) {
+      const landmark = landmarks[i];
+      const discovered = discoveredIds.indexOf(landmark.id) !== -1;
+      const fresh = this.data.newlyDiscovered.indexOf(landmark.id) !== -1;
+      ctx.beginPath();
+      ctx.fillStyle = discovered ? (fresh ? R.colors.goldLight : R.colors.gold) : R.colors.textDim;
+      ctx.arc(startX + i * gap, centerY, discovered ? 5 : 4, 0, Math.PI * 2);
+      ctx.fill();
+      if (locked || !discovered) continue;
+      ctx.fillStyle = R.colors.textPrimary;
+      ctx.font = R.fonts.xs;
+      ctx.textAlign = 'center';
+      ctx.fillText(landmark.icon, startX + i * gap, centerY + 4);
+    }
+  },
+
+  wrapText: function(ctx, text, maxWidth) {
+    const words = String(text || '').split(/\s+/);
+    const lines = [];
+    let line = '';
+    for (const word of words) {
+      const next = line ? line + ' ' + word : word;
+      if (line && ctx.measureText(next).width > maxWidth) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = next;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  },
+
+  renderLandmarkDetail: function(ctx) {
+    const landmark = LANDMARKS[this.data.selectedLandmark];
+    if (!landmark) return;
+    const x = 12;
+    const y = G.H - 252;
+    const w = G.W - 24;
+    const h = 244;
+
+    R.roundRect(ctx, x, y, w, h, R.radius.l, R.colors.surfaceElevated);
+    ctx.strokeStyle = R.colors.gold;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = R.colors.goldLight;
+    ctx.font = R.fonts.xl || R.fonts.lg;
+    ctx.fillText(landmark.icon, x + 18, y + 36);
+    ctx.fillStyle = R.colors.textPrimary;
+    ctx.font = R.fonts.lg;
+    ctx.fillText(landmark.name, x + 58, y + 32);
+
+    ctx.font = R.fonts.sm;
+    ctx.fillStyle = R.colors.textSecondary;
+    const descriptionLines = this.wrapText(ctx, landmark.description, w - 36).slice(0, 3);
+    for (let i = 0; i < descriptionLines.length; i++) {
+      ctx.fillText(descriptionLines[i], x + 18, y + 70 + i * 18);
+    }
+
+    const relevanceY = y + 130;
+    ctx.fillStyle = R.colors.gold;
+    ctx.font = R.fonts.xs;
+    ctx.fillText('REGIONAL RELEVANCE', x + 18, relevanceY);
+    ctx.fillStyle = R.colors.textSecondary;
+    ctx.font = R.fonts.sm;
+    const relevanceLines = this.wrapText(ctx, landmark.relevance, w - 36).slice(0, 2);
+    for (let i = 0; i < relevanceLines.length; i++) {
+      ctx.fillText(relevanceLines[i], x + 18, relevanceY + 20 + i * 18);
+    }
+
+    if (landmark.action && landmark.action.label) {
+      ctx.fillStyle = R.colors.goldLight;
+      ctx.font = R.fonts.xs;
+      ctx.fillText(landmark.action.label, x + 18, y + h - 18);
+    }
   },
 
   renderDetailPanel: function(ctx) {
