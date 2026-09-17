@@ -10,7 +10,7 @@ Milestone 2 turns the existing Travel Map into a persistent, touch-first world s
 
 - [ ] **Phase 6: World-State Continuity** - Players' evolving world state survives reloads and legacy saves safely.
 - [x] **Phase 7: Visual Region Map** - Players navigate distinct existing regions through a clear touch-first map. (completed 2026-09-17)
-- [ ] **Phase 8: Landmark Discovery** - Players discover and inspect persistent points of interest in existing zones.
+- [x] **Phase 8: Landmark Discovery** - Players discover and inspect persistent points of interest in existing zones. (completed 2026-09-17)
 - [ ] **Phase 9: Regional Influence & Control** - Player actions visibly change regional influence and control.
 - [ ] **Phase 10: Environmental Narrative Echoes** - Encounter choices visibly reshape regional presentation.
 - [ ] **Phase 11: Dynamic World Events** - Periodic local events appear, progress, and resolve through the map.
@@ -65,7 +65,7 @@ Plans:
 
 Plans:
 - [x] 08-01-PLAN.md — Create landmark data definitions and discovery engine (landmarks.js + landmarks system).
-- [ ] 08-02-PLAN.md — Integrate landmark indicators and detail view into travel map scene.
+- [x] 08-02-PLAN.md — Integrate landmark indicators and detail view into travel map scene.
 **UI hint**: yes
 
 ### Phase 9: Regional Influence & Control
