@@ -12,7 +12,7 @@ Milestone 2 turns the existing Travel Map into a persistent, touch-first world s
 - [x] **Phase 7: Visual Region Map** - Players navigate distinct existing regions through a clear touch-first map. (completed 2026-09-17)
 - [x] **Phase 8: Landmark Discovery** - Players discover and inspect persistent points of interest in existing zones. (completed 2026-09-17)
 - [x] **Phase 9: Regional Influence & Control** - Player actions visibly change regional influence and control. (completed 2026-09-17)
-- [ ] **Phase 10: Environmental Narrative Echoes** - Encounter choices visibly reshape regional presentation.
+- [ ] **Phase 10: Environmental Narrative Echoes** - Encounter choices visibly reshape regional presentation. (10-01 complete, 10-02 pending)
 - [ ] **Phase 11: Dynamic World Events** - Periodic local events appear, progress, and resolve through the map.
 - [ ] **Phase 12: Living Map Performance & Stability** - The complete map stays smooth, leak-free, and accessible on mobile.
 
@@ -96,7 +96,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Create narrative echo data definitions and NarrativeEchoes system API.
+- [x] 10-01-PLAN.md — Create narrative echo data definitions and NarrativeEchoes system API. (completed 2026-09-17)
 - [ ] 10-02-PLAN.md — Integrate echo markers and descriptions into Travel Map rendering.
 **UI hint**: yes
 
