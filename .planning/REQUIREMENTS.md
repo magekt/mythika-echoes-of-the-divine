@@ -128,13 +128,13 @@ The living map remains responsive and memory-stable on representative mobile har
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REQ-013 | Phase 7 | Pending |
+| REQ-013 | Phase 7 | Complete |
 | REQ-014 | Phase 8 | Pending |
 | REQ-015 | Phase 6 | Complete |
 | REQ-016 | Phase 9 | Pending |
 | REQ-017 | Phase 10 | Pending |
 | REQ-018 | Phase 11 | Pending |
-| REQ-019 | Phase 7 | Pending |
+| REQ-019 | Phase 7 | Complete |
 | REQ-020 | Phase 12 | Pending |
 
 **Coverage:** 8/8 active Milestone 2 requirements mapped exactly once.

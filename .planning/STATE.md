@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-09-16T09:24:39.145Z"
-last_activity: 2026-09-16
+status: executing
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-09-17T04:54:37.052Z"
+last_activity: 2026-09-17
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 100
+  total_plans: 9
+  completed_plans: 4
+  percent: 44
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: `.planning/PROJECT.md` (updated 2026-09-15)
 ## Current Position
 
 Phase: 08 (Landmark Discovery) — PLANNING
-Plan: 0 of 2
-Status: 09 plans complete — ready for execution
+Plan: 1 of 2
+Status: Ready to execute
 Last activity: 2026-09-17
 
 Progress: [██████████] 100%
@@ -61,6 +61,7 @@ Progress: [██████████] 100%
 | Phase 06 P01 | 8min | 1 tasks | 4 files |
 | Phase 06 P02 | 6min | 1 tasks | 2 files |
 | Phase 07 P01 | 4min | 2 tasks | 5 files |
+| Phase 07 P02 | 21min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 06]: Keep version-1 save envelopes valid and normalize the nested world branch during the existing migration pass.
 - [Phase 06]: Replace world data with a fresh canonical default if the WorldState global is unexpectedly unavailable.
 - [Phase 06]: Preserve unrelated top-level progress and restore one-time records without invoking mutation side effects during load.
+- [Phase 07]: Use a 15px movement threshold to distinguish intentional region taps from map panning. — Prevents accidental region activation during touch and pointer drag gestures.
+- [Phase 07]: Keep zone entry authoritative by rechecking MapHelpers status before transitioning to zoneExploration. — Avoids stale selection state bypassing canonical zone access rules.
 
 ### Project Skill Constraints
 
@@ -124,7 +127,7 @@ Milestone 1 completion state remains available in git history (`d339303`).
 
 ## Session Continuity
 
-Last session: 2026-09-16T17:15:00.000Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-09-17T04:53:58.148Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
 Next command: `/gsd-execute-phase 7`

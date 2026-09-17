@@ -9,7 +9,7 @@ Milestone 2 turns the existing Travel Map into a persistent, touch-first world s
 **Phase Numbering:** Milestone 1 completed Phases 1–5; Milestone 2 continues at Phase 6.
 
 - [ ] **Phase 6: World-State Continuity** - Players' evolving world state survives reloads and legacy saves safely.
-- [ ] **Phase 7: Visual Region Map** - Players navigate distinct existing regions through a clear touch-first map.
+- [x] **Phase 7: Visual Region Map** - Players navigate distinct existing regions through a clear touch-first map. (completed 2026-09-17)
 - [ ] **Phase 8: Landmark Discovery** - Players discover and inspect persistent points of interest in existing zones.
 - [ ] **Phase 9: Regional Influence & Control** - Player actions visibly change regional influence and control.
 - [ ] **Phase 10: Environmental Narrative Echoes** - Encounter choices visibly reshape regional presentation.
@@ -48,8 +48,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Define map layout data and MapHelpers (zone status, lock reasons, influence queries).
-- [ ] 07-02-PLAN.md — Rewrite travelMap.js as a spatial visual region map with touch pan and detail panel.
+- [x] 07-01-PLAN.md — Define map layout data and MapHelpers (zone status, lock reasons, influence queries).
+- [x] 07-02-PLAN.md — Rewrite travelMap.js as a spatial visual region map with touch pan and detail panel.
 **UI hint**: yes
 
 ### Phase 8: Landmark Discovery
@@ -126,7 +126,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 6. World-State Continuity | 2/2 | Complete | 2026-09-16 |
-| 7. Visual Region Map | 1/2 | In Progress | - |
+| 7. Visual Region Map | 2/2 | Complete   | 2026-09-17 |
 | 8. Landmark Discovery | 0/TBD | Not started | - |
 | 9. Regional Influence & Control | 0/TBD | Not started | - |
 | 10. Environmental Narrative Echoes | 0/TBD | Not started | - |
