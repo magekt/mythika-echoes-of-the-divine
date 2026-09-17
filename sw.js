@@ -1,10 +1,10 @@
-// Mythika service worker v10
+// Mythika service worker v11
 // Assets: cache-first (instant loads). Files missing from the precache list
 // are fetched from network, cached at runtime on success, and NEVER reject
 // (a rejected FetchEvent promise surfaces as net::ERR_FAILED and can leave
 // the game half-booted with dead buttons).
 // index.html: network-first so deploys land immediately.
-const CACHE = 'mythika-v10';
+const CACHE = 'mythika-v11';
 
 const ASSETS = [
 'src/engine/firebase-config.js',
@@ -18,6 +18,9 @@ const ASSETS = [
   'src/data/heroes.js',
   'src/data/enemies.js',
   'src/data/zones.js',
+  'src/data/map_layout.js',
+  'src/data/landmarks.js',
+  'src/data/influence_rules.js',
   'src/data/perks.js',
   'src/data/auras.js',
   'src/data/items.js',
@@ -37,6 +40,8 @@ const ASSETS = [
   'src/systems/alchemy.js',
   'src/systems/save.js',
   'src/systems/world_state.js',
+  'src/systems/influence.js',
+  'src/systems/landmarks.js',
   'src/systems/farm.js',
   'src/systems/quest.js',
   'src/systems/achievements.js',
@@ -56,6 +61,7 @@ const ASSETS = [
   'src/scenes/title.js',
   'src/scenes/characterCreate.js',
   'src/scenes/ashram.js',
+  'src/scenes/map_helpers.js',
   'src/scenes/travelMap.js',
   'src/scenes/zoneExploration.js',
   'src/scenes/combatScene.js',
