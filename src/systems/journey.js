@@ -116,6 +116,17 @@ JourneySystem.choose = function(journeyId, choiceIdx) {
     p.nodeId = null;
     G.state.journeys.active = null;
     Notify.show('Journey complete: ' + j.name + '!', 3, R.colors.gold);
+    if (typeof Influence !== 'undefined' && Influence.applyAction) {
+      const rule = typeof INFLUENCE_RULES !== 'undefined' && INFLUENCE_RULES.getRule
+        ? INFLUENCE_RULES.getRule('journey_complete', journeyId)
+        : null;
+      if (rule) {
+        const inf = Influence.applyAction('journey_complete', journeyId, rule.zoneId);
+        if (inf.changed && typeof Notify !== 'undefined') {
+          Notify.show(j.name + ' — ' + inf.to.control + ' influence!', 4, R.colors.gold);
+        }
+      }
+    }
     Audio.levelUp();
     AchievementSystem.check();
     try { if (typeof posthog !== 'undefined') posthog.capture('journey_completed', { journeyId }); } catch(e) {}

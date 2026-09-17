@@ -726,6 +726,13 @@ const combatScene = Scene.create({
         G.state.flags.bossesDefeated = (G.state.flags.bossesDefeated || 0) + 1;
         G.state.flags['boss_' + G.state.currentZone] = true;
         this.data.log.push('Boss defeated!');
+        if (typeof Influence !== 'undefined' && Influence.applyAction) {
+          const inf = Influence.applyAction('boss_defeat', G.state.currentZone, G.state.currentZone);
+          if (inf.changed && inf.to.control !== inf.from.control) {
+            this.data.log.push('Region influence shifted: ' + inf.to.control);
+            if (typeof Notify !== 'undefined') Notify.show('Boss defeated! ' + G.state.currentZone + ' shifts to ' + inf.to.control, 4, R.colors.gold);
+          }
+        }
       }
       if (G.state.isBossFight) G.state.isBossFight = false;
       if (leveled) { this.data.log.push('Level up!'); R.triggerLevelUp(); }
