@@ -174,6 +174,20 @@ EncounterSystem.choose = function(id, choiceIdx) {
     QuestSystem.trackEncounter(id);
   }
 
+  // --- Influence change for this encounter choice ---
+  if (typeof Influence !== 'undefined' && Influence.applyAction) {
+    const encounter = ENCOUNTERS && ENCOUNTERS[id];
+    const zoneId = encounter && encounter.zones && encounter.zones[0]
+      ? encounter.zones[0]
+      : (typeof G !== 'undefined' ? G.state.currentZone : null);
+    if (zoneId) {
+      const inf = Influence.applyAction('encounter_choice', id + '_' + choiceIdx, zoneId);
+      if (inf.changed && inf.to.control !== inf.from.control) {
+        if (typeof Notify !== 'undefined') Notify.show(encounter.name + ' — ' + zoneId + ' influence ' + (inf.delta > 0 ? '+' : '') + inf.delta + '!', 4, R.colors.gold);
+      }
+    }
+  }
+
   return {
     id: id,
     choiceIdx: choiceIdx,

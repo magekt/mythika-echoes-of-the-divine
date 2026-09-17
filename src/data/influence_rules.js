@@ -36,10 +36,16 @@ const INFLUENCE_RULES = {
   encounter_choice: {
     nagaBargain_share: influenceRule('dandaka', 10),
     nagaBargain_force: influenceRule('dandaka', -5),
+    nagaBargain_0: influenceRule('dandaka', 10),
+    nagaBargain_1: influenceRule('dandaka', -5),
     marutCrossing_ride: influenceRule('aryavarta', 5),
     marutCrossing_walk: influenceRule('aryavarta', 10),
+    marutCrossing_0: influenceRule('aryavarta', 5),
+    marutCrossing_1: influenceRule('aryavarta', 10),
     vasukiTribute_offer: influenceRule('patala', 15),
-    vasukiTribute_refuse: influenceRule('patala', -10)
+    vasukiTribute_refuse: influenceRule('patala', -10),
+    vasukiTribute_0: influenceRule('patala', 15),
+    vasukiTribute_1: influenceRule('patala', -10)
   },
 
   journey_complete: {
