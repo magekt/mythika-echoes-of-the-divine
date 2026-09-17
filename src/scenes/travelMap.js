@@ -502,7 +502,7 @@ const travelMapScene = Scene.create({
     const completion = MapHelpers.getCompletion(zoneId);
     const statusColor = MapHelpers.getStatusColor(status);
     const lockReason = MapHelpers.getLockReason(zoneId);
-    const region = typeof WorldState !== 'undefined' && WorldState.getRegion ? WorldState.getRegion(zoneId) : null;
+    const region = MapHelpers.getControlState(zoneId);
     const x = 12;
     const y = G.H - 252;
     const w = G.W - 24;
