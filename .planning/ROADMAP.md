@@ -93,7 +93,11 @@ Plans:
   2. At least two opposing encounter branches result in visibly different regional outcomes.
   3. The map communicates each consequence in player-facing language rather than exposing internal flags.
   4. Narrative echoes persist after reload and remain understandable with reduced motion enabled.
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Create narrative echo data definitions and NarrativeEchoes system API.
+- [ ] 10-02-PLAN.md — Integrate echo markers and descriptions into Travel Map rendering.
 **UI hint**: yes
 
 ### Phase 11: Dynamic World Events
@@ -129,7 +133,7 @@ Plans:
 | 7. Visual Region Map | 2/2 | Complete   | 2026-09-17 |
 | 8. Landmark Discovery | 0/TBD | Not started | - |
 | 9. Regional Influence & Control | 0/TBD | Not started | - |
-| 10. Environmental Narrative Echoes | 0/TBD | Not started | - |
+| 10. Environmental Narrative Echoes | 0/2 | Planned | - |
 | 11. Dynamic World Events | 0/TBD | Not started | - |
 | 12. Living Map Performance & Stability | 0/TBD | Not started | - |
 
