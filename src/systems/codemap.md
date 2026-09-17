@@ -111,12 +111,17 @@
 - `ZoneRewardSystem.commitPendingProgress()` — commits pending progress and crossed percentage rewards
 - `ZoneRewardSystem.completeZone(zoneId)` — commits remaining progress and the one-time completion bundle
 
-**Dependencies**: `ZONES`, `Economy`, `G`
+**Dependencies**: `ZONES`, `Economy`, `Influence`, `G`
 
-**State Mutations**: `G.state.zoneProgress`, `G.state.zoneRewardLedger`, current party stats and completion currencies
+**State Mutations**: `G.state.zoneProgress`, `G.state.zoneRewardLedger`, `G.state.world.regions`, current party stats and completion currencies
+
+### Encounter System (`encounter.js`)
+**Responsibility**: Resolves narrative choices, canonical rewards, story flags, quest tracking, and exactly-once regional influence actions keyed by encounter and choice index.
+
+**Dependencies**: `ENCOUNTERS`, reward systems, `QuestSystem`, `Influence`
 
 ### Journey System (`journey.js` — ~200 lines)
-**Responsibility**: Narrative journeys with choices, aura unlocks, progress tracking.
+**Responsibility**: Narrative journeys with choices, aura unlocks, progress tracking, and rule-driven regional influence on completion.
 
 **Key Exports**:
 - `JourneySystem.start(journeyId)` — initializes journey state
@@ -124,7 +129,7 @@
 - `JourneySystem.getProgress(journeyId)` — completion percentage
 - `JourneySystem.trackRealm(realmId)` — realm-based journey triggers
 
-**Dependencies**: `JOURNEYS` data, `QuestSystem`, `Notify`, `Audio`, `Progression`
+**Dependencies**: `JOURNEYS` data, `QuestSystem`, `Notify`, `Audio`, `Progression`, `INFLUENCE_RULES`, `Influence`
 
 **State Mutations**: `G.state.journeys.progress`, `G.state.auras`, `G.state.equippedAuras`
 

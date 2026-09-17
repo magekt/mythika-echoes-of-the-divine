@@ -22,14 +22,14 @@
 | `welcome.js` | First-run onboarding, class selection | Progression (class), SaveSystem |
 | `characterCreate.js` | Name + stat allocation (10 points) | Progression, HEROES data |
 | `ashram.js` | Home base — navigation hub, stats, upgrades | CultivationSystem, Economy, JourneySystem, ZoneAccess, FluidNav |
-| `travelMap.js` | Zone selection, progress overview; Veteran badge when `tournamentWins >= 3` | ZONES data, ZoneAccess, zoneProgress |
+| `travelMap.js` | Zone selection, progress overview, regional influence and control; Veteran badge when `tournamentWins >= 3` | ZONES data, ZoneAccess, MapHelpers, zoneProgress |
 | `zoneExploration.js` | Zone gameplay — explore, rest, fish, encounters | ZoneAccess, Combat (encounters), Economy, Fishing |
 | `cultivationScene.js` | Realm progression, meditation, breakthrough | CultivationSystem, PremiumShell, HeroMoment |
 
 ### Combat & Party
 | Scene | Purpose | Key Systems |
 |-------|---------|-------------|
-| `combatScene.js` | Turn-based combat with timing taps | Combat, Progression, AURAS, SpiritBeasts |
+| `combatScene.js` | Turn-based combat with timing taps and exactly-once boss-defeat influence | Combat, Progression, Influence, AURAS, SpiritBeasts |
 | `party.js` | Hero management — equip, skills, stats | Progression, EquipmentSystem, ITEMS, AURAS, CLASSES |
 | `equipment.js` | Gear inspection, comparison, salvage | EquipmentSystem, ITEMS, Economy, Forge |
 | `trials.js` | Endless wave survival | Combat, Progression, Economy |
