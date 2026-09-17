@@ -96,6 +96,22 @@ const MapHelpers = {
     }
     const region = WorldState.getRegion(zoneId);
     return (region && typeof region.control === 'string') ? region.control : 'neutral';
+  },
+
+  // Returns the active narrative echo array for a zone, or empty array
+  // Delegates to NarrativeEchoes.getForRegion(zoneId)
+  getNarrativeEchoes(zoneId) {
+    if (typeof NarrativeEchoes === 'undefined' || typeof NarrativeEchoes.getForRegion !== 'function') {
+      return [];
+    }
+    return NarrativeEchoes.getForRegion(zoneId);
+  },
+
+  // Returns the first active echo's marker color, or null if no echo
+  getNarrativeEchoColor(zoneId) {
+    const echoes = this.getNarrativeEchoes(zoneId);
+    if (!echoes.length) return null;
+    return echoes[0].markerColor || null;
   }
 };
 

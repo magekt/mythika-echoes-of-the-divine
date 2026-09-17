@@ -10,6 +10,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_nagaBargain_share',
     label: 'Serpent\u2019s Blessing',
     desc: 'Bioluminescent fungi bloom along the ford, their light pulsing in time with the river — the naga\u2019s quiet thanks.',
+    markerColor: '#FFD700',
   },
   {
     flagKey: 'enc_nagaBargain',
@@ -18,6 +19,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_nagaBargain_force',
     label: 'Broken Scales',
     desc: 'Shattered naga scales litter the banks, sharp edges catching the light. The forest remembers the sound of conflict.',
+    markerColor: '#4A6FA5',
   },
   {
     flagKey: 'enc_marutCrossing',
@@ -26,6 +28,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_marutCrossing_ride',
     label: 'Wind-Torn Grass',
     desc: 'The Maruts\u2019 wake left the grasslands bent eastward for a mile, as though bowing to the speed of devas.',
+    markerColor: '#7B68EE',
   },
   {
     flagKey: 'enc_marutCrossing',
@@ -34,6 +37,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_marutCrossing_walk',
     label: 'Stone-Shod Path',
     desc: 'A line of deeply embedded stones marks a road where the patient chose their own pace, untouchable by storm.',
+    markerColor: '#6B8E23',
   },
   {
     flagKey: 'enc_marutCrossing',
@@ -42,6 +46,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_marutCrossing_ride',
     label: 'Scorched Canopy',
     desc: 'Lightning-scorched trunks arc over the forest road, the Maruts\u2019 fury still faintly crackling in the bark.',
+    markerColor: '#7B68EE',
   },
   {
     flagKey: 'enc_marutCrossing',
@@ -50,6 +55,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_marutCrossing_walk',
     label: 'Damp Trail',
     desc: 'The forest floor here is soaked and quiet — rain fell only where the storm-walkers decided it would.',
+    markerColor: '#6B8E23',
   },
   {
     flagKey: 'enc_rishiBoon',
@@ -58,6 +64,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_rishiBoon_wisdom',
     label: 'Lotus Mandala',
     desc: 'A ring of white lotus flowers has sprung up in the grass — the rishi\u2019s gift of insight made visible.',
+    markerColor: '#00CED1',
   },
   {
     flagKey: 'enc_rishiBoon',
@@ -66,6 +73,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_rishiBoon_protection',
     label: 'Iron Thorns',
     desc: 'A hedge of thorned ironwood now guards the crossroads, a silent sentinel for those the rishi chose to shield.',
+    markerColor: '#DC143C',
   },
   {
     flagKey: 'enc_rishiBoon',
@@ -74,6 +82,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_rishiBoon_wisdom',
     label: 'Glowing Moss Script',
     desc: 'Phosphorescent moss has traced Sanskrit characters on ancient stone — a lingering echo of the rishi\u2019s discourse.',
+    markerColor: '#00CED1',
   },
   {
     flagKey: 'enc_rishiBoon',
@@ -82,6 +91,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_rishiBoon_protection',
     label: 'Barrier Stones',
     desc: 'Carved ward-stones stand at the path\u2019s edge, humming with low power — protection the rishi offered, now permanent.',
+    markerColor: '#DC143C',
   },
   {
     flagKey: 'enc_rishiBoon',
@@ -90,6 +100,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_rishiBoon_wisdom',
     label: 'Singing Crystal',
     desc: 'A small crystal embedded in the mountainside hums with the rishi\u2019s mantra, audible only to the worthy.',
+    markerColor: '#00CED1',
   },
   {
     flagKey: 'enc_rishiBoon',
@@ -98,6 +109,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_rishiBoon_protection',
     label: 'Shield Rune',
     desc: 'A glowing rune etched into the cliff face radiates calm authority — the rishi\u2019s ward against mountain perils.',
+    markerColor: '#DC143C',
   },
   {
     flagKey: 'enc_asuraWhisper',
@@ -106,6 +118,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_asuraWhisper_accepted',
     label: 'Dark Ember',
     desc: 'A coal-black flame flickers in a crevice, warm and beckoning — the asura\u2019s gift still burning in Patala\u2019s depths.',
+    markerColor: '#9400D3',
   },
   {
     flagKey: 'enc_asuraWhisper',
@@ -114,6 +127,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_asuraWhisper_refused',
     label: 'Broken Seal',
     desc: 'A shattered iron seal lies on the ground, the asura\u2019s mark cracked clean — proof that darkness was rejected here.',
+    markerColor: '#32CD32',
   },
   {
     flagKey: 'enc_asuraWhisper',
@@ -122,6 +136,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_asuraWhisper_accepted',
     label: 'Twisted Roots',
     desc: 'Tree roots twist into a claw-like pattern near the path — the forest recoils from the taint of a dark pact.',
+    markerColor: '#9400D3',
   },
   {
     flagKey: 'enc_asuraWhisper',
@@ -130,6 +145,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_asuraWhisper_refused',
     label: 'Unblemished Grove',
     desc: 'This grove is conspicuously pristine, free of shadow-blight — the asura\u2019s influence withered where it was refused.',
+    markerColor: '#32CD32',
   },
   {
     flagKey: 'enc_yakshaRiddle',
@@ -138,6 +154,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_yakshaRiddle_correct',
     label: 'Yaksha Shrine',
     desc: 'A small stone shrine has appeared on the path, adorned with coins and flowers — the yaksha\u2019s approval made manifest.',
+    markerColor: '#FFD700',
   },
   {
     flagKey: 'enc_yakshaRiddle',
@@ -146,6 +163,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_yakshaRiddle_honest',
     label: 'Cracked Jewel',
     desc: 'A single cracked jewel lies half-buried in the scree, still faintly luminous — the yaksha\u2019s respect for honesty.',
+    markerColor: '#DDA0DD',
   },
   {
     flagKey: 'enc_yakshaRiddle',
@@ -154,6 +172,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_yakshaRiddle_correct',
     label: 'Celestial Lattice',
     desc: 'A lattice of golden wire and gemstones spans a gap in the path — the yaksha\u2019s riddle answered correctly.',
+    markerColor: '#FFD700',
   },
   {
     flagKey: 'enc_yakshaRiddle',
@@ -162,6 +181,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_yakshaRiddle_honest',
     label: 'Honest Wind',
     desc: 'A clear, cool breeze where none should exist — the yaksha\u2019s blessing on those who chose truth over cleverness.',
+    markerColor: '#DDA0DD',
   },
   {
     flagKey: 'enc_devBlessing',
@@ -170,6 +190,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_devBlessing_vitality',
     label: 'Golden Wheat',
     desc: 'The wheat in this field grows golden and tall, radiant with the vitality the deva bestowed.',
+    markerColor: '#FF8C00',
   },
   {
     flagKey: 'enc_devBlessing',
@@ -178,6 +199,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_devBlessing_fortune',
     label: 'Coin Bloom',
     desc: 'Wildflowers shaped like coins carpet the roadside — fortune\u2019s echo scattered across the grasslands.',
+    markerColor: '#FFD700',
   },
   {
     flagKey: 'enc_devBlessing',
@@ -186,6 +208,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_devBlessing_vitality',
     label: 'Verdant Canopy',
     desc: 'The canopy here is thick and luminous green, teeming with life — the deva\u2019s vitality sustaining even dark places.',
+    markerColor: '#FF8C00',
   },
   {
     flagKey: 'enc_devBlessing',
@@ -194,6 +217,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_devBlessing_fortune',
     label: 'Amber Sap',
     desc: 'Trees weep amber sap rich with latent gold — the deva\u2019s fortune seeping into the forest\u2019s bones.',
+    markerColor: '#FFD700',
   },
   {
     flagKey: 'enc_devBlessing',
@@ -202,6 +226,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_devBlessing_vitality',
     label: 'Spring of Life',
     desc: 'A spring of crystalline water bubbles from a high crevice, revitalizing all who drink — the deva\u2019s vitality made eternal.',
+    markerColor: '#FF8C00',
   },
   {
     flagKey: 'enc_devBlessing',
@@ -210,6 +235,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_devBlessing_fortune',
     label: 'Mineral Vein',
     desc: 'A vein of luminous mineral runs along the mountainside — the deva\u2019s fortune exposed for those with eyes to see.',
+    markerColor: '#FFD700',
   },
   {
     flagKey: 'enc_devBlessing',
@@ -218,6 +244,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_devBlessing_vitality',
     label: 'Ambrosia Pool',
     desc: 'A shallow pool shimmers with an otherworldly iridescence — the deva\u2019s vitality manifest in Svarga\u2019s pure air.',
+    markerColor: '#FF8C00',
   },
   {
     flagKey: 'enc_devBlessing',
@@ -226,6 +253,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_devBlessing_fortune',
     label: 'Stardust Drift',
     desc: 'Fine golden dust drifts on the celestial wind — the deva\u2019s fortune scattered among the stars.',
+    markerColor: '#FFD700',
   },
   {
     flagKey: 'enc_tapasPilgrim',
@@ -234,6 +262,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_tapasPilgrim_sat',
     label: 'Ash Circle',
     desc: 'A perfect circle of white ash marks the spot where tapas burned — the pilgrim\u2019s sacred fire made permanent.',
+    markerColor: '#FF4500',
   },
   {
     flagKey: 'enc_tapasPilgrim',
@@ -242,6 +271,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_tapasPilgrim_water',
     label: 'Dew-Hung Web',
     desc: 'An intricate spider web hung with morning dew catches the light — water\u2019s quiet triumph over the pilgrim\u2019s flame.',
+    markerColor: '#1E90FF',
   },
   {
     flagKey: 'enc_tapasPilgrim',
@@ -250,6 +280,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_tapasPilgrim_sat',
     label: 'Flame Pedestal',
     desc: 'A pedestal of charred stone stands before the celestial gates — the pilgrim\u2019s sacrifice remembered in Svarga.',
+    markerColor: '#FF4500',
   },
   {
     flagKey: 'enc_tapasPilgrim',
@@ -258,6 +289,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_tapasPilgrim_water',
     label: 'Celestial Cascade',
     desc: 'A new waterfall spills from the highest terrace — water\u2019s grace carried to the heavens.',
+    markerColor: '#1E90FF',
   },
   {
     flagKey: 'enc_tapasPilgrim',
@@ -266,6 +298,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_tapasPilgrim_sat',
     label: 'Smoldering Ground',
     desc: 'The earth here is baked hard and still warm, the pilgrim\u2019s tapas leaving a permanent mark on sacred ground.',
+    markerColor: '#FF4500',
   },
   {
     flagKey: 'enc_tapasPilgrim',
@@ -274,6 +307,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_tapasPilgrim_water',
     label: 'Pilgrim Spring',
     desc: 'A spring has burst from the scorched earth — water answered fire, and the pilgrim bowed to the greater truth.',
+    markerColor: '#1E90FF',
   },
   {
     flagKey: 'enc_nagaElder',
@@ -282,6 +316,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_nagaElder_mercy',
     label: 'Gilded Coil',
     desc: 'The elder naga\u2019s shed scales, gilded with gratitude, hang from a stone archway deep in Patala.',
+    markerColor: '#20B2AA',
   },
   {
     flagKey: 'enc_nagaElder',
@@ -290,6 +325,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_nagaElder_strength',
     label: 'Crushed Pillar',
     desc: 'A stone pillar has been crushed to rubble — the naga\u2019s strength honored, its destruction a monument to resolve.',
+    markerColor: '#B22222',
   },
   {
     flagKey: 'enc_nagaElder',
@@ -298,6 +334,7 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_nagaElder_mercy',
     label: 'Warding Fins',
     desc: 'Petrified naga fins stand along the riverbank, a permanent ward placed by the grateful elder.',
+    markerColor: '#20B2AA',
   },
   {
     flagKey: 'enc_nagaElder',
@@ -306,5 +343,6 @@ const NARRATIVE_ECHOES = [
     marker: 'enc_nagaElder_strength',
     label: 'Broken Dam',
     desc: 'The river dam lies in pieces, the naga\u2019s force reshaping the waterway — strength honored with strength.',
+    markerColor: '#B22222',
   }
 ];
