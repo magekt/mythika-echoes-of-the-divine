@@ -11,7 +11,7 @@ Milestone 2 turns the existing Travel Map into a persistent, touch-first world s
 - [ ] **Phase 6: World-State Continuity** - Players' evolving world state survives reloads and legacy saves safely.
 - [x] **Phase 7: Visual Region Map** - Players navigate distinct existing regions through a clear touch-first map. (completed 2026-09-17)
 - [x] **Phase 8: Landmark Discovery** - Players discover and inspect persistent points of interest in existing zones. (completed 2026-09-17)
-- [ ] **Phase 9: Regional Influence & Control** - Player actions visibly change regional influence and control.
+- [x] **Phase 9: Regional Influence & Control** - Player actions visibly change regional influence and control. (completed 2026-09-17)
 - [ ] **Phase 10: Environmental Narrative Echoes** - Encounter choices visibly reshape regional presentation.
 - [ ] **Phase 11: Dynamic World Events** - Periodic local events appear, progress, and resolve through the map.
 - [ ] **Phase 12: Living Map Performance & Stability** - The complete map stays smooth, leak-free, and accessible on mobile.
@@ -81,7 +81,7 @@ Plans:
 
 Plans:
 - [x] 09-01-PLAN.md — Create influence rules data (influence_rules.js) and authoritative influence engine (influence.js).
-- [ ] 09-02-PLAN.md — Wire zone completion, boss defeat, encounter choice, and journey completion into Influence API.
+- [x] 09-02-PLAN.md — Wire zone completion, boss defeat, encounter choice, and journey completion into Influence API.
 **UI hint**: yes
 
 ### Phase 10: Environmental Narrative Echoes

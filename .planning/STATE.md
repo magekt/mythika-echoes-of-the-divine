@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-09-17T09:56:00.000Z"
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-09-17T10:31:42.000Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 7
-  percent: 78
+  completed_plans: 8
+  percent: 89
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: `.planning/PROJECT.md` (updated 2026-09-15)
 
 ## Current Position
 
-Phase: 09 (Regional Influence & Control) — EXECUTING
+Phase: 09 (Regional Influence & Control) — COMPLETE
 Plan: 2 of 2
-Status: Plan 09-01 complete; ready to execute 09-02
+Status: Plan 09-02 complete; phase complete
 Last activity: 2026-09-17
 
-Progress: [████████░░] 78%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -65,6 +65,7 @@ Progress: [████████░░] 78%
 | Phase 08 P01 | 13min | 2 tasks | 5 files |
 | Phase 08 P02 | 26min | 2 tasks | 2 files |
 | Phase 09 P01 | 6min | 1 tasks | 5 files |
+| Phase 09 P02 | 11min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Recent decisions affecting current work:
 - [Phase 7]: Replace the zone list with a visual map while retaining authoritative `ZoneAccess` rules and existing zone IDs.
 - [Phase 8]: Landmarks attach to existing zones and are revealed by existing progress/flags/world state; no new zones.
 - [Phase 9]: Influence changes enter through one authoritative API and canonical gameplay hooks, never render-time mutation.
+- [Phase 9]: Encounter hooks use stable index-based action IDs backed by rule aliases; journey zones remain rule-owned.
+- [Phase 9]: Travel Map consumes regional control through MapHelpers rather than reading WorldState directly.
 - [Phase 10]: Environmental storytelling derives from existing encounter consequence flags.
 - [Phase 11]: World events use deterministic local timestamps and bounded state; no backend.
 - [Phase 12]: Mobile probe, scene cleanup, save growth, and reduced motion are explicit milestone gates.

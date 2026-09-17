@@ -44,7 +44,7 @@ The living world's mutable state is safe, deterministic, and persistent across s
 
 **Evidence**: Default, legacy, partial, malformed, and round-trip save tests for world state.
 
-### REQ-016 — Regional Influence & Control (ACTIVE)
+### REQ-016 — Regional Influence & Control (VALIDATED)
 Canonical player actions can alter regional influence or control, and the player can see that impact.
 
 **Acceptance criteria**
@@ -131,7 +131,7 @@ The living map remains responsive and memory-stable on representative mobile har
 | REQ-013 | Phase 7 | Complete |
 | REQ-014 | Phase 8 | Complete |
 | REQ-015 | Phase 6 | Complete |
-| REQ-016 | Phase 9 | Pending |
+| REQ-016 | Phase 9 | Complete |
 | REQ-017 | Phase 10 | Pending |
 | REQ-018 | Phase 11 | Pending |
 | REQ-019 | Phase 7 | Complete |
