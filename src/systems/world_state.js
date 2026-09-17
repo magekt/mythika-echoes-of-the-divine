@@ -141,6 +141,10 @@ WorldState._metadata = function(metadata) {
   return this._cloneData(metadata);
 };
 
+WorldState.getWorld = function() {
+  return this._ensureWorld();
+};
+
 WorldState.getRegion = function(zoneId) {
   const world = G.state.world;
   if (!this._safeKey(zoneId) || !this._plainObject(world) || !this._plainObject(world.regions)) return null;
