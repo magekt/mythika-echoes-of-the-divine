@@ -110,7 +110,12 @@ Plans:
   3. Suspending or closing the game and returning later advances event timing correctly without requiring a backend.
   4. Resolving an event routes outcomes through canonical gameplay/reward systems and cannot reward the player twice.
   5. Repeated event cycles keep save history bounded and do not crowd the map with stale activity.
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — World event data definitions and system API with generate/tick/resolve/history.
+- [ ] 11-02-PLAN.md — Map integration: event indicators, detail panel, resolve action, human verification.
+
 **UI hint**: yes
 
 ### Phase 12: Living Map Performance & Stability
