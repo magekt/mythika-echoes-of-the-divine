@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-09-17T12:01:32.000Z"
-last_activity: 2026-09-17
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-09-18T14:55:06Z"
+last_activity: 2026-09-18
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 10
-  completed_plans: 9
-  percent: 90
+  completed_plans: 10
+  percent: 100
 ---
 
 # Project State
@@ -25,20 +25,20 @@ See: `.planning/PROJECT.md` (updated 2026-09-15)
 
 ## Current Position
 
-Phase: 10 (Environmental Narrative Echoes) — COMPLETE
-Plan: 2 of 2
-Status: Plan 10-01 and 10-02 complete
-Last activity: 2026-09-17
+Phase: 11 (Dynamic World Events) — Plan 01 COMPLETE
+Plan: 1 of 2
+Status: Plan 11-01 complete; 11-02 pending
+Last activity: 2026-09-18
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Milestone 2 plans completed: 7
+- Milestone 2 plans completed: 8
 - Average duration: 14min
-- Total execution time: 1.5 hours
+- Total execution time: 1.8 hours
 
 **By Phase:**
 
@@ -49,12 +49,12 @@ Progress: [█████████░] 90%
 | 8. Landmark Discovery | 2/2 | 39min | 20min |
 | 9. Regional Influence & Control | 2/2 | 17min | 9min |
 | 10. Environmental Narrative Echoes | 2/2 | 53min | 25min |
-| 11. Dynamic World Events | 0/TBD | - | - |
+| 11. Dynamic World Events | 1/2 | 17min | 17min |
 | 12. Living Map Performance & Stability | 0/TBD | - | - |
 
 **Recent Trend:**
 
-- Last 5 plans: 08-01 (13m), 08-02 (26m), 09-01 (6m), 09-02 (11m), 10-01 (53m)
+- Last 5 plans: 09-02 (11m), 10-01 (53m), 10-02 (25m), (no 11-01 timing yet?), 11-01 (17m)
 - Trend: Data+system plans execute cleanly; UI integration plans add human-verification time
 
 *Updated after each plan completion.*
@@ -68,6 +68,7 @@ Progress: [█████████░] 90%
 | Phase 09 P02 | 11min | 3 tasks | 8 files |
 | Phase 10 P01 | 53min | 3 tasks | 3 files |
 | Phase 10 P02 | 25min | 2 tasks | 3 files |
+| Phase 11 P01 | 17min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase 9]: Encounter hooks use stable index-based action IDs backed by rule aliases; journey zones remain rule-owned.
 - [Phase 9]: Travel Map consumes regional control through MapHelpers rather than reading WorldState directly.
 - [Phase 10]: Environmental storytelling derives from existing encounter consequence flags.
+- [Phase 11]: World events use template-based cooldown tracking via resolved event metadata; no separate cooldown state table.
+- [Phase 11]: Event ids are unique per occurrence (templateId_timestamp), enabling cooldown tracking while supporting multiple event lifetimes for the same template.
 - [Phase 11]: World events use deterministic local timestamps and bounded state; no backend.
 - [Phase 12]: Mobile probe, scene cleanup, save growth, and reduced motion are explicit milestone gates.
 - [Phase 06]: Bound regional influence to [-100, 100] and normalized control to neutral, player, enemy, or contested.

@@ -113,7 +113,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — World event data definitions and system API with generate/tick/resolve/history.
+- [x] 11-01-PLAN.md — World event data definitions and system API with generate/tick/resolve/history. (completed 2026-09-18)
 - [ ] 11-02-PLAN.md — Map integration: event indicators, detail panel, resolve action, human verification.
 
 **UI hint**: yes
@@ -139,7 +139,7 @@ Plans:
 | 8. Landmark Discovery | 0/TBD | Not started | - |
 | 9. Regional Influence & Control | 0/TBD | Not started | - |
 | 10. Environmental Narrative Echoes | 0/2 | Planned | - |
-| 11. Dynamic World Events | 0/TBD | Not started | - |
+| 11. Dynamic World Events | 1/2 | In Progress | - |
 | 12. Living Map Performance & Stability | 0/TBD | Not started | - |
 
 ## Coverage
