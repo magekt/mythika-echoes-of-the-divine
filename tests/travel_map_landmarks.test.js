@@ -98,7 +98,9 @@ function loadScene(overrides = {}) {
       getStatus() { return 'available'; },
       getCompletion() { return 30; },
       getStatusColor() { return '#0f0'; },
-      getLockReason() { return ''; }
+      getLockReason() { return ''; },
+      getNarrativeEchoes() { return []; },
+      getWorldEvents() { return []; }
     },
     UI: {
       Modal: { active: false, handleInput() {} },
