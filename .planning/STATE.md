@@ -25,9 +25,9 @@ See: `.planning/PROJECT.md` (updated 2026-09-15)
 
 ## Current Position
 
-Phase: 11 (Dynamic World Events) — Plan 01 COMPLETE
-Plan: 1 of 2
-Status: Plan 11-01 complete; 11-02 pending
+Phase: 11 (Dynamic World Events) — Plan 11-01 complete; 11-02 automated work implemented (committed 2026-09-18, human verification + summary pending); 11-03 gap-closure plan created for stale travel_map_landmarks MapHelpers mock (full suite currently 47/48)
+Plan: 3 plans (11-01 done, 11-02 automated done, 11-03 pending)
+Status: Plan 11-01 complete; 11-02 implemented; 11-03 pending
 Last activity: 2026-09-18
 
 Progress: [██████████] 100%
