@@ -130,8 +130,8 @@ Plans:
   4. Reduced-motion mode removes nonessential map animation while preserving all state distinctions and actions.
 **Plans:** 2 plans
 Plans:
-- [ ] 12-01-PLAN.md — Per-frame allocation reduction and viewport culling
-- [ ] 12-02-PLAN.md — Scene lifecycle stability, reduced-motion audit, map probe, human verification
+- [ ] 12-01-PLAN.md — Offscreen grid canvas, per-frame allocation caching, and viewport culling
+- [ ] 12-02-PLAN.md — Scene lifecycle stability, reduced-motion enforcement, map probe, human verification
 **UI hint**: yes
 
 ## Progress
