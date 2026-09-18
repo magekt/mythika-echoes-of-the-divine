@@ -403,7 +403,33 @@ const travelMapScene = Scene.create({
     }
 
     this.renderLandmarkIndicators(ctx, entry, rect, locked);
+    this.renderEchoIndicators(ctx, entry, rect, locked);
     ctx.restore();
+  },
+
+  renderEchoIndicators: function(ctx, entry, rect, locked) {
+    if (locked) return;
+    const echoes = MapHelpers.getNarrativeEchoes(entry.zoneId);
+    if (!echoes.length) return;
+    const reduced = R.reducedMotion ? R.reducedMotion() : false;
+    const baseX = rect.x + 10;
+    const baseY = rect.y + rect.h - 28;
+    const gap = 16;
+
+    for (let i = 0; i < echoes.length; i++) {
+      const echo = echoes[i];
+      const color = echo.markerColor || R.colors.textDim;
+      const cx = baseX + i * gap;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(cx, baseY, 4, 0, Math.PI * 2);
+      ctx.fill();
+      if (reduced) continue;
+      ctx.fillStyle = R.colors.textPrimary;
+      ctx.font = R.fonts.xs;
+      ctx.textAlign = 'left';
+      ctx.fillText(echo.label, cx + 7, baseY + 3);
+    }
   },
 
   renderLandmarkIndicators: function(ctx, entry, rect, locked) {
@@ -531,6 +557,17 @@ const travelMapScene = Scene.create({
     ctx.fillStyle = R.colors.textSecondary;
     ctx.font = R.fonts.xs;
     ctx.fillText('Exploration ' + completion + '%', x + 18, y + 120);
+
+    const echoes = MapHelpers.getNarrativeEchoes(zoneId);
+    if (echoes.length && !lockReason) {
+      const echo = echoes[0];
+      ctx.fillStyle = echo.markerColor || R.colors.goldLight;
+      ctx.font = R.fonts.sm;
+      ctx.fillText(echo.label, x + 18, y + 145);
+      ctx.fillStyle = R.colors.textSecondary;
+      ctx.font = R.fonts.xs;
+      ctx.fillText((echo.desc || '').length > 50 ? echo.desc.slice(0, 47) + '\u2026' : echo.desc, x + 18, y + 160);
+    }
 
     if (lockReason) {
       ctx.fillStyle = R.colors.warning;
