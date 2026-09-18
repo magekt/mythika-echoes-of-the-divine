@@ -98,6 +98,9 @@ SaveSystem.load = function() {
     const farmResult = typeof FarmSystem !== 'undefined' && FarmSystem.tick
       ? FarmSystem.tick(elapsed, { notify: false, save: false })
       : { changed: false, harvested: 0, ready: 0 };
+    if (typeof WorldEvents !== 'undefined' && WorldEvents.tick) {
+      WorldEvents.tick(elapsed);
+    }
     if (elapsed > 60) {
       const cultPerSec = getCultivationPerSecond(G.state.ashramLevel || 1);
       const pranaPerSec = getPranaPerSecond(G.state.ashramLevel || 1);
