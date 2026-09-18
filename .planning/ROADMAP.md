@@ -13,7 +13,7 @@ Milestone 2 turns the existing Travel Map into a persistent, touch-first world s
 - [x] **Phase 8: Landmark Discovery** - Players discover and inspect persistent points of interest in existing zones. (completed 2026-09-17)
 - [x] **Phase 9: Regional Influence & Control** - Player actions visibly change regional influence and control. (completed 2026-09-17)
 - [x] **Phase 10: Environmental Narrative Echoes** - Encounter choices visibly reshape regional presentation. (complete)
-- [ ] **Phase 11: Dynamic World Events** - Periodic local events appear, progress, and resolve through the map.
+- [x] **Phase 11: Dynamic World Events** - Periodic local events appear, progress, and resolve through the map. (completed 2026-09-18; manual browser check for 11-02 flagged in STATE.md)
 - [ ] **Phase 12: Living Map Performance & Stability** - The complete map stays smooth, leak-free, and accessible on mobile.
 
 ## Phase Details
@@ -114,8 +114,8 @@ Plans:
 
 Plans:
 - [x] 11-01-PLAN.md — World event data definitions and system API with generate/tick/resolve/history. (completed 2026-09-18)
-- [x] 11-02-PLAN.md — Map integration: event indicators, detail panel, resolve action, human verification. (implemented 2026-09-18; final human verification + summary pending execution)
-- [ ] 11-03-PLAN.md — Gap closure: fix stale MapHelpers mock in travel_map_landmarks.test.js so the full suite passes (test-only).
+- [x] 11-02-PLAN.md — Map integration: event indicators, detail panel, resolve action, human verification. (completed 2026-09-18; automated 48/48; manual browser verification pending)
+- [x] 11-03-PLAN.md — Gap closure: fix stale MapHelpers mock in travel_map_landmarks.test.js so the full suite passes (test-only). (completed 2026-09-18)
 
 **UI hint**: yes
 

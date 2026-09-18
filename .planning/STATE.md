@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-09-18T14:55:06Z"
+stopped_at: Completed 11-03-PLAN.md — Phase 11 closeout
+last_updated: "2026-09-18T17:48:43Z"
 last_activity: 2026-09-18
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  completed_phases: 5
+  total_plans: 13
+  completed_plans: 13
   percent: 100
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-15)
 
 **Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Phase 11 — Dynamic World Events
+**Current focus:** Phase 12 — Living Map Performance & Stability
 
 ## Current Position
 
-Phase: 11 (Dynamic World Events) — Plan 11-01 complete; 11-02 automated work implemented (committed 2026-09-18, human verification + summary pending); 11-03 gap-closure plan created for stale travel_map_landmarks MapHelpers mock (full suite currently 47/48)
-Plan: 3 plans (11-01 done, 11-02 automated done, 11-03 pending)
-Status: Plan 11-01 complete; 11-02 implemented; 11-03 pending
+Phase: 11 (Dynamic World Events) — complete. All 3 plans implemented and committed; full suite green 48/48.
+Plan: 3 plans (11-01 world event system, 11-02 map integration, 11-03 test gap closure — all complete)
+Status: Phase 11 complete. Remaining manual step: plan 11-02 human browser verification checkpoint (autonomous: false) — event dots visible on eligible regions, detail panel correct, resolve applies rewards and removes the event, expired events handled.
 Last activity: 2026-09-18
 
 Progress: [██████████] 100%
@@ -36,9 +36,9 @@ Progress: [██████████] 100%
 
 **Velocity:**
 
-- Milestone 2 plans completed: 8
-- Average duration: 14min
-- Total execution time: 1.8 hours
+- Milestone 2 plans completed: 13
+- Average duration: ~15min
+- Total execution time: ~3.2 hours
 
 **By Phase:**
 
@@ -49,13 +49,14 @@ Progress: [██████████] 100%
 | 8. Landmark Discovery | 2/2 | 39min | 20min |
 | 9. Regional Influence & Control | 2/2 | 17min | 9min |
 | 10. Environmental Narrative Echoes | 2/2 | 53min | 25min |
-| 11. Dynamic World Events | 1/2 | 17min | 17min |
+| 11. Dynamic World Events | 3/3 | 20min | 7min |
 | 12. Living Map Performance & Stability | 0/TBD | - | - |
 
 **Recent Trend:**
 
-- Last 5 plans: 09-02 (11m), 10-01 (53m), 10-02 (25m), (no 11-01 timing yet?), 11-01 (17m)
+- Last 5 plans: 11-01 (17m), 11-02 (1m*), 11-03 (2m*), 10-02 (25m), 10-01 (53m)
 - Trend: Data+system plans execute cleanly; UI integration plans add human-verification time
+- *11-02/11-03 durations are final commit spans, not full investigation windows
 
 *Updated after each plan completion.*
 | Phase 06 P01 | 8min | 1 tasks | 4 files |
@@ -69,6 +70,8 @@ Progress: [██████████] 100%
 | Phase 10 P01 | 53min | 3 tasks | 3 files |
 | Phase 10 P02 | 25min | 2 tasks | 3 files |
 | Phase 11 P01 | 17min | 2 tasks | 6 files |
+| Phase 11 P02 | 1min* | 1 tasks | 3 files |
+| Phase 11 P03 | 2min* | 1 tasks | 1 file |
 
 ## Accumulated Context
 
