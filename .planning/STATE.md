@@ -21,13 +21,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-15)
 
 **Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Phase 10 — Environmental Narrative Echoes
+**Current focus:** Phase 11 — Dynamic World Events
 
 ## Current Position
 
-Phase: 10 (Environmental Narrative Echoes) — IN PROGRESS
-Plan: 1 of 2
-Status: Plan 10-01 complete; 10-02 pending
+Phase: 10 (Environmental Narrative Echoes) — COMPLETE
+Plan: 2 of 2
+Status: Plan 10-01 and 10-02 complete
 Last activity: 2026-09-17
 
 Progress: [█████████░] 90%
@@ -48,7 +48,7 @@ Progress: [█████████░] 90%
 | 7. Visual Region Map | 2/2 | 25min | 13min |
 | 8. Landmark Discovery | 2/2 | 39min | 20min |
 | 9. Regional Influence & Control | 2/2 | 17min | 9min |
-| 10. Environmental Narrative Echoes | 1/2 | 53min | - |
+| 10. Environmental Narrative Echoes | 2/2 | 53min | 25min |
 | 11. Dynamic World Events | 0/TBD | - | - |
 | 12. Living Map Performance & Stability | 0/TBD | - | - |
 
@@ -67,8 +67,7 @@ Progress: [█████████░] 90%
 | Phase 09 P01 | 6min | 1 tasks | 5 files |
 | Phase 09 P02 | 11min | 3 tasks | 8 files |
 | Phase 10 P01 | 53min | 3 tasks | 3 files |
-| Phase 10 P01 | 53min | 3 tasks | 3 files |
-| Phase 10 P01 | 53min | 3 tasks | 3 files |
+| Phase 10 P02 | 25min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
