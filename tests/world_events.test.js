@@ -323,15 +323,12 @@ test('pruneHistory bounds resolved count at 20 entries', () => {
     Object.keys(WorldState.getWorld().events.resolved).length, 20
   );
 
-  // The oldest entries (lowest resolvedAt) should have been removed
+  // The oldest 2 entries (hist_0, hist_1) should have been removed
   const resolved = WorldState.getWorld().events.resolved;
-  const minKept = Date.now() - 100000 + 20 * 100;
-  for (const key of Object.keys(resolved)) {
-    assert.ok(
-      (resolved[key].resolvedAt || 0) >= minKept,
-      'kept entries should be the most recent'
-    );
-  }
+  assert.ok(!Object.prototype.hasOwnProperty.call(resolved, 'hist_0'), 'oldest entry removed');
+  assert.ok(!Object.prototype.hasOwnProperty.call(resolved, 'hist_1'), 'second oldest entry removed');
+  assert.ok(Object.prototype.hasOwnProperty.call(resolved, 'hist_2'), 'third oldest kept');
+  assert.ok(Object.prototype.hasOwnProperty.call(resolved, 'hist_21'), 'newest entry kept');
 });
 
 test('tick handles offline elapsed correctly — events expired during away time', () => {
