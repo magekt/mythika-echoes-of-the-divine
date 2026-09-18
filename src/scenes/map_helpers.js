@@ -112,6 +112,12 @@ const MapHelpers = {
     const echoes = this.getNarrativeEchoes(zoneId);
     if (!echoes.length) return null;
     return echoes[0].markerColor || null;
+  },
+
+  // Returns active world events for a zone, or empty array if WorldEvents unavailable
+  getWorldEvents(zoneId) {
+    if (typeof WorldEvents === 'undefined' || !WorldEvents.getForZone) return [];
+    return WorldEvents.getForZone(zoneId) || [];
   }
 };
 
