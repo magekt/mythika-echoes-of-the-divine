@@ -21,10 +21,12 @@ const travelMapScene = Scene.create({
     startMapY: 0,
     didDrag: false,
     selectedLandmark: null,
+    selectedEvent: null,
     newlyDiscovered: [],
     backBtn: null,
     enterBtn: null,
-    closeBtn: null
+    closeBtn: null,
+    _eventResolveArea: null
   },
 
   enter: function() {
@@ -52,10 +54,12 @@ const travelMapScene = Scene.create({
     this.data.startMapY = 0;
     this.data.didDrag = false;
     this.data.selectedLandmark = null;
+    this.data.selectedEvent = null;
     this.data.newlyDiscovered = [];
     this.data.backBtn = null;
     this.data.enterBtn = null;
     this.data.closeBtn = null;
+    this.data._eventResolveArea = null;
   },
 
   buildButtons: function() {
@@ -71,6 +75,22 @@ const travelMapScene = Scene.create({
     });
     enterBtn.visible = false;
     enterBtn.onClick = () => {
+      if (this.data.selectedEvent) {
+        const evt = this._findEventById(this.data.selectedEvent);
+        if (evt && evt.status === 'active') {
+          const result = WorldEvents.resolve(this.data.selectedEvent);
+          if (result) {
+            const reward = evt.resolveReward || {};
+            const parts = [];
+            if (reward.gold) parts.push('+' + reward.gold + 'g');
+            if (reward.karma) parts.push('+' + reward.karma + ' karma');
+            if (reward.divineFragments) parts.push('+' + reward.divineFragments + ' DF');
+            Notify.show('Event resolved: ' + (parts.length ? parts.join(', ') : 'Rewards claimed'), 3, R.colors.gold);
+          }
+          this.data.selectedEvent = null;
+        }
+        return true;
+      }
       const zoneId = this.data.selectedZone;
       if (!zoneId || MapHelpers.getStatus(zoneId) === MapLayout.ZONE_STATE.LOCKED) {
         return false;
@@ -85,7 +105,9 @@ const travelMapScene = Scene.create({
     });
     closeBtn.visible = false;
     closeBtn.onClick = () => {
-      if (this.data.selectedLandmark) {
+      if (this.data.selectedEvent) {
+        this.data.selectedEvent = null;
+      } else if (this.data.selectedLandmark) {
         this.data.selectedLandmark = null;
       } else {
         this.selectZone(null);
@@ -186,6 +208,7 @@ const travelMapScene = Scene.create({
   selectZone: function(zoneId) {
     this.data.selectedZone = zoneId;
     this.data.selectedLandmark = null;
+    this.data.selectedEvent = null;
     const hasSelection = Boolean(zoneId);
     const unlocked = hasSelection && MapHelpers.getStatus(zoneId) !== MapLayout.ZONE_STATE.LOCKED;
     if (this.data.closeBtn) this.data.closeBtn.visible = hasSelection;
@@ -231,6 +254,41 @@ const travelMapScene = Scene.create({
     return null;
   },
 
+  getEventHitAreas: function(zoneId) {
+    const entry = MapLayout.getEntry(zoneId);
+    if (!entry) return [];
+    if (!MapHelpers.getWorldEvents) return [];
+    const rect = this.getRegionRect(entry);
+    const events = MapHelpers.getWorldEvents(zoneId);
+    if (!events.length) return [];
+    const baseX = rect.x + 10;
+    const baseY = rect.y + rect.h - 14;
+    const gap = 16;
+    const areas = [];
+
+    for (let i = 0; i < events.length; i++) {
+      areas.push({
+        eventId: events[i].id,
+        x: baseX + i * gap - 7,
+        y: baseY - 7,
+        w: 14,
+        h: 14
+      });
+    }
+    return areas;
+  },
+
+  hitTestEvent: function(x, y) {
+    if (!this.data.selectedZone) return null;
+    const areas = this.getEventHitAreas(this.data.selectedZone);
+    for (const area of areas) {
+      if (x >= area.x && x <= area.x + area.w && y >= area.y && y <= area.y + area.h) {
+        return area.eventId;
+      }
+    }
+    return null;
+  },
+
   hitTestZone: function(x, y) {
     for (let i = MapLayout.ENTRIES.length - 1; i >= 0; i--) {
       const entry = MapLayout.ENTRIES[i];
@@ -244,13 +302,26 @@ const travelMapScene = Scene.create({
 
   handleTap: function(tap) {
     if (!tap || !this.isInMapArea(tap.x, tap.y)) return false;
+    const eventId = this.hitTestEvent(tap.x, tap.y);
+    if (eventId) {
+      this.data.selectedEvent = eventId;
+      this.data.selectedLandmark = null;
+      if (this.data.closeBtn) this.data.closeBtn.visible = true;
+      if (this.data.enterBtn) {
+        this.data.enterBtn.visible = true;
+        this.data.enterBtn.text = 'Resolve';
+      }
+      return true;
+    }
     const landmarkId = this.hitTestLandmark(tap.x, tap.y);
     if (landmarkId) {
       this.data.selectedLandmark = landmarkId;
+      this.data.selectedEvent = null;
       return true;
     }
     const zoneId = this.hitTestZone(tap.x, tap.y);
     this.selectZone(zoneId);
+    this.data.selectedEvent = null;
     return true;
   },
 
@@ -301,7 +372,8 @@ const travelMapScene = Scene.create({
     ctx.fillRect(0, 0, G.W, G.H);
     this.renderHeader(ctx);
     this.renderMap(ctx);
-    if (this.data.selectedLandmark) this.renderLandmarkDetail(ctx);
+    if (this.data.selectedEvent) this.renderEventDetail(ctx);
+    else if (this.data.selectedLandmark) this.renderLandmarkDetail(ctx);
     else if (this.data.selectedZone) this.renderDetailPanel(ctx);
     for (const button of this.data.buttons) {
       if (button.visible !== false) button.render(ctx);
@@ -404,6 +476,7 @@ const travelMapScene = Scene.create({
 
     this.renderLandmarkIndicators(ctx, entry, rect, locked);
     this.renderEchoIndicators(ctx, entry, rect, locked);
+    this.renderEventIndicators(ctx, entry, rect, locked);
     ctx.restore();
   },
 
@@ -429,6 +502,38 @@ const travelMapScene = Scene.create({
       ctx.font = R.fonts.xs;
       ctx.textAlign = 'left';
       ctx.fillText(echo.label, cx + 7, baseY + 3);
+    }
+  },
+
+  renderEventIndicators: function(ctx, entry, rect, locked) {
+    if (locked) return;
+    if (!MapHelpers.getWorldEvents) return;
+    const events = MapHelpers.getWorldEvents(entry.zoneId);
+    if (!events.length) return;
+    const reduced = R.reducedMotion ? R.reducedMotion() : false;
+    const baseX = rect.x + 10;
+    const baseY = rect.y + rect.h - 14;
+    const gap = 16;
+
+    for (let i = 0; i < events.length; i++) {
+      const evt = events[i];
+      const color = evt.markerColor || R.colors.accent;
+      const cx = baseX + i * gap;
+      const isExpiring = evt.remainingTime < 300;
+      const drawColor = isExpiring ? R.colors.danger : color;
+      const radius = reduced ? 5 : 5 + Math.sin(performance.now() / 400 + i) * 1.5;
+
+      ctx.fillStyle = drawColor;
+      ctx.beginPath();
+      ctx.arc(cx, baseY, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (isExpiring) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(cx, baseY, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
   },
 
@@ -516,6 +621,84 @@ const travelMapScene = Scene.create({
       ctx.fillStyle = R.colors.goldLight;
       ctx.font = R.fonts.xs;
       ctx.fillText(landmark.action.label, x + 18, y + h - 18);
+    }
+  },
+
+  formatRemainingTime: function(seconds) {
+    if (seconds < 0) seconds = 0;
+    if (seconds < 60) return '< 1 min';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return h + 'h ' + m + 'm';
+    return m + 'm';
+  },
+
+  _findEventById: function(eventId) {
+    const events = this.data.selectedZone ? MapHelpers.getWorldEvents(this.data.selectedZone) : [];
+    for (const evt of events) {
+      if (evt.id === eventId) return evt;
+    }
+    return null;
+  },
+
+  renderEventDetail: function(ctx) {
+    const evt = this._findEventById(this.data.selectedEvent);
+    if (!evt) return;
+    const x = 12;
+    const y = G.H - 252;
+    const w = G.W - 24;
+    const h = 244;
+
+    R.roundRect(ctx, x, y, w, h, R.radius.l, R.colors.surfaceElevated);
+    ctx.strokeStyle = evt.markerColor || R.colors.accent;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = evt.markerColor || R.colors.textPrimary;
+    ctx.font = R.fonts.xl || R.fonts.lg;
+    ctx.fillText(evt.icon || '\u2733\uFE0F', x + 18, y + 36);
+    ctx.fillStyle = R.colors.textPrimary;
+    ctx.font = R.fonts.lg;
+    ctx.fillText(evt.label, x + 58, y + 32);
+
+    ctx.font = R.fonts.sm;
+    ctx.fillStyle = R.colors.textSecondary;
+    const descriptionLines = this.wrapText(ctx, evt.desc, w - 36).slice(0, 3);
+    for (let i = 0; i < descriptionLines.length; i++) {
+      ctx.fillText(descriptionLines[i], x + 18, y + 70 + i * 18);
+    }
+
+    const timeY = y + 140;
+    if (evt.status === 'expired') {
+      ctx.fillStyle = R.colors.textSecondary;
+      ctx.font = R.fonts.sm;
+      ctx.fillText(evt.expiryLabel || 'Event expired', x + 18, timeY);
+    } else {
+      ctx.fillStyle = R.colors.accent;
+      ctx.font = R.fonts.xs;
+      ctx.fillText('REMAINING', x + 18, timeY);
+      ctx.fillStyle = R.colors.textPrimary;
+      ctx.font = R.fonts.sm;
+      ctx.fillText(this.formatRemainingTime(evt.remainingTime), x + 18, timeY + 18);
+    }
+
+    if (evt.status === 'active') {
+      const btnX = x + 18;
+      const btnY = y + h - 50;
+      const btnW = w - 36;
+      const btnH = 36;
+
+      R.roundRect(ctx, btnX, btnY, btnW, btnH, R.radius.m, R.colors.goldDark);
+      ctx.fillStyle = R.colors.white;
+      ctx.font = R.fonts.sm;
+      ctx.textAlign = 'center';
+      ctx.fillText(evt.resolveLabel || 'Resolve', btnX + btnW / 2, btnY + 22);
+      ctx.textAlign = 'left';
+
+      this.data._eventResolveArea = { x: btnX, y: btnY, w: btnW, h: btnH };
+    } else {
+      this.data._eventResolveArea = null;
     }
   },
 
