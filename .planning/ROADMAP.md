@@ -128,7 +128,10 @@ Plans:
   2. Repeatedly entering and leaving the map does not accumulate controls, effects, timers, listeners, or stale selections.
   3. Dense combinations of regions, landmarks, narrative markers, and events remain readable without console errors or runaway save growth.
   4. Reduced-motion mode removes nonessential map animation while preserving all state distinctions and actions.
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 12-01-PLAN.md — Per-frame allocation reduction and viewport culling
+- [ ] 12-02-PLAN.md — Scene lifecycle stability, reduced-motion audit, map probe, human verification
 **UI hint**: yes
 
 ## Progress
@@ -141,7 +144,7 @@ Plans:
 | 9. Regional Influence & Control | 0/TBD | Not started | - |
 | 10. Environmental Narrative Echoes | 0/2 | Planned | - |
 | 11. Dynamic World Events | 1/2 | In Progress | - |
-| 12. Living Map Performance & Stability | 0/TBD | Not started | - |
+| 12. Living Map Performance & Stability | 0/2 | Planned | - |
 
 ## Coverage
 
