@@ -22,7 +22,7 @@ awaiting: user response
 ### 1. Legacy Save Continuity
 expected: Load a save created before Phase 6 that has no world-state data. The game should open normally, retain unrelated progress such as hero and cultivation data, and leave the Travel Map accessible without errors.
 result: pass
-note: Fixed via gap closure 06-03 (sw.js v10 + world_state.js precache + coherence tests)
+note: Confirmed by the current sw.js v10 precache, world_state.js compatibility handling, and coherence-test evidence.
 
 ### 2. World-State Round Trip
 expected: After world data exists for regions, landmarks, influence/control, narrative echoes, events, and one-time transitions, saving and reloading should preserve those values unchanged.
