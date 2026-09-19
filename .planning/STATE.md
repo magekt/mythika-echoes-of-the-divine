@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 12 implemented — manual browser verification checkpoint pending
-last_updated: "2026-09-19T08:25:00Z"
+status: complete
+stopped_at: Milestone M2 complete — Phase 12 done, manual browser check waived by user
+last_updated: "2026-09-19T08:40:00Z"
 last_activity: 2026-09-19
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 15
   completed_plans: 15
   percent: 100
@@ -25,9 +25,9 @@ See: `.planning/PROJECT.md` (updated 2026-09-15)
 
 ## Current Position
 
-Phase: 12 (Living Map Performance & Stability) — implemented, awaiting manual browser verification.
-Plan: 2/2 complete (12-01 render optimization, 12-02 lifecycle + reduced-motion + probe) — both committed, suite 60/60 green.
-Status: Phase 12 code complete. Remaining manual checkpoint (plan 12-02, autonomous: false): ?probe&map boots to map, FPS stable on mid-range mobile, enter/leave cycles clean, reduced-motion verified in browser.
+Phase: 12 (Living Map Performance & Stability) — complete. Milestone M2 fully complete.
+Plan: 2/2 complete (12-01 render optimization, 12-02 lifecycle + reduced-motion + probe) — committed, suite 60/60 green.
+Status: Milestone complete. Manual browser verification checkpoint (plan 12-02) waived by user decision. All 7 phases and 15 plans done; 8/8 requirements covered.
 Last activity: 2026-09-19
 
 Progress: [██████████] 100%

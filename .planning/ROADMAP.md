@@ -14,7 +14,7 @@ Milestone 2 turns the existing Travel Map into a persistent, touch-first world s
 - [x] **Phase 9: Regional Influence & Control** - Player actions visibly change regional influence and control. (completed 2026-09-17)
 - [x] **Phase 10: Environmental Narrative Echoes** - Encounter choices visibly reshape regional presentation. (complete)
 - [x] **Phase 11: Dynamic World Events** - Periodic local events appear, progress, and resolve through the map. (completed 2026-09-18; manual browser check for 11-02 flagged in STATE.md)
-- [ ] **Phase 12: Living Map Performance & Stability** - The complete map stays smooth, leak-free, and accessible on mobile.
+- [x] **Phase 12: Living Map Performance & Stability** - The complete map stays smooth, leak-free, and accessible on mobile. (completed 2026-09-19; manual browser check waived by user)
 
 ## Phase Details
 
