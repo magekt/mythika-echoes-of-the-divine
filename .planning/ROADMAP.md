@@ -8,7 +8,7 @@ Milestone 2 turns the existing Travel Map into a persistent, touch-first world s
 
 **Phase Numbering:** Milestone 1 completed Phases 1–5; Milestone 2 continues at Phase 6.
 
-- [ ] **Phase 6: World-State Continuity** - Players' evolving world state survives reloads and legacy saves safely.
+- [x] **Phase 6: World-State Continuity** - Players' evolving world state survives reloads and legacy saves safely. (completed 2026-09-19; automated v11/save evidence green, browser follow-up human-needed)
 - [x] **Phase 7: Visual Region Map** - Players navigate distinct existing regions through a clear touch-first map. (completed 2026-09-17)
 - [x] **Phase 8: Landmark Discovery** - Players discover and inspect persistent points of interest in existing zones. (completed 2026-09-17)
 - [x] **Phase 9: Regional Influence & Control** - Player actions visibly change regional influence and control. (completed 2026-09-17)
@@ -32,7 +32,7 @@ Milestone 2 turns the existing Travel Map into a persistent, touch-first world s
 Plans:
 - [x] 06-01-PLAN.md — Define and test the canonical defensive world-state contract.
 - [x] 06-02-PLAN.md — Integrate legacy-safe save migration and prove round-trip continuity.
-- [ ] 06-03-PLAN.md — Fix service-worker cache coherence: bump cache key to v10, add world_state.js to precache, add automated coverage.
+- [x] 06-03-PLAN.md — Close service-worker coherence evidence: verify authoritative v11, current precache/fetch strategy, and reconcile UAT metadata.
 
 **UI hint**: yes
 
@@ -138,7 +138,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 6. World-State Continuity | 2/2 | Complete | 2026-09-16 |
+| 6. World-State Continuity | 3/3 | Complete | 2026-09-19 |
 | 7. Visual Region Map | 2/2 | Complete   | 2026-09-17 |
 | 8. Landmark Discovery | 0/TBD | Not started | - |
 | 9. Regional Influence & Control | 0/TBD | Not started | - |
