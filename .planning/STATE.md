@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: complete
 stopped_at: Milestone M2 complete — Phase 12 done, manual browser check waived by user
-last_updated: "2026-09-19T08:40:00Z"
+last_updated: "2026-09-19T09:00:00Z"
 last_activity: 2026-09-19
 progress:
   total_phases: 7
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-15)
 Phase: 12 (Living Map Performance & Stability) — complete. Milestone M2 fully complete.
 Plan: 2/2 complete (12-01 render optimization, 12-02 lifecycle + reduced-motion + probe) — committed, suite 60/60 green.
 Status: Milestone complete. Manual browser verification checkpoint (plan 12-02) waived by user decision. All 7 phases and 15 plans done; 8/8 requirements covered.
-Last activity: 2026-09-19
+Last activity: 2026-09-19 — Phase 06-03 closure evidence complete; browser follow-up remains human-needed
 
 Progress: [██████████] 100%
 
@@ -44,7 +44,7 @@ Progress: [██████████] 100%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 6. World-State Continuity | 2/2 | 14min | 7min |
+| 6. World-State Continuity | 3/3 | 20min | 7min |
 | 7. Visual Region Map | 2/2 | 25min | 13min |
 | 8. Landmark Discovery | 2/2 | 39min | 20min |
 | 9. Regional Influence & Control | 2/2 | 17min | 9min |
@@ -72,6 +72,7 @@ Progress: [██████████] 100%
 | Phase 11 P01 | 17min | 2 tasks | 6 files |
 | Phase 11 P02 | 1min* | 1 tasks | 3 files |
 | Phase 11 P03 | 2min* | 1 tasks | 1 file |
+| Phase 06 P03 | 6min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
