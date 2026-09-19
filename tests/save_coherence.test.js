@@ -11,12 +11,26 @@ const GAME_PATH = path.join(ROOT, 'src/engine/game.js');
 const WORLD_STATE_PATH = path.join(ROOT, 'src/systems/world_state.js');
 const SAVE_PATH = path.join(ROOT, 'src/systems/save.js');
 
+function readServiceWorker() {
+  return fs.readFileSync(SW_PATH, 'utf8');
+}
+
+function readPrecacheAssets(sw) {
+  const assetsMatch = sw.match(/const ASSETS = \[([\s\S]*?)\];/);
+  assert.ok(assetsMatch, 'sw.js must export an ASSETS array');
+  return assetsMatch[1]
+    .split('\n')
+    .map(line => line.replace(/,?\s*$/, '').trim())
+    .filter(line => line.startsWith("'") || line.startsWith('"'))
+    .map(line => line.replace(/^['"]|['"]$/g, ''));
+}
+
 // ---------------------------------------------------------------------------
 // Test 1: sw.js precache covers every local <script src> in index.html
 // ---------------------------------------------------------------------------
 test('sw.js ASSETS includes every local script from index.html', () => {
   const html = fs.readFileSync(INDEX_PATH, 'utf8');
-  const sw = fs.readFileSync(SW_PATH, 'utf8');
+  const sw = readServiceWorker();
 
   // Extract local <script src="..."> paths (skip CDN URLs)
   const scriptPattern = /<script\s+[^>]*src="([^"]+)"[^>]*>/gi;
@@ -29,13 +43,7 @@ test('sw.js ASSETS includes every local script from index.html', () => {
   assert.ok(localScripts.length > 0, 'index.html should contain local script tags');
 
   // Extract ASSETS entries from sw.js
-  const assetsMatch = sw.match(/const ASSETS = \[([\s\S]*?)\];/);
-  assert.ok(assetsMatch, 'sw.js must export an ASSETS array');
-  const assets = assetsMatch[1]
-    .split('\n')
-    .map(l => l.replace(/,?\s*$/, '').trim())
-    .filter(l => l.startsWith("'") || l.startsWith('"'))
-    .map(l => l.replace(/^['"]|['"]$/g, ''));
+  const assets = readPrecacheAssets(sw);
 
   // world_state.js must be present (Phase 6 requirement)
   assert.ok(
@@ -50,6 +58,32 @@ test('sw.js ASSETS includes every local script from index.html', () => {
       `sw.js ASSETS must include ${script} (from index.html)`
     );
   }
+});
+
+test('sw.js uses the authoritative v11 cache and coherent install/activate lifecycle', () => {
+  const sw = readServiceWorker();
+  const assets = readPrecacheAssets(sw);
+
+  assert.match(sw, /const CACHE\s*=\s*['"]mythika-v11['"]/);
+  assert.match(sw, /ASSETS\.concat\(\[['"]\.\/['"],\s*['"]\.\/index\.html['"]\]\)/);
+  assert.match(sw, /self\.skipWaiting\(\)/);
+  assert.match(sw, /keys\.filter\(k\s*=>\s*k\s*!==\s*CACHE\)\.map\(k\s*=>\s*caches\.delete\(k\)\)/);
+  assert.ok(assets.includes('src/systems/world_state.js'));
+});
+
+test('sw.js preserves network-first shell and cache-first asset fallback strategies', () => {
+  const sw = readServiceWorker();
+  const shellBranch = sw.match(/if \(url\.endsWith\('\/index\.html'\)[\s\S]*?\n  \}/);
+  assert.ok(shellBranch, 'shell fetch branch should be present');
+  assert.match(shellBranch[0], /fetch\(e\.request\)/);
+  assert.match(shellBranch[0], /caches\.match\('\.\/index\.html'\)/);
+  assert.ok(shellBranch[0].indexOf('fetch(e.request)') < shellBranch[0].indexOf("caches.match('./index.html')"));
+
+  const assetBranch = sw.slice(sw.indexOf('// Cache-first with runtime caching'));
+  assert.ok(assetBranch, 'asset fetch branch should be present');
+  assert.match(assetBranch, /if \(hit\) return hit/);
+  assert.match(assetBranch, /return fetch\(e\.request\)/);
+  assert.match(assetBranch, /new Response\('', \{ status: 503/);
 });
 
 // ---------------------------------------------------------------------------
