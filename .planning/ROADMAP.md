@@ -130,8 +130,8 @@ Plans:
   4. Reduced-motion mode removes nonessential map animation while preserving all state distinctions and actions.
 **Plans:** 2 plans
 Plans:
-- [ ] 12-01-PLAN.md — Offscreen grid canvas, per-frame allocation caching, and viewport culling
-- [ ] 12-02-PLAN.md — Scene lifecycle stability, reduced-motion enforcement, map probe, human verification
+- [x] 12-01-PLAN.md — Offscreen grid canvas, per-frame allocation caching, and viewport culling
+- [x] 12-02-PLAN.md — Scene lifecycle stability, reduced-motion enforcement, map probe, human verification
 **UI hint**: yes
 
 ## Progress
@@ -144,7 +144,7 @@ Plans:
 | 9. Regional Influence & Control | 0/TBD | Not started | - |
 | 10. Environmental Narrative Echoes | 0/2 | Planned | - |
 | 11. Dynamic World Events | 1/2 | In Progress | - |
-| 12. Living Map Performance & Stability | 0/2 | Planned | - |
+| 12. Living Map Performance & Stability | 2/2 | Complete | 2026-09-19 |
 
 ## Coverage
 
