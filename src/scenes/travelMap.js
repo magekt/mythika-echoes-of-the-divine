@@ -26,7 +26,15 @@ const travelMapScene = Scene.create({
     backBtn: null,
     enterBtn: null,
     closeBtn: null,
-    _eventResolveArea: null
+    _eventResolveArea: null,
+    _cachedMetrics: null,
+    _cachedRects: null,
+    _descCache: null,
+    _gridCanvas: null,
+    _gridCanvasKey: null,
+    _cachedMetrics: null,
+    _cachedRects: null,
+    _descCache: null
   },
 
   enter: function() {
@@ -60,6 +68,9 @@ const travelMapScene = Scene.create({
     this.data.enterBtn = null;
     this.data.closeBtn = null;
     this.data._eventResolveArea = null;
+    this.data._cachedMetrics = null;
+    this.data._cachedRects = null;
+    this.data._descCache = null;
   },
 
   buildButtons: function() {
@@ -146,6 +157,7 @@ const travelMapScene = Scene.create({
   },
 
   getMapMetrics: function() {
+    if (this.data._cachedMetrics) return this.data._cachedMetrics;
     const viewport = this.getMapViewport();
     const padding = GRID_PADDING;
     const scale = (G.W - padding * 2) / GRID_SIZE;
@@ -153,6 +165,9 @@ const travelMapScene = Scene.create({
   },
 
   getRegionRect: function(entry) {
+    if (this.data._cachedRects && this.data._cachedRects.has(entry.zoneId)) {
+      return this.data._cachedRects.get(entry.zoneId);
+    }
     const metrics = this.getMapMetrics();
     return {
       x: metrics.padding + entry.x * GRID_SIZE * metrics.scale + this.data.mapX,
@@ -160,6 +175,11 @@ const travelMapScene = Scene.create({
       w: entry.w * GRID_SIZE * metrics.scale,
       h: entry.h * GRID_SIZE * metrics.scale
     };
+  },
+
+  _intersectsViewport: function(rect, viewport) {
+    return rect.x + rect.w > viewport.x && rect.x < viewport.x + viewport.w &&
+           rect.y + rect.h > viewport.y && rect.y < viewport.y + viewport.h;
   },
 
   getPointer: function() {
@@ -370,6 +390,18 @@ const travelMapScene = Scene.create({
   render: function(ctx) {
     ctx.fillStyle = R.colors.bg;
     ctx.fillRect(0, 0, G.W, G.H);
+    // Compute and cache per-frame metrics and region rects once
+    this.data._cachedMetrics = this.getMapMetrics();
+    this.data._cachedRects = new Map();
+    const m = this.data._cachedMetrics;
+    for (const entry of MapLayout.ENTRIES) {
+      this.data._cachedRects.set(entry.zoneId, {
+        x: m.padding + entry.x * GRID_SIZE * m.scale + this.data.mapX,
+        y: m.viewport.y + m.padding + entry.y * GRID_SIZE * m.scale + this.data.mapY,
+        w: entry.w * GRID_SIZE * m.scale,
+        h: entry.h * GRID_SIZE * m.scale
+      });
+    }
     this.renderHeader(ctx);
     this.renderMap(ctx);
     if (this.data.selectedEvent) this.renderEventDetail(ctx);
@@ -397,40 +429,61 @@ const travelMapScene = Scene.create({
 
     this.renderMapTexture(ctx, viewport);
     this.renderConnections(ctx);
-    for (const entry of MapLayout.ENTRIES) this.renderRegion(ctx, entry);
+    for (const entry of MapLayout.ENTRIES) {
+      const rect = this.data._cachedRects ? this.data._cachedRects.get(entry.zoneId) : null;
+      if (rect && !this._intersectsViewport(rect, viewport)) continue;
+      this.renderRegion(ctx, entry);
+    }
     ctx.restore();
   },
 
+  _buildGridCanvas: function() {
+    if (typeof document === 'undefined') return;
+    const key = G.W + 'x' + G.H;
+    if (this.data._gridCanvas && this.data._gridCanvasKey === key) return;
+    const c = document.createElement('canvas');
+    c.width = G.W + 48;
+    c.height = G.H + 48;
+    const gctx = c.getContext('2d');
+    gctx.strokeStyle = R.colors.borderHairline;
+    gctx.lineWidth = 1;
+    for (let x = 0; x < c.width; x += 24) {
+      gctx.beginPath();
+      gctx.moveTo(x, 0);
+      gctx.lineTo(x, c.height);
+      gctx.stroke();
+    }
+    for (let y = 0; y < c.height; y += 24) {
+      gctx.beginPath();
+      gctx.moveTo(0, y);
+      gctx.lineTo(c.width, y);
+      gctx.stroke();
+    }
+    this.data._gridCanvas = c;
+    this.data._gridCanvasKey = key;
+  },
+
   renderMapTexture: function(ctx, viewport) {
+    this._buildGridCanvas();
     const reduced = R.reducedMotion ? R.reducedMotion() : false;
     const drift = reduced ? 0 : (performance.now() / 7000) % 24;
-    ctx.strokeStyle = R.colors.borderHairline;
-    ctx.lineWidth = 1;
-    for (let x = -24 + drift; x < viewport.w + 24; x += 24) {
-      ctx.beginPath();
-      ctx.moveTo(x, viewport.y);
-      ctx.lineTo(x, G.H);
-      ctx.stroke();
-    }
-    for (let y = viewport.y - 24 + drift; y < G.H + 24; y += 24) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(G.W, y);
-      ctx.stroke();
-    }
+    ctx.drawImage(this.data._gridCanvas, -24 + drift, viewport.y - 24);
   },
 
   renderConnections: function(ctx) {
+    const viewport = this.data._cachedMetrics ? this.data._cachedMetrics.viewport : this.getMapViewport();
     ctx.save();
     ctx.strokeStyle = R.colors.borderFocus;
     ctx.lineWidth = 2;
     ctx.setLineDash([5, 6]);
     for (const entry of MapLayout.ENTRIES) {
       const from = this.getRegionRect(entry);
+      if (!this._intersectsViewport(from, viewport)) continue;
       for (const targetId of entry.connections || []) {
         const target = MapLayout.getEntry(targetId);
         if (!target) continue;
         const to = this.getRegionRect(target);
+        if (!this._intersectsViewport(to, viewport)) continue;
         ctx.beginPath();
         ctx.moveTo(from.x + from.w / 2, from.y + from.h);
         ctx.lineTo(to.x + to.w / 2, to.y);
@@ -586,6 +639,16 @@ const travelMapScene = Scene.create({
     const w = G.W - 24;
     const h = 244;
 
+    // Cache wrapText results keyed by landmark ID
+    const cacheKey = 'landmark_' + this.data.selectedLandmark;
+    if (!this.data._descCache || this.data._descCache.key !== cacheKey) {
+      this.data._descCache = {
+        key: cacheKey,
+        descLines: this.wrapText(ctx, landmark.description, w - 36).slice(0, 3),
+        relevanceLines: this.wrapText(ctx, landmark.relevance, w - 36).slice(0, 2)
+      };
+    }
+
     R.roundRect(ctx, x, y, w, h, R.radius.l, R.colors.surfaceElevated);
     ctx.strokeStyle = R.colors.gold;
     ctx.lineWidth = 2;
@@ -601,7 +664,7 @@ const travelMapScene = Scene.create({
 
     ctx.font = R.fonts.sm;
     ctx.fillStyle = R.colors.textSecondary;
-    const descriptionLines = this.wrapText(ctx, landmark.description, w - 36).slice(0, 3);
+    const descriptionLines = this.data._descCache.descLines;
     for (let i = 0; i < descriptionLines.length; i++) {
       ctx.fillText(descriptionLines[i], x + 18, y + 70 + i * 18);
     }
@@ -612,7 +675,7 @@ const travelMapScene = Scene.create({
     ctx.fillText('REGIONAL RELEVANCE', x + 18, relevanceY);
     ctx.fillStyle = R.colors.textSecondary;
     ctx.font = R.fonts.sm;
-    const relevanceLines = this.wrapText(ctx, landmark.relevance, w - 36).slice(0, 2);
+    const relevanceLines = this.data._descCache.relevanceLines;
     for (let i = 0; i < relevanceLines.length; i++) {
       ctx.fillText(relevanceLines[i], x + 18, relevanceY + 20 + i * 18);
     }
@@ -649,6 +712,15 @@ const travelMapScene = Scene.create({
     const w = G.W - 24;
     const h = 244;
 
+    // Cache wrapText results keyed by event ID
+    const cacheKey = 'event_' + this.data.selectedEvent;
+    if (!this.data._descCache || this.data._descCache.key !== cacheKey) {
+      this.data._descCache = {
+        key: cacheKey,
+        descLines: this.wrapText(ctx, evt.desc, w - 36).slice(0, 3)
+      };
+    }
+
     R.roundRect(ctx, x, y, w, h, R.radius.l, R.colors.surfaceElevated);
     ctx.strokeStyle = evt.markerColor || R.colors.accent;
     ctx.lineWidth = 2;
@@ -664,7 +736,7 @@ const travelMapScene = Scene.create({
 
     ctx.font = R.fonts.sm;
     ctx.fillStyle = R.colors.textSecondary;
-    const descriptionLines = this.wrapText(ctx, evt.desc, w - 36).slice(0, 3);
+    const descriptionLines = this.data._descCache.descLines;
     for (let i = 0; i < descriptionLines.length; i++) {
       ctx.fillText(descriptionLines[i], x + 18, y + 70 + i * 18);
     }

@@ -245,7 +245,8 @@ function makeCtx() {
     fillText() {},
     measureText(t) { return { width: t.length * 6 }; },
     strokeRect() {},
-    fillRect() {}
+    fillRect() {},
+    drawImage() {}
   };
   return ctx;
 }
