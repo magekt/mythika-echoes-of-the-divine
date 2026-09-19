@@ -124,9 +124,14 @@ const Fade = {
   pendingScene: null,
   update: function(dt) {
     if (this.alpha !== this.target) {
-      const dir = this.target > this.alpha ? 1 : -1;
-      this.alpha += dir * this.speed * dt;
-      if ((dir > 0 && this.alpha >= this.target) || (dir < 0 && this.alpha <= this.target)) {
+      const rm = R.reducedMotion && R.reducedMotion();
+      if (rm) {
+        this.alpha = this.target;
+      } else {
+        const dir = this.target > this.alpha ? 1 : -1;
+        this.alpha += dir * this.speed * dt;
+      }
+      if (this.alpha === this.target) {
         this.alpha = this.target;
         if (this.pendingScene) {
           const pending = this.pendingScene;
@@ -320,6 +325,13 @@ function gInit() {  G.canvas = document.getElementById('game-canvas');
     }, 900);
   }
   gLoop(performance.now());
+  // ?probe&map: boot directly into the travel map for map-specific FPS measurement
+  if (G._probe && /[?&]map/.test(location.search)) {
+    setTimeout(function() {
+      SaveSystem.load();
+      gScene('travelMap');
+    }, 100);
+  }
   // Boot beacon: lets the verification harness (and devtools) confirm the
   // loop actually started on this device/DPR.
   console.log('[Mythika] booted dpr=' + G.dpr);

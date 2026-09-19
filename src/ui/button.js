@@ -390,13 +390,17 @@ UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
       this._pressTimer -= dt;
       if (this._pressTimer <= 0) this._pressed = false;
     }
-    // Spring to target
-    spring.scale += (spring.targetScale - spring.scale) * Math.min(1, dt * stiffness / damping);
-    if (Math.abs(spring.scale - spring.targetScale) < 0.001) spring.scale = spring.targetScale;
-    this._springScale = spring.scale;
-    
-    // Magnetic icon physics
+    // Spring to target — reduced motion snaps instantly
     const reduceMotion = R.reducedMotion ? R.reducedMotion() : false;
+    if (reduceMotion) {
+      spring.scale = spring.targetScale;
+    } else {
+      spring.scale += (spring.targetScale - spring.scale) * Math.min(1, dt * stiffness / damping);
+      if (Math.abs(spring.scale - spring.targetScale) < 0.001) spring.scale = spring.targetScale;
+    }
+    this._springScale = spring.scale;
+
+    // Magnetic icon physics
     if (this._hovered && (this._trailingIcon || this._leadingIcon) && !reduceMotion) {
       spring.iconX += (2 - spring.iconX) * Math.min(1, dt * 8);
       spring.iconY += (-1 - spring.iconY) * Math.min(1, dt * 8);
