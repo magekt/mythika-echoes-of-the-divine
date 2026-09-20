@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: verifying
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-09-20T06:20:00Z"
-last_activity: 2026-09-20 — Phase 11-05 offline world-event persistence gap closed; browser verification remains human-needed
+milestone: v2.0
+milestone_name: Living Map & World State
+status: complete
+stopped_at: Completed v2.0 milestone archive and cleanup
+last_updated: "2026-09-20T00:00:00Z"
+last_activity: 2026-09-20 — v2.0 archived; accepted browser evidence debt remains
 progress:
   total_phases: 7
   completed_phases: 7
@@ -21,13 +21,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-15)
 
 **Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Phase 12 — Living Map Performance & Stability
+**Current focus:** Next milestone readiness after v2.0
 
 ## Current Position
 
 Phase: 12 (Living Map Performance & Stability) — complete. Milestone M2 fully complete.
 Plan: 2/2 complete (12-01 render optimization, 12-02 lifecycle + reduced-motion + probe) — committed; Phase 11 gap-closure evidence also complete.
-Status: Milestone complete. Manual browser verification checkpoint (plan 12-02) waived by user decision; Phase 11 browser follow-up remains human-needed. All 7 phases and 17 plans done; 8/8 requirements covered.
+Status: Milestone complete. All 7 phases and 17 plans done; REQ-013 through REQ-020 validated; final integration audit has no blockers and 69/69 tests pass. Archive references: `.planning/milestones/v2.0-ROADMAP.md`, `.planning/milestones/v2.0-REQUIREMENTS.md`, `.planning/milestones/v2.0-phases/`. Accepted deferred browser checks are listed in `.planning/v2-MILESTONE-AUDIT.md`.
 Last activity: 2026-09-20 — Phase 11-05 offline event persistence closure; browser verification remains human-needed
 
 Progress: [██████████] 100%
@@ -117,9 +117,13 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+Next milestone may begin after the accepted browser evidence debt is addressed or explicitly carried forward.
 
 ### Blockers/Concerns
+
+None blocking milestone completion.
+
+Accepted deferred browser checks: existing-worker cache activation/legacy-save boot; Phase 11 event walkthrough; Phase 12 mobile FPS/dense-map/reduced-motion walkthrough.
 
 - The current Travel Map is a scrollable zone list; visual-map interaction must preserve locked-state explanations and authoritative entry behavior.
 - World-state migration must tolerate saves that predate every Milestone 2 field.
@@ -152,4 +156,4 @@ Milestone 1 completion state remains available in git history (`d339303`).
 Last session: 2026-09-20T05:57:20.932Z
 Stopped at: Completed 08-01-PLAN.md
 Resume file: None
-Next command: `/gsd-execute-phase 7`
+Next command: `/gsd-new-milestone` when ready

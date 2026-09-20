@@ -10,6 +10,14 @@ Milestone 2 transforms the existing Travel Map from a zone list into a living wo
 
 Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
 
+## Current Shipped State
+
+Milestone v2.0, **Living Map & World State**, shipped on 2026-09-20. The Travel Map is now a persistent visual world surface with landmarks, regional influence/control, narrative echoes, and local dynamic events. The implementation remains vanilla JavaScript, immediate-mode Canvas, localStorage, and PWA-compatible.
+
+Validated requirements: REQ-013 through REQ-020 (8/8). Final integration evidence reports no blockers and 69/69 automated tests pass.
+
+Accepted remaining evidence debt: existing-worker cache activation and legacy-save browser boot; the Phase 11 event walkthrough; and the Phase 12 mobile FPS, dense-map, and reduced-motion walkthrough.
+
 ## Requirements
 
 ### Validated
@@ -19,16 +27,9 @@ Every play session should feel like a meaningful cultivation journey: the player
 - ✓ Mythology-driven narrative encounters already record persistent flags and consequences through save-backed local state.
 - ✓ Canvas-based mobile-first screen architecture, semantic visual tokens, reduced-motion support, and PWA delivery are established.
 
-### Active — Milestone 2: Living Map & World State
+### Validated — v2.0
 
-- [ ] Replace the zone-list Travel Map with a visual map whose existing regions are geographically distinct and retain clear progression/lock information.
-- [ ] Add discoverable, inspectable landmarks tied to existing zones and progression without introducing new zones.
-- [ ] Establish a durable local world-state model that safely hydrates and migrates across old and current saves.
-- [ ] Let canonical player actions alter regional influence and control, with the result visible on the map.
-- [ ] Reflect persistent narrative encounter choices through environmental map markers, labels, or effects.
-- [ ] Surface periodic world events on the map with clear location, status, duration, and resolution.
-- [ ] Keep touch navigation, selection, and inspection intuitive on mobile while remaining usable on desktop.
-- [ ] Keep the living map smooth and memory-stable on mid-range phones, including reduced-motion behavior.
+- ✓ REQ-013 through REQ-020 — Living Map & World State
 
 ### Out of Scope
 
@@ -68,4 +69,4 @@ Every play session should feel like a meaningful cultivation journey: the player
 | Preserve authoritative gameplay APIs | Map actions must not create backdoor reward or progression mutations | Existing systems remain mutation owners |
 
 ---
-*Updated for Milestone 2: Living Map & World State — 2026-09-15*
+*Last updated: 2026-09-20 after v2.0 milestone*
