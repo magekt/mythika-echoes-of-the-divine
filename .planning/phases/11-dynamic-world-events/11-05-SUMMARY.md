@@ -46,7 +46,7 @@ completed: 2026-09-20
 ## Task Commits
 
 1. **task 1: Persist offline world-event mutations** — `43901e3` (RED tests), `137f14a` (GREEN implementation)
-2. **task 2: Record gap-closure verification and planning metadata** — pending metadata commit
+2. **task 2: Record gap-closure verification and planning metadata** — `5092690` (docs)
 
 ## Files Created/Modified
 
@@ -80,6 +80,7 @@ REQ-015/REQ-018 persistence gap closure is ready for review. Automated evidence 
 
 - Summary and verification artifacts exist.
 - Task commits `43901e3` and `137f14a` exist in git history.
+- Metadata commit `5092690` exists in git history.
 - Metadata changes pass `git diff --check`.
 
 ---
