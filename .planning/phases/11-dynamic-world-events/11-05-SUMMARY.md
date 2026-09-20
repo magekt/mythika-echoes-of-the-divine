@@ -40,7 +40,7 @@ completed: 2026-09-20
 
 - Added a deterministic boolean mutation result to `WorldEvents.tick()`.
 - Updated `SaveSystem.load()` to persist when farm or world-event state changes.
-- Added regression tests for offline expiry, cadence generation, tick results, and unchanged-state no-op saves.
+- Added regression tests for offline expiry and subsequent reload, generation-only persistence and reload, tick results, and unchanged-state no-op saves.
 - Recorded focused/full suite, syntax, and diff-check evidence; browser validation remains human-needed.
 
 ## Task Commits

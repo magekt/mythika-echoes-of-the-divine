@@ -2,16 +2,16 @@
 
 ## Automated evidence
 
-- Focused: `node --test tests/world_events.test.js` — **16/16 passed**.
-- Full suite: `node --test tests/*.test.js` — **68/68 passed**.
+- Focused: `node --test tests/world_events.test.js` — **17/17 passed**.
+- Full suite: `node --test tests/*.test.js` — **69/69 passed**.
 - Syntax: `node --check src/systems/world_events.js` — passed.
 - Syntax: `node --check src/systems/save.js` — passed.
 - Hygiene: `git diff --check` — passed.
 
 ## Gap-closure scenarios
 
-- **Offline expiry:** `SaveSystem.load()` reloads an expired active event, `WorldEvents.tick()` reports the successful resolution mutation, and the resolved record is persisted before load returns.
-- **Offline generation:** a cadence-crossing load saves the generated active event, so the next reload retains it.
+- **Offline expiry:** `SaveSystem.load()` reloads an expired active event, `WorldEvents.tick()` reports the successful resolution mutation, and the resolved record is persisted before load returns and retained on a subsequent reload.
+- **Offline generation:** a cadence-crossing load with no expiring event or farm mutation saves the generated active event, so the next reload retains it.
 - **Unchanged state:** a load with no farm mutation and no event mutation leaves the existing save envelope untouched and does not invoke a no-op save.
 - **Contract:** `WorldEvents.tick()` returns `true` only when `WorldState.resolveEvent()` or `WorldState.setEventActive()` successfully changes state; otherwise it returns `false`.
 

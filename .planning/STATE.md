@@ -73,7 +73,7 @@ Progress: [██████████] 100%
 | Phase 11 P02 | 1min* | 1 tasks | 3 files |
 | Phase 11 P03 | 2min* | 1 tasks | 1 file |
 | Phase 06 P03 | 6min | 2 tasks | 4 files |
-| Phase 11 P05 | 5min | 2 tasks | 5 files |
+| Phase 11 P05 | 5min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
