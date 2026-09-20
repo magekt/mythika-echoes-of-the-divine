@@ -98,9 +98,9 @@ SaveSystem.load = function() {
     const farmResult = typeof FarmSystem !== 'undefined' && FarmSystem.tick
       ? FarmSystem.tick(elapsed, { notify: false, save: false })
       : { changed: false, harvested: 0, ready: 0 };
-    if (typeof WorldEvents !== 'undefined' && WorldEvents.tick) {
-      WorldEvents.tick(elapsed);
-    }
+    const worldEventsChanged = typeof WorldEvents !== 'undefined' && WorldEvents.tick
+      ? WorldEvents.tick(elapsed)
+      : false;
     if (elapsed > 60) {
       const cultPerSec = getCultivationPerSecond(G.state.ashramLevel || 1);
       const pranaPerSec = getPranaPerSecond(G.state.ashramLevel || 1);
@@ -113,7 +113,7 @@ SaveSystem.load = function() {
       if (farmResult.ready > 0) awayMsg += ', ' + farmResult.ready + ' plot' + (farmResult.ready > 1 ? 's' : '') + ' ready to replant';
       Notify.show(awayMsg, 5, R.colors.gold);
     }
-    if (farmResult.changed) this.save();
+    if (farmResult.changed || worldEventsChanged) this.save();
     return true;
   } catch (e) {
     console.warn('Load failed:', e);

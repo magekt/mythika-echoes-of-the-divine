@@ -100,10 +100,11 @@ const WorldEvents = (function() {
    */
   function tick(elapsed) {
     var world = _getWorld();
-    if (!world) return;
+    if (!world) return false;
     var active = world.events.active || {};
     var now = Date.now();
     var e = typeof elapsed === 'number' && isFinite(elapsed) ? Math.max(0, elapsed) : 0;
+    var changed = false;
 
     var keys = Object.keys(active);
     for (var i = 0; i < keys.length; i++) {
@@ -118,7 +119,7 @@ const WorldEvents = (function() {
       var remaining = start + dur * 1000 - now;
       if (remaining <= 0 || e * 1000 >= remaining) {
         if (typeof WorldState === 'undefined' || !WorldState.resolveEvent) continue;
-        WorldState.resolveEvent(eventId, {
+        var expired = WorldState.resolveEvent(eventId, {
           templateId: rec.templateId,
           zoneId: rec.zoneId,
           startedAt: rec.startedAt,
@@ -126,6 +127,7 @@ const WorldEvents = (function() {
           result: 'expired',
           expiredAt: now
         });
+        if (expired === true) changed = true;
       }
     }
 
@@ -136,8 +138,9 @@ const WorldEvents = (function() {
     cadenceElapsed += e;
     if (cadenceElapsed >= GENERATION_CADENCE) {
       cadenceElapsed -= GENERATION_CADENCE;
-      generate(e);
+      if (generate(e) !== null) changed = true;
     }
+    return changed;
   }
 
   /**
