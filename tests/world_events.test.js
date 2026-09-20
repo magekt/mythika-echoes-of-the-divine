@@ -445,3 +445,47 @@ test('SaveSystem.load reaches event generation without a direct generate call', 
   assert.equal(Object.keys(WorldState.getWorld().events.active).length, 1);
   assert.ok(WorldEvents.getActive()[0]);
 });
+
+test('WorldEvents.tick reports whether expiry or generation mutated state', () => {
+  const { G, WorldState, WorldEvents } = loadContract();
+  unlockAllZones(G);
+  const now = Date.now();
+  WorldState.setEventActive('ev_changed', {
+    templateId: 'rakshasa_raid', zoneId: 'aryavarta',
+    startedAt: now - 3600 * 1000, duration: 3600, status: 'active'
+  });
+
+  assert.equal(WorldEvents.tick(0), true, 'expiry should report a mutation');
+  assert.equal(WorldEvents.tick(0), false, 'unchanged tick should report no mutation');
+});
+
+test('SaveSystem.load persists offline expiry and cadence generation', () => {
+  const { G, WorldState, SaveSystem, localStorage } = loadContract();
+  unlockAllZones(G);
+  const now = Date.now();
+  WorldState.setEventActive('ev_expiring', {
+    templateId: 'rakshasa_raid', zoneId: 'aryavarta',
+    startedAt: now - 3600 * 1000, duration: 3600, status: 'active'
+  });
+  localStorage.setItem(SaveSystem.SAVE_KEY, JSON.stringify({
+    state: JSON.parse(JSON.stringify(G.state)), version: 1, timestamp: now - 61000
+  }));
+
+  assert.equal(SaveSystem.load(), true);
+  const persisted = JSON.parse(localStorage.getItem(SaveSystem.SAVE_KEY));
+  assert.ok(persisted.state.world.events.resolved.ev_expiring, 'expired event is saved');
+  assert.equal(Object.keys(persisted.state.world.events.active).length, 1, 'generated event is saved');
+});
+
+test('SaveSystem.load does not save when farm and event state are unchanged', () => {
+  const { G, SaveSystem, localStorage } = loadContract();
+  unlockAllZones(G);
+  const timestamp = Date.now() - 1000;
+  localStorage.setItem(SaveSystem.SAVE_KEY, JSON.stringify({
+    state: JSON.parse(JSON.stringify(G.state)), version: 1, timestamp
+  }));
+  const before = localStorage.getItem(SaveSystem.SAVE_KEY);
+
+  assert.equal(SaveSystem.load(), true);
+  assert.equal(localStorage.getItem(SaveSystem.SAVE_KEY), before, 'no-op load preserves save envelope');
+});
