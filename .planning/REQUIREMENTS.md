@@ -6,7 +6,7 @@ Status legend: `VALIDATED` (delivered previously) · `ACTIVE` (in this milestone
 
 ## 1. Living Map
 
-### REQ-013 — Distinct Visual Regions (ACTIVE)
+### REQ-013 — Distinct Visual Regions (VALIDATED)
 The player can navigate a visual world map where every existing zone has a distinct, recognizable regional representation.
 
 **Acceptance criteria**
@@ -17,7 +17,7 @@ The player can navigate a visual world map where every existing zone has a disti
 
 **Evidence**: Mobile and desktop map walkthrough covering locked, available, active, and completed zones.
 
-### REQ-014 — Discoverable Landmarks (ACTIVE)
+### REQ-014 — Discoverable Landmarks (VALIDATED)
 The player can discover and inspect points of interest attached to existing zones.
 
 **Acceptance criteria**
@@ -33,7 +33,7 @@ The player can discover and inspect points of interest attached to existing zone
 
 ## 2. Persistent World State
 
-### REQ-015 — Durable World-State Continuity (ACTIVE)
+### REQ-015 — Durable World-State Continuity (VALIDATED)
 The living world's mutable state is safe, deterministic, and persistent across sessions.
 
 **Acceptance criteria**
@@ -55,7 +55,7 @@ Canonical player actions can alter regional influence or control, and the player
 
 **Evidence**: Complete a qualifying action, observe one influence transition, reload, and verify the same control state remains.
 
-### REQ-017 — Environmental Narrative Echoes (ACTIVE)
+### REQ-017 — Environmental Narrative Echoes (VALIDATED)
 Persistent narrative choices visibly alter the map environment.
 
 **Acceptance criteria**
@@ -70,7 +70,7 @@ Persistent narrative choices visibly alter the map environment.
 
 ## 3. Dynamic World Activity
 
-### REQ-018 — Periodic World Events (ACTIVE)
+### REQ-018 — Periodic World Events (VALIDATED)
 The player can see, inspect, and resolve periodic local world events on the map.
 
 **Acceptance criteria**
@@ -86,7 +86,7 @@ The player can see, inspect, and resolve periodic local world events on the map.
 
 ## 4. Interaction & Performance
 
-### REQ-019 — Mobile-First Map Interaction (ACTIVE)
+### REQ-019 — Mobile-First Map Interaction (VALIDATED)
 Touch users can navigate and inspect the living map smoothly and without accidental activation.
 
 **Acceptance criteria**
@@ -97,7 +97,7 @@ Touch users can navigate and inspect the living map smoothly and without acciden
 
 **Evidence**: Touch and mouse walkthrough of pan, select, inspect, close/back, and primary action flows.
 
-### REQ-020 — Smooth, Stable Map Rendering (ACTIVE)
+### REQ-020 — Smooth, Stable Map Rendering (VALIDATED)
 The living map remains responsive and memory-stable on representative mobile hardware.
 
 **Acceptance criteria**
@@ -132,10 +132,10 @@ The living map remains responsive and memory-stable on representative mobile har
 | REQ-014 | Phase 8 | Complete |
 | REQ-015 | Phase 6 + 11 | Complete |
 | REQ-016 | Phase 9 | Complete |
-| REQ-017 | Phase 10 | In Progress (10-01 complete) |
+| REQ-017 | Phase 10 | Complete |
 | REQ-018 | Phase 11 | Complete |
 | REQ-019 | Phase 7 | Complete |
-| REQ-020 | Phase 12 | Pending |
+| REQ-020 | Phase 12 | Complete |
 
 **Coverage:** 8/8 active Milestone 2 requirements mapped exactly once.
 
