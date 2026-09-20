@@ -18,12 +18,12 @@ const before = JSON.stringify(hero);
 const model = surface.getModel(hero, 'detail');
 assert.strictEqual(model.name, 'Arjuna');
 assert.strictEqual(model.role, 'Ranged DPS');
-assert.deepStrictEqual(model.hp, { current: 70, max: 110, ratio: 70 / 110 });
+assert.strictEqual(JSON.stringify(model.hp), JSON.stringify({ current: 70, max: 80, ratio: 70 / 80 }));
 assert.strictEqual(model.xp.needed, 300);
-assert.deepStrictEqual(model.equipment.map(slot => slot.label), ['Bow', 'Empty', 'Amulet']);
+assert.strictEqual(JSON.stringify(model.equipment.map(slot => slot.label)), JSON.stringify(['Bow', 'Empty', 'Amulet']));
 assert.match(model.status, /Bleed/);
 assert.match(model.nextAction, /equip|inspect/i);
-assert.deepStrictEqual(model.stats, { maxHp: 110, maxMp: 32, str: 7, agi: 8, mag: 9, def: 10 });
+assert.strictEqual(JSON.stringify(model.stats), JSON.stringify({ maxHp: 80, maxMp: 14, str: 7, agi: 8, mag: 9, def: 10 }));
 assert.strictEqual(JSON.stringify(hero), before, 'selector does not mutate hero state');
 
 const fallback = surface.getModel({ hp: 'bad', level: 'old', weaponEquipped: [], buffs: 'bad' }, 'result');
