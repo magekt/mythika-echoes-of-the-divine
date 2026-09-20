@@ -10,8 +10,8 @@
 
 ## Gap-closure scenarios
 
-- **Offline expiry:** `SaveSystem.load()` reloads an expired active event, `WorldEvents.tick()` reports the successful resolution mutation, and the resolved record is persisted before load returns and retained on a subsequent reload.
-- **Offline generation:** a cadence-crossing load with no expiring event or farm mutation saves the generated active event, so the next reload retains it.
+- **Offline expiry:** `SaveSystem.load()` reloads an expired active event, `WorldEvents.tick()` reports the successful resolution mutation, and the resolved record is persisted before load returns and retained with the generated event identity/template across a fresh-runtime reload.
+- **Offline generation:** a cadence-crossing load with no expiring event or farm mutation saves the generated active event, so a fresh runtime reload retains its exact identity/template.
 - **Unchanged state:** a load with no farm mutation and no event mutation leaves the existing save envelope untouched and does not invoke a no-op save.
 - **Contract:** `WorldEvents.tick()` returns `true` only when `WorldState.resolveEvent()` or `WorldState.setEventActive()` successfully changes state; otherwise it returns `false`.
 

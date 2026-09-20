@@ -13,8 +13,7 @@ const WORLD_EVENTS_DATA_PATH = path.join(ROOT, 'src/data/world_events.js');
 const WORLD_EVENTS_SYS_PATH = path.join(ROOT, 'src/systems/world_events.js');
 const SAVE_PATH = path.join(ROOT, 'src/systems/save.js');
 
-function loadContract() {
-  const storage = new Map();
+function loadContract(storage = new Map()) {
   const localStorage = {
     getItem: key => storage.has(key) ? storage.get(key) : null,
     setItem: (key, value) => storage.set(key, String(value)),
@@ -70,7 +69,8 @@ function loadContract() {
     WorldEvents: context.WorldEvents,
     WORLD_EVENTS: context.WORLD_EVENTS,
     SaveSystem: context.SaveSystem,
-    localStorage
+    localStorage,
+    storage
   };
 }
 
@@ -460,7 +460,7 @@ test('WorldEvents.tick reports whether expiry or generation mutated state', () =
 });
 
 test('SaveSystem.load persists offline expiry and cadence generation', () => {
-  const { G, WorldState, SaveSystem, localStorage } = loadContract();
+  const { G, WorldState, SaveSystem, localStorage, storage } = loadContract();
   unlockAllZones(G);
   const now = Date.now();
   WorldState.setEventActive('ev_expiring', {
@@ -475,14 +475,18 @@ test('SaveSystem.load persists offline expiry and cadence generation', () => {
   const persisted = JSON.parse(localStorage.getItem(SaveSystem.SAVE_KEY));
   assert.ok(persisted.state.world.events.resolved.ev_expiring, 'expired event is saved');
   assert.equal(Object.keys(persisted.state.world.events.active).length, 1, 'generated event is saved');
-  assert.equal(SaveSystem.load(), true, 'subsequent reload succeeds');
-  const reloaded = WorldState.getWorld();
+  const generatedId = Object.keys(persisted.state.world.events.active)[0];
+  const generatedTemplateId = persisted.state.world.events.active[generatedId].templateId;
+  const fresh = loadContract(storage);
+  assert.equal(fresh.SaveSystem.load(), true, 'subsequent reload succeeds in a fresh runtime');
+  const reloaded = fresh.WorldState.getWorld();
   assert.ok(reloaded.events.resolved.ev_expiring, 'expired event remains resolved after reload');
-  assert.equal(Object.keys(reloaded.events.active).length, 1, 'generated event remains active after reload');
+  assert.ok(reloaded.events.active[generatedId], 'generated event identity survives reload');
+  assert.equal(reloaded.events.active[generatedId].templateId, generatedTemplateId, 'generated event template survives reload');
 });
 
 test('SaveSystem.load persists generation without expiry or farm changes', () => {
-  const { G, WorldState, SaveSystem, localStorage } = loadContract();
+  const { G, WorldState, SaveSystem, localStorage, storage } = loadContract();
   unlockAllZones(G);
   const now = Date.now();
   localStorage.setItem(SaveSystem.SAVE_KEY, JSON.stringify({
@@ -493,8 +497,13 @@ test('SaveSystem.load persists generation without expiry or farm changes', () =>
   const persisted = JSON.parse(localStorage.getItem(SaveSystem.SAVE_KEY));
   assert.equal(Object.keys(persisted.state.world.events.resolved || {}).length, 0);
   assert.equal(Object.keys(persisted.state.world.events.active).length, 1, 'generation-only load saves the event');
-  assert.equal(SaveSystem.load(), true, 'generated event survives a subsequent reload');
-  assert.equal(Object.keys(WorldState.getWorld().events.active).length, 1);
+  const generatedId = Object.keys(persisted.state.world.events.active)[0];
+  const generatedTemplateId = persisted.state.world.events.active[generatedId].templateId;
+  const fresh = loadContract(storage);
+  assert.equal(fresh.SaveSystem.load(), true, 'generated event survives a fresh runtime reload');
+  const reloaded = fresh.WorldState.getWorld();
+  assert.ok(reloaded.events.active[generatedId], 'generated event identity survives reload');
+  assert.equal(reloaded.events.active[generatedId].templateId, generatedTemplateId, 'generated event template survives reload');
 });
 
 test('SaveSystem.load does not save when farm and event state are unchanged', () => {
