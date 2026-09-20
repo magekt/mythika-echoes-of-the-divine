@@ -158,6 +158,21 @@ const combatScene = Scene.create({
   getActionAreaTop: function() { return 248; },
   getActionAreaHeight: function() { return G.H - this.getActionAreaTop(); },
 
+  // The logical combat surface is divided into state-owned bands.  Normal
+  // feedback uses the log band; reaction owns the intent band instead; result
+  // owns the lower outcome band and never reuses live combat controls.
+  getCombatLayout: function() {
+    const actionTop = this.getActionAreaTop();
+    return {
+      header: { x: 10, y: 4, w: G.W - 20, h: 52 },
+      roster: { x: 8, y: 58, w: G.W - 16, h: 122 },
+      intent: { x: 12, y: 184, w: G.W - 24, h: 54 },
+      log: { x: 14, y: actionTop - 78, w: G.W - 28, h: 72 },
+      actions: { x: 8, y: actionTop - 4, w: G.W - 16, h: this.getActionAreaHeight() + 4 },
+      result: { x: 12, y: actionTop, w: G.W - 24, h: this.getActionAreaHeight() }
+    };
+  },
+
   clampScroll: function() {
     if (this.data.actionButtons.length === 0) return;
     const logH = Math.min(4, this.data.log.length) * 18 + 20;
@@ -879,6 +894,8 @@ const combatScene = Scene.create({
   },
 
   render: function(ctx) {
+    const layout = this.getCombatLayout();
+    const reducedMotion = R.reducedMotion ? R.reducedMotion() : false;
     R.drawZoneBackground(ctx, G.state.currentZone);
     UI.HUD().render(ctx);
     if (this.data.damageFlash > 0) {
@@ -886,7 +903,7 @@ const combatScene = Scene.create({
       ctx.fillRect(0, 0, G.W, G.H);
     }
 
-    R.roundRect(ctx, 10, 4, G.W - 20, 52, 8, R.colors.panel);
+    R.roundRect(ctx, layout.header.x, layout.header.y, layout.header.w, layout.header.h, 8, R.colors.panel);
     ctx.strokeStyle = R.colors.borderHairline;
     ctx.lineWidth = 1;
     ctx.strokeRect(10.5, 4.5, G.W - 21, 51);
@@ -981,7 +998,7 @@ const combatScene = Scene.create({
       if (e.hp > 0) {
         // Same ghost trail as hero bars (see above).
         if (typeof e._ghostHp !== 'number' || e.hp > e._ghostHp) e._ghostHp = e.hp;
-        e._ghostHp += (e.hp - e._ghostHp) * Math.min(1, G.dt * 6);
+        e._ghostHp = reducedMotion ? e.hp : e._ghostHp + (e.hp - e._ghostHp) * Math.min(1, G.dt * 6);
         R.roundRect(ctx, ex - 48, ey + 34, 48, 4, 2, R.colors.damageBarBackground);
         const gw = 48 * Math.min(1, Math.max(0, e._ghostHp / e.maxHp));
         if (gw > 0) R.roundRect(ctx, ex - 48, ey + 34, gw, 4, 2, R.colors.white);
@@ -997,10 +1014,10 @@ const combatScene = Scene.create({
       const intent = this.data.enemyIntent;
       const remain = Math.max(0, this.data.reactionRemaining);
       const pct = remain / Math.max(0.1, this.data.reactionDuration);
-      R.roundRect(ctx, 12, 184, G.W - 24, 54, 8, R.colors.overlayDark);
+      R.roundRect(ctx, layout.intent.x, layout.intent.y, layout.intent.w, layout.intent.h, 8, R.colors.overlayDark);
       ctx.strokeStyle = intent.attackType === 'ranged' ? R.colors.blue : R.colors.red;
       ctx.lineWidth = 1;
-      ctx.strokeRect(12.5, 184.5, G.W - 25, 53);
+      ctx.strokeRect(layout.intent.x + 0.5, layout.intent.y + 0.5, layout.intent.w - 1, layout.intent.h - 1);
       R.text(ctx, 'INCOMING ' + intent.attackType.toUpperCase(), 22, 202, R.colors.red, R.fonts.xs);
       R.text(ctx, intent.name + ' -> ' + intent.target.name, 22, 220, R.colors.text, R.fonts.md);
       R.roundRect(ctx, 22, 225, G.W - 44, 6, 3, R.colors.damageBarBackground);
@@ -1008,10 +1025,12 @@ const combatScene = Scene.create({
       R.textRight(ctx, remain.toFixed(1) + 's  PERFECT / GOOD / LATE', G.W - 22, 202, R.colors.textDim, R.fonts.xs);
     }
     for (const b of this.data.enemyButtons) b.render(ctx);
-    // Fixed combat log (does not scroll with action list)
-    {
+    // Fixed combat log (does not scroll with action list). The reaction intent
+    // panel occupies this same vertical band, so suppress the log while it is
+    // visible instead of drawing two layers on top of each other.
+    if (this.data.turnState !== 'reactionWindow' && this.data.turnState !== 'result') {
       const logSlice = this.data.log.slice(-4);
-      let logY = this.getActionAreaTop() - 78;
+      let logY = layout.log.y;
       for (const msg of logSlice) {
         // 8px padding inside panel for text breathing room
         R.roundRect(ctx, 14, logY - 1, G.W - 28, 24, 3, R.colors.panel);
@@ -1020,10 +1039,10 @@ const combatScene = Scene.create({
       }
     }
 
-    const top = this.getActionAreaTop();
+    const top = layout.actions.y + 4;
     ctx.save();
     ctx.beginPath();
-    ctx.rect(8, top - 4, G.W - 16, this.getActionAreaHeight() + 4);
+    ctx.rect(layout.actions.x, layout.actions.y, layout.actions.w, layout.actions.h);
     ctx.clip();
     ctx.translate(0, top - 6 - this.data.scrollY);
     
@@ -1088,6 +1107,8 @@ const combatScene = Scene.create({
     }
 
     if (this.data.turnState === 'result' && !this.data.showEnlightenment) {
+      R.textCenter(ctx, this.data.result && this.data.result.won ? 'Victory — rewards secured' : 'Defeat — retreat to safety', G.W / 2, ly, this.data.result && this.data.result.won ? R.colors.gold : R.colors.red, R.fonts.md);
+      ly += 24;
       ly += 8;
       if (this.data.rewards) {
         const rw = this.data.rewards;
