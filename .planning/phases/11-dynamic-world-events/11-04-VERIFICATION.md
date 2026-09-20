@@ -13,11 +13,12 @@
 
 - Deterministic tests prove repeated small ticks do not flood active events.
 - Deterministic tests prove `SaveSystem.load()` can create an eligible event without directly calling `generate()`.
-- Existing expiry, cooldown, active-bound, history-bound, and double-resolution tests remain green.
+- Boundary tests cover just-before-duration activity, at-duration expiry, and cooldown eligibility on both sides of `cooldown * 1000`.
+- Automated timing coverage confirms the documented seconds-to-milliseconds contract; it does not replace browser verification.
 - Static implementation uses only the existing load and frame tick callers; no interval or timeout scheduler was added.
 
 ## Browser verification
 
-**Status: human_needed**
+**Status: human_needed (not performed by automated verification)**
 
 The plan's visual/local-play checkpoint still requires opening the game, observing Travel Map event indicators, resolving once, and checking expiry/reload behavior. No browser claim is made by this automated executor.
