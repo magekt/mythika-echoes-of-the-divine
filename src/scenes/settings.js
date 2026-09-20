@@ -8,6 +8,7 @@ const settingsScene = Scene.create({
   },
 
   enter: function() {
+    this.data.layout = Scene.responsive();
     this.data.scrollY = 0;
     this.buildButtons();
   },

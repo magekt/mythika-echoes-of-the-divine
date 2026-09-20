@@ -38,6 +38,7 @@ const travelMapScene = Scene.create({
   },
 
   enter: function() {
+    this.data.layout = Scene.responsive();
     Hints.show('map', 'Tap a region to inspect it. Drag to pan.');
     this.resetState();
     this.buildButtons();

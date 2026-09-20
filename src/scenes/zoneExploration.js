@@ -21,6 +21,7 @@ const zoneExplorationScene = Scene.create({
   },
 
   enter: function() {
+    this.data.layout = Scene.responsive();
     if (typeof ZoneRewardSystem !== 'undefined') ZoneRewardSystem.normalize();
     this.data.zoneId = G.state.currentZone;
     this.data.zone = ZONES[this.data.zoneId];
