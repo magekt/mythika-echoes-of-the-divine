@@ -2,8 +2,8 @@
 
 ## Automated verification
 
-- `node --test tests/world_events.test.js` — **PASS** (12/12)
-- `node --test tests/*.test.js` — **PASS** (64/64)
+- `node --test tests/world_events.test.js` — **PASS** (13/13)
+- `node --test tests/*.test.js` — **PASS** (65/65)
 - `node --check src/systems/world_events.js` — **PASS**
 - `node --check src/systems/save.js` — **PASS**
 - `node --check src/engine/game.js` — **PASS**
