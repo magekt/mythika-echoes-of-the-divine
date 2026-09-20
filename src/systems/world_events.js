@@ -6,6 +6,8 @@ const WorldEvents = (function() {
 
   var MAX_ACTIVE = 3;
   var MAX_HISTORY = 20;
+  var GENERATION_CADENCE = 60;
+  var cadenceElapsed = 0;
 
   /* ---- Internal helpers ---- */
 
@@ -125,6 +127,16 @@ const WorldEvents = (function() {
           expiredAt: now
         });
       }
+    }
+
+    // Generation is deliberately cadence-bound so frame ticks cannot fill all
+    // slots at once. Offline elapsed time uses the same path and may earn one
+    // bounded attempt per cadence interval, while generate() retains all
+    // eligibility, cooldown, and active-cap guards.
+    cadenceElapsed += e;
+    if (cadenceElapsed >= GENERATION_CADENCE) {
+      cadenceElapsed -= GENERATION_CADENCE;
+      generate(e);
     }
   }
 

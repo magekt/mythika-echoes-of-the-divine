@@ -11,6 +11,7 @@ const ECONOMY_PATH = path.join(ROOT, 'src/systems/economy.js');
 const ZONES_PATH = path.join(ROOT, 'src/data/zones.js');
 const WORLD_EVENTS_DATA_PATH = path.join(ROOT, 'src/data/world_events.js');
 const WORLD_EVENTS_SYS_PATH = path.join(ROOT, 'src/systems/world_events.js');
+const SAVE_PATH = path.join(ROOT, 'src/systems/save.js');
 
 function loadContract() {
   const storage = new Map();
@@ -52,13 +53,23 @@ function loadContract() {
     fs.readFileSync(WORLD_EVENTS_SYS_PATH, 'utf8') + '\n;globalThis.WorldEvents = WorldEvents;',
     context, { filename: WORLD_EVENTS_SYS_PATH }
   );
+  context.Notify = { show: () => {} };
+  context.R = { applyFontScale: () => {}, colors: { gold: '#fff' } };
+  context.getCultivationPerSecond = () => 0;
+  context.getPranaPerSecond = () => 0;
+  vm.runInContext(
+    fs.readFileSync(SAVE_PATH, 'utf8') + '\n;globalThis.SaveSystem = SaveSystem;',
+    context, { filename: SAVE_PATH }
+  );
 
   return {
     G: context.G,
     WorldState: context.WorldState,
     Economy: context.Economy,
     WorldEvents: context.WorldEvents,
-    WORLD_EVENTS: context.WORLD_EVENTS
+    WORLD_EVENTS: context.WORLD_EVENTS,
+    SaveSystem: context.SaveSystem,
+    localStorage
   };
 }
 
@@ -370,4 +381,32 @@ test('tick handles offline elapsed correctly — events expired during away time
     Object.prototype.hasOwnProperty.call(w2.events.active, 'ev_off3'),
     'ev_off3 should survive (remaining ~3100 > elapsed 1000)'
   );
+});
+
+test('tick generates through a bounded cadence instead of flooding active events', () => {
+  const { G, WorldState, WorldEvents } = loadContract();
+  unlockAllZones(G);
+
+  WorldEvents.tick(59);
+  assert.equal(Object.keys(WorldState.getWorld().events.active).length, 0);
+  WorldEvents.tick(1);
+  assert.equal(Object.keys(WorldState.getWorld().events.active).length, 1);
+
+  for (let i = 0; i < 20; i++) WorldEvents.tick(1);
+  assert.equal(Object.keys(WorldState.getWorld().events.active).length, 1, 'cadence prevents per-frame flooding');
+  WorldEvents.tick(60);
+  assert.ok(Object.keys(WorldState.getWorld().events.active).length <= WorldEvents.MAX_ACTIVE);
+});
+
+test('SaveSystem.load reaches event generation without a direct generate call', () => {
+  const { G, WorldState, WorldEvents, SaveSystem, localStorage } = loadContract();
+  unlockAllZones(G);
+  const saved = JSON.parse(JSON.stringify(G.state));
+  localStorage.setItem(SaveSystem.SAVE_KEY, JSON.stringify({
+    state: saved, version: 1, timestamp: Date.now() - 61000
+  }));
+
+  assert.equal(SaveSystem.load(), true);
+  assert.equal(Object.keys(WorldState.getWorld().events.active).length, 1);
+  assert.ok(WorldEvents.getActive()[0]);
 });
