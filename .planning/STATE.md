@@ -1,159 +1,92 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Living Map & World State
-status: complete
-stopped_at: Completed v2.0 milestone archive and cleanup
+milestone: v3.0
+milestone_name: Screen & Gameplay Revamp
+status: executing
+stopped_at: Phase 13 complete; browser evidence pending
 last_updated: "2026-09-20T00:00:00Z"
-last_activity: 2026-09-20 — v2.0 archived; accepted browser evidence debt remains
+last_activity: 2026-09-20 — completed Phase 13 plans
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 17
-  completed_plans: 17
-  percent: 100
+  total_phases: 8
+  completed_phases: 0
+  total_plans: 24
+  completed_plans: 3
+  percent: 13
 ---
 
 # Project State
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-09-15)
+See: `.planning/PROJECT.md` (updated 2026-09-20)
 
 **Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Next milestone readiness after v2.0
+**Current focus:** Define and plan v3.0 requirements before implementation.
 
 ## Current Position
 
-Phase: 12 (Living Map Performance & Stability) — complete. Milestone M2 fully complete.
-Plan: 2/2 complete (12-01 render optimization, 12-02 lifecycle + reduced-motion + probe) — committed; Phase 11 gap-closure evidence also complete.
-Status: Milestone complete. All 7 phases and 17 plans done; REQ-013 through REQ-020 validated; final integration audit has no blockers and 69/69 tests pass. Archive references: `.planning/milestones/v2.0-ROADMAP.md`, `.planning/milestones/v2.0-REQUIREMENTS.md`, `.planning/milestones/v2.0-phases/`. Accepted deferred browser checks are listed in `.planning/v2-MILESTONE-AUDIT.md`.
-Last activity: 2026-09-20 — Phase 11-05 offline event persistence closure; browser verification remains human-needed
+Phase: 13 of 20 (Responsive Screen Grammar & Navigation)
+Plan: 3 of 3
+Status: Phase 13 complete; browser evidence pending
+Last activity: 2026-09-20 — Phase 13 responsive grammar and navigation implemented.
 
-Progress: [██████████] 100%
+Progress: [█░░░░░░░░░] 13%
 
 ## Performance Metrics
 
 **Velocity:**
-
-- Milestone 2 plans completed: 14
-- Average duration: ~15min
-- Total execution time: ~3.2 hours
+- v3.0 plans completed: 3
+- Average duration: -
+- Total execution time: -
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 6. World-State Continuity | 3/3 | 20min | 7min |
-| 7. Visual Region Map | 2/2 | 25min | 13min |
-| 8. Landmark Discovery | 2/2 | 39min | 20min |
-| 9. Regional Influence & Control | 2/2 | 17min | 9min |
-| 10. Environmental Narrative Echoes | 2/2 | 53min | 25min |
-| 11. Dynamic World Events | 4/4 | 25min | 8min |
-| 12. Living Map Performance & Stability | 0/TBD | - | - |
+| 13–20 | 3/24 | - | - |
 
-**Recent Trend:**
-
-- Last 5 plans: 11-01 (17m), 11-02 (1m*), 11-03 (2m*), 10-02 (25m), 10-01 (53m)
-- Trend: Data+system plans execute cleanly; UI integration plans add human-verification time
-- *11-02/11-03 durations are final commit spans, not full investigation windows
-
-*Updated after each plan completion.*
-| Phase 06 P01 | 8min | 1 tasks | 4 files |
-| Phase 06 P02 | 6min | 1 tasks | 2 files |
-| Phase 07 P01 | 4min | 2 tasks | 5 files |
-| Phase 07 P02 | 21min | 2 tasks | 1 files |
-| Phase 08 P01 | 13min | 2 tasks | 5 files |
-| Phase 08 P02 | 26min | 2 tasks | 2 files |
-| Phase 09 P01 | 6min | 1 tasks | 5 files |
-| Phase 09 P02 | 11min | 3 tasks | 8 files |
-| Phase 10 P01 | 53min | 3 tasks | 3 files |
-| Phase 10 P02 | 25min | 2 tasks | 3 files |
-| Phase 11 P01 | 17min | 2 tasks | 6 files |
-| Phase 11 P02 | 1min* | 1 tasks | 3 files |
-| Phase 11 P03 | 2min* | 1 tasks | 1 file |
-| Phase 06 P03 | 6min | 2 tasks | 4 files |
-| Phase 11 P05 | 5min | 2 tasks | 7 files |
+**Recent Trend:** Not started.
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in `.planning/PROJECT.md` Key Decisions.
-Recent decisions affecting current work:
-
-- [Milestone 2]: Continue phase numbering after completed Milestone 1; work begins at Phase 6.
-- [Phase 6]: Establish one canonical local world-state shape before map features consume it.
-- [Phase 7]: Replace the zone list with a visual map while retaining authoritative `ZoneAccess` rules and existing zone IDs.
-- [Phase 8]: Landmarks attach to existing zones and are revealed by existing progress/flags/world state; no new zones.
-- [Phase 9]: Influence changes enter through one authoritative API and canonical gameplay hooks, never render-time mutation.
-- [Phase 9]: Encounter hooks use stable index-based action IDs backed by rule aliases; journey zones remain rule-owned.
-- [Phase 9]: Travel Map consumes regional control through MapHelpers rather than reading WorldState directly.
-- [Phase 10]: Environmental storytelling derives from existing encounter consequence flags.
-- [Phase 11]: World events use template-based cooldown tracking via resolved event metadata; no separate cooldown state table.
-- [Phase 11]: Event ids are unique per occurrence (templateId_timestamp), enabling cooldown tracking while supporting multiple event lifetimes for the same template.
-- [Phase 11]: World events use deterministic local timestamps and bounded state; no backend.
-- [Phase 11-05]: SaveSystem persists load-time world-event mutations only when WorldEvents.tick reports a successful expiry or generation, preserving no-op save behavior.
-- [Phase 12]: Mobile probe, scene cleanup, save growth, and reduced motion are explicit milestone gates.
-- [Phase 06]: Bound regional influence to [-100, 100] and normalized control to neutral, player, enemy, or contested.
-- [Phase 06]: Use null-prototype keyed maps with safe cloned metadata for the canonical world-state boundary.
-- [Phase 06]: Keep one-time world records first-write-wins with explicit boolean mutation results.
-- [Phase 06]: Keep version-1 save envelopes valid and normalize the nested world branch during the existing migration pass.
-- [Phase 06]: Replace world data with a fresh canonical default if the WorldState global is unexpectedly unavailable.
-- [Phase 06]: Preserve unrelated top-level progress and restore one-time records without invoking mutation side effects during load.
-- [Phase 07]: Use a 15px movement threshold to distinguish intentional region taps from map panning. — Prevents accidental region activation during touch and pointer drag gestures.
-- [Phase 07]: Keep zone entry authoritative by rechecking MapHelpers status before transitioning to zoneExploration. — Avoids stale selection state bypassing canonical zone access rules.
-- [Phase ?]: Keep landmark definitions declarative and index them once by zone for bounded runtime checks.
-- [Phase ?]: Expose WorldState.getWorld as the normalized read contract required by landmark queries.
-- [Phase ?]: Return enriched copies from Landmarks.getAll so callers cannot mutate canonical discovery definitions.
-- [Phase 09]: Resolve regional control from data-defined positive thresholds, mirroring qualifying negative magnitude to enemy control.
-- [Phase 09]: Record the action transition only after WorldState accepts the bounded influence mutation, rolling back if the replay guard loses a race.
+- v2.0 shipped Phases 6–12 and remains the validated baseline; REQ-013–REQ-020 are archived.
+- Continue phase numbering at Phase 13; v3.0 has eight fine-grained delivery phases.
+- Preserve vanilla JS, script order, global namespaces, immediate-mode Canvas, localStorage, and authoritative systems.
+- Use vertical screen slices and compatibility facades instead of a framework, bundler, parallel store, or broad rewrite.
+- Diagnostics are local, bounded, and disabled by default behind a Settings debug toggle.
 
 ### Project Skill Constraints
 
-- Project-local skill indexes were reviewed; available Firebase and Xcode skills do not apply to this offline Canvas/localStorage milestone.
-- Preserve immediate-mode Canvas, global namespace, scene lifecycle, semantic renderer tokens, radius scale, touch conventions, and `R.reducedMotion()` checks documented by the repository.
-- Before phase implementation, read the relevant folder `codemap.md` and load only applicable skill rules.
+- Preserve immediate-mode Canvas, global state conventions, scene lifecycle, semantic renderer tokens, radius scale, touch conventions, and `R.reducedMotion()`.
+- Read relevant folder codemaps and applicable rules before each phase implementation.
+- No online backend or remote telemetry; asset slots require cached/fallback behavior.
 
 ### Pending Todos
 
-Next milestone may begin after the accepted browser evidence debt is addressed or explicitly carried forward.
+No pending todo files were present. v2 accepted evidence debt is carried into v3 acceptance: worker/cache activation, legacy-save boot, event walkthrough, and map mobile/performance walkthrough.
 
 ### Blockers/Concerns
 
-None blocking milestone completion.
-
-Accepted deferred browser checks: existing-worker cache activation/legacy-save boot; Phase 11 event walkthrough; Phase 12 mobile FPS/dense-map/reduced-motion walkthrough.
-
-- The current Travel Map is a scrollable zone list; visual-map interaction must preserve locked-state explanations and authoritative entry behavior.
-- World-state migration must tolerate saves that predate every Milestone 2 field.
-- Local timestamp handling for events must be deterministic across suspension/offline time and guarded against duplicate resolution.
-- Immediate-mode rendering can create allocation pressure if decorative geometry, labels, or effects are rebuilt inefficiently each frame.
-- Overlapping touch targets for regions, landmarks, and events need explicit hit-order and drag-vs-tap behavior.
+- Browser/device evidence is incomplete; v3 final acceptance must include fresh and existing-worker clients, mobile/desktop matrix, reduced motion, console silence, and full save/reload loop.
+- Deprecated-code removal must be evidence-led because script order and indirect global references can evade static search.
 
 ## Deferred Items
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| World expansion | New zones and realms | Deferred | Milestone 2 definition |
-| Online systems | Backend sync, multiplayer control, live-service scheduling | Deferred | Milestone 2 definition |
-| Narrative | Deep companion-relationship systems | Deferred | Milestone 2 definition |
+| Online systems | Backend sync, multiplayer, server-driven events, remote telemetry | Out of scope | v3.0 definition |
+| Content | New zones, realms, broad progression, deep companion relationships | Out of scope | v3.0 definition |
+| Architecture | Framework, renderer, bundler, ES-module replacement | Out of scope | v3.0 definition |
 
 ## Previous Milestone
 
-Milestone 1 completed Phases 1–5 on 2026-09-15:
-
-- Save Hydration & Equipment Authority
-- Access-Gate Enforcement
-- Mythological Narrative Encounters
-- Combat UI Reflow
-- Connected Systems Polish
-
-Milestone 1 completion state remains available in git history (`d339303`).
+Milestone v2.0 completed Phases 6–12 on 2026-09-20. Archive references: `.planning/milestones/v2.0-ROADMAP.md`, `.planning/milestones/v2.0-REQUIREMENTS.md`, `.planning/milestones/v2.0-phases/`; final audit is `.planning/v2-MILESTONE-AUDIT.md`.
 
 ## Session Continuity
 
-Last session: 2026-09-20T05:57:20.932Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-09-20
+Stopped at: v3.0 milestone artifacts created
 Resume file: None
-Next command: `/gsd-new-milestone` when ready
+Next command: `/gsd-plan-phase 13`

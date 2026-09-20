@@ -174,3 +174,148 @@ Plans:
 
 ---
 *Roadmap created 2026-09-15 for Milestone 2.*
+
+## v3.0 — Screen & Gameplay Revamp (Planned)
+
+**Milestone Goal:** Make the complete player journey cohesive and effective across every screen, with clean responsive UI and stronger internal architecture.
+
+## Phases
+
+**Phase Numbering:** Milestone 3 continues after completed v2.0 Phase 12 and begins at Phase 13.
+
+- [x] **Phase 13: Responsive Screen Grammar & Navigation** - Players can understand and move through the core game journey consistently on phone and desktop.
+- [ ] **Phase 14: Combat & Gameplay Readability** - Players can act in combat, understand outcomes, and retain context through every combat state.
+- [ ] **Phase 15: Character & Party Surfaces** - Players can understand hero identity and actionable progression consistently across character-focused screens.
+- [ ] **Phase 16: Guidance & Progression Feedback** - Players know why actions are blocked, what changed, and what meaningful action comes next.
+- [ ] **Phase 17: Canvas Backgrounds & Asset-Ready Presentation** - Screens gain purposeful, performant visual atmosphere and character moments without hiding gameplay.
+- [ ] **Phase 18: Modular Navigation & Screen Seams** - High-connectivity screens use explicit compatibility-preserving architecture boundaries.
+- [ ] **Phase 19: Lifecycle Safety & Deprecated-Code Cleanup** - Repeated play and migration paths remain stable while proven-obsolete code is removed.
+- [ ] **Phase 20: Settings Diagnostics & Full-Loop Acceptance** - Players and maintainers can verify the complete loop with opt-in diagnostics and final evidence.
+
+## Phase Details
+
+### Phase 13: Responsive Screen Grammar & Navigation
+**Goal**: Players can understand and move through the core game journey consistently on phone and desktop.
+**Depends on**: Phase 12 / v2.0 complete
+**Requirements**: REQ-021, REQ-022, REQ-023
+**Success Criteria** (what must be TRUE):
+  1. A player can move through title/load → Ashram → map → zone → combat → return using consistent labeled navigation, back behavior, and transitions.
+  2. Each core screen clearly exposes its context, primary next action, and recoverable locked, empty, loading, or error state.
+  3. Portrait, landscape, narrow desktop, and wide desktop layouts keep text, controls, safe areas, and Canvas hit-testing aligned.
+  4. Touch drag/tap, mouse, and keyboard interactions reach the same player actions without hover-only dependencies.
+**Plans**: 3 plans
+
+Plans:
+- [x] 13-01-PLAN.md — Establish shared responsive screen grammar, viewport scaling, safe-area behavior, and layout contracts.
+- [x] 13-02-PLAN.md — Normalize labeled core navigation, back behavior, transitions, and origin-aware return flow.
+- [x] 13-03-PLAN.md — Apply grammar across core screens and execute the responsive browser verification matrix.
+**UI hint**: yes
+
+### Phase 14: Combat & Gameplay Readability
+**Goal**: Players can make informed combat decisions and understand results without visual overlap or lost context.
+**Depends on**: Phase 13
+**Requirements**: REQ-024
+**Success Criteria** (what must be TRUE):
+  1. Normal combat, incoming reaction, and result/reward states each show non-overlapping actions, turn/intent, log, and outcome information.
+  2. A player can select an action, complete the reaction window when present, and see the resulting state change without mis-targeted input.
+  3. Completing combat leads to an understandable reward/result state and a reliable return path to the originating gameplay screen.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 15: Character & Party Surfaces
+**Goal**: Players can recognize hero identity and make progression decisions consistently across character-focused screens.
+**Depends on**: Phase 14
+**Requirements**: REQ-025
+**Success Criteria** (what must be TRUE):
+  1. Party, combat, cultivation, equipment, and result views identify the relevant hero with consistent role, health/progression, and equipment semantics.
+  2. A player can inspect a hero and identify available upgrades, equipped state, and meaningful next action without reconciling conflicting values.
+  3. Character presentation remains readable and usable across phone and desktop layouts while preserving canonical progression and equipment state.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 16: Guidance & Progression Feedback
+**Goal**: Players understand consequences, rewards, blockers, and the next effective step throughout the journey.
+**Depends on**: Phase 15
+**Requirements**: REQ-026, REQ-027
+**Success Criteria** (what must be TRUE):
+  1. Actions such as combat, cultivation, exploration, crafting, and equipment changes provide immediate confirmation and durable progression visibility.
+  2. A locked or blocked action explains its reason and points to a valid unlock or recovery step using authoritative state.
+  3. Contextual hints are dismissible, appear near the relevant decision, and do not interrupt normal play with a fixed tutorial tour.
+  4. Feedback never grants duplicate rewards or creates presentation-owned progression state.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 17: Canvas Backgrounds & Asset-Ready Presentation
+**Goal**: Players experience authored realm and character atmosphere while gameplay remains the visual and performance anchor.
+**Depends on**: Phase 13
+**Requirements**: REQ-028, REQ-029
+**Success Criteria** (what must be TRUE):
+  1. Revamped screens select semantic background/character slots and show cached authored imagery or deterministic fallback art when assets load slowly or fail.
+  2. Backgrounds and character moments establish location or state without reducing text/control contrast or blocking screen entry.
+  3. Reduced-motion mode removes nonessential visual motion while preserving all actions and state distinctions.
+  4. Repeated rendering and screen cycling do not create unbounded asset, effect, or background allocations at representative phone and desktop sizes.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 18: Modular Navigation & Screen Seams
+**Goal**: High-connectivity screen flows become easier to reason about without breaking the existing global runtime.
+**Depends on**: Phase 13, Phase 14, Phase 15
+**Requirements**: REQ-030
+**Success Criteria** (what must be TRUE):
+  1. Core navigation requests use canonical route IDs and transient parameters with one predictable transition and failure-recovery path.
+  2. At least the Ashram → Travel Map → Zone Exploration → Combat slice consumes explicit screen context, selectors/commands, and lifecycle seams while legacy callers still work.
+  3. Screen rendering reads derived presentation data and gameplay actions remain owned by canonical systems rather than screen-local mutations.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 19: Lifecycle Safety & Deprecated-Code Cleanup
+**Goal**: Players can cycle screens and load existing saves reliably while the codebase sheds proven-obsolete behavior safely.
+**Depends on**: Phase 18
+**Requirements**: REQ-031, REQ-032
+**Success Criteria** (what must be TRUE):
+  1. Repeated entry and exit of core and migrated screens does not duplicate controls, callbacks, listeners, timers, modals, effects, caches, or stale selections.
+  2. Deprecated helpers and aliases removed in this milestone have no verified runtime references and their replacement seams have contract coverage.
+  3. Fresh saves, v2/legacy saves, direct boot, cached boot, and untouched scenes remain recoverable after cleanup.
+  4. A lifecycle failure reports a recoverable state instead of leaving the player in a broken or inaccessible screen.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 20: Settings Diagnostics & Full-Loop Acceptance
+**Goal**: Players get a clean default experience while maintainers can verify the complete journey with bounded local evidence.
+**Depends on**: Phase 19, Phase 17
+**Requirements**: REQ-033, REQ-034
+**Success Criteria** (what must be TRUE):
+  1. Settings contains a disabled-by-default debug toggle that enables bounded frame, transition, input/layout, persistence, and invariant diagnostics.
+  2. Diagnostics can be cleared and disabled, do not mutate gameplay or retain scene references, and produce no noisy normal-play output when off.
+  3. A fresh and existing-worker client can complete start/load → navigate → inspect → act → outcome → save → reload → return on representative phone and desktop profiles.
+  4. The full loop has no unexpected console errors, stable probe performance, readable dense states, and correct reduced-motion behavior.
+**Plans**: TBD
+**UI hint**: yes
+
+## v3.0 Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 13. Responsive Screen Grammar & Navigation | 3/3 | Complete | 2026-09-20 |
+| 14. Combat & Gameplay Readability | 0/TBD | Not started | - |
+| 15. Character & Party Surfaces | 0/TBD | Not started | - |
+| 16. Guidance & Progression Feedback | 0/TBD | Not started | - |
+| 17. Canvas Backgrounds & Asset-Ready Presentation | 0/TBD | Not started | - |
+| 18. Modular Navigation & Screen Seams | 0/TBD | Not started | - |
+| 19. Lifecycle Safety & Deprecated-Code Cleanup | 0/TBD | Not started | - |
+| 20. Settings Diagnostics & Full-Loop Acceptance | 0/TBD | Not started | - |
+
+## v3.0 Coverage
+
+| Requirement | Assigned Phase |
+|-------------|----------------|
+| REQ-021, REQ-022, REQ-023 | Phase 13 |
+| REQ-024 | Phase 14 |
+| REQ-025 | Phase 15 |
+| REQ-026, REQ-027 | Phase 16 |
+| REQ-028, REQ-029 | Phase 17 |
+| REQ-030 | Phase 18 |
+| REQ-031, REQ-032 | Phase 19 |
+| REQ-033, REQ-034 | Phase 20 |
+
+**Coverage:** 14/14 v3.0 requirements mapped exactly once; no orphans or duplicates.
