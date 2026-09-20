@@ -140,10 +140,10 @@ Plans:
 |-------|----------------|--------|-----------|
 | 6. World-State Continuity | 3/3 | Complete | 2026-09-19 |
 | 7. Visual Region Map | 2/2 | Complete   | 2026-09-17 |
-| 8. Landmark Discovery | 0/TBD | Not started | - |
-| 9. Regional Influence & Control | 0/TBD | Not started | - |
-| 10. Environmental Narrative Echoes | 0/2 | Planned | - |
-| 11. Dynamic World Events | 1/2 | In Progress | - |
+| 8. Landmark Discovery | 2/2 | Complete | 2026-09-17 |
+| 9. Regional Influence & Control | 2/2 | Complete | 2026-09-17 |
+| 10. Environmental Narrative Echoes | 2/2 | Complete | 2026-09-18 |
+| 11. Dynamic World Events | 3/3 | Complete | 2026-09-18 |
 | 12. Living Map Performance & Stability | 2/2 | Complete | 2026-09-19 |
 
 ## Coverage
