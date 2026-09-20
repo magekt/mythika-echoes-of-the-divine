@@ -229,7 +229,9 @@ function fitGame() {
   const el = document.getElementById('game-container');
   if (!el) return;
   // Clamp so a zero-sized viewport (hidden iframe) can never scale the game to nothing.
-  const scale = Math.max(0.2, Math.min(window.innerWidth / 404, window.innerHeight / 724, 1));
+  const vw = Math.max(1, window.innerWidth || G.W), vh = Math.max(1, window.innerHeight || G.H);
+  const scale = Math.max(0.2, Math.min(vw / 404, vh / 724, 1));
+  G.viewportProfile = vw > vh ? 'landscape' : (vw >= 800 ? 'wide-desktop' : (vw >= 500 ? 'large-portrait' : 'portrait'));
   el.style.transform = 'scale(' + scale + ')';
   el.style.transformOrigin = 'center center';
   // Landscape phones get a squeezed viewport; nudge the player upright (once).
@@ -237,8 +239,10 @@ function fitGame() {
     Hints.show('rotate', 'Rotate your device upright for the best experience.');
   }
 }
+if (typeof window !== 'undefined') window.fitGame = fitGame;
 
 function gInit() {  G.canvas = document.getElementById('game-canvas');
+  fitGame();
   // Back the canvas at device resolution so text/edges stay crisp on phones
   // (DPR 2-3), while ALL game code keeps using 400x720 logical coordinates.
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
@@ -469,7 +473,7 @@ function safeEnter(scene, enterOptions) {
 }
 
 function gScene(name, fade, enterOptions) {
-  if (!G.scenes[name]) return;
+  if (!G.scenes[name]) { if (typeof Notify !== 'undefined') Notify.show('Destination unavailable — returning to Ashram.', 2, R.colors.red); name = G.scenes.ashram ? 'ashram' : 'title'; }
   Input.clear();
   UI.Modal.clearAll();
   if (fade && G.currentScene) {

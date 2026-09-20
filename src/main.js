@@ -63,17 +63,6 @@
     }
   }
 
-  // Container scaling lives here so boot has no hidden dependency on
-  // engine helpers beyond gInit.
-  function fitGame() {
-    try {
-      var el = document.getElementById('game-container');
-      if (!el) return;
-      var scale = Math.max(0.2, Math.min(window.innerWidth / 404, window.innerHeight / 724, 1));
-      el.style.transform = 'scale(' + scale + ')';
-      el.style.transformOrigin = 'center center';
-    } catch (e) {}
-  }
 
   // Deterministic early boot: scripts load synchronously at the end of
   // <body>, so the DOM exists right now — start immediately instead of
@@ -93,7 +82,6 @@
     enterCurrent();
     // gInit (canvas, input, audio, rAF loop) lives in game.js.
     if (typeof gInit === 'function') gInit();
-    fitGame();
     if (window.console && G.state) console.log('[Mythika] booted scene=' + G.state.scene);
     // Belt-and-braces: the CSS boot splash is normally removed by the first
     // rendered frame; never let it cover the game if rendering stalls.
@@ -104,7 +92,6 @@
       } catch (e) {}
     }, 3000);
   }
-  window.addEventListener('resize', fitGame);
   window.addEventListener('load', function() { bootGame(); });
   bootGame();
 })();
