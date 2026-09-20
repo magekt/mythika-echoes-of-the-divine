@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: verifying
 stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-09-20T05:57:20.943Z"
-last_activity: 2026-09-19 — Phase 06-03 closure evidence complete; browser follow-up remains human-needed
+last_updated: "2026-09-20T06:20:00Z"
+last_activity: 2026-09-20 — Phase 11-05 offline world-event persistence gap closed; browser verification remains human-needed
 progress:
   total_phases: 7
   completed_phases: 7
@@ -26,9 +26,9 @@ See: `.planning/PROJECT.md` (updated 2026-09-15)
 ## Current Position
 
 Phase: 12 (Living Map Performance & Stability) — complete. Milestone M2 fully complete.
-Plan: 2/2 complete (12-01 render optimization, 12-02 lifecycle + reduced-motion + probe) — committed, suite 60/60 green.
-Status: Milestone complete. Manual browser verification checkpoint (plan 12-02) waived by user decision. All 7 phases and 15 plans done; 8/8 requirements covered.
-Last activity: 2026-09-19 — Phase 06-03 closure evidence complete; browser follow-up remains human-needed
+Plan: 2/2 complete (12-01 render optimization, 12-02 lifecycle + reduced-motion + probe) — committed; Phase 11 gap-closure evidence also complete.
+Status: Milestone complete. Manual browser verification checkpoint (plan 12-02) waived by user decision; Phase 11 browser follow-up remains human-needed. All 7 phases and 17 plans done; 8/8 requirements covered.
+Last activity: 2026-09-20 — Phase 11-05 offline event persistence closure; browser verification remains human-needed
 
 Progress: [██████████] 100%
 
@@ -36,7 +36,7 @@ Progress: [██████████] 100%
 
 **Velocity:**
 
-- Milestone 2 plans completed: 13
+- Milestone 2 plans completed: 14
 - Average duration: ~15min
 - Total execution time: ~3.2 hours
 
@@ -49,7 +49,7 @@ Progress: [██████████] 100%
 | 8. Landmark Discovery | 2/2 | 39min | 20min |
 | 9. Regional Influence & Control | 2/2 | 17min | 9min |
 | 10. Environmental Narrative Echoes | 2/2 | 53min | 25min |
-| 11. Dynamic World Events | 3/3 | 20min | 7min |
+| 11. Dynamic World Events | 4/4 | 25min | 8min |
 | 12. Living Map Performance & Stability | 0/TBD | - | - |
 
 **Recent Trend:**
@@ -73,6 +73,7 @@ Progress: [██████████] 100%
 | Phase 11 P02 | 1min* | 1 tasks | 3 files |
 | Phase 11 P03 | 2min* | 1 tasks | 1 file |
 | Phase 06 P03 | 6min | 2 tasks | 4 files |
+| Phase 11 P05 | 5min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,7 @@ Recent decisions affecting current work:
 - [Phase 11]: World events use template-based cooldown tracking via resolved event metadata; no separate cooldown state table.
 - [Phase 11]: Event ids are unique per occurrence (templateId_timestamp), enabling cooldown tracking while supporting multiple event lifetimes for the same template.
 - [Phase 11]: World events use deterministic local timestamps and bounded state; no backend.
+- [Phase 11-05]: SaveSystem persists load-time world-event mutations only when WorldEvents.tick reports a successful expiry or generation, preserving no-op save behavior.
 - [Phase 12]: Mobile probe, scene cleanup, save growth, and reduced motion are explicit milestone gates.
 - [Phase 06]: Bound regional influence to [-100, 100] and normalized control to neutral, player, enemy, or contested.
 - [Phase 06]: Use null-prototype keyed maps with safe cloned metadata for the canonical world-state boundary.

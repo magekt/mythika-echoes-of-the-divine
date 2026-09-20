@@ -13,7 +13,7 @@ Milestone 2 turns the existing Travel Map into a persistent, touch-first world s
 - [x] **Phase 8: Landmark Discovery** - Players discover and inspect persistent points of interest in existing zones. (completed 2026-09-17)
 - [x] **Phase 9: Regional Influence & Control** - Player actions visibly change regional influence and control. (completed 2026-09-17)
 - [x] **Phase 10: Environmental Narrative Echoes** - Encounter choices visibly reshape regional presentation. (complete)
-- [x] **Phase 11: Dynamic World Events** - Periodic local events appear, progress, and resolve through the map. (completed 2026-09-18; manual browser check for 11-02 flagged in STATE.md)
+- [x] **Phase 11: Dynamic World Events** - Periodic local events appear, progress, and resolve through the map. (completed 2026-09-20; manual browser check for 11-02 flagged in STATE.md)
 - [x] **Phase 12: Living Map Performance & Stability** - The complete map stays smooth, leak-free, and accessible on mobile. (completed 2026-09-19; manual browser check waived by user)
 
 ## Phase Details
@@ -110,12 +110,13 @@ Plans:
   3. Suspending or closing the game and returning later advances event timing correctly without requiring a backend.
   4. Resolving an event routes outcomes through canonical gameplay/reward systems and cannot reward the player twice.
   5. Repeated event cycles keep save history bounded and do not crowd the map with stale activity.
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 - [x] 11-01-PLAN.md — World event data definitions and system API with generate/tick/resolve/history. (completed 2026-09-18)
 - [x] 11-02-PLAN.md — Map integration: event indicators, detail panel, resolve action, human verification. (completed 2026-09-18; automated 48/48; manual browser verification pending)
 - [x] 11-03-PLAN.md — Gap closure: fix stale MapHelpers mock in travel_map_landmarks.test.js so the full suite passes (test-only). (completed 2026-09-18)
+- [x] 11-05-PLAN.md — Gap closure: persist offline world-event expiry and cadence generation without adding no-op saves. (completed 2026-09-20)
 
 **UI hint**: yes
 
