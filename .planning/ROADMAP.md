@@ -184,7 +184,7 @@ Plans:
 **Phase Numbering:** Milestone 3 continues after completed v2.0 Phase 12 and begins at Phase 13.
 
 - [x] **Phase 13: Responsive Screen Grammar & Navigation** - Players can understand and move through the core game journey consistently on phone and desktop.
-- [ ] **Phase 14: Combat & Gameplay Readability** - Players can act in combat, understand outcomes, and retain context through every combat state.
+- [x] **Phase 14: Combat & Gameplay Readability** - Players can act in combat, understand outcomes, and retain context through every combat state. (completed 2026-09-20; browser evidence deferred)
 - [ ] **Phase 15: Character & Party Surfaces** - Players can understand hero identity and actionable progression consistently across character-focused screens.
 - [ ] **Phase 16: Guidance & Progression Feedback** - Players know why actions are blocked, what changed, and what meaningful action comes next.
 - [ ] **Phase 17: Canvas Backgrounds & Asset-Ready Presentation** - Screens gain purposeful, performant visual atmosphere and character moments without hiding gameplay.
@@ -219,7 +219,11 @@ Plans:
   1. Normal combat, incoming reaction, and result/reward states each show non-overlapping actions, turn/intent, log, and outcome information.
   2. A player can select an action, complete the reaction window when present, and see the resulting state change without mis-targeted input.
   3. Completing combat leads to an understandable reward/result state and a reliable return path to the originating gameplay screen.
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [x] 14-01-PLAN.md — Implement explicit non-overlapping combat state bands and regression contracts.
+- [x] 14-02-PLAN.md — Verify the attack-to-reward flow across responsive browser profiles and input modes (automated contract complete; live browser evidence deferred).
 **UI hint**: yes
 
 ### Phase 15: Character & Party Surfaces
@@ -297,7 +301,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 13. Responsive Screen Grammar & Navigation | 3/3 | Complete | 2026-09-20 |
-| 14. Combat & Gameplay Readability | 0/TBD | Not started | - |
+| 14. Combat & Gameplay Readability | 2/2 | Complete (browser evidence deferred) | 2026-09-20 |
 | 15. Character & Party Surfaces | 0/TBD | Not started | - |
 | 16. Guidance & Progression Feedback | 0/TBD | Not started | - |
 | 17. Canvas Backgrounds & Asset-Ready Presentation | 0/TBD | Not started | - |

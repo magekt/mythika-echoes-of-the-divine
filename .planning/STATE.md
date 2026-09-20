@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Screen & Gameplay Revamp
 status: executing
-stopped_at: Phase 13 complete; browser evidence pending
+stopped_at: Phase 14 complete; browser evidence deferred
 last_updated: "2026-09-20T00:00:00Z"
-last_activity: 2026-09-20 — completed Phase 13 plans
+last_activity: 2026-09-20 — completed Phase 14 plans
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 24
-  completed_plans: 3
-  percent: 13
+  completed_plans: 5
+  percent: 21
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: `.planning/PROJECT.md` (updated 2026-09-20)
 
 ## Current Position
 
-Phase: 13 of 20 (Responsive Screen Grammar & Navigation)
-Plan: 3 of 3
-Status: Phase 13 complete; browser evidence pending
-Last activity: 2026-09-20 — Phase 13 responsive grammar and navigation implemented.
+Phase: 14 of 20 (Combat & Gameplay Readability)
+Plan: 2 of 2
+Status: Phase 14 complete; browser evidence deferred
+Last activity: 2026-09-20 — Phase 14 combat readability implementation and automated contracts completed.
 
-Progress: [█░░░░░░░░░] 13%
+Progress: [██░░░░░░░░] 21%
 
 ## Performance Metrics
 
@@ -70,6 +70,7 @@ No pending todo files were present. v2 accepted evidence debt is carried into v3
 ### Blockers/Concerns
 
 - Browser/device evidence is incomplete; v3 final acceptance must include fresh and existing-worker clients, mobile/desktop matrix, reduced motion, console silence, and full save/reload loop.
+- Phase 14 browser evidence remains human-needed and is documented in `.planning/phases/14-combat-gameplay-readability/14-VERIFICATION.md`.
 - Deprecated-code removal must be evidence-led because script order and indirect global references can evade static search.
 
 ## Deferred Items

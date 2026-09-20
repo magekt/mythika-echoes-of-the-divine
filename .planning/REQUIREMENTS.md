@@ -46,7 +46,7 @@
 | REQ-021 | Phase 13 | Complete |
 | REQ-022 | Phase 13 | Complete |
 | REQ-023 | Phase 13 | Complete |
-| REQ-024 | Phase 14 | Pending |
+| REQ-024 | Phase 14 | Complete (automated; browser evidence deferred) |
 | REQ-025 | Phase 15 | Pending |
 | REQ-026 | Phase 16 | Pending |
 | REQ-027 | Phase 16 | Pending |
