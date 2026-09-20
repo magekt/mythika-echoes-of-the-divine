@@ -46,7 +46,7 @@ const WorldEvents = (function() {
       if (!rec || typeof rec !== 'object') continue;
       if (rec.templateId !== template.id) continue;
       var ended = rec.resolvedAt || rec.expiredAt || 0;
-      if (now - ended < (template.cooldown || 0)) return true;
+      if (now - ended < (template.cooldown || 0) * 1000) return true;
     }
     return false;
   }
@@ -115,8 +115,8 @@ const WorldEvents = (function() {
       var dur = Number(rec.duration);
       if (!isFinite(start) || !isFinite(dur) || dur <= 0) continue;
 
-      var remaining = start + dur - now;
-      if (remaining <= 0 || e >= remaining) {
+      var remaining = start + dur * 1000 - now;
+      if (remaining <= 0 || e * 1000 >= remaining) {
         if (typeof WorldState === 'undefined' || !WorldState.resolveEvent) continue;
         WorldState.resolveEvent(eventId, {
           templateId: rec.templateId,
@@ -228,7 +228,7 @@ const WorldEvents = (function() {
         zoneId: rec.zoneId,
         startedAt: start,
         duration: dur,
-        remainingTime: Math.max(0, start + dur - now),
+        remainingTime: Math.max(0, start + dur * 1000 - now),
         status: rec.status || 'active'
       };
       if (template) {

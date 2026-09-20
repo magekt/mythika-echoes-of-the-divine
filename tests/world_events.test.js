@@ -21,13 +21,14 @@ function loadContract() {
     removeItem: key => storage.delete(key)
   };
   const context = vm.createContext({
-    console, setTimeout, clearTimeout,
+    console, setTimeout, clearTimeout, Math,
     performance: { now: () => 0 },
     location: { search: '' },
     localStorage,
     document: { getElementById: () => null, addEventListener: () => {} },
     window: { innerWidth: 400, innerHeight: 720, devicePixelRatio: 1, addEventListener: () => {}, console }
   });
+  context.Math.random = () => 0;
 
   vm.runInContext(
     fs.readFileSync(GAME_PATH, 'utf8') + '\n;globalThis.G = G;',
@@ -166,14 +167,14 @@ test('generate excludes templates that are on cooldown', () => {
   WorldState.setEventActive('pre_' + cooledTemplate.id, {
     templateId: cooledTemplate.id,
     zoneId: cooledTemplate.zoneId,
-    startedAt: Date.now() - cooledTemplate.duration,
+    startedAt: Date.now() - cooledTemplate.duration * 1000,
     duration: cooledTemplate.duration,
     status: 'active'
   });
   WorldState.resolveEvent('pre_' + cooledTemplate.id, {
     templateId: cooledTemplate.id,
     zoneId: cooledTemplate.zoneId,
-    startedAt: Date.now() - cooledTemplate.duration,
+    startedAt: Date.now() - cooledTemplate.duration * 1000,
     duration: cooledTemplate.duration,
     result: 'resolved',
     resolvedAt: Date.now()
@@ -189,16 +190,50 @@ test('generate excludes templates that are on cooldown', () => {
   );
 });
 
-test('tick expires events that have exceeded their duration', () => {
+test('generate honors cooldown immediately before and after the seconds boundary', () => {
+  function attempt(offsetMs) {
+    const { G, WorldState, WorldEvents, WORLD_EVENTS } = loadContract();
+    G.state.party = [{ id: 'test', level: 50 }];
+    G.state.zoneProgress = { aryavarta: 0 };
+    const template = WORLD_EVENTS.find(t => t.zoneId === 'aryavarta');
+    const ended = Date.now() - (template.cooldown * 1000 + offsetMs);
+    WorldState.setEventActive('cooldown_boundary', {
+      templateId: template.id, zoneId: template.zoneId,
+      startedAt: ended - template.duration * 1000, duration: template.duration,
+      status: 'active'
+    });
+    WorldState.resolveEvent('cooldown_boundary', {
+      templateId: template.id, zoneId: template.zoneId,
+      startedAt: ended - template.duration * 1000, duration: template.duration,
+      result: 'resolved', resolvedAt: ended
+    });
+    const eventId = WorldEvents.generate();
+    return { eventId, template, record: eventId && WorldState.getWorld().events.active[eventId] };
+  }
+
+  const before = attempt(-1000);
+  assert.notEqual(before.record.templateId, before.template.id, 'cooldown blocks just before its boundary');
+  const after = attempt(1000);
+  assert.equal(after.record.templateId, after.template.id, 'cooldown allows the template after its boundary');
+});
+
+test('tick keeps events active just before duration and expires at the duration boundary', () => {
   const { G, WorldState, WorldEvents } = loadContract();
   unlockAllZones(G);
   const now = Date.now();
 
-  // Event started 3605s ago with 3600s duration → already expired
+  WorldState.setEventActive('ev_boundary_active', {
+    templateId: 'rakshasa_raid', zoneId: 'aryavarta',
+    startedAt: now - (3600 * 1000 - 1000), duration: 3600, status: 'active'
+  });
+  WorldEvents.tick(0);
+  assert.ok(Object.prototype.hasOwnProperty.call(WorldState.getWorld().events.active, 'ev_boundary_active'));
+
+  // At the 3600-second duration boundary, the event expires.
   WorldState.setEventActive('ev_expire', {
     templateId: 'rakshasa_raid',
     zoneId: 'aryavarta',
-    startedAt: now - 3605,
+    startedAt: now - (3600 * 1000),
     duration: 3600,
     status: 'active'
   });
@@ -285,8 +320,8 @@ test('getForZone returns only events in the specified zone with remaining time',
   assert.equal(aryavartaEvents.length, 1);
   assert.equal(aryavartaEvents[0].zoneId, 'aryavarta');
   assert.equal(aryavartaEvents[0].id, 'ev_a1');
-  assert.ok(aryavartaEvents[0].remainingTime > 3500, 'remainingTime close to duration');
-  assert.ok(aryavartaEvents[0].remainingTime <= 3600);
+  assert.ok(aryavartaEvents[0].remainingTime > 3500 * 1000, 'remainingTime close to duration');
+  assert.ok(aryavartaEvents[0].remainingTime <= 3600 * 1000);
 });
 
 test('getActive returns all active events with remaining time', () => {
@@ -350,12 +385,12 @@ test('tick handles offline elapsed correctly — events expired during away time
   // Event started 3600s ago with 3600s duration → remaining ≈ 0
   WorldState.setEventActive('ev_off1', {
     templateId: 'rakshasa_raid', zoneId: 'aryavarta',
-    startedAt: now - 3600, duration: 3600, status: 'active'
+    startedAt: now - 3600 * 1000, duration: 3600, status: 'active'
   });
   // Event started 4000s ago with 7200s duration → remaining ≈ 3200
   WorldState.setEventActive('ev_off2', {
     templateId: 'naga_migration', zoneId: 'dandaka',
-    startedAt: now - 4000, duration: 7200, status: 'active'
+    startedAt: now - 4000 * 1000, duration: 7200, status: 'active'
   });
 
   // Offline for 4000s — both should expire (remaining ≤ elapsed)
@@ -373,7 +408,7 @@ test('tick handles offline elapsed correctly — events expired during away time
   // New event with plenty of remaining — 1000s elapsed vs 3100s remaining → survives
   WorldState.setEventActive('ev_off3', {
     templateId: 'rakshasa_raid', zoneId: 'aryavarta',
-    startedAt: now - 500, duration: 3600, status: 'active'
+    startedAt: now - 500 * 1000, duration: 3600, status: 'active'
   });
   WorldEvents.tick(1000);
   const w2 = WorldState.getWorld();
