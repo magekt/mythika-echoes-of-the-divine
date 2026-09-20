@@ -55,6 +55,9 @@ const equipmentScene = Scene.create({
     this.data.staticDraws = [];
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
+    const heroSurface = UI.HeroSurface.getModel(this.data.selectedHero, 'equipment');
+    SD.push({ render: function(ctx) { UI.HeroSurface.renderDetail(ctx, 14, y, G.W - 28, 78, equipmentScene.data.selectedHero, 'equipment'); } });
+    y += 86;
 
     // --- Tabs: equal rhythm, with explicit 44px action targets ---
     const tabH = 48;

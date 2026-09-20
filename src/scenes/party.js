@@ -92,6 +92,7 @@ const partyScene = Scene.create({
       btn._hero = hero;
       btn._alive = alive;
       btn.render = function(ctx) {
+        UI.HeroSurface.renderCompact(ctx, this.x, this.y, this.w, this.h, this._hero);
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
         R.roundRect(ctx, bx, by, bw, bh, 8, this.color);
         ctx.strokeStyle = R.colors.borderHairline;
@@ -365,6 +366,7 @@ const partyScene = Scene.create({
     this.data.buttons = [];
     this.data.scrollY = 0;
     const hero = this.data.selectedHero;
+    const heroSurface = UI.HeroSurface.getModel(hero, 'detail');
     const layout = this.getDetailActionLayout();
     let y = layout.firstButtonY;
 

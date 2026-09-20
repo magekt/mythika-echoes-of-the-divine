@@ -962,6 +962,7 @@ const combatScene = Scene.create({
     const heroStep = this.data.heroes.length <= 3 ? 90 : 68;   // keep 4-5 hero bars on-canvas
     const hy = 62;
     for (const h of this.data.heroes) {
+      UI.HeroSurface.renderCompact(ctx, hx, hy - 4, heroStep - 8, 62, h);
       const col = h.hp > 0 ? R.colors.text : R.colors.textDim;
       R.drawHero(ctx, h.id, hx + 12, hy, 22);
       R.textCenter(ctx, h.name, hx + 12, hy + 30, col, R.fonts.sm);
@@ -1107,6 +1108,7 @@ const combatScene = Scene.create({
     }
 
     if (this.data.turnState === 'result' && !this.data.showEnlightenment) {
+      if (this.data.heroes[0]) UI.HeroSurface.renderResult(ctx, layout.result.x, layout.result.y + 8, layout.result.w, 76, this.data.heroes[0]);
       R.textCenter(ctx, this.data.result && this.data.result.won ? 'Victory — rewards secured' : 'Defeat — retreat to safety', G.W / 2, ly, this.data.result && this.data.result.won ? R.colors.gold : R.colors.red, R.fonts.md);
       ly += 24;
       ly += 8;

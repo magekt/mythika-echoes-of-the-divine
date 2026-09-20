@@ -180,6 +180,7 @@ const cultivationScene = Scene.create({
     const shell = UI.PremiumShell(10, py, G.W - 20, this.infoPanelH, { outerR: 12 });
     shell.render(ctx);
     const content = shell.contentRect();
+    UI.HeroSurface.renderDetail(ctx, content.x, content.y, content.w, 76, G.state.player, 'cultivation');
 
     const realm = CultivationSystem.getRealmData();
     const progress = CultivationSystem.getRealmProgress();
@@ -187,7 +188,7 @@ const cultivationScene = Scene.create({
     const canBreak = status.canBreakthrough;
     const stats = CultivationSystem.getBreakthroughStats(getRealmIndex(G.state.realm));
 
-    let iy = content.y + 10;
+    let iy = content.y + 86;
     R.textCenter(ctx, 'Cultivation Realm', content.x + content.w / 2, iy, R.colors.accent, R.fonts.md);
     iy += 20;
     R.textCenter(ctx, 'Realm: ' + realm.name, content.x + content.w / 2, iy, R.colors.textPrimary, R.fonts.md);
