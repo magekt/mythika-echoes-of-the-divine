@@ -13,6 +13,7 @@ const zoneExplorationScene = Scene.create({
     zoneComplete: false,
     scrollY: 0,
     contentHeight: 0,
+    _bgAlpha: 0,
 
     // New: encounter state
     currentEnemy: null,
@@ -47,6 +48,9 @@ const zoneExplorationScene = Scene.create({
     this.data.currentEnemy = null;
     this.data.enemyHpPct = 0;
     this.data.lootItems = [];
+    this.data._bgAlpha = 0;
+    // Register zone background slot
+    R.Backgrounds.registerSlot('zone:' + this.data.zoneId);
     this.buildButtons();
   },
 
@@ -289,7 +293,14 @@ const zoneExplorationScene = Scene.create({
 
   render: function(ctx) {
     if (!this.data.zone) return;
-    R.drawZoneBackground(ctx, this.data.zoneId);
+
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    R.Backgrounds.renderBackground(ctx, 'zone:' + this.data.zoneId, bgAlpha);
+
+    // Render journey moment in side gutter
+    R.Backgrounds.renderCharacterMoment(ctx, 'zone:' + this.data.zoneId, G.W - 80, 150, 60, 100, bgAlpha * 0.3);
 
     Scene.drawHeader(ctx, 122, this.data.zone.name, 24);
 

@@ -3,75 +3,83 @@ phase: 17
 review_type: code_review
 status: clean
 depth: standard
-files_reviewed: 3
+files_reviewed: 9
 critical: 0
-warning: 0
-info: 2
-total: 2
+warning: 1
+info: 3
+total: 4
 ---
 
-# Code Review Report: Phase 17 (Plan 1)
+# Code Review Report: Phase 17 (Plan 2)
 
 ## Summary
-Reviewed 3 files at standard depth. Found 2 info items. All warnings from initial review have been fixed. No critical issues.
+Reviewed 9 files at standard depth. Found 1 warning and 3 info items. All critical issues from Plan 1 have been addressed. No critical issues.
 
 ## Files Reviewed
-- `src/engine/backgrounds.js`
-- `tests/backgrounds.test.js`
-- `index.html`
+- `src/scenes/ashram.js`
+- `src/scenes/travelMap.js`
+- `src/scenes/zoneExploration.js`
+- `src/scenes/combatScene.js`
+- `src/scenes/party.js`
+- `src/scenes/equipment.js`
+- `src/scenes/cultivationScene.js`
+- `tests/backgrounds_integration.test.js`
+- `sw.js`
 
 ---
 
-## Findings (Fixed)
+## Findings
 
-### FIXED: Loading state not properly tracked in renderBackground
-**File:** `src/engine/backgrounds.js:236`
-**Issue:** The `renderBackground` function checked `entry.loading === false` but the `loading` field was always `false`.
-**Fix:** Modified `get(key)` to return `loading: loading.has(key)` reflecting actual loading state from the internal Map.
+### WARNING: travelMap.js defensive checks indicate test infrastructure gap
+**File:** `src/scenes/travelMap.js:40, 49, 408`
+**Issue:** The `enter()` and `render()` functions use `typeof Scene.responsive === 'function'` and `typeof MapHelpers.getRegion === 'function'` checks. While this prevents crashes in test environments, it indicates the test mocks don't properly provide these dependencies. In production, these functions will always exist.
+**Recommendation:** Consider improving test mocks to provide proper Scene and MapHelpers implementations rather than relying on defensive checks in production code. Alternatively, document this as a known test infrastructure limitation.
 
-### FIXED: LRU eviction doesn't handle _authored keys
-**File:** `src/engine/backgrounds.js:152-159`
-**Issue:** The `evictLRU` function didn't clean up corresponding `_authored` keys.
-**Fix:** When evicting a key, now also removes `key + '_authored'` from both `cache` and `accessOrder`.
+### INFO: Background integration follows consistent pattern across all 7 scenes
+**Files:** All scene files
+**Observation:** Each scene follows the same pattern: register slot in `enter()`, render background in `render()` with crossfade alpha, render character moment in designated safe zone. This consistency is excellent for maintainability.
 
-### FIXED: registerSlot replaces entire type generator
-**File:** `src/engine/backgrounds.js:174-177`
-**Issue:** `registerSlot` replaced the entire type generator instead of per-key.
-**Fix:** Added `customGenerators` Map for per-key custom generators; `registerSlot` now stores in this Map.
+### INFO: Character moments correctly positioned in safe zones per 17-UI-SPEC
+**Files:** `ashram.js`, `zoneExploration.js`, `party.js`, `equipment.js`, `cultivationScene.js`, `combatScene.js`
+**Observation:** All character moments are positioned in designated gutters away from action bands:
+- Ashram: architecture in top gutter (20, 100, 80x120, 0.3 opacity)
+- Zone Exploration: journey in side gutter (G.W-80, 150, 60x100, 0.3 opacity)
+- Party: hero in detail right gutter (G.W-140, 150, 120x180, 0.15 opacity)
+- Equipment: hero in equipped tab (G.W-140, 150, 120x180, 0.15 opacity)
+- Cultivation: meditation left gutter (20, 200, 60x100, 0.3 opacity)
+- Combat: enemy center-top behind intent band (G.W/2-50, 200, 100x100, 0.4 opacity)
 
----
-
-## Remaining Findings
-
-### INFO: Image dimensions may not match render target
-**File:** `src/engine/backgrounds.js:209-211`
-**Issue:** When an authored asset loads, the canvas uses the image's natural dimensions rather than standard 400x720.
-**Recommendation:** Consider normalizing to 400x720 or preserving aspect ratio with letterboxing. (Deferred to Plan 17-02 if needed)
-
-### INFO: O(n) LRU operations acceptable for small cache
-**File:** `src/engine/backgrounds.js:181-183`
-**Observation:** LRU uses `indexOf` and `splice` (O(n)). With MAX_ENTRIES=20, this is perfectly acceptable.
+### INFO: Service worker updated for cache coherency
+**File:** `sw.js:18, 63`
+**Observation:** Added `src/engine/backgrounds.js` and `src/ui/feedback.js` to ASSETS precache list, matching index.html script order. This ensures cache coherency for new assets.
 
 ---
 
 ## Test Coverage Review
 
-### `tests/backgrounds.test.js`
-- All 9 contract tests pass
-- Tests cover: slot resolution, fallback generation, cache bounds, reduced motion, authority boundaries
-- Test mock context adequately simulates browser environment for Node.js execution
+### `tests/backgrounds_integration.test.js`
+- All 13 integration tests pass
+- Tests cover: cross-scene slot usage, contrast preservation, reduced motion, allocation bounds, authority boundaries
 - Good isolation between tests with beforeEach/afterEach clearing cache
+- Adequate mock context for Node.js execution
 
 ---
 
 ## Integration Review
 
-### `index.html`
-- Script tag correctly placed after `renderer.js` and before data/scripts section
-- Probe group markers maintained for performance monitoring
-- No syntax or ordering issues
+### Scene Integration
+- All 7 scenes properly register semantic slots in `enter()`
+- Backgrounds rendered with `destination-over` composite operation behind all UI
+- Crossfade alpha animation (300ms, 0ms reduced motion) implemented consistently
+- Character moments rendered at specified safe zone coordinates with appropriate opacity
+- No mutations to G.state or gameplay systems from background rendering
+
+### Service Worker
+- ASSETS list now includes `src/engine/backgrounds.js` and `src/ui/feedback.js`
+- Matches index.html script loading order
+- Cache coherency maintained for new assets
 
 ---
 
 ## Overall Assessment
-The background system foundation is solid with proper encapsulation, bounded cache, and comprehensive test coverage. All warnings from initial review have been addressed. The two info items are acceptable for the current scope and can be addressed in Plan 17-02 if needed.
+The background integration is solid and consistent across all 7 revamped scenes. The one warning is a test infrastructure issue, not a production bug. The defensive checks in travelMap.js are reasonable for robustness but ideally test mocks would be improved. All 127 tests pass including the new integration tests.

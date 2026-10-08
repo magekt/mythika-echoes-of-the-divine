@@ -30,13 +30,16 @@ const cultivationScene = Scene.create({
     buttons: [],
     scrollY: 0,
     contentHeight: 0,
-    breakthroughButton: null
+    breakthroughButton: null,
+    _bgAlpha: 0
   },
 
   enter: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
     this.data.breakthroughButton = null;
+    this.data._bgAlpha = 0;
+    R.Backgrounds.registerSlot('cultivation:' + G.state.realm);
     this.buildButtons();
   },
 
@@ -232,6 +235,14 @@ const cultivationScene = Scene.create({
   },
 
   render: function(ctx) {
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    R.Backgrounds.renderBackground(ctx, 'cultivation:' + G.state.realm, bgAlpha);
+
+    // Render meditation moment left gutter below realm panel
+    R.Backgrounds.renderCharacterMoment(ctx, 'hero:' + G.state.player.id, 20, 200, 60, 100, bgAlpha * 0.3);
+
     // Render noise/grain overlay for editorial luxury feel
     R.renderNoise(ctx);
 

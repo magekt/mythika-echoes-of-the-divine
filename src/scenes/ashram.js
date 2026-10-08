@@ -5,7 +5,8 @@ const ashramScene = Scene.create({
     infoText: '',
     popup: null,
     scrollY: 0,
-    contentHeight: 0
+    contentHeight: 0,
+    _bgAlpha: 0
   },
 
   enter: function(options) {
@@ -14,6 +15,8 @@ const ashramScene = Scene.create({
     if ((G.state.gold || 0) >= 100) Hints.show('bazaar', 'You have coin to spend — the Bazaar buys and sells gear.');
     Audio.playMusic('ashram');
     this.data.popup = null;
+    this.data._bgAlpha = 0;
+    R.Backgrounds.registerSlot('ashram');
     this.buildMenu(!!(options && options.restoreScroll));
     SaveSystem.startAutoSave();
   },
@@ -284,6 +287,14 @@ const ashramScene = Scene.create({
 
   render: function(ctx) {
     const realm = REALMS.find(r => r.id === G.state.realm) || REALMS[0];
+
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    R.Backgrounds.renderBackground(ctx, 'ashram', bgAlpha);
+
+    // Render character moment (architecture silhouette in top gutter)
+    R.Backgrounds.renderCharacterMoment(ctx, 'ashram', 20, 100, 80, 120, bgAlpha * 0.3);
 
     // Render noise/grain overlay for editorial luxury feel
     R.renderNoise(ctx);

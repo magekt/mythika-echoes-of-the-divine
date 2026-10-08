@@ -16,6 +16,66 @@ const RecruitAccess = {
   }
 };
 
+// Helper: get next action hint for party
+function getNextPartyHint() {
+  const party = G.state.party || [];
+  if (!party.length) return 'Recruit your first hero to begin your journey.';
+
+  // Check for heroes ready to equip
+  for (const hero of party) {
+    const inv = G.state.inventory || [];
+    const hasWeapon = inv.some(i => i.type === 'weapon');
+    const hasArmor = inv.some(i => i.type === 'armor');
+    const hasAccessory = inv.some(i => i.type === 'accessory');
+    if (!hero.weaponEquipped && hasWeapon) return 'Tap a hero → Equip Weapon to boost ATK.';
+    if (!hero.armorEquipped && hasArmor) return 'Tap a hero → Equip Armor to boost DEF.';
+    if (!hero.accessoryEquipped && hasAccessory) return 'Tap a hero → Equip Accessory to boost MAG.';
+  }
+
+  // Check for cultivation readiness
+  for (const hero of party) {
+    if (typeof CultivationSystem !== 'undefined' && CultivationSystem.canBreakthrough && CultivationSystem.canBreakthrough(hero)) {
+      return 'Tap a hero → Cultivate to break through to the next realm.';
+    }
+  }
+
+  return 'Manage your party: equip gear, cultivate, or recruit new heroes.';
+}
+
+// Helper: get contextual badge for hero
+function getHeroBadge(hero) {
+  // Check if hero can equip something
+  const inv = G.state.inventory || [];
+  const hasWeapon = inv.some(i => i.type === 'weapon');
+  const hasArmor = inv.some(i => i.type === 'armor');
+  const hasAccessory = inv.some(i => i.type === 'accessory');
+
+  if (!hero.weaponEquipped && hasWeapon) {
+    return UI.Feedback.ContextualBadge('ready', 'Can equip weapon', { x: 0, y: 0, size: 20 });
+  }
+  if (!hero.armorEquipped && hasArmor) {
+    return UI.Feedback.ContextualBadge('ready', 'Can equip armor', { x: 0, y: 0, size: 20 });
+  }
+  if (!hero.accessoryEquipped && hasAccessory) {
+    return UI.Feedback.ContextualBadge('ready', 'Can equip accessory', { x: 0, y: 0, size: 20 });
+  }
+
+  // Check cultivation readiness
+  if (typeof CultivationSystem !== 'undefined' && CultivationSystem.canBreakthrough && CultivationSystem.canBreakthrough(hero)) {
+    return UI.Feedback.ContextualBadge('ready', 'Breakthrough available', { x: 0, y: 0, size: 20 });
+  }
+
+  // Check if hero needs cultivation (progress)
+  if (typeof CultivationSystem !== 'undefined' && CultivationSystem.getRealmProgress) {
+    const prog = CultivationSystem.getRealmProgress(hero);
+    if (prog && prog.current > 0 && prog.current < prog.needed) {
+      return UI.Feedback.ContextualBadge('progress', 'Cultivation: ' + Math.floor(prog.current) + '/' + prog.needed, { x: 0, y: 0, size: 20 });
+    }
+  }
+
+  return UI.Feedback.ContextualBadge('complete', 'Fully equipped', { x: 0, y: 0, size: 20 });
+}
+
 const partyScene = Scene.create({
   name: 'party',
   data: {
@@ -27,7 +87,8 @@ const partyScene = Scene.create({
     equipSlot: null,
     scrollY: 0,
     contentHeight: 0,
-    recruitCosts: RecruitAccess.costs
+    recruitCosts: RecruitAccess.costs,
+    _bgAlpha: 0
   },
 
   enter: function() {
@@ -36,6 +97,8 @@ const partyScene = Scene.create({
     this.data.itemsView = false;
     this.data.equipSlot = null;
     this.data.scrollY = 0;
+    this.data._bgAlpha = 0;
+    R.Backgrounds.registerSlot('ashram');
     this.buildList();
   },
 
@@ -86,11 +149,24 @@ const partyScene = Scene.create({
     // with full-width layout matching the grid pattern
     const cardH = 86; // was 66px — upgraded for tap target (44×44 minimum)
 
+    // Inline hint for next action (equip/cultivate) - stored for reuse
+    this.data.nextHint = UI.Feedback.InlineHint('party-next-action', getNextPartyHint(), {
+      x: 14,
+      y: y - 4,
+      w: G.W - 28,
+      accentColor: R.colors.accent
+    });
+
     for (const hero of G.state.party) {
       const alive = hero.hp > 0;
       const btn = UI.Button(14, y, G.W - 28, cardH, '', alive ? R.colors.panel : R.colors.btn);
       btn._hero = hero;
       btn._alive = alive;
+
+      // Contextual badge on hero card
+      const badge = getHeroBadge(hero);
+      btn._badge = badge;
+
       btn.render = function(ctx) {
         UI.HeroSurface.renderCompact(ctx, this.x, this.y, this.w, this.h, this._hero);
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
@@ -121,6 +197,14 @@ const partyScene = Scene.create({
         R.roundRect(ctx, tx, by + 62, Math.max(0, barW * mpPct), 8, 4, ctx.fillStyle);
         R.text(ctx, Math.floor(this._hero.mp) + '/' + this._hero.maxMp, right, by + 70, R.colors.white, R.fonts.xs, 'right');
         ctx.globalAlpha = 1;
+
+        // Render contextual badge
+        if (this._badge && this._badge.visible) {
+          this._badge.x = bx + bw - this._badge.size - 8;
+          this._badge.y = by + 8;
+          this._badge.update(G.dt || 0.016);
+          this._badge.render(ctx);
+        }
       };
       btn.onClick = function() { partyScene.selectHero(this._hero); };
       this.data.buttons.push(btn);
@@ -203,7 +287,7 @@ const partyScene = Scene.create({
   recruitHero: function(hid) {
     const gate = RecruitAccess.enter(hid);
     if (!gate.allowed) {
-      Notify.show(gate.reason, 2, R.colors.red);
+      UI.Feedback.Toast(gate.reason, { color: R.colors.danger, icon: '🔒' });
       return false;
     }
     const cost = gate.cost;
@@ -222,7 +306,7 @@ const partyScene = Scene.create({
     recruit.mp = recruit.maxMp;
 
     G.state.party.push(recruit);
-    Notify.show(recruit.name + ' joins your party!', 3, R.colors.gold);
+    UI.Feedback.Toast(recruit.name + ' joins your party!', { color: R.colors.gold, icon: '★', duration: 3 });
     Audio.levelUp();
     Hints.show('recruit', 'Allies fight alongside you automatically in every battle.');
     AchievementSystem.check();
@@ -544,7 +628,7 @@ const partyScene = Scene.create({
             if (filterType === 'consumable') {
               applyItemEffect(item, hero);
               Economy.removeItem(idx);
-              Notify.show('Used ' + item.name + ' on ' + hero.name + '!', 2);
+              UI.Feedback.Toast('Used ' + item.name + ' on ' + hero.name + '!', { color: R.colors.success, icon: '✓' });
               Audio.heal();
               partyScene.data.itemsView = false;
               partyScene.data.scrollY = 0;
@@ -555,11 +639,11 @@ const partyScene = Scene.create({
                 const message = result.reason === 'incompatible-weapon'
                   ? hero.name + ' cannot use ' + item.name + '!'
                   : 'Cannot equip ' + item.name + '.';
-                Notify.show(message, 2);
+                UI.Feedback.Toast(message, { color: R.colors.danger, icon: '🔒' });
                 Audio.error();
                 return;
               }
-              Notify.show('Equipped ' + item.name + '!', 2);
+              UI.Feedback.Toast('Equipped ' + item.name + '!', { color: R.colors.success, icon: '✓' });
               Audio.click();
               partyScene.data.itemsView = false;
               partyScene.data.scrollY = 0;
@@ -591,14 +675,24 @@ const partyScene = Scene.create({
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
   },
 
-  render: function(ctx) {
+render: function(ctx) {
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    R.Backgrounds.renderBackground(ctx, 'ashram', bgAlpha);
+
+    // Render hero character moment in detail view right gutter (low opacity)
+    if (this.data.view === 'detail' && this.data.selectedHero) {
+      R.Backgrounds.renderCharacterMoment(ctx, 'hero:' + this.data.selectedHero.id, G.W - 140, 150, 120, 180, bgAlpha * 0.15);
+    }
+
     if (this.data.view === 'list') {
       Scene.drawHeader(ctx, 62);
       R.textCenter(ctx, 'Party', G.W / 2, 24, R.colors.gold, R.fonts.lg);
       R.textCenter(ctx, 'Tap a hero to manage:', G.W / 2, 48, R.colors.text, R.fonts.sm);
 
       const top = this.getContentTop();
-Scene.clipContent(ctx, this);
+      Scene.clipContent(ctx, this);
     for (const b of this.data.buttons) b.render(ctx);
     UI.HUD().render(ctx);
     ctx.restore();
@@ -642,6 +736,12 @@ Scene.clipContent(ctx, this);
       ctx.restore();
 
       Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
+    }
+
+    // Render inline hint in list view (reuse stored instance)
+    if (this.data.view === 'list' && this.data.nextHint && this.data.nextHint.visible) {
+      this.data.nextHint.update(G.dt || 0.016);
+      this.data.nextHint.render(ctx);
     }
   }
 });

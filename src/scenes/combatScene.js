@@ -73,7 +73,9 @@ const combatScene = Scene.create({
     reactionTimer: null,
     reactionAutoTimer: null,
     enemyTimer: null,
-    autoTimer: null
+    autoTimer: null,
+    _bgAlpha: 0,
+    _enemyType: null
   },
 
   enter: function() {
@@ -94,6 +96,13 @@ const combatScene = Scene.create({
       }, 600);
       return;
     }
+    // Determine enemy type for background
+    const firstEnemy = this.data.enemies.find(e => e.hp > 0);
+    this.data._enemyType = firstEnemy ? firstEnemy.id : 'default';
+    this.data._bgAlpha = 0;
+    // Register combat background slot
+    R.Backgrounds.registerSlot('combat:' + this.data._enemyType);
+    
     this.data.beastSkillUsed = false;
     this.data.beastCooldown = 0;
     this.data.turnCount = 0;
@@ -896,7 +905,15 @@ const combatScene = Scene.create({
   render: function(ctx) {
     const layout = this.getCombatLayout();
     const reducedMotion = R.reducedMotion ? R.reducedMotion() : false;
-    R.drawZoneBackground(ctx, G.state.currentZone);
+
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    R.Backgrounds.renderBackground(ctx, 'combat:' + this.data._enemyType, bgAlpha);
+
+    // Render enemy character moment (center-top behind intent band)
+    R.Backgrounds.renderCharacterMoment(ctx, 'combat:' + this.data._enemyType, G.W / 2 - 50, 200, 100, 100, bgAlpha * 0.4);
+
     UI.HUD().render(ctx);
     if (this.data.damageFlash > 0) {
       ctx.fillStyle = R.colors.subtleWhite;

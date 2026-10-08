@@ -20,7 +20,8 @@ const equipmentScene = Scene.create({
     tab: 'inventory',
     scrollY: 0,
     contentHeight: 0,
-    staticDraws: []
+    staticDraws: [],
+    _bgAlpha: 0
   },
 
   enter: function() {
@@ -29,6 +30,8 @@ const equipmentScene = Scene.create({
     this.data.selectedHero = G.state.player;
     this.data.selectedItem = null;
     this.data.tab = 'inventory';
+    this.data._bgAlpha = 0;
+    R.Backgrounds.registerSlot('ashram');
     this.buildUI();
   },
 
@@ -266,6 +269,16 @@ const equipmentScene = Scene.create({
   },
 
   render: function(ctx) {
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    R.Backgrounds.renderBackground(ctx, 'ashram', bgAlpha);
+
+    // Render equipment moment in equipped tab
+    if (this.data.tab === 'equipped' && this.data.selectedHero) {
+      R.Backgrounds.renderCharacterMoment(ctx, 'hero:' + this.data.selectedHero.id, G.W - 140, 150, 120, 180, bgAlpha * 0.15);
+    }
+
     Scene.drawHeader(ctx, 104);
     R.textCenter(ctx, 'Equipment', G.W / 2, 24, R.colors.accent, R.fonts.lg);
     if (this.data.selectedHero) {

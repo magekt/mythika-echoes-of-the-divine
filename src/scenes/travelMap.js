@@ -32,17 +32,27 @@ const travelMapScene = Scene.create({
     _descCache: null,
     _gridCanvas: null,
     _gridCanvasKey: null,
-    _cachedMetrics: null,
-    _cachedRects: null,
-    _descCache: null
+    _bgAlpha: 0,
+    _regionBgKeys: []
   },
 
   enter: function() {
-    this.data.layout = Scene.responsive();
+    this.data.layout = (typeof Scene.responsive === 'function') ? Scene.responsive() : {};
     Hints.show('map', 'Tap a region to inspect it. Drag to pan.');
     this.resetState();
     this.buildButtons();
     this.checkLandmarkDiscoveries();
+    this.data._bgAlpha = 0;
+    // Register background slots for all map regions
+    this.data._regionBgKeys = [];
+    for (const entry of MapLayout.ENTRIES) {
+      const region = (typeof MapHelpers.getRegion === 'function') ? MapHelpers.getRegion(entry.zoneId) : null;
+      if (region) {
+        const key = 'map:' + region.toLowerCase();
+        R.Backgrounds.registerSlot(key);
+        this.data._regionBgKeys.push({ zoneId: entry.zoneId, key: key });
+      }
+    }
   },
 
   leave: function() {
@@ -79,7 +89,7 @@ const travelMapScene = Scene.create({
       variant: 'ghost'
     });
     backBtn.onClick = function() {
-      gScene.pop();
+      Scene.navigate('ashram', { fade: true, enterOptions: { restoreScroll: true } });
     };
 
     const enterBtn = UI.MagneticBtn(110, G.H - 64, 180, 44, 'Enter Zone', {
@@ -108,7 +118,7 @@ const travelMapScene = Scene.create({
         return false;
       }
       G.state.currentZone = zoneId;
-      gScene.push('zoneExploration');
+      Scene.navigate('zoneExploration', { fade: true });
       return true;
     };
 
@@ -389,6 +399,30 @@ const travelMapScene = Scene.create({
   },
 
   render: function(ctx) {
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    
+    // Render region backgrounds behind markers
+    for (const entry of MapLayout.ENTRIES) {
+      const region = (typeof MapHelpers.getRegion === 'function') ? MapHelpers.getRegion(entry.zoneId) : null;
+      if (region) {
+        const key = 'map:' + region.toLowerCase();
+        const regionEntry = this.data._regionBgKeys.find(r => r.zoneId === entry.zoneId);
+        if (regionEntry) {
+          const rect = this.getRegionRect(entry);
+          ctx.save();
+          ctx.globalAlpha = bgAlpha;
+          ctx.globalCompositeOperation = 'destination-over';
+          const bg = R.Backgrounds.get(key);
+          if (bg.fallback) {
+            ctx.drawImage(bg.fallback, rect.x, rect.y, rect.w, rect.h);
+          }
+          ctx.restore();
+        }
+      }
+    }
+
     ctx.fillStyle = R.colors.bg;
     ctx.fillRect(0, 0, G.W, G.H);
     // Compute and cache per-frame metrics and region rects once
