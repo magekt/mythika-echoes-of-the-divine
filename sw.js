@@ -11,6 +11,7 @@ const ASSETS = [
 'src/engine/auth.js',
 'src/engine/game.js',
   'src/engine/scene.js',
+  'src/engine/navigation.js',
   'src/engine/scene-helpers.js',
   'src/engine/input.js',
   'src/engine/audio.js',
