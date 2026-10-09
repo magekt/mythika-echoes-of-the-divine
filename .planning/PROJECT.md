@@ -18,6 +18,16 @@ Validated requirements: REQ-013 through REQ-034 (22/22). Final audit reports con
 
 Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot, event walkthrough, and mobile FPS/dense-map/reduced-motion walkthroughs — plus the v3.0 10-combination full-loop journey matrix (all rows pending).
 
+## Current Milestone: v4.0 Deep Companions & Living Zones
+
+**Goal:** Existing zones feel deeper through companion relationships — heroes and spirit beasts grow with the player and reshape how familiar regions play.
+
+**Target features:**
+- Hero affinity bonds: dialogue, choices, and combat benefits for recruitable heroes
+- Spirit beast bonding depth tied to existing beasts
+- Existing zones deepened with companion-driven encounters, landmarks, and narrative echoes (no new geography)
+- Companion state persists via save-compatible world state
+
 ## Shipped Milestone v3.0 — Screen & Gameplay Revamp
 
 **Goal (achieved):** Make the complete player journey cohesive and effective across every screen, with clean responsive UI and stronger internal architecture.
@@ -54,11 +64,11 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 
 ### Out of Scope
 
-- New zones, realms, or a broad expansion of the world geography.
+- New realm geography or a broad expansion of the world map (deepening existing zones is v4.0 scope).
 - Backend synchronization, multiplayer control, live-service scheduling, or server-authoritative events.
 - Replacing the immediate-mode Canvas architecture or introducing a frontend framework.
 - A broad rewrite of combat, cultivation, economy, or encounter systems beyond the integration points needed to affect world state.
-- Deep companion-relationship systems or unrelated content expansion.
+- Unrelated content expansion outside companion/zone depth.
 
 ### v3.0 Boundaries
 
@@ -67,6 +77,14 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 - No new zones, realms, broad progression systems, or unrelated lore/content expansion.
 - Backgrounds and character presentation use asset-ready slots and authored/cached fallbacks; elaborate always-on particle/parallax treatment is deferred.
 - Diagnostics are opt-in and local only; no telemetry upload or production debug noise.
+
+### v4.0 Boundaries
+
+- No new realm geography: deepen existing zones only (new landmarks, encounters, echoes within current zone IDs).
+- No online backend, multiplayer, cloud sync, or server authority.
+- No framework, renderer, bundler, or ES-module migration; vanilla JS, Canvas 2D, script order, and global/immediate-mode conventions stand.
+- Companion systems are presentation + authoritative-state extensions of existing heroes, beasts, and save/world-state contracts — no parallel stores.
+- Browser-evidence debt (v2.0 + v3.0 matrices) is scheduled early in v4.0, not re-deferred.
 
 ## Context
 
@@ -108,5 +126,22 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 | Keep feedback presentation-owned but mutation-free | Toasts/hints must never duplicate authoritative rewards | Global drain in game loop; Feedback gap closed 2026-10-09 ✓ Good |
 | Accept browser-evidence deferral at milestone scope (v2 precedent) | Human browser matrix is the bottleneck, not code | v3.0 shipped gaps_found with a defined 10-combination matrix; debt now spans two milestones — ⚠️ Revisit (schedule early next milestone) |
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-10-09 after v3.0 milestone*
+*Last updated: 2026-10-09 — v4.0 Deep Companions & Living Zones started*

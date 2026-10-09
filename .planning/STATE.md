@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Screen & Gameplay Revamp
-status: shipped
-stopped_at: "v3.0 shipped 2026-10-09; archives in .planning/milestones/v3.0-*"
+milestone: v4.0
+milestone_name: Deep Companions & Living Zones
+status: planning
+stopped_at: "v4.0 started; defining requirements"
 last_updated: "2026-10-09T00:00:00Z"
-last_activity: 2026-10-09 — v3.0 milestone completed and archived (8 phases, 23 plans)
+last_activity: 2026-10-09 — Milestone v4.0 started
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 23
-  completed_plans: 23
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-10-09)
 
 **Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Planning next milestone (v3.0 shipped; REQUIREMENTS.md fresh for next scope).
+**Current focus:** Define and plan v4.0 requirements before implementation.
 
 ## Current Position
 
-Phase: 20 of 20 (Settings Diagnostics & Full-Loop Acceptance) — COMPLETE
-Plan: 3 of 3
-Status: v3.0 SHIPPED 2026-10-09 — 8 phases, 23 plans, 14/14 requirements contract-green; live browser matrix accepted residual
-Last activity: 2026-10-09
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-10-09 — Milestone v4.0 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
