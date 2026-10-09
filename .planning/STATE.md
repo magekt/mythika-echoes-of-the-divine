@@ -74,7 +74,9 @@ Progress: [██████████] 100% (9/9 phases, 26/26 plans)
 
 ### Pending Todos
 
-Next milestone unscoped. Run `/gsd-new-milestone` to start questioning → research → requirements → roadmap (phase numbering continues at Phase 30).
+11 todos filed 2026-10-09 from headless-Chromium play report (`.planning/todos/pending/`): combat header overlap, Bazaar rows, combat buttons, zone exploration overlaps, stale toasts, nav More label, title layout, travel-map cards, Ashram panel, creation modal gap, early-game pacing. Natural fit: v5.0 bugfix/polish milestone (phase numbering continues at 30).
+
+Next milestone unscoped. Run `/gsd-new-milestone` to start questioning → research → requirements → roadmap.
 
 ### Blockers/Concerns
 
