@@ -5,6 +5,7 @@
 - ✅ **v2.0 Living Map & World State** — Phases 6-12 (shipped 2026-09-20)
 - ✅ **v3.0 Screen & Gameplay Revamp** — Phases 13-20 (shipped 2026-10-09)
 - ✅ **v4.0 Deep Companions & Living Zones** — Phases 21-29 (shipped 2026-10-09)
+- 🚧 **v5.0 Layout Fixes & Early-Game Pacing** — Phases 30-35 (in planning)
 
 ## Completed Milestones
 
@@ -34,7 +35,7 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
 
 ## Phases
 
-**Phase Numbering:** Milestone 1 completed Phases 1–5; Milestone 2 continued at Phase 6; Milestone 3 continued at Phase 13; Milestone v4.0 completed Phases 21–29. Next milestone continues at Phase 30.
+**Phase Numbering:** Milestone 1 completed Phases 1–5; Milestone 2 continued at Phase 6; Milestone 3 continued at Phase 13; Milestone v4.0 completed Phases 21–29. Milestone v5.0 continues at Phase 30 (Phases 30–35). Next milestone continues at Phase 36.
 
 ## v4.0 — Deep Companions & Living Zones ✅ SHIPPED (2026-10-09)
 
@@ -173,6 +174,125 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
 | GFT-01 — Hero gift preferences | Phase 29 | v4.0 |
 
 **v4.0 Coverage:** 15/15 requirements mapped exactly once; no orphans or duplicates. 14/15 checked off; EVD-01 journey rows deferred (accepted residual).
+
+## v5.0 — Layout Fixes & Early-Game Pacing 🚧 IN PLANNING
+
+**Goal:** Remove the visible layout collisions and pacing problems the play report found, so the first hour plays clean.
+
+**Boundaries:** Layout and pacing fixes only — no new systems, zones, or progression content; combat-band (Phase 14/24/25), feedback, navigation, and lifecycle contracts must keep passing; no backend/multiplayer/framework/renderer changes; balance changes stay in data/tuning constants, no combat-rule rewrites.
+
+**Sequencing:** Harness extension first (only proof for LAY-01–LAY-06) → LAY-05 before LAY-02 (shared Notify) → pacing last.
+
+## Phases (v5.0)
+
+- [ ] **Phase 30: Layout Harness Extension** - Text-bounds proof harness + combat sim (LAY-00)
+- [ ] **Phase 31: Toast Lifecycle Scoping** - Toasts die with their scene (LAY-05)
+- [ ] **Phase 32: Combat Layout** - Header bands + uniform action grid with safe toast lane (LAY-01, LAY-02)
+- [ ] **Phase 33: Bazaar & Zone Exploration Layout** - Rows, HUD, and encounter-gated buttons (LAY-03, LAY-04)
+- [ ] **Phase 34: Fit & Finish Bundle** - Nav, title, map cards, Ashram, modal (LAY-06)
+- [ ] **Phase 35: Early-Game Pacing & Empty States** - Combat stakes, zone-clear rate, populated starts (BAL-01, BAL-02, BAL-03)
+
+## Phase Details (v5.0)
+
+### Phase 30: Layout Harness Extension
+**Goal**: Every layout fix in v5.0 is provable by an automated text-bounds check
+**Depends on**: Phase 29 (v4.0 shipped)
+**Requirements**: LAY-00
+**Success Criteria** (what must be TRUE):
+  1. Harness fails on the known-bad fixture (current combat header + Bazaar rows) and passes on a clean one
+  2. Headless 200-fight combat simulator reports HP-loss/death-rate/clear-rate numbers for BAL-01/BAL-02
+  3. `tools/verify_matrix.py` wraps `R.text`/`R.textCenter`, recording measured text boxes per frame at 390x844 and 844x390
+  4. Harness settles animations then asserts no two rendered text boxes intersect and no text box extends past its containing panel across the checked set (all 20 scenes via gScene with seeded save, combat 1v1 and 5v3, zone exploration with/without encounter, Bazaar Buy and Sell, Confirm Creation modal)
+  3. Intentional overlays (toast lane, modal over dimmed scene) are excluded by tagging, not by blanket exception
+**Plans**: TBD
+
+### Phase 31: Toast Lifecycle Scoping
+**Goal**: Toasts never leak across scenes
+**Depends on**: Phase 30
+**Requirements**: LAY-05
+**Success Criteria** (what must be TRUE):
+  1. Real tap path locked-zone toast → Back → Ashram → Party shows no stale toast in the new scene
+  2. Each toast carries a scene tag cleared on transition; only explicit achievement banners survive a scene change
+  3. Harness regression test replays the same tap path green, and the concurrent-toast cap is documented
+  4. Shared text-bounds criterion holds for toast-lane scenes (no toast text box intersects buttons or overflows its lane) at both viewports
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 32: Combat Layout
+**Goal**: Combat reads in clean bands and actions never collide with toasts
+**Depends on**: Phase 31 (LAY-05 first — shared Notify)
+**Requirements**: LAY-01, LAY-02
+**Success Criteria** (what must be TRUE):
+  1. Hero name, HP/MP bars, enemy name/HP, and target button sit in separate non-overlapping bands with the target button inside the enemy panel, at 1, 3, and 5 heroes
+  2. Action buttons share one width/height/gap grid; engine defines one toast-lane constant in scene-helpers.js, Notify draws only inside it, and no scene places buttons or text in the lane
+  3. Tutorial toasts never cover action buttons (including Gandiva + Rain of Arrows) in any scene
+  4. Shared text-bounds criterion passes for combat 1v1 and 5v3 at 390x844 and 844x390
+  5. Full 20-scene sweep at phase end (toast lane is engine-wide and may shift untargeted scenes)
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 33: Bazaar & Zone Exploration Layout
+**Goal**: Lists and zone screens read without collisions or live-button confusion
+**Depends on**: Phase 30 (harness proof)
+**Requirements**: LAY-03, LAY-04
+**Success Criteria** (what must be TRUE):
+  1. Bazaar name, description, stat, and price sit in separate columns/lines with tall-enough rows; resource HUD is clear of titles on both Buy and Sell tabs with 8+ rows
+  2. Zone name, subtitle, progress bar, and labels never overlap; Attack/Skill/Flee are hidden or disabled with no encounter, with ≥8px gaps between adjacent buttons
+  3. Shared text-bounds criterion passes for Bazaar Buy/Sell and zone exploration with and without encounter at 390x844 and 844x390
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 34: Fit & Finish Bundle
+**Goal**: Navigation, title, map cards, Ashram, and modals look finished at both orientations
+**Depends on**: Phase 30 (harness proof)
+**Requirements**: LAY-06
+**Success Criteria** (what must be TRUE):
+  1. Nav More slot shows a consistent icon+label; title wordmark is legible with centered footer and the hero sprite renders through the asset pipeline (never a bare square)
+  2. Map lock icons read correctly and card heights fit their content; Ashram shows a single border with the gold coin icon
+  3. Confirm Creation modal height fits its content with buttons following the body at a fixed gap
+  4. Shared text-bounds criterion passes for all touched screens at 390x844 and 844x390
+  5. If the phase overruns, split the title wordmark off first (only item needing art decisions)
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 35: Early-Game Pacing & Empty States
+**Goal**: The first hour plays with real stakes, honest pacing, and no dead screens
+**Depends on**: Phases 30–34 (pacing last)
+**Requirements**: BAL-01, BAL-02, BAL-03
+**Success Criteria** (what must be TRUE):
+  1. Headless sim of 200 first-zone fights: Lv1 hero loses ≥15% HP on average over the first five fights, ≥5% of zone-1 runs see a hero death, and Threat reads Normal on a fresh Lv1 save
+  2. Aryavarta takes 12–20 fights to reach 100% clear (16%/fight baseline confirmed from sim first); later zones scale from that baseline
+  3. Party, Alchemy, Spirit Beasts, and Quest Log show explanatory empty-state panels at new game naming the populating action or unlock, confirmed by screenshot review
+  4. Balance changes stay in data/tuning constants with no combat-rule rewrites; combat-band, feedback, navigation, and lifecycle contracts keep passing
+**Plans**: TBD
+**UI hint**: yes
+
+## Progress (v5.0)
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 30. Layout Harness Extension | v5.0 | 0/0 | Not started | - |
+| 31. Toast Lifecycle Scoping | v5.0 | 0/0 | Not started | - |
+| 32. Combat Layout | v5.0 | 0/0 | Not started | - |
+| 33. Bazaar & Zone Exploration Layout | v5.0 | 0/0 | Not started | - |
+| 34. Fit & Finish Bundle | v5.0 | 0/0 | Not started | - |
+| 35. Early-Game Pacing & Empty States | v5.0 | 0/0 | Not started | - |
+
+## Coverage (v5.0)
+
+| Requirement | Assigned Phase | Milestone |
+|-------------|----------------|-----------|
+| LAY-05 — Toast lifecycle | Phase 31 | v5.0 |
+| LAY-01 — Combat header bands | Phase 32 | v5.0 |
+| LAY-02 — Combat buttons + toast lane | Phase 32 | v5.0 |
+| LAY-03 — Bazaar | Phase 33 | v5.0 |
+| LAY-04 — Zone exploration | Phase 33 | v5.0 |
+| LAY-06 — Fit-finish bundle | Phase 34 | v5.0 |
+| BAL-01 — Combat difficulty | Phase 35 | v5.0 |
+| BAL-02 — Zone-clear rate | Phase 35 | v5.0 |
+| BAL-03 — Empty screens | Phase 35 | v5.0 |
+
+**v5.0 Coverage:** 9/9 requirements mapped exactly once; no orphans or duplicates. (Phase 30 is a requirement-free harness enabler — the stated first build and sole proof for LAY-01–LAY-06.)
 
 ---
 *Roadmap reorganized 2026-10-09 at v4.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md.*
