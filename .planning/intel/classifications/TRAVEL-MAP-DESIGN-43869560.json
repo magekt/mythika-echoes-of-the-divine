@@ -1,0 +1,13 @@
+{
+  "source_path": "/Users/admin/Documents/Deepankar Project/dragonSword_EXPMinima/TRAVEL_MAP_DESIGN.md",
+  "type": "SPEC",
+  "confidence": "medium",
+  "manifest_override": false,
+  "title": "Travel Map — Mobile Zone Selection",
+  "summary": "Defines the mobile travel map's zone states, selected-zone actions, layout dimensions, semantic tokens, and motion constraints.",
+  "scope": ["Travel Map", "mobile zone selection", "realm headers", "zone cards", "selected-zone panel", "exploration actions", "R.colors tokens"],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": "Classified as SPEC because it defines concrete UI behavior, layout dimensions, state presentation, callbacks, tokens, and motion constraints rather than user or business requirements."
+}

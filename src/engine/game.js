@@ -199,6 +199,7 @@ function createDefaultGameState() {
     debugMode: false,
     flags: {},
     encounters: {},
+    affinity: {},
     world: {
       regions: {},
       landmarks: { discovered: {}, notified: {} },

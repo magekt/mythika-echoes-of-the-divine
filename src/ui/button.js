@@ -1,4 +1,6 @@
-const UI = {};
+// Keep the shared UI namespace visible to classic scripts that resolve it via
+// globalThis as well as to later files' top-level `UI` binding.
+const UI = globalThis.UI = {};
 
 UI.updateButtons = function(buttons, dt) {
   if (!buttons) return;

@@ -10,8 +10,11 @@ SaveSystem.save = function() {
     if (typeof ZoneRewardSystem !== 'undefined' && ZoneRewardSystem.normalize) {
       ZoneRewardSystem.normalize();
     }
+    const snap = JSON.parse(JSON.stringify(G.state));
+    // Diagnostics buffers are session-local; never persist them.
+    if (snap && snap.diagnostics) delete snap.diagnostics;
     const data = {
-      state: JSON.parse(JSON.stringify(G.state)),
+      state: snap,
       version: 1,
       timestamp: Date.now()
     };
@@ -41,6 +44,7 @@ SaveSystem.migrate = function() {
   // - inventory entries must be real objects with a name
   // - gear slots must be objects or null (legacy strings are dropped)
   // - numeric fields must be finite numbers (crafted/corrupt files included)
+  if (typeof G.state.debugMode !== 'boolean') G.state.debugMode = false;
   if (!Array.isArray(G.state.inventory)) G.state.inventory = [];
   G.state.inventory = G.state.inventory.filter(i => typeof i === 'object' && i !== null && i.name);
   if (!Array.isArray(G.state.party)) G.state.party = [];
@@ -73,6 +77,29 @@ SaveSystem.migrate = function() {
     G.state.world = WorldState.normalize(G.state.world);
   } else {
     G.state.world = G.createDefaultState().world;
+  }
+  if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.normalize === 'function') {
+    G.state.affinity = BondSystem.normalize(G.state.affinity);
+  } else {
+    const fallbackUnsafe = { '__proto__': true, constructor: true, prototype: true };
+    const out = {};
+    const candidate = G.state.affinity;
+    if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
+      const ids = (typeof HERO_IDS !== 'undefined' && Array.isArray(HERO_IDS)) ? HERO_IDS : null;
+      const allowed = ids ? {} : null;
+      if (allowed) {
+        for (const id of ids) {
+          if (typeof id === 'string') allowed[id] = true;
+        }
+      }
+      for (const key of Object.keys(candidate)) {
+        if (typeof key !== 'string' || key.length === 0 || fallbackUnsafe[key]) continue;
+        if (allowed && !allowed[key]) continue;
+        const n = Number(candidate[key]);
+        out[key] = Number.isFinite(n) ? Math.max(0, Math.min(100, Math.floor(n))) : 0;
+      }
+    }
+    G.state.affinity = out;
   }
   if (typeof FarmSystem !== 'undefined' && FarmSystem.normalize) FarmSystem.normalize();
   const party = Array.isArray(G.state.party) ? G.state.party : [];
@@ -128,7 +155,11 @@ SaveSystem.exportFile = function() {
       ZoneRewardSystem.normalize();
     }
     const data = JSON.stringify({
-      state: JSON.parse(JSON.stringify(G.state)),
+      state: (function() {
+        const snap = JSON.parse(JSON.stringify(G.state));
+        if (snap && snap.diagnostics) delete snap.diagnostics;
+        return snap;
+      })(),
       version: 1,
       timestamp: Date.now()
     }, null, 2);

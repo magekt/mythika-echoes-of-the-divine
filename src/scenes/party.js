@@ -306,6 +306,11 @@ const partyScene = Scene.create({
     recruit.mp = recruit.maxMp;
 
     G.state.party.push(recruit);
+    try {
+      if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.ensureSeed === 'function') {
+        BondSystem.ensureSeed(hid);
+      }
+    } catch (e) {}
     UI.Feedback.Toast(recruit.name + ' joins your party!', { color: R.colors.gold, icon: '★', duration: 3 });
     Audio.levelUp();
     Hints.show('recruit', 'Allies fight alongside you automatically in every battle.');

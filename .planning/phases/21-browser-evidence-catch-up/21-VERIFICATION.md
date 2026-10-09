@@ -26,7 +26,9 @@ Initial run: all 3 profiles FAILED with uncaught errors. Console capture identif
 
 Re-run after fixes: all 3 profiles booted clean. `node --test tests/*.test.js` 202/202; invariants green.
 
-## Journey Matrix (pending — Plan 02)
+## Journey Matrix (DEFERRED 2026-10-09 — Plan 02)
+
+Manual 10-combination journey presented to user; no evidence returned on re-invoked autonomous run. Rows remain pending below; Phase 21 closes on harness evidence per fix-or-defer triage discretion. Re-running the journey later only needs this table.
 
 ### fresh client
 

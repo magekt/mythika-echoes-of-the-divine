@@ -44,6 +44,7 @@ const ASSETS = [
   'src/systems/duel.js',
   'src/systems/cultivation_sys.js',
   'src/systems/alchemy.js',
+  'src/systems/bond.js',
   'src/systems/save.js',
   'src/systems/world_state.js',
   'src/systems/influence.js',

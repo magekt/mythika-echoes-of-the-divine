@@ -57,9 +57,16 @@ function loadScene(overrides = {}) {
         };
       }
     },
-    Scene: { create: definition => definition },
+    Scene: {
+      create: definition => definition,
+      responsive() { return {}; },
+      navigate(target, opts) {
+        context.navigationCalls.push({ target, opts });
+      }
+    },
     Hints: { show() {} },
-    gScene: { push() {}, pop() {} },
+    navigationCalls: [],
+    gScene() {},
     G: {
       W: 400,
       H: 800,
@@ -240,4 +247,25 @@ test('Caches are cleared on resetState()', () => {
   assert.equal(scene.data._cachedMetrics, null, 'metrics cleared after leave');
   assert.equal(scene.data._cachedRects, null, 'rects cleared after leave');
   assert.equal(scene.data._descCache, null, 'descCache cleared after leave');
+});
+
+test('Back navigates through the canonical transition API', () => {
+  const { scene, context } = loadScene();
+  scene.enter();
+  scene.data.backBtn.onClick();
+  assert.deepEqual(JSON.parse(JSON.stringify(context.navigationCalls)), [{
+    target: 'ashram',
+    opts: { fade: true, enterOptions: { restoreScroll: true } }
+  }]);
+});
+
+test('Enter Zone navigates through the canonical transition API', () => {
+  const { scene, context } = loadScene();
+  scene.enter();
+  scene.data.selectedZone = 'aryavarta';
+  scene.data.enterBtn.onClick();
+  assert.deepEqual(JSON.parse(JSON.stringify(context.navigationCalls)), [{
+    target: 'zoneExploration',
+    opts: { fade: true }
+  }]);
 });

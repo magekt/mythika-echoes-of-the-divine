@@ -38,8 +38,8 @@ Accepted residual browser evidence (same precedent as v2.0): live-browser matrix
 
 ## Phases
 
-- [ ] **Phase 21: Browser Evidence Catch-Up** - Execute the combined v2.0 + v3.0 browser matrix early
-- [ ] **Phase 22: Affinity Foundation & Persistence** - Hero affinity meter, tiers, and save-compatible state
+- [x] **Phase 21: Browser Evidence Catch-Up** - Execute the combined v2.0 + v3.0 browser matrix early (completed 2026-10-09; harness green, journey deferred)
+- [x] **Phase 22: Affinity Foundation & Persistence** - Hero affinity meter, tiers, and save-compatible state
 - [ ] **Phase 23: Choice-Driven Bonds & Dialogue** - Encounter choices grow affinity and unlock bond dialogue
 - [ ] **Phase 24: Combat Bonds** - Tier passives and pair synergy in active-party combat
 - [ ] **Phase 25: Signature Combo Pilot** - One Tier-3 duo skill on one hero before committing to all
@@ -59,7 +59,11 @@ Accepted residual browser evidence (same precedent as v2.0): live-browser matrix
   2. Player experiences smooth frame rates on dense map states and reduced-motion mode behaves correctly
   3. Returning player loads cached assets with the service worker active
   4. The 10-combination full-loop journey matrix shows executed evidence rows
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [x] 21-01-PLAN.md — Headless Chrome boot matrix + 21-VERIFICATION.md skeleton
+- [x] 21-02-PLAN.md (journey deferred) — 10-combination live journey matrix + defect triage
 
 ### Phase 22: Affinity Foundation & Persistence
 **Goal**: Players can see and trust each recruited hero's affinity bond on the hero screen
@@ -69,7 +73,12 @@ Accepted residual browser evidence (same precedent as v2.0): live-browser matrix
   1. Player can see each recruited hero's affinity meter (0–100) and tier (Wary→Trusted→Sworn→Legend) on the hero screen
   2. Player reloads the game and finds affinity values, bond hearts, and bond flags intact
   3. Player loading a legacy or malformed save gets safe healed defaults instead of a crash
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 22-01-PLAN.md — BondSystem tier/accessor/normalize contract + script registration
+- [ ] 22-02-PLAN.md — HeroSurface affinity meter + tier display + recruit seeding
+- [ ] 22-03-PLAN.md — Save persistence + migrate healing + matrix contract
 **UI hint**: yes
 
 ### Phase 23: Choice-Driven Bonds & Dialogue
@@ -193,8 +202,8 @@ Accepted residual browser evidence (same precedent as v2.0): live-browser matrix
 | 18. Modular Navigation & Screen Seams | v3.0 | 3/3 | Complete (browser evidence deferred) | 2026-10-09 |
 | 19. Lifecycle Safety & Deprecated-Code Cleanup | v3.0 | 3/3 | Complete (browser evidence deferred) | 2026-10-09 |
 | 20. Settings Diagnostics & Full-Loop Acceptance | v3.0 | 3/3 | Complete (browser evidence deferred) | 2026-10-09 |
-| 21. Browser Evidence Catch-Up | v4.0 | 0/TBD | Not started | - |
-| 22. Affinity Foundation & Persistence | v4.0 | 0/TBD | Not started | - |
+| 21. Browser Evidence Catch-Up | v4.0 | 2/2 | Complete (harness green; journey deferred) | 2026-10-09 |
+| 22. Affinity Foundation & Persistence | v4.0 | 3/3 | Complete (automated; browser deferred) | 2026-10-09 |
 | 23. Choice-Driven Bonds & Dialogue | v4.0 | 0/TBD | Not started | - |
 | 24. Combat Bonds | v4.0 | 0/TBD | Not started | - |
 | 25. Signature Combo Pilot | v4.0 | 0/TBD | Not started | - |

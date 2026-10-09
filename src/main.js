@@ -4,9 +4,28 @@
     navigator.serviceWorker.register('sw.js').catch(function() {});
   }
 
-  // Without the engine or the scene registry nothing can boot.
-  if (typeof G === 'undefined' || typeof registerScene !== 'function') {
-    if (window.console) console.error('[Mythika] engine missing, aborting boot');
+  function failBoot(missing) {
+    var message = '[Mythika] boot blocked; missing capability: ' + missing.join(', ');
+    if (window.console) console.error(message);
+    var status = document.getElementById('status-bar');
+    if (status) {
+      status.textContent = 'Mythika could not start. Please reload this page.';
+      status.setAttribute('role', 'alert');
+    }
+    var container = document.getElementById('game-container');
+    if (container) container.classList.remove('loading');
+  }
+
+  // Validate the shared surfaces once, before the loop can repeatedly throw.
+  var required = [
+    ['G', typeof G === 'undefined'], ['R', typeof R === 'undefined'],
+    ['UI', typeof UI === 'undefined'], ['Scene', typeof Scene === 'undefined'],
+    ['Input', typeof Input === 'undefined'], ['Fade', typeof Fade === 'undefined']
+  ];
+  var missing = required.filter(function(item) { return item[1]; }).map(function(item) { return item[0]; });
+  if (typeof registerScene !== 'function') missing.push('registerScene');
+  if (missing.length) {
+    failBoot(missing);
     return;
   }
 
@@ -72,6 +91,8 @@
   function bootGame() {
     if (G._booted) return;
     G._booted = true;
+    var bootProbe = /[?&]probe(?:&|$)/.test(location.search);
+    var bootStarted = bootProbe && performance.now();
     // Fall back to the first registered scene if title itself failed to
     // load — a missing boot scene must not leave a dead canvas.
     G.currentScene = G.scenes['title'] || G.scenes[Object.keys(G.scenes)[0]];
@@ -80,8 +101,13 @@
       return;
     }
     enterCurrent();
+    if (bootProbe) console.log('[Mythika] boot-phase scene-enter=' + (performance.now() - bootStarted).toFixed(1) + 'ms');
+    if (window.firebaseReady && typeof Auth !== 'undefined' && !Auth.auth) {
+      Auth.init(window.firebaseApp, window.firebaseAuth, window.firebaseDb);
+    }
     // gInit (canvas, input, audio, rAF loop) lives in game.js.
     if (typeof gInit === 'function') gInit();
+    if (bootProbe) console.log('[Mythika] boot-phase gInit=' + (performance.now() - bootStarted).toFixed(1) + 'ms');
     if (window.console && G.state) console.log('[Mythika] booted scene=' + G.state.scene);
     // Belt-and-braces: the CSS boot splash is normally removed by the first
     // rendered frame; never let it cover the game if rendering stalls.
@@ -92,6 +118,9 @@
       } catch (e) {}
     }, 3000);
   }
+  document.addEventListener('firebase-ready', function() {
+    if (typeof Auth !== 'undefined' && !Auth.auth) Auth.init(window.firebaseApp, window.firebaseAuth, window.firebaseDb);
+  });
   window.addEventListener('load', function() { bootGame(); });
   bootGame();
 })();
