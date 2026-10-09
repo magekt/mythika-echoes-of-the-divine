@@ -221,7 +221,11 @@ Plans:
   2. Each toast carries a scene tag cleared on transition; only explicit achievement banners survive a scene change
   3. Harness regression test replays the same tap path green, and the concurrent-toast cap is documented
   4. Shared text-bounds criterion holds for toast-lane scenes (no toast text box intersects buttons or overflows its lane) at both viewports
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 31-01-PLAN.md — R.Backgrounds binding-split crash fix + repro-or-rule-out the stale-toast path (fix-vs-harden branch)
+- [ ] 31-02-PLAN.md — Scene-tagged toast lifecycle in both toast systems + regression test + lane bounds evidence
 **UI hint**: yes
 
 ### Phase 32: Combat Layout
