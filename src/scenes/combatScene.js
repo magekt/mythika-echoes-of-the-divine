@@ -385,10 +385,27 @@ const combatScene = Scene.create({
     if (!beastData) return;
     const skill = beastData.skill;
 
+    // Phase 27 beast power (BST-02): bond hearts raise skill potency.
+    // Guarded read; absent BeastBond = legacy magnitudes, no aura.
+    var bondHeart = 0, bondMult = 1, bondAura = null;
+    try {
+      if (typeof BeastBond !== 'undefined' && BeastBond) {
+        if (typeof BeastBond.potencyFor === 'function') {
+          var p = BeastBond.potencyFor(beast.id);
+          if (p && typeof p === 'object') {
+            bondHeart = Math.max(0, Math.min(3, Math.floor(Number(p.heart)) || 0));
+            bondMult = Number(p.mult);
+            if (!Number.isFinite(bondMult) || bondMult < 1) bondMult = 1;
+          }
+        }
+        if (typeof BeastBond.auraFor === 'function') bondAura = BeastBond.auraFor(beast.id) || null;
+      }
+    } catch (e) { bondHeart = 0; bondMult = 1; bondAura = null; }
+
     switch (skill) {
       case 'Howl':
         for (const h of this.data.heroes) {
-          if (h.hp > 0) Combat.applyBuff(h, 'atkBuff', 1.1, 3);
+          if (h.hp > 0) Combat.applyBuff(h, 'atkBuff', 1 + 0.10 * bondMult, 3);
         }
         this.data.log.push('Beast: Howl — Party ATK +10% for 3 turns');
         break;
@@ -396,20 +413,20 @@ const combatScene = Scene.create({
       case 'Venom Bite': {
         let t = this.data.selectedEnemy;
         if (!t || t.hp <= 0) t = Combat.getRandomEnemy();
-        if (t) { Combat.applyAilment(t, 'visha', 3); this.data.log.push('Beast: Venom Bite — ' + t.name + ' poisoned!'); }
+        if (t) { Combat.applyAilment(t, 'visha', 3 + bondHeart); this.data.log.push('Beast: Venom Bite — ' + t.name + ' poisoned!'); }
         break;
       }
 
       case 'Dark Veil':
         for (const e of this.data.enemies) {
-          if (e.hp > 0) Combat.applyBuff(e, 'accDebuff', 0.85, 3);
+          if (e.hp > 0) Combat.applyBuff(e, 'accDebuff', 1 - 0.15 * bondMult, 3);
         }
         this.data.log.push('Beast: Dark Veil — Enemy accuracy reduced');
         break;
 
       case 'Fortify':
         for (const h of this.data.heroes) {
-          if (h.hp > 0) Combat.applyBuff(h, 'defBuff', 1.2, 3);
+          if (h.hp > 0) Combat.applyBuff(h, 'defBuff', 1 + 0.20 * bondMult, 3);
         }
         this.data.log.push('Beast: Fortify — Party DEF +20% for 3 turns');
         break;
@@ -418,7 +435,7 @@ const combatScene = Scene.create({
         let t = this.data.selectedEnemy;
         if (!t || t.hp <= 0) t = Combat.getRandomEnemy();
         if (t) {
-          const dmg = Math.max(1, Math.floor(25 * (1 + (beast.mag || 1) * 0.1)));
+          const dmg = Math.max(1, Math.floor(25 * (1 + (beast.mag || 1) * 0.1) * bondMult));
           t.hp -= dmg;
           if (t.hp < 0) t.hp = 0;
           if (t.hp <= 0) this.deathBurstAt(t, false);
@@ -427,22 +444,23 @@ const combatScene = Scene.create({
         break;
       }
 
-      case 'Tempest':
+      case 'Tempest': {
+        const tempestDmg = Math.max(1, Math.floor(40 * (1 + (beast.mag || 1) * 0.1) * bondMult));
         for (const e of this.data.enemies) {
           if (e.hp <= 0) continue;
-          const dmg = Math.max(1, Math.floor(40 * (1 + (beast.mag || 1) * 0.1)));
-          e.hp -= dmg;
+          e.hp -= tempestDmg;
           if (e.hp < 0) e.hp = 0;
           if (e.hp <= 0) this.deathBurstAt(e, false);
         }
-        this.data.log.push('Beast: ' + beast.name + ' — Tempest AoE ' + (Math.max(1, Math.floor(40 * (1 + (beast.mag || 1) * 0.1)))) + ' wind dmg to all');
+        this.data.log.push('Beast: ' + beast.name + ' — Tempest AoE ' + tempestDmg + ' wind dmg to all');
         R.screenShake(6, 0.3);
         break;
+      }
 
       case 'Rebirth Flame': {
         const fallen = this.data.heroes.find(h => h.hp <= 0);
         if (fallen) {
-          fallen.hp = Math.floor(fallen.maxHp * 0.3);
+          fallen.hp = Math.floor(fallen.maxHp * (0.30 + 0.05 * bondHeart));
           this.data.log.push('Beast: Rebirth Flame — ' + fallen.name + ' revived with 30% HP!');
           this.data.beastSkillUsed = true;
           this.data.beastCooldown = 999;
@@ -457,7 +475,7 @@ const combatScene = Scene.create({
       case 'Shell Guard': {
         const t = Combat.getRandomHero();
         if (t) {
-          Combat.applyBuff(t, 'shield', 20, 2);
+          Combat.applyBuff(t, 'shield', Math.floor(20 * bondMult), 2);
           this.data.log.push('Beast: Shell Guard — ' + t.name + ' shielded for 20 damage');
         }
         break;
@@ -467,11 +485,11 @@ const combatScene = Scene.create({
         let t = this.data.selectedEnemy;
         if (!t || t.hp <= 0) t = Combat.getRandomEnemy();
         if (t) {
-          const dmg = Math.max(1, Math.floor(30 * (1 + (beast.str || 1) * 0.1)));
+          const dmg = Math.max(1, Math.floor(30 * (1 + (beast.str || 1) * 0.1) * bondMult));
           t.hp -= dmg;
           if (t.hp < 0) t.hp = 0;
           if (t.hp <= 0) this.deathBurstAt(t, false);
-          Combat.applyAilment(t, 'rakta', 3);
+          Combat.applyAilment(t, 'rakta', 3 + bondHeart);
           this.data.log.push('Beast: Rending Claw — ' + t.name + ' takes ' + dmg + ' damage + Bleed!');
         }
         break;
@@ -481,12 +499,34 @@ const combatScene = Scene.create({
         let t = this.data.selectedEnemy;
         if (!t || t.hp <= 0) t = Combat.getRandomEnemy();
         if (t) {
-          Combat.applyAilment(t, 'confuse', 1);
+          Combat.applyAilment(t, 'confuse', 1 + bondHeart);
           this.data.log.push('Beast: Mirage — ' + t.name + ' confused!');
         }
         break;
       }
     }
+
+    // Phase 27 beast power: heart-2 aura fires on skill use (BST-02).
+    // Combat authority: buffs via Combat.applyBuff, heals clamped on clones.
+    try {
+      if (bondAura && bondAura.effect && typeof Combat !== 'undefined' && Combat) {
+        const fx = bondAura.effect;
+        const living = this.data.heroes.filter(function(h) { return h && h.hp > 0; });
+        if (fx.kind === 'heal' && Number.isFinite(Number(fx.amount))) {
+          const amt = Math.max(0, Math.floor(Number(fx.amount)));
+          for (const h of living) h.hp = Math.min(h.maxHp || h.hp, h.hp + amt);
+          this.data.log.push('Beast aura: ' + bondAura.name + ' — party mended');
+        } else if (fx.kind === 'shield' && living.length > 0 && typeof Combat.applyBuff === 'function') {
+          Combat.applyBuff(living[Math.floor(Math.random() * living.length)], 'shield', Math.max(0, Math.floor(Number(fx.amount))), 2);
+          this.data.log.push('Beast aura: ' + bondAura.name + ' — ally warded');
+        } else if (fx.kind === 'buff' && (fx.buff === 'atkBuff' || fx.buff === 'defBuff') && typeof Combat.applyBuff === 'function') {
+          const val = Number(fx.value) || 1;
+          const turns = Math.max(1, Math.floor(Number(fx.turns)) || 1);
+          for (const h of living) Combat.applyBuff(h, fx.buff, val, turns);
+          this.data.log.push('Beast aura: ' + bondAura.name + ' — party empowered');
+        }
+      }
+    } catch (e) {}
 
     if (!this.data.beastSkillUsed) this.data.beastCooldown = 2;
     Combat.checkBattleEnd();

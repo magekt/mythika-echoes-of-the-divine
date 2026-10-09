@@ -44,7 +44,7 @@ Accepted residual browser evidence (same precedent as v2.0): live-browser matrix
 - [x] **Phase 24: Combat Bonds** - Tier passives and pair synergy in active-party combat
 - [x] **Phase 25: Signature Combos** - One Tier-3 duo skill on one hero before committing to all
 - [x] **Phase 26: Beast Hearts & Care Actions** - Bond hearts via battle XP plus feed/train
-- [ ] **Phase 27: Beast Power & Evolution Assist** - Heart potency, passive, and earlier evolution
+- [x] **Phase 27: Beast Power & Evolution Assist** - Heart potency, passive, and earlier evolution
 - [ ] **Phase 28: Living Zones** - Companion-gated encounters, landmarks, and narrative echoes
 - [ ] **Phase 29: Hero Gifts** - Liked-item gifting with caps and diminishing returns
 
@@ -218,7 +218,7 @@ Plans:
 | 24. Combat Bonds | v4.0 | 3/3 | Complete (automated; browser deferred) | 2026-10-09 |
 | 25. Signature Combos | v4.0 | 3/3 | Complete (automated; browser deferred) | 2026-10-09 |
 | 26. Beast Hearts & Care Actions | v4.0 | 3/3 | Complete (automated; browser deferred) | 2026-10-09 |
-| 27. Beast Power & Evolution Assist | v4.0 | 0/TBD | Not started | - |
+| 27. Beast Power & Evolution Assist | v4.0 | 3/3 | Complete (automated; browser deferred) | 2026-10-09 |
 | 28. Living Zones | v4.0 | 0/TBD | Not started | - |
 | 29. Hero Gifts | v4.0 | 0/TBD | Not started | - |
 

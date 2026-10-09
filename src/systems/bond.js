@@ -1003,6 +1003,70 @@ var BeastBond = {
     } catch (e) {
       return this._emptyShape();
     }
+  },
+
+  // --- Phase 27: Beast Power & Evolution Assist (BST-02 data half) ---
+  // Pure read-only power contract. Hearts stay derived via heartFor/xpFor;
+  // nothing here mutates G.state. Combat application lives in
+  // combatScene.doBeastSkill via Combat.applyBuff (Plan 27-02); aura effects
+  // are restricted to existing combat primitives (heal / shield / buff).
+  POTENCY_PER_HEART: 0.10,
+
+  HEART2_BOOST: { hp: 10, str: 1, agi: 1, def: 1, mag: 1 },
+
+  BEAST_AURAS: {
+    wolf:     { key: 'moonlit_vigor',   name: 'Moonlit Vigor',   desc: 'Pack endurance knits wounds when the wolf skill sounds (+heal)', effect: { kind: 'heal', amount: 4 } },
+    serpent:  { key: 'iron_scales',      name: 'Iron Scales',     desc: 'Serpent wards shed harm from a companion (+shield)', effect: { kind: 'shield', amount: 5 } },
+    owl:      { key: 'night_watch',      name: 'Night Watch',      desc: 'Owl vigilance steadies the party (+heal)', effect: { kind: 'heal', amount: 3 } },
+    bear:     { key: 'stone_ward',       name: 'Stone Ward',       desc: 'Bear bulk turns blows aside (+shield)', effect: { kind: 'shield', amount: 6 } },
+    fox:      { key: 'ember_regen',      name: 'Ember Regen',      desc: 'Foxfire embers rekindle the party (+heal)', effect: { kind: 'heal', amount: 5 } },
+    dragon:   { key: 'gale_focus',       name: 'Gale Focus',       desc: 'Storm winds hone every strike (+ATK buff)', effect: { kind: 'buff', buff: 'atkBuff', value: 1.05, turns: 2 } },
+    phoenix:  { key: 'cinder_blessing',  name: 'Cinder Blessing',  desc: 'Cinder light restores the fallen-hearted (+heal)', effect: { kind: 'heal', amount: 6 } },
+    turtle:   { key: 'tidepool_bastion', name: 'Tidepool Bastion', desc: 'Tidepool calm hardens the party (+DEF buff)', effect: { kind: 'buff', buff: 'defBuff', value: 1.05, turns: 2 } },
+    tiger:    { key: 'predator_drive',   name: 'Predator Drive',   desc: 'Tiger hunger sharpens every strike (+ATK buff)', effect: { kind: 'buff', buff: 'atkBuff', value: 1.05, turns: 2 } },
+    kitsune:  { key: 'mirage_veil',      name: 'Mirage Veil',      desc: 'Kitsune illusions veil a companion (+shield)', effect: { kind: 'shield', amount: 4 } }
+  },
+
+  potencyFor: function(beastId) {
+    try {
+      if (!this._safeKey(beastId)) return { heart: 0, mult: 1 };
+      if (!this._isKnown(beastId)) return { heart: 0, mult: 1 };
+      const heart = this.heartFor(this.xpFor(beastId));
+      const mult = Math.round((1 + this.POTENCY_PER_HEART * heart) * 100) / 100;
+      return { heart: heart, mult: mult };
+    } catch (e) {
+      return { heart: 0, mult: 1 };
+    }
+  },
+
+  statBoostFor: function(beastId) {
+    const zeros = function() { return { hp: 0, str: 0, agi: 0, def: 0, mag: 0 }; };
+    try {
+      if (!this._safeKey(beastId)) return zeros();
+      if (!this._isKnown(beastId)) return zeros();
+      if (this.heartFor(this.xpFor(beastId)) < 2) return zeros();
+      const b = this.HEART2_BOOST;
+      return { hp: b.hp, str: b.str, agi: b.agi, def: b.def, mag: b.mag };
+    } catch (e) {
+      return zeros();
+    }
+  },
+
+  auraFor: function(beastId) {
+    try {
+      if (!this._safeKey(beastId)) return null;
+      if (!this._isKnown(beastId)) return null;
+      if (this.heartFor(this.xpFor(beastId)) < 2) return null;
+      if (!Object.prototype.hasOwnProperty.call(this.BEAST_AURAS, beastId)) return null;
+      const a = this.BEAST_AURAS[beastId];
+      if (!a || typeof a !== 'object') return null;
+      const effect = (a.effect && typeof a.effect === 'object' && !Array.isArray(a.effect)) ? a.effect : {};
+      const copy = {};
+      for (const key of Object.keys(effect)) copy[key] = effect[key];
+      return { key: a.key, name: a.name, desc: a.desc, effect: copy };
+    } catch (e) {
+      return null;
+    }
   }
 };
 

@@ -71,11 +71,18 @@ const spiritBeastScene = Scene.create({
           // Stats row
           const bonus = getBeastBonus(beast);
           R.text(ctx, 'HP:' + bonus.hp + ' STR:' + bonus.str + ' AGI:' + bonus.agi + ' DEF:' + bonus.def, bx + 14, by + 48, R.colors.textDim, R.fonts.xs);
-          // Phase 26 beast hearts: one hearts line, guarded (absent BeastBond = current card).
+          // Phase 26 beast hearts + Phase 27 power hint (guarded; absent BeastBond = current card).
           try {
             if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.get === 'function') {
               const h = BeastBond.get(this._beast.id).heart || 0;
-              R.text(ctx, 'Bond: ' + '♥'.repeat(h) + '♡'.repeat(3 - h), bx + 14, by + 62, R.colors.gold, R.fonts.xs);
+              let powHint = '';
+              try {
+                if (h > 0 && typeof BeastBond.potencyFor === 'function') {
+                  const pm = BeastBond.potencyFor(this._beast.id);
+                  if (pm && Number(pm.mult) > 1) powHint = ' +' + Math.round((Number(pm.mult) - 1) * 100) + '%';
+                }
+              } catch (e2) {}
+              R.text(ctx, 'Bond: ' + '♥'.repeat(h) + '♡'.repeat(3 - h) + powHint, bx + 14, by + 62, R.colors.gold, R.fonts.xs);
             }
           } catch (e) {}
           if (this._active) R.text(ctx, 'ACTIVE', bx + bw - 60, by + 16, R.colors.green, R.fonts.sm);
@@ -119,9 +126,16 @@ const spiritBeastScene = Scene.create({
     const beastData = SPIRIT_BEASTS[beast.id];
     let y = this.getContentTop();
 
+    const hasPower = (function() {
+      try {
+        return (typeof BeastBond !== 'undefined' && BeastBond
+          && typeof BeastBond.potencyFor === 'function'
+          && typeof BeastBond.auraFor === 'function');
+      } catch (e) { return false; }
+    })();
     const infoH = (function() {
       try {
-        if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.statusFor === 'function') return 96;
+        if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.statusFor === 'function') return hasPower ? 132 : 96;
       } catch (e) {}
       return 80;
     })();
@@ -140,13 +154,49 @@ const spiritBeastScene = Scene.create({
         SD.push({ text: [prog, 22, iy + 56, R.colors.gold, R.fonts.sm] });
       }
     } catch (e) {}
+    // Phase 27 beast power: potency + aura lines below the bond progress
+    // line (guarded view-only reads; absent BeastBond = legacy layout).
+    try {
+      if (hasPower) {
+        let heart = 0, mult = 1, aura = null;
+        try { const pm = BeastBond.potencyFor(beast.id); if (pm) { heart = pm.heart || 0; mult = pm.mult || 1; } } catch (e2) {}
+        try { aura = BeastBond.auraFor(beast.id); } catch (e2) { aura = null; }
+        SD.push({ text: ['Power: +' + (Math.max(0, heart) * 10) + '% skill potency (x' + mult + ')', 22, iy + 74, R.colors.orange, R.fonts.sm] });
+        if (aura && aura.name) {
+          SD.push({ text: ['Aura: ' + aura.name + ' — ' + (aura.desc || ''), 22, iy + 92, R.colors.green, R.fonts.sm] });
+        } else {
+          SD.push({ text: ['Aura: unlocks at ♥♥ (heart 2)', 22, iy + 92, R.colors.textDim, R.fonts.sm] });
+        }
+      }
+    } catch (e) {}
     if (beast.passiveDesc) {
-      SD.push({ text: ['Passive: ' + beast.passiveDesc, 22, iy + (infoH > 80 ? 74 : 56), R.colors.green, R.fonts.sm] });
+      SD.push({ text: ['Passive: ' + beast.passiveDesc, 22, iy + (hasPower ? 110 : (infoH > 80 ? 74 : 56)), R.colors.green, R.fonts.sm] });
     } else {
-      SD.push({ text: ['Active: ' + (beast.active ? 'Yes' : 'No'), 22, iy + (infoH > 80 ? 74 : 56), beast.active ? R.colors.green : R.colors.textDim, R.fonts.sm] });
+      SD.push({ text: ['Active: ' + (beast.active ? 'Yes' : 'No'), 22, iy + (hasPower ? 110 : (infoH > 80 ? 74 : 56)), beast.active ? R.colors.green : R.colors.textDim, R.fonts.sm] });
     }
 
     y += infoH + 8;
+
+    // Phase 27 evolution assist hint (BST-03): view-only, guarded. The
+    // existing EVOLUTION AVAILABLE panel owns the evolvable case below.
+    try {
+      if (hasPower && !canEvolve(beast) && typeof requiredLevelFor === 'function'
+          && typeof BEAST_EVOLUTIONS !== 'undefined' && BEAST_EVOLUTIONS) {
+        const stages = BEAST_EVOLUTIONS[beast.id];
+        const stage = beast.evolutionStage || 0;
+        if (stages && stage < stages.length && stages[stage] && Number.isFinite(Number(stages[stage].level))) {
+          const baseReq = Number(stages[stage].level);
+          const assistedReq = requiredLevelFor(beast.id, stage);
+          if (Number.isFinite(assistedReq) && assistedReq < baseReq) {
+            SD.push({ text: ['Bond assist active: evolves at Lv.' + assistedReq + ' (base Lv.' + baseReq + ')', 22, y, R.colors.green, R.fonts.xs] });
+            y += 18;
+          } else {
+            SD.push({ text: ['Bond assist: ♥♥♥ halves evolution level (now Lv.' + baseReq + ')', 22, y, R.colors.textDim, R.fonts.xs] });
+            y += 18;
+          }
+        }
+      }
+    } catch (e) {}
 
     if (canEvolve(beast)) {
       const evo = getBeastEvolution(beast.id, beast.level);
