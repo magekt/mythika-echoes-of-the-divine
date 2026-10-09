@@ -153,6 +153,38 @@ EncounterSystem.choose = function(id, choiceIdx) {
     }
   }
 
+  // --- Choice affinity routing (Phase 23): gains-only via BondSystem.add ---
+  if (choice.affinity && typeof choice.affinity === 'object' && !Array.isArray(choice.affinity)) {
+    if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.add === 'function') {
+      for (const entry of Object.entries(choice.affinity)) {
+        const heroId = entry[0];
+        const gain = entry[1];
+        let res = null;
+        try {
+          res = BondSystem.add(heroId, gain);
+        } catch (e) {
+          res = null;
+        }
+        if (res && res.applied > 0) {
+          granted.push({ type: 'affinity', hero: heroId, amount: res.applied, tierUp: !!res.tierUp });
+          if (res.tierUp) {
+            try {
+              let heroName = heroId;
+              if (typeof HEROES !== 'undefined' && HEROES && HEROES[heroId] && HEROES[heroId].name) {
+                heroName = HEROES[heroId].name;
+              }
+              const tier = BondSystem.tierFor ? BondSystem.tierFor(res.after) : '';
+              if (typeof Notify !== 'undefined' && Notify && typeof Notify.show === 'function'
+                && typeof R !== 'undefined' && R && R.colors) {
+                Notify.show(heroName + ' bond deepens — ' + tier + '!', 3, R.colors.gold);
+              }
+            } catch (e) {}
+          }
+        }
+      }
+    }
+  }
+
   // --- Write flags (story markers) ---
   if (choice.flags) {
     for (const [k, v] of Object.entries(choice.flags)) {

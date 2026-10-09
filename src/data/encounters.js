@@ -20,6 +20,7 @@ const ENCOUNTERS = {
         text: 'Share your gold',
         preview: 'Lose 50 gold, gain karma and experience',
         reward: { gold: -50, karma: 3, xp: 60 },
+        affinity: { arjuna: 4 },
         flags: { 'enc_nagaBargain': 'share' }
       },
       {
@@ -46,6 +47,7 @@ const ENCOUNTERS = {
         text: 'Ride the gale',
         preview: 'Swift passage, karma and experience',
         reward: { xp: 100, karma: 1 },
+        affinity: { bhima: 2 },
         flags: { 'enc_marutCrossing': 'ride' }
       },
       {
@@ -73,6 +75,7 @@ const ENCOUNTERS = {
         text: 'Ask for wisdom',
         preview: 'Gain prana and experience',
         reward: { prana: 80, xp: 120 },
+        affinity: { karna: 2 },
         flags: { 'enc_rishiBoon': 'wisdom' }
       },
       {
@@ -106,6 +109,7 @@ const ENCOUNTERS = {
         text: 'Refuse and pray',
         preview: 'Gain karma and prana',
         reward: { karma: 4, prana: 40, xp: 50 },
+        affinity: { draupadi: 4 },
         flags: { 'enc_asuraWhisper': 'refused' }
       }
     ]
@@ -133,6 +137,7 @@ const ENCOUNTERS = {
         text: '"I do not know"',
         preview: 'Honesty: gain karma and a small gift',
         reward: { karma: 3, prana: 30, xp: 40 },
+        affinity: { hanuman: 2 },
         flags: { 'enc_yakshaRiddle': 'honest' }
       }
     ]
@@ -154,6 +159,7 @@ const ENCOUNTERS = {
         text: 'Blessing of vitality',
         preview: 'Restore health and gain max HP',
         reward: { hp: 30, maxHp: 10, xp: 80 },
+        affinity: { bhima: 2 },
         flags: { 'enc_devBlessing': 'vitality' }
       },
       {
@@ -181,6 +187,7 @@ const ENCOUNTERS = {
         text: 'Sit in the fire',
         preview: 'Gain cultivation base and prana',
         reward: { cultivationBase: 15, prana: 60, xp: 100 },
+        affinity: { karna: 4 },
         flags: { 'enc_tapasPilgrim': 'sat' }
       },
       {
@@ -208,6 +215,7 @@ const ENCOUNTERS = {
         text: 'Pray for mercy',
         preview: 'Gain a rare item and karma',
         reward: { karma: 5, xp: 200, item: 'naga_scale' },
+        affinity: { draupadi: 2 },
         flags: { 'enc_nagaElder': 'mercy' }
       },
       {
@@ -230,6 +238,8 @@ const ENCOUNTERS = {
  */
 function encounterAvailable(enc, ctx) {
   if (!enc || !ctx) return false;
+  // Bond scenes live in BOND_EVENTS and trigger only via bond availability.
+  if (enc.bondEvent) return false;
   const flags = (G.state && G.state.flags) || {};
   const seen = (G.state.encounters && G.state.encounters.seen) || {};
 

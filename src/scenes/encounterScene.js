@@ -43,6 +43,7 @@ const encounterScene = Scene.create({
     contentHeight: 0,
     staticDraws: [],
     encounterId: null,
+    bondEventId: null,
     origin: null,
     pendingZone: null,
     resolved: false,
@@ -63,6 +64,7 @@ const encounterScene = Scene.create({
   enter: function(opts) {
     opts = opts || {};
     this.data.encounterId = opts.encounterId || null;
+    this.data.bondEventId = opts.bondEventId || null;
     this.data.origin = opts.origin || 'zoneExploration';
     this.data.pendingZone = opts.pendingZone || null;
     this.data.resolved = false;
@@ -70,6 +72,18 @@ const encounterScene = Scene.create({
     this.data.scrollY = 0;
     this.data.buttons = [];
     this.data.staticDraws = [];
+
+    // Bond-scene path: resolve from BOND_EVENTS, render through shared builders.
+    if (this.data.bondEventId) {
+      const bondEntry = (typeof BOND_EVENTS !== 'undefined' && BOND_EVENTS) ? BOND_EVENTS[this.data.bondEventId] : null;
+      if (!bondEntry) {
+        Notify.show('The vision fades...', 2, R.colors.red);
+        this._resume();
+        return;
+      }
+      this.buildUI(bondEntry);
+      return;
+    }
 
     // Start the encounter — returns null if unknown or already seen
     const enc = EncounterSystem.start(this.data.encounterId);
@@ -104,7 +118,7 @@ const encounterScene = Scene.create({
         headerShell.render(ctx);
         const c = headerShell.contentRect();
         R.text(ctx, enc.icon + '  ' + encounterFitText(ctx, enc.name, c.w - 24, R.fonts.md), c.x + 12, c.y + 18, R.colors.accent, R.fonts.md);
-        const poolLabel = enc.pool === 'travel' ? 'Storm-Path Encounter' : 'Forest Encounter';
+        const poolLabel = enc.bondEvent ? 'Bond Scene' : (enc.pool === 'travel' ? 'Storm-Path Encounter' : 'Forest Encounter');
         R.text(ctx, poolLabel, c.x + 12, c.y + 42, R.colors.textSecondary, R.fonts.sm);
       }
     });
@@ -125,8 +139,9 @@ const encounterScene = Scene.create({
     });
     y += promptH + 12;
 
-    // --- Choice cards (filtered by system-level flagsReq) ---
-    const choices = EncounterSystem.getChoices(this.data.encounterId);
+    // --- Choice cards (filtered by system-level flagsReq; bond entries render directly) ---
+    const isBond = !!this.data.bondEventId;
+    const choices = isBond ? (enc.choices || []) : EncounterSystem.getChoices(this.data.encounterId);
     for (let i = 0; i < choices.length; i++) {
       const choice = choices[i];
       const cardH = 68;
@@ -134,6 +149,8 @@ const encounterScene = Scene.create({
       btn._choiceIdx = i; // index into FULL choices array (before filtering)
       btn._choice = choice;
       btn._encId = this.data.encounterId;
+      btn._bondId = isBond ? this.data.bondEventId : null;
+      btn._isBond = isBond;
       btn.render = function(ctx) {
         const shell = UI.PremiumShell(this.x, this.y, this.w, this.h, { outerR: 6 });
         shell.render(ctx);
@@ -148,6 +165,48 @@ const encounterScene = Scene.create({
         R.roundRect(ctx, this.x + 2, this.y + 4, 3, this.h - 8, 2, R.colors.accent);
       };
       btn.onClick = function() {
+        if (this._isBond && typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.completeBond === 'function') {
+          const done = BondSystem.completeBond(this._bondId, this._choiceIdx);
+          if (done && done.ok) {
+            Audio.click();
+            R.validTick(this.x + this.w / 2, this.y + this.h / 2);
+            const granted = [];
+            if (done.applied > 0) {
+              let heroId = null;
+              try {
+                const entry = (typeof BOND_EVENTS !== 'undefined' && BOND_EVENTS) ? BOND_EVENTS[this._bondId] : null;
+                heroId = entry ? entry.heroId : null;
+              } catch (e) {}
+              if (heroId) granted.push({ type: 'affinity', hero: heroId, amount: done.applied, tierUp: !!done.tierUp });
+            }
+            if (done.capped && typeof Notify !== 'undefined') {
+              try { Notify.show('This memory is complete — no further bond to gain.', 3, R.colors.textSecondary); } catch (e) {}
+            }
+            if (done.tierUp) {
+              try {
+                const entry = (typeof BOND_EVENTS !== 'undefined' && BOND_EVENTS) ? BOND_EVENTS[this._bondId] : null;
+                const heroId = entry ? entry.heroId : null;
+                if (heroId && typeof BondSystem.bondAvailable === 'function') {
+                  const next = BondSystem.bondAvailable(heroId);
+                  if (next && typeof Notify !== 'undefined') {
+                    let heroName = heroId;
+                    try {
+                      if (typeof HEROES !== 'undefined' && HEROES && HEROES[heroId] && HEROES[heroId].name) heroName = HEROES[heroId].name;
+                    } catch (e) {}
+                    Notify.show('A new bond scene awaits ' + heroName + '!', 3, R.colors.gold);
+                  }
+                }
+              } catch (e) {}
+            }
+            const result = { id: this._bondId, choiceIdx: this._choiceIdx, text: this._choice ? this._choice.text : '', granted: granted, marker: this._choiceIdx, bond: true, capped: !!done.capped };
+            encounterScene.data.resolved = true;
+            encounterScene.data.result = result;
+            encounterScene.buildResult(result);
+          } else {
+            R.stoneHit(this.x + this.w / 2, this.y + this.h / 2);
+          }
+          return;
+        }
         const result = EncounterSystem.choose(this._encId, this._choiceIdx);
         if (result) {
           Audio.click();
@@ -217,12 +276,44 @@ const encounterScene = Scene.create({
             else if (g.type === 'agi') label = '+' + g.amount + ' AGI';
             else if (g.type === 'mag') label = '+' + g.amount + ' MAG';
             else if (g.type === 'def') label = '+' + g.amount + ' DEF';
+            else if (g.type === 'affinity') {
+              let heroName = g.hero;
+              let tier = '';
+              try {
+                if (typeof HEROES !== 'undefined' && HEROES && HEROES[g.hero] && HEROES[g.hero].name) {
+                  heroName = HEROES[g.hero].name;
+                }
+                if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.get === 'function') {
+                  const info = BondSystem.get(g.hero);
+                  if (info && info.tier) tier = info.tier;
+                }
+              } catch (e) {}
+              label = heroName + ' +' + g.amount + ' bond' + (tier ? ' (' + tier + ')' : '');
+            }
             else label = g.type + ': ' + JSON.stringify(g.amount);
             R.text(ctx, label, c.x + 12, c.y + 36 + i * itemH, R.colors.text, R.fonts.sm);
           }
         }
       });
       y += rewardH + 12;
+    }
+
+    // --- Tier-up unlock toast for encounter-choice gains (bond path toasts at click time) ---
+    if (!result.bond && result.granted) {
+      try {
+        for (const g of result.granted) {
+          if (g && g.type === 'affinity' && g.tierUp && typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.bondAvailable === 'function') {
+            const next = BondSystem.bondAvailable(g.hero);
+            if (next && (next.indexOf('_crisis') !== -1 || next.indexOf('_oath') !== -1) && typeof Notify !== 'undefined') {
+              let heroName = g.hero;
+              try {
+                if (typeof HEROES !== 'undefined' && HEROES && HEROES[g.hero] && HEROES[g.hero].name) heroName = HEROES[g.hero].name;
+              } catch (e) {}
+              Notify.show('A new bond scene awaits ' + heroName + '!', 3, R.colors.gold);
+            }
+          }
+        }
+      } catch (e) {}
     }
 
     // --- Continue button (returns to origin) ---
@@ -260,6 +351,7 @@ const encounterScene = Scene.create({
     this.data.staticDraws = [];
     this.data.result = null;
     this.data.encounterId = null;
+    this.data.bondEventId = null;
     this.data.resolved = false;
     this.data.scrollY = 0;
     this.data.contentHeight = 0;

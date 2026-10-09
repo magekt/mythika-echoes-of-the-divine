@@ -310,8 +310,16 @@ const partyScene = Scene.create({
       if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.ensureSeed === 'function') {
         BondSystem.ensureSeed(hid);
       }
+      // Seed recruit-scene availability: clear any stale completion flag so
+      // BondSystem.bondAvailable(hid) offers bond_<hid>_recruit.
+      if (G.state && G.state.flags && typeof G.state.flags === 'object') {
+        delete G.state.flags['bond_' + hid + '_recruit'];
+      }
     } catch (e) {}
     UI.Feedback.Toast(recruit.name + ' joins your party!', { color: R.colors.gold, icon: '★', duration: 3 });
+    try {
+      UI.Feedback.Toast('A bond scene awaits ' + recruit.name + '!', { color: R.colors.gold, icon: '💬', duration: 3 });
+    } catch (e) {}
     Audio.levelUp();
     Hints.show('recruit', 'Allies fight alongside you automatically in every battle.');
     AchievementSystem.check();

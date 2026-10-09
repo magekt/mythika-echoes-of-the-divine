@@ -57,6 +57,7 @@ const ASSETS = [
   'src/systems/narrative_echoes.js',
   'src/systems/world_events.js',
   'src/data/encounters.js',
+  'src/data/bonds.js',
   'src/data/narrative_echoes.js',
   'src/data/world_events.js',
   'src/systems/zone_rewards.js',

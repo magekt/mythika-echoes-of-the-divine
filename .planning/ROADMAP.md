@@ -40,7 +40,7 @@ Accepted residual browser evidence (same precedent as v2.0): live-browser matrix
 
 - [x] **Phase 21: Browser Evidence Catch-Up** - Execute the combined v2.0 + v3.0 browser matrix early (completed 2026-10-09; harness green, journey deferred)
 - [x] **Phase 22: Affinity Foundation & Persistence** - Hero affinity meter, tiers, and save-compatible state
-- [ ] **Phase 23: Choice-Driven Bonds & Dialogue** - Encounter choices grow affinity and unlock bond dialogue
+- [x] **Phase 23: Choice-Driven Bonds & Dialogue** - Encounter choices grow affinity and unlock bond dialogue
 - [ ] **Phase 24: Combat Bonds** - Tier passives and pair synergy in active-party combat
 - [ ] **Phase 25: Signature Combo Pilot** - One Tier-3 duo skill on one hero before committing to all
 - [ ] **Phase 26: Beast Hearts & Care Actions** - Bond hearts via battle XP plus feed/train
@@ -89,7 +89,12 @@ Plans:
   1. Player making an encounter choice with a party hero present sees that hero's affinity increase
   2. Player reaching a new tier unlocks a bond dialogue event (recruit → crisis → oath) in the encounter UI
   3. Player sees no affinity decay or loss from absence — bonds only grow or rest dormant
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Choice-gain wiring (+2/+4 via BondSystem.add, eligibility-gated)
+- [ ] 23-02-PLAN.md — Bond arc content + unlocks (15 recruit/crisis/oath scenes, replay caps)
+- [ ] 23-03-PLAN.md — Matrix contract (gains, arcs, caps, persistence, isolation)
 **UI hint**: yes
 
 ### Phase 24: Combat Bonds
@@ -204,7 +209,7 @@ Plans:
 | 20. Settings Diagnostics & Full-Loop Acceptance | v3.0 | 3/3 | Complete (browser evidence deferred) | 2026-10-09 |
 | 21. Browser Evidence Catch-Up | v4.0 | 2/2 | Complete (harness green; journey deferred) | 2026-10-09 |
 | 22. Affinity Foundation & Persistence | v4.0 | 3/3 | Complete (automated; browser deferred) | 2026-10-09 |
-| 23. Choice-Driven Bonds & Dialogue | v4.0 | 0/TBD | Not started | - |
+| 23. Choice-Driven Bonds & Dialogue | v4.0 | 3/3 | Complete (automated; browser deferred) | 2026-10-09 |
 | 24. Combat Bonds | v4.0 | 0/TBD | Not started | - |
 | 25. Signature Combo Pilot | v4.0 | 0/TBD | Not started | - |
 | 26. Beast Hearts & Care Actions | v4.0 | 0/TBD | Not started | - |
