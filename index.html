@@ -30,7 +30,7 @@
   window.__mythikaProbeScriptResources = function() {
     if (!/[?&]probe(?:&|$)/.test(location.search) || !window.performance || !performance.getEntriesByType) return;
     var entries = performance.getEntriesByType('resource').filter(function(entry) {
-      return entry.initiatorType === 'script' && /\/src\/.test(entry.name);
+      return entry.initiatorType === 'script' && /\/src\//.test(entry.name);
     });
     var total = entries.reduce(function(sum, entry) { return sum + entry.duration; }, 0);
     console.log('[Mythika] script-resources=' + JSON.stringify({
