@@ -68,7 +68,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 - v3.0 shipped Phases 13–20 on 2026-10-09; REQ-021–REQ-034 validated at contract level, archives in `.planning/milestones/v3.0-*`.
 - v4.0 shipped Phases 21–29 on 2026-10-09; AFF-01..AFF-06, BST-01..BST-04, ZON-01..ZON-02, GFT-01, SAV-01 validated at contract level, archives in `.planning/milestones/v4.0-*`.
 - Preserve vanilla JS, script order, global namespaces, immediate-mode Canvas, localStorage, and authoritative systems.
-- v5.0 roadmap defined 2026-10-09: Phases 30–35 (harness → toast → combat → lists/zones → fit-finish → pacing last); LAY-05 before LAY-02; 9/9 requirements mapped.
+- v5.0 roadmap defined 2026-10-09: Phases 30–35 (harness → toast → combat → lists/zones → fit-finish → pacing last); LAY-05 before LAY-02; 11/11 requirements mapped (LAY-00–07, BAL-01–03).
 - Single-authority companion state (BondSystem + BeastBond, no parallel stores); combat clones only; COMMIT-ALL-FIVE readability verdict.
 - Diagnostics are local, bounded, and disabled by default behind a Settings debug toggle.
 - Evidence-led deprecation removal: call-site/runtime proof plus save-fixture hydration before deletion.

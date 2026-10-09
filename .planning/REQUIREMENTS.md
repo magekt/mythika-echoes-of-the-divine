@@ -30,7 +30,7 @@ Harness: extend `tools/verify_matrix.py` to wrap `R.text`/`R.textCenter`, record
 
 ## Backgrounds Paint
 
-- [ ] **LAY-07**: Backgrounds paint — every revamped scene renders its background slot (no split-R silent failure); harness samples one fixed point per scene and asserts it is not the clear color.
+- [ ] **LAY-07**: Backgrounds paint — every revamped scene renders its background slot (no split-R silent failure); harness samples ≥4 points per scene (corners + center), asserts each differs from the clear color by a minimum channel delta, and records per-scene expected colors from the first correct render so a wrong background also fails.
 
 ## Balance & Pacing (own checks)
 

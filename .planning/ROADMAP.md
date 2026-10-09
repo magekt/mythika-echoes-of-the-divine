@@ -215,6 +215,7 @@ Plans:
 **Goal**: Toasts never leak across scenes
 **Depends on**: Phase 30
 **Requirements**: LAY-05
+**Starting step**: Reproduce via the harness real-entry mode (travel-map locked-zone toast → Back → Ashram → Party) BEFORE any code change; record reproduced vs not-reproducible (combat was unreachable pre-c381180, so the original sighting may not exist on the current tree) and let the outcome select the fix-vs-harden branch.
 **Success Criteria** (what must be TRUE):
   1. Real tap path locked-zone toast → Back → Ashram → Party shows no stale toast in the new scene
   2. Each toast carries a scene tag cleared on transition; only explicit achievement banners survive a scene change
@@ -234,7 +235,7 @@ Plans:
   3. Tutorial toasts never cover action buttons (including Gandiva + Rain of Arrows) in any scene
   4. Shared text-bounds criterion passes for combat 1v1 and 5v3 at 390x844 and 844x390
   5. Full 20-scene sweep at phase end (toast lane is engine-wide and may shift untargeted scenes)
-  6. Backgrounds paint in every revamped scene (split-R fixed); harness pixel-samples one fixed point per scene and asserts non-clear color
+  6. Backgrounds paint in every revamped scene (split-R fixed); harness samples ≥4 points per scene (corners + center) with minimum channel delta vs clear color and per-scene expected colors recorded from the first correct render
   7. Fixed pairs move from expected_pairs to the must-stay-clean list in the same commit (fixture retirement rule: CI fails on regressions AND on pairs vanishing without a matching code change)
 **Plans**: TBD
 **UI hint**: yes
@@ -300,7 +301,7 @@ Plans:
 | BAL-02 — Zone-clear rate | Phase 35 | v5.0 |
 | BAL-03 — Empty screens | Phase 35 | v5.0 |
 
-**v5.0 Coverage:** 9/9 requirements mapped exactly once; no orphans or duplicates. (Phase 30 is a requirement-free harness enabler — the stated first build and sole proof for LAY-01–LAY-06.)
+**v5.0 Coverage:** 11/11 requirements mapped exactly once (LAY-00–07, BAL-01–03); no orphans or duplicates. (Phase 30 carries LAY-00, the harness requirement itself — the stated first build and sole proof for LAY-01–LAY-06.)
 
 ---
 *Roadmap reorganized 2026-10-09 at v4.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md.*
