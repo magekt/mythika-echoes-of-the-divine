@@ -46,7 +46,7 @@ Accepted residual browser evidence (same precedent as v2.0): live-browser matrix
 - [x] **Phase 26: Beast Hearts & Care Actions** - Bond hearts via battle XP plus feed/train
 - [x] **Phase 27: Beast Power & Evolution Assist** - Heart potency, passive, and earlier evolution
 - [x] **Phase 28: Living Zones** - Companion-gated encounters, landmarks, and narrative echoes (completed 2026-10-09; automated contracts green, browser deferred)
-- [ ] **Phase 29: Hero Gifts** - Liked-item gifting with caps and diminishing returns
+- [x] **Phase 29: Hero Gifts** - Liked-item gifting with caps and diminishing returns
 
 ## Phase Details
 
@@ -225,7 +225,7 @@ Plans:
 | 26. Beast Hearts & Care Actions | v4.0 | 3/3 | Complete (automated; browser deferred) | 2026-10-09 |
 | 27. Beast Power & Evolution Assist | v4.0 | 3/3 | Complete (automated; browser deferred) | 2026-10-09 |
 | 28. Living Zones | v4.0 | 3/3 | Complete (automated; browser deferred) | 2026-10-09 |
-| 29. Hero Gifts | v4.0 | 0/TBD | Not started | - |
+| 29. Hero Gifts | v4.0 | 3/3 | Complete (automated; browser deferred) | 2026-10-09 |
 
 ## Coverage
 

@@ -630,6 +630,240 @@ const BondSystem = {
     } catch (e) {
       return {};
     }
+  },
+
+  // --- Phase 29: Hero Gifts (GFT-01) ---
+  // Liked-item gifting with steep diminishing per hero-item pair under BOTH
+  // a weekly-equivalent flag cap on total gift affinity per hero AND per-gift
+  // minTier locks. Roster/gift defs live in src/data/items.js (HERO_GIFTS +
+  // ITEMS.gifts, read-only here). Consumption goes through canonical
+  // Economy.removeItemByName; NOTHING is consumed on any denial. Every denial
+  // returns an explicit reason; nothing fails silently.
+  GIFT_GAINS: [13, 8, 5],
+  GIFT_TAIL: 3,
+  GIFT_WEEKLY_CAP: 26,
+  GIFT_WEEK_MS: 604800000,
+
+  _giftNow: function(now) {
+    const n = Number(now);
+    if (Number.isFinite(n) && n > 0) return Math.floor(n);
+    try {
+      if (typeof Date !== 'undefined' && Date.now) return Date.now();
+    } catch (e) {}
+    return 0;
+  },
+
+  _giftTable: function() {
+    try {
+      const t = (typeof HERO_GIFTS !== 'undefined' && HERO_GIFTS)
+        || (typeof globalThis !== 'undefined' && globalThis.HERO_GIFTS) || null;
+      return (t && typeof t === 'object' && !Array.isArray(t)) ? t : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  _giftDef: function(giftKey) {
+    try {
+      const items = (typeof ITEMS !== 'undefined' && ITEMS)
+        || (typeof globalThis !== 'undefined' && globalThis.ITEMS) || null;
+      if (!items || typeof items !== 'object' || !items.gifts || typeof items.gifts !== 'object') return null;
+      const def = items.gifts[giftKey];
+      return (def && typeof def === 'object' && !Array.isArray(def)) ? def : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  _giftPairKey: function(heroId, giftKey) {
+    return 'gift_' + heroId + '_' + giftKey;
+  },
+
+  _giftWeekKey: function(heroId) {
+    return 'giftweek_' + heroId;
+  },
+
+  _giftTotalKey: function(heroId) {
+    return 'gifttotal_' + heroId;
+  },
+
+  giftWeekIndex: function(now) {
+    try {
+      const t = this._giftNow(now);
+      if (!Number.isFinite(t) || t <= 0) return 0;
+      return Math.floor(t / this.GIFT_WEEK_MS);
+    } catch (e) {
+      return 0;
+    }
+  },
+
+  giftPairCount: function(heroId, giftKey) {
+    try {
+      if (!this._safeKey(heroId) || !this._safeKey(giftKey)) return 0;
+      const flags = this._bondFlags();
+      const n = Math.floor(Number(flags[this._giftPairKey(heroId, giftKey)]));
+      return (Number.isFinite(n) && n > 0) ? Math.min(99, n) : 0;
+    } catch (e) {
+      return 0;
+    }
+  },
+
+  giftWeekTotal: function(heroId, now) {
+    try {
+      if (!this._safeKey(heroId)) return 0;
+      const flags = this._bondFlags();
+      const week = this.giftWeekIndex(now);
+      const storedWeek = Math.floor(Number(flags[this._giftWeekKey(heroId)]));
+      if (!Number.isFinite(storedWeek) || storedWeek !== week) return 0;
+      const total = Math.floor(Number(flags[this._giftTotalKey(heroId)]));
+      return (Number.isFinite(total) && total > 0) ? Math.min(this.GIFT_WEEKLY_CAP * 4, total) : 0;
+    } catch (e) {
+      return 0;
+    }
+  },
+
+  _giftEconomy: function() {
+    try {
+      const eco = (typeof Economy !== 'undefined' && Economy)
+        || (typeof globalThis !== 'undefined' && globalThis.Economy) || null;
+      return eco;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  _findGiftItem: function(giftKey) {
+    try {
+      const state = this._getState();
+      if (!state || !Array.isArray(state.inventory)) return null;
+      for (const item of state.inventory) {
+        if (item && typeof item === 'object' && !Array.isArray(item) && item.giftKey === giftKey) return item;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  giveGift: function(heroId, giftKey, now) {
+    const denied = function(reason, extra) {
+      const r = { ok: false, reason: reason };
+      if (extra && typeof extra === 'object') {
+        for (const k of Object.keys(extra)) r[k] = extra[k];
+      }
+      return r;
+    };
+    try {
+      if (!this._safeKey(heroId) || !this._safeKey(giftKey)) return denied('unknown');
+      const known = this._knownIds();
+      if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) return denied('unknown');
+      // Roster check: absent table or non-roster giftKey -> not_liked.
+      const table = this._giftTable();
+      if (!table || !Array.isArray(table[heroId]) || table[heroId].indexOf(giftKey) === -1) {
+        return denied('not_liked');
+      }
+      if (!this.isRecruited(heroId)) return denied('not_recruited');
+      // Bench does not qualify (linger covers combat only, not gifts).
+      if (!this._isActiveInParty(heroId)) return denied('inactive');
+      const value = this.valueFor(heroId);
+      if (value >= 100) return denied('maxed');
+      // Tier lock: each gift declares a min tier to be effective.
+      const def = this._giftDef(giftKey);
+      if (def && def.minTier != null && !this._tierMeets(value, def.minTier)) {
+        return denied('tier_locked', { need: def.minTier });
+      }
+      // Weekly-equivalent cap on total gift affinity per hero.
+      const t = this._giftNow(now);
+      const week = this.giftWeekIndex(t);
+      const total = this.giftWeekTotal(heroId, t);
+      if (total >= this.GIFT_WEEKLY_CAP) return denied('capped');
+      // Diminishing per hero-item pair: +13/+8/+5, then +3.
+      const count = this.giftPairCount(heroId, giftKey);
+      const gain = count < this.GIFT_GAINS.length ? this.GIFT_GAINS[count] : this.GIFT_TAIL;
+      const grant = Math.min(gain, this.GIFT_WEEKLY_CAP - total, 100 - value);
+      if (!Number.isFinite(grant) || grant <= 0) {
+        return (100 - value) <= 0 ? denied('maxed') : denied('capped');
+      }
+      // Locate the item BEFORE any write; consume only after all denials pass.
+      const found = this._findGiftItem(giftKey);
+      if (!found || typeof found.name !== 'string' || found.name.length === 0) return denied('no_item');
+      const eco = this._giftEconomy();
+      if (!eco || typeof eco.removeItemByName !== 'function') return denied('no_item');
+      if (!eco.removeItemByName(found.name, 1)) return denied('no_item');
+      // Canonical affinity gain (respects the active-party gate).
+      const r = this.add(heroId, grant);
+      const applied = (r && Number.isFinite(Number(r.applied))) ? r.applied : 0;
+      const state = this._getState();
+      if (state) {
+        if (!state.flags || typeof state.flags !== 'object' || Array.isArray(state.flags)) state.flags = {};
+        const pairKey = this._giftPairKey(heroId, giftKey);
+        const weekKey = this._giftWeekKey(heroId);
+        const totalKey = this._giftTotalKey(heroId);
+        if (this._safeKey(pairKey) && this._safeKey(weekKey) && this._safeKey(totalKey)) {
+          state.flags[pairKey] = count + 1;
+          state.flags[weekKey] = week;
+          state.flags[totalKey] = total + applied;
+        }
+      }
+      return {
+        ok: true,
+        applied: applied,
+        gain: gain,
+        count: count + 1,
+        tierUp: !!(r && r.tierUp),
+        weekTotal: total + applied
+      };
+    } catch (e) {
+      return denied('unknown');
+    }
+  },
+
+  normalizeGifts: function(flags) {
+    try {
+      const out = {};
+      if (!flags || typeof flags !== 'object' || Array.isArray(flags)) return out;
+      const known = this._knownIds();
+      const table = this._giftTable();
+      const isKnownHero = function(heroId) {
+        if (typeof heroId !== 'string' || heroId.length === 0) return false;
+        if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) return false;
+        return true;
+      };
+      for (const key of Object.keys(flags)) {
+        if (!this._safeKey(key)) continue;
+        if (typeof key === 'string' && key.indexOf('gift_') === 0) {
+          // Pair counts: gift_<hero>_<giftKey>. Validate hero always; validate
+          // giftKey against HERO_GIFTS only when the table is present.
+          const rest = key.slice('gift_'.length);
+          const sep = rest.indexOf('_');
+          if (sep <= 0) continue;
+          const heroId = rest.slice(0, sep);
+          const gk = rest.slice(sep + 1);
+          if (!isKnownHero(heroId) || !this._safeKey(gk)) continue;
+          if (table) {
+            if (!Array.isArray(table[heroId]) || table[heroId].indexOf(gk) === -1) continue;
+          }
+          const n = Math.floor(Number(flags[key]));
+          if (!Number.isFinite(n) || n < 0) continue;
+          if (n === 0) continue;
+          out[key] = Math.min(99, n);
+          continue;
+        }
+        if (typeof key === 'string' && (key.indexOf('giftweek_') === 0 || key.indexOf('gifttotal_') === 0)) {
+          const heroId = key.indexOf('giftweek_') === 0 ? key.slice('giftweek_'.length) : key.slice('gifttotal_'.length);
+          if (!isKnownHero(heroId)) continue;
+          const n = Math.floor(Number(flags[key]));
+          if (!Number.isFinite(n) || n < 0) continue;
+          if (key.indexOf('gifttotal_') === 0) out[key] = Math.min(this.GIFT_WEEKLY_CAP * 4, n);
+          else out[key] = n;
+          continue;
+        }
+        out[key] = flags[key];
+      }
+      return out;
+    } catch (e) {
+      return {};
+    }
   }
 };
 

@@ -76,6 +76,41 @@ function getHeroBadge(hero) {
   return UI.Feedback.ContextualBadge('complete', 'Fully equipped', { x: 0, y: 0, size: 20 });
 }
 
+// Helper: gift list suffix for a hero (liked ♥, tier-locked 🔒<tier>).
+// Defensive: absent BondSystem/HERO_GIFTS/ITEMS yields a plain label.
+function giftSuffixFor(item, hero) {
+  try {
+    if (!item || !hero) return '';
+    const table = (typeof HERO_GIFTS !== 'undefined' && HERO_GIFTS) ? HERO_GIFTS : null;
+    const liked = !!(table && Array.isArray(table[hero.id]) && table[hero.id].indexOf(item.giftKey) !== -1);
+    let suffix = liked ? ' ♥' : '';
+    const gifts = (typeof ITEMS !== 'undefined' && ITEMS && ITEMS.gifts) ? ITEMS.gifts : null;
+    const def = (gifts && item.giftKey && gifts[item.giftKey]) ? gifts[item.giftKey] : null;
+    if (def && def.minTier && typeof BondSystem !== 'undefined' && BondSystem &&
+        typeof BondSystem._tierMeets === 'function' && typeof BondSystem.valueFor === 'function') {
+      if (!BondSystem._tierMeets(BondSystem.valueFor(hero.id), def.minTier)) {
+        suffix += ' 🔒' + def.minTier;
+      }
+    }
+    return suffix;
+  } catch (e) {
+    return '';
+  }
+}
+
+// Helper: player-facing copy for a gift denial reason.
+function giftDenialCopy(reason, hero, item, need) {
+  const name = hero ? hero.name : 'They';
+  const itemName = item ? item.name : 'gift';
+  if (reason === 'not_liked') return name + ' has no fondness for ' + itemName + '.';
+  if (reason === 'tier_locked') return itemName + ' stirs only a ' + (need || 'higher') + '+ bond.';
+  if (reason === 'capped') return name + ' needs time — gifts rest for now.';
+  if (reason === 'no_item') return 'No ' + itemName + ' left.';
+  if (reason === 'not_recruited' || reason === 'inactive') return name + ' must stand with you to receive gifts.';
+  if (reason === 'maxed') return 'Your bond with ' + name + ' cannot deepen further.';
+  return 'The gift finds no purchase.';
+}
+
 const partyScene = Scene.create({
   name: 'party',
   data: {
@@ -369,7 +404,7 @@ const partyScene = Scene.create({
     const buttonH = 48;
     const gap = 8;
     const firstButtonY = panelY + topPad;
-    const actionCount = 6;
+    const actionCount = 7;
     const panelH = topPad + actionCount * buttonH + (actionCount - 1) * gap + 12;
 
     return {
@@ -513,6 +548,22 @@ const partyScene = Scene.create({
       partyScene.buildItemList('consumable');
     };
 
+    // Phase 29 hero gifts: Give Gift routes through BondSystem.giveGift
+    // (sole gifting authority; the scene never writes affinity/flags and
+    // never removes inventory — Economy owns consumption inside giveGift).
+    const giftBtn = makeActionButton(
+      'Give Gift 🎁',
+      R.colors.surfaceElevated,
+      R.colors.btnHover,
+      R.colors.textPrimary
+    );
+    giftBtn.onClick = function() {
+      partyScene.data.itemsView = true;
+      partyScene.data.equipSlot = 'gift';
+      partyScene.data.scrollY = 0;
+      partyScene.buildItemList('gift');
+    };
+
     const equipWeaponBtn = makeActionButton(
       'Equip Weapon (' + Scene.gearLabel(hero.weaponEquipped) + ')',
       R.colors.surfaceElevated,
@@ -616,6 +667,7 @@ const partyScene = Scene.create({
       if (filterType === 'armor' && item.type === 'armor') return true;
       if (filterType === 'accessory' && item.type === 'accessory') return true;
       if (filterType === 'consumable' && item.type === 'consumable') return true;
+      if (filterType === 'gift' && item.type === 'gift') return true;
       return false;
     });
 
@@ -651,6 +703,11 @@ const partyScene = Scene.create({
         btn._idx = idx;
         btn._type = filterType;
         btn._hero = hero;
+        if (filterType === 'gift') {
+          // Liked / tier-locked indicators ride on the label (no stat diffs
+          // for gifts — the render splits on ' (' so plain suffixes are safe).
+          btn.text = label + giftSuffixFor(item, hero);
+        }
         btn.render = function(ctx) {
           const bx = this.x, by = this.y, bw = this.w, bh = this.h;
           R.roundRect(ctx, bx, by, bw, bh, 4, R.colors.btnGold);
@@ -694,6 +751,39 @@ const partyScene = Scene.create({
               partyScene.data.itemsView = false;
               partyScene.data.scrollY = 0;
               partyScene.buildDetail();
+            } else if (filterType === 'gift') {
+              let res = null;
+              try {
+                if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.giveGift === 'function') {
+                  res = BondSystem.giveGift(hero.id, item.giftKey);
+                }
+              } catch (e) {
+                res = null;
+              }
+              if (!res || typeof res !== 'object') {
+                UI.Feedback.Toast('Gifting unavailable right now.', { color: R.colors.danger, icon: '🔒' });
+                Audio.error();
+                return;
+              }
+              if (res.ok) {
+                UI.Feedback.Toast('+' + res.applied + ' bond with ' + hero.name + '!', { color: R.colors.success, icon: '🎁' });
+                if (res.tierUp) {
+                  let tierName = 'a new tier';
+                  try {
+                    if (typeof BondSystem !== 'undefined' && BondSystem.tierFor && BondSystem.valueFor) {
+                      tierName = BondSystem.tierFor(BondSystem.valueFor(hero.id));
+                    }
+                  } catch (e) {}
+                  UI.Feedback.Toast(hero.name + ' reaches ' + tierName + '!', { color: R.colors.gold, icon: '★', duration: 3 });
+                }
+                Audio.heal();
+                partyScene.data.itemsView = false;
+                partyScene.data.scrollY = 0;
+                partyScene.buildDetail();
+              } else {
+                UI.Feedback.Toast(giftDenialCopy(res.reason, hero, item, res.need), { color: R.colors.danger, icon: '🔒' });
+                Audio.error();
+              }
             }
           };
         })(item, idx, hero, filterType);

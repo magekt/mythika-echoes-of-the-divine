@@ -111,6 +111,12 @@ SaveSystem.migrate = function() {
   if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.normalizeCombo === 'function') {
     G.state.flags = BondSystem.normalizeCombo(G.state.flags);
   }
+  // Phase 29 hero gifts: gift_* pair counts + giftweek_/gifttotal_ weekly
+  // totals persist in flags; heal crafted or stale values while leaving all
+  // other flags verbatim.
+  if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.normalizeGifts === 'function') {
+    G.state.flags = BondSystem.normalizeGifts(G.state.flags);
+  }
   // Phase 26 beast hearts: beastBond persists under versioning; heal crafted
   // or stale values while leaving all other state verbatim.
   if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.normalize === 'function') {

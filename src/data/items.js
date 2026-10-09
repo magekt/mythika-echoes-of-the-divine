@@ -105,7 +105,46 @@ const ITEMS = {
     elixirMana:   { name: 'Elixir of Mana', type: 'consumable', mp: 50,  cost: 70,  desc: 'Restores 50 MP' },
     fishStew:     { name: 'Fish Stew',     type: 'consumable', heal: 60,  cost: 25,  desc: 'Restores 60 HP' },
     herbPoultice: { name: 'Herb Poultice', type: 'consumable', cleanse: true, cost: 40, desc: 'Removes all ailments' }
+  },
+  // --- Phase 29: Hero Gifts (GFT-01) ---
+  // Gift catalog sized to zones + cultivation realms + story journeys:
+  // 6 zone-flavored + 6 realm-flavored + 7 story-flavored = 19 gifts.
+  // Gifts are type 'gift' (never 'used' via applyItemEffect); they leave
+  // inventory only through BondSystem.giveGift -> Economy.removeItemByName.
+  // No shop sells gifts (no gift-vending). Each gift declares zones[] (loot
+  // sourcing) and optionally minTier (top gifts locked behind Sworn+).
+  gifts: {
+    g_sungrass:     { name: 'Sungrass Garland',           type: 'gift', giftKey: 'g_sungrass',     cost: 0, zones: ['aryavarta'], flavor: 'zone',  desc: 'Woven from the golden plains of Aryavarta' },
+    g_dandakaHoney: { name: 'Dandaka Wild Honey',         type: 'gift', giftKey: 'g_dandakaHoney', cost: 0, zones: ['dandaka'],   flavor: 'zone',  desc: 'Dark, fragrant honey from the whispering forest' },
+    g_meruCrystal:  { name: 'Meru Frost Crystal',         type: 'gift', giftKey: 'g_meruCrystal',  cost: 0, zones: ['meru'],      flavor: 'zone',  desc: 'A crystal that hums with peak-cold clarity' },
+    g_serpentPearl: { name: 'Patala Serpent Pearl',       type: 'gift', giftKey: 'g_serpentPearl', cost: 0, zones: ['patala'],    flavor: 'zone',  minTier: 'Sworn', desc: 'A pearl guarded by the serpent court' },
+    g_celestialSilk:{ name: 'Svarga Celestial Silk',      type: 'gift', giftKey: 'g_celestialSilk',cost: 0, zones: ['svarga'],    flavor: 'zone',  minTier: 'Sworn', desc: 'Silk that holds the light of the devas' },
+    g_ashenEmber:   { name: 'Tapobhumi Ashen Ember',      type: 'gift', giftKey: 'g_ashenEmber',   cost: 0, zones: ['tapobhumi'], flavor: 'zone',  minTier: 'Sworn', desc: 'An ember that never cools, from the burning ground' },
+    g_harvestSweets:{ name: 'Manushya Harvest Sweets',    type: 'gift', giftKey: 'g_harvestSweets',cost: 0, zones: ['aryavarta'], flavor: 'realm', realm: 'manushya',  desc: 'Sweets of the mortal harvest festival' },
+    g_prayerBeads:  { name: 'Sadhaka Prayer Beads',       type: 'gift', giftKey: 'g_prayerBeads',  cost: 0, zones: ['dandaka'],   flavor: 'realm', realm: 'sadhaka',   desc: 'Beads worn smooth by a seeker\'s vows' },
+    g_sandalIncense:{ name: 'Yogi Sandal Incense',        type: 'gift', giftKey: 'g_sandalIncense',cost: 0, zones: ['meru'],      flavor: 'realm', realm: 'yogi',      desc: 'Incense for breath held past counting' },
+    g_rejuvenElixir:{ name: 'Siddha Rejuvenating Elixir', type: 'gift', giftKey: 'g_rejuvenElixir',cost: 0, zones: ['patala'],    flavor: 'realm', realm: 'siddha',    desc: 'An elixir of the perfected adepts' },
+    g_goldenLotus:  { name: 'Mukta Golden Lotus',         type: 'gift', giftKey: 'g_goldenLotus',  cost: 0, zones: ['svarga'],    flavor: 'realm', realm: 'mukta',     desc: 'A lotus that blooms for the liberated' },
+    g_stillnessBell:{ name: 'Paramukta Stillness Bell',   type: 'gift', giftKey: 'g_stillnessBell',cost: 0, zones: ['tapobhumi'], flavor: 'realm', realm: 'paramukta', minTier: 'Sworn', desc: 'A bell whose note is silence itself' },
+    g_bowstring:    { name: 'Gandiva Bowstring',          type: 'gift', giftKey: 'g_bowstring',    cost: 0, zones: ['aryavarta', 'meru'], flavor: 'story', story: 'arjunaResolve',      desc: 'A spare string, waxed for the peerless bow' },
+    g_armorOil:     { name: 'Surya Armor Oil',            type: 'gift', giftKey: 'g_armorOil',     cost: 0, zones: ['aryavarta', 'patala'], flavor: 'story', story: 'karnaburden',  desc: 'Sun-blessed oil for divine armor' },
+    g_oathBand:     { name: 'Kshatriya Oath Band',        type: 'gift', giftKey: 'g_oathBand',     cost: 0, zones: ['dandaka', 'svarga'],   flavor: 'story', story: 'covenantKshatriya', desc: 'A warrior\'s oath-band, knotted once' },
+    g_mantraScroll: { name: 'Rishi Mantra Scroll',        type: 'gift', giftKey: 'g_mantraScroll', cost: 0, zones: ['dandaka', 'svarga'],   flavor: 'story', story: 'covenantRishi',    desc: 'A scroll coiled with quiet mantras' },
+    g_fangCharm:    { name: 'Wolf-Pack Fang Charm',       type: 'gift', giftKey: 'g_fangCharm',    cost: 0, zones: ['dandaka', 'meru'],     flavor: 'story', story: 'beastWolfPact',   desc: 'A fang given freely by the pack' },
+    g_pilgrimAsh:   { name: 'Pilgrim\'s Tapobhumi Ash',   type: 'gift', giftKey: 'g_pilgrimAsh',   cost: 0, zones: ['tapobhumi'], flavor: 'story', story: 'paramuktaPilgrimage', minTier: 'Sworn', desc: 'Ash of one who walked barefoot beyond Mukta' },
+    g_dharmaScale:  { name: 'Crossroads Scale of Dharma', type: 'gift', giftKey: 'g_dharmaScale',  cost: 0, zones: ['svarga', 'tapobhumi'], flavor: 'story', story: 'karmicCrossroads',   minTier: 'Sworn', desc: 'A scale that weighs mercy against wrath' }
   }
+};
+
+// --- Phase 29: Hero Gifts — per-hero liked rosters (giftKey arrays only) ---
+// Personality-matched, 10 per hero, spanning early-to-late tiers. Tier locks
+// live on the gift defs (minTier), not here.
+const HERO_GIFTS = {
+  arjuna:   ['g_bowstring', 'g_sungrass', 'g_prayerBeads', 'g_sandalIncense', 'g_meruCrystal', 'g_mantraScroll', 'g_oathBand', 'g_goldenLotus', 'g_stillnessBell', 'g_dharmaScale'],
+  bhima:    ['g_dandakaHoney', 'g_harvestSweets', 'g_sungrass', 'g_oathBand', 'g_fangCharm', 'g_rejuvenElixir', 'g_serpentPearl', 'g_meruCrystal', 'g_pilgrimAsh', 'g_ashenEmber'],
+  karna:    ['g_armorOil', 'g_sungrass', 'g_oathBand', 'g_celestialSilk', 'g_goldenLotus', 'g_meruCrystal', 'g_stillnessBell', 'g_serpentPearl', 'g_dharmaScale', 'g_ashenEmber'],
+  draupadi: ['g_celestialSilk', 'g_mantraScroll', 'g_goldenLotus', 'g_sandalIncense', 'g_serpentPearl', 'g_prayerBeads', 'g_dandakaHoney', 'g_harvestSweets', 'g_dharmaScale', 'g_stillnessBell'],
+  hanuman:  ['g_dandakaHoney', 'g_harvestSweets', 'g_fangCharm', 'g_prayerBeads', 'g_sandalIncense', 'g_sungrass', 'g_rejuvenElixir', 'g_bowstring', 'g_pilgrimAsh', 'g_celestialSilk']
 };
 
 function getItemCost(item) {
@@ -231,6 +270,26 @@ function generateLoot(zoneId, enemyLevel) {
   if (template.base.subtype) item.subtype = template.base.subtype;
   
   loot.push(item);
+
+  // --- Phase 29: Hero Gifts — additive gift drop (no gift-vending) ---
+  // ~12% chance of a zone-appropriate gift alongside equipment. Never alters
+  // the equipment roll above; unknown zones or absent catalog yield no gift.
+  try {
+    if (Math.random() < 0.12 && ITEMS && ITEMS.gifts && typeof ITEMS.gifts === 'object') {
+      const candidates = Object.keys(ITEMS.gifts).filter(function(key) {
+        const g = ITEMS.gifts[key];
+        return g && Array.isArray(g.zones) && g.zones.indexOf(zoneId) !== -1;
+      });
+      if (candidates.length > 0) {
+        const pick = candidates[Math.floor(Math.random() * candidates.length)];
+        const def = ITEMS.gifts[pick];
+        if (def && typeof def.name === 'string') {
+          loot.push({ name: def.name, type: 'gift', giftKey: pick, qty: 1, rarity: 'common', rarityName: 'Common' });
+        }
+      }
+    }
+  } catch (e) {}
+
   return loot;
 }
 
