@@ -42,6 +42,9 @@ Combat.startBattle = function(heroes, enemies) {
   this.spellBoostUsed = false;
   // Phase 24 combat bonds: applied bonuses for scene display (reset every battle)
   this.bondBonuses = [];
+  // Phase 25 signature combos: partner-turn consumption flags + result ledger.
+  this.consumedTurns = {};
+  this.comboResults = [];
   for (const h of heroes) { h.ailments = {}; h.buffs = {}; }
   for (const e of enemies) { e.ailments = {}; e.buffs = {}; }
   this.applyElitePassives(heroes);
@@ -144,6 +147,136 @@ Combat.getCurrentActor = function() {
   return this.turnOrder[this.currentTurn] || null;
 };
 
+// Phase 25: fallback combo table used only when BondSystem is absent.
+// Mirrors BondSystem.COMBOS kinds so offline/degraded combat still resolves.
+Combat.SIGNATURE_FALLBACK = {
+  arjuna: { heroId: 'arjuna', name: 'Gandiva Twin Strike', kind: 'strike', base: 1.8, statScale: 0.04, hits: 2 },
+  bhima: { heroId: 'bhima', name: 'Mountain-Guard Slam', kind: 'slam', base: 1.6, statScale: 0.04, shield: 15 },
+  karna: { heroId: 'karna', name: 'Sunburst Volley', kind: 'volley', base: 1.2, statScale: 0.03 },
+  draupadi: { heroId: 'draupadi', name: 'Panchali Warding Aegis', kind: 'aegis', base: 0.25, statScale: 0.008, shield: 12 },
+  hanuman: { heroId: 'hanuman', name: 'Mountain-Leap Sunder', kind: 'leap', base: 2.2, statScale: 0.05, splash: 0.5 }
+};
+
+Combat.SIGNATURE_ROLE_STAT = { arjuna: 'str', bhima: 'def', karna: 'str', draupadi: 'mag', hanuman: 'agi' };
+
+// Phase 25: signature duo skill. Operates on battle clones only — never writes
+// G.state except the exactly-once combo_* unlock flag (best-effort, guarded).
+// Consumes the partner's upcoming turn via consumedTurns (skipped once by
+// nextTurn); the hero's own turn is consumed by the caller advancing.
+// Returns { ok, kind, name, total, lines } (lines: 1-2 log-band strings).
+Combat.performSignatureCombo = function(hero, partner, opts) {
+  const fail = function(reason) { return { ok: false, reason: reason }; };
+  try {
+    if (!hero || !hero.id || !(hero.hp > 0)) return fail('hero_unable');
+    if (!partner || !partner.id || !(partner.hp > 0)) return fail('partner_unable');
+    if (partner.id === hero.id) return fail('no_partner');
+    if (!Array.isArray(this.heroes) ||
+        this.heroes.indexOf(hero) < 0 || this.heroes.indexOf(partner) < 0) return fail('not_in_battle');
+    let def = null;
+    try {
+      if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.comboFor === 'function') {
+        def = BondSystem.comboFor(hero.id);
+      }
+    } catch (e) { def = null; }
+    if (!def && Object.prototype.hasOwnProperty.call(this.SIGNATURE_FALLBACK, hero.id)) {
+      const f = this.SIGNATURE_FALLBACK[hero.id];
+      def = {};
+      for (const k of Object.keys(f)) def[k] = f[k];
+    }
+    if (!def) return fail('unknown');
+    let roleStat = this.SIGNATURE_ROLE_STAT[hero.id] || 'str';
+    try {
+      if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.roleStatFor === 'function') {
+        roleStat = BondSystem.roleStatFor(hero.id) || roleStat;
+      }
+    } catch (e) {}
+    const roleVal = Number(hero[roleStat]);
+    const hasWeapon = !!(hero.weaponEquipped);
+    let mult = def.base, bonus = 0;
+    try {
+      if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.comboPotencyFor === 'function') {
+        const p = BondSystem.comboPotencyFor(hero.id, roleVal, hero.weaponLvl, hasWeapon);
+        if (p && Number.isFinite(Number(p.mult))) mult = Number(p.mult);
+        if (p && Number.isFinite(Number(p.bonus))) bonus = Number(p.bonus);
+      } else {
+        mult = Number(def.base) + Number(def.statScale || 0) * (Number.isFinite(roleVal) ? Math.max(0, roleVal) : 0);
+        bonus = hasWeapon ? 0.15 * Math.max(1, Math.floor(Number(hero.weaponLvl) || 1)) : 0;
+      }
+    } catch (e) {}
+    const eff = mult * (1 + bonus);
+    const o = (opts && typeof opts === 'object' && !Array.isArray(opts)) ? opts : {};
+    let target = (o.target && o.target.hp > 0) ? o.target : null;
+    if (!target) target = this.getRandomEnemy();
+    const kind = def.kind;
+    let total = 0;
+    const heroName = hero.name || hero.id;
+    const partnerName = partner.name || partner.id;
+    if (kind === 'strike') {
+      if (!target) return fail('no_target');
+      const hits = Math.max(1, Math.floor(Number(def.hits) || 1));
+      for (let i = 0; i < hits && target.hp > 0; i++) {
+        const r = this.performAttack(hero, target, { dmg: eff });
+        total += r.dmg;
+      }
+    } else if (kind === 'leap') {
+      if (!target) return fail('no_target');
+      const r = this.performAttack(hero, target, { dmg: eff });
+      total += r.dmg;
+      const splashMult = eff * (Number(def.splash) || 0.5);
+      for (const e of this.enemies) {
+        if (e === target || e.hp <= 0) continue;
+        const rs = this.performAttack(hero, e, { dmg: splashMult });
+        total += rs.dmg;
+      }
+    } else if (kind === 'volley') {
+      const foes = this.getAliveEnemies();
+      if (foes.length === 0) return fail('no_target');
+      for (const e of foes) {
+        const r = this.performAttack(hero, e, { dmg: eff });
+        total += r.dmg;
+      }
+    } else if (kind === 'slam') {
+      if (!target) return fail('no_target');
+      const r = this.performAttack(hero, target, { dmg: eff });
+      total += r.dmg;
+      const shieldAmt = Math.max(1, Math.floor(Number(def.shield) || 10));
+      for (const h of this.heroes) {
+        if (h.hp > 0) this.applyBuff(h, 'shield', shieldAmt, 2);
+      }
+    } else if (kind === 'aegis') {
+      const healFrac = Math.max(0, mult);
+      for (const h of this.heroes) {
+        if (h.hp <= 0) continue;
+        const healAmt = Math.floor(h.maxHp * healFrac * (1 + bonus));
+        h.hp = Math.min(h.maxHp, h.hp + healAmt);
+        total += healAmt;
+      }
+      const shieldAmt = Math.max(1, Math.floor(Number(def.shield) || 10));
+      for (const h of this.heroes) {
+        if (h.hp > 0) this.applyBuff(h, 'shield', shieldAmt, 2);
+      }
+    } else {
+      return fail('unknown');
+    }
+    this.consumedTurns = this.consumedTurns || {};
+    this.consumedTurns[partner.id] = true;
+    this.comboResults = this.comboResults || [];
+    this.comboResults.push({ heroId: hero.id, partnerId: partner.id, kind: kind, total: total });
+    try {
+      if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.markComboSeen === 'function') {
+        BondSystem.markComboSeen(hero.id);
+      }
+    } catch (e) {}
+    this.checkBattleEnd();
+    const lines = (kind === 'aegis')
+      ? [heroName + ' + ' + partnerName + ': ' + def.name + ' - party warded (+' + total + ' HP)!']
+      : [heroName + ' + ' + partnerName + ': ' + def.name + ' - ' + total + ' damage!'];
+    return { ok: true, kind: kind, name: def.name, total: total, lines: lines };
+  } catch (e) {
+    return fail('error');
+  }
+};
+
 Combat.nextTurn = function() {
   this.currentTurn++;
   if (this.currentTurn >= this.turnOrder.length) {
@@ -153,8 +286,20 @@ Combat.nextTurn = function() {
     return;
   }
   let tries = 0;
-  while (tries++ < this.turnOrder.length) {
+  while (tries++ < this.turnOrder.length + 1) {
     const actor = this.turnOrder[this.currentTurn];
+    // Phase 25: a duo skill consumes the partner's upcoming turn exactly once.
+    if (actor && actor.ref && actor.ref.id && this.consumedTurns && this.consumedTurns[actor.ref.id]) {
+      delete this.consumedTurns[actor.ref.id];
+      this.currentTurn++;
+      if (this.currentTurn >= this.turnOrder.length) {
+        this.processAilments();
+        this.buildTurnOrder();
+        this.checkBattleEnd();
+        return;
+      }
+      continue;
+    }
     if (!actor || (actor.ref && actor.ref.hp > 0)) break;
     this.currentTurn++;
     if (this.currentTurn >= this.turnOrder.length) {

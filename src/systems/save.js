@@ -106,6 +106,11 @@ SaveSystem.migrate = function() {
   if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.normalizeLinger === 'function') {
     G.state.flags = BondSystem.normalizeLinger(G.state.flags);
   }
+  // Phase 25 signature combos: combo_* unlock flags persist in flags; heal
+  // crafted or stale combo_* values while leaving all other flags verbatim.
+  if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.normalizeCombo === 'function') {
+    G.state.flags = BondSystem.normalizeCombo(G.state.flags);
+  }
   if (typeof FarmSystem !== 'undefined' && FarmSystem.normalize) FarmSystem.normalize();
   const party = Array.isArray(G.state.party) ? G.state.party : [];
   if (party.length > 0) {

@@ -295,6 +295,34 @@ const combatScene = Scene.create({
           }
         }
 
+        // Phase 25 signature combos: one duo button when a Legend pair is able.
+        // Display only — Combat.performSignatureCombo owns execution. No new
+        // visual layer: result flows through the existing log band + Toast.
+        try {
+          if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.comboAvailable === 'function') {
+            const orderedIds = this.data.heroes.map(function(h) { return h && h.id; });
+            let playerId = orderedIds[0];
+            try {
+              if (typeof G !== 'undefined' && G && G.state && G.state.player && G.state.player.id) playerId = G.state.player.id;
+            } catch (e) {}
+            const avail = BondSystem.comboAvailable(hero.id, orderedIds, playerId);
+            if (avail && avail.available) {
+              const partner = this.data.heroes.find(function(h) { return h && h.id === avail.partnerId && h.hp > 0; });
+              if (partner) {
+                let comboName = 'Duo Skill';
+                try {
+                  const def = BondSystem.comboFor(hero.id);
+                  if (def && def.name) comboName = def.name;
+                } catch (e) {}
+                const duoBtn = UI.BtnGold(20, y, G.W - 40, 44, 'Duo: ' + comboName + ' (' + partner.name + ')');
+                duoBtn.onClick = function() { combatScene.doSignatureCombo(); };
+                this.data.actionButtons.push(duoBtn);
+                y += 46;
+              }
+            }
+          }
+        } catch (e) {}
+
         y += 4;
 
         const autoBtn = UI.Button(20, y, (G.W - 40) / 2 - 3, 44, this.data.autoBattle ? 'Auto: ON' : 'Auto: OFF', this.data.autoBattle ? R.colors.green : R.colors.btn);
@@ -604,6 +632,44 @@ const combatScene = Scene.create({
       if (target.hp <= 0) this.deathBurstAt(target, false);
     }
     R.screenShake(result.isCrit ? 8 : 4, result.isCrit ? 0.4 : 0.2);
+    this.advanceTurn();
+  },
+
+  doSignatureCombo: function() {
+    // Phase 25: execute the current hero's Legend duo skill through Combat
+    // authority. Feedback reuses the existing log band + Toast only.
+    const actor = Combat.getCurrentActor();
+    if (!actor || actor.type !== 'hero' || this.data.turnState !== 'playerTurn') return;
+    const hero = actor.ref;
+    if (!hero || hero.hp <= 0) return;
+    let avail = null;
+    try {
+      if (typeof BondSystem === 'undefined' || !BondSystem || typeof BondSystem.comboAvailable !== 'function') return;
+      const orderedIds = this.data.heroes.map(function(h) { return h && h.id; });
+      let playerId = orderedIds[0];
+      try {
+        if (typeof G !== 'undefined' && G && G.state && G.state.player && G.state.player.id) playerId = G.state.player.id;
+      } catch (e) {}
+      avail = BondSystem.comboAvailable(hero.id, orderedIds, playerId);
+    } catch (e) { return; }
+    if (!avail || !avail.available) return;
+    const partner = this.data.heroes.find(function(h) { return h && h.id === avail.partnerId && h.hp > 0; });
+    if (!partner) return;
+    let target = this.data.selectedEnemy;
+    if (!target || target.hp <= 0) target = Combat.getRandomEnemy();
+    let result = null;
+    try {
+      result = Combat.performSignatureCombo(hero, partner, { target: target });
+    } catch (e) { result = null; }
+    if (!result || !result.ok) {
+      this.data.log.push(hero.name + ' + ' + partner.name + ': the duo falters — no opening.');
+      this.advanceTurn();
+      return;
+    }
+    for (const line of (result.lines || []).slice(0, 2)) this.data.log.push(line);
+    if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast(result.name + ' unleashed!', { color: R.colors.gold, icon: '★' });
+    try { Audio.skill(); } catch (e) {}
+    this.data.damageFlash = 0.2;
     this.advanceTurn();
   },
 

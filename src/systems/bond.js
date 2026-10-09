@@ -473,6 +473,155 @@ const BondSystem = {
     } catch (e) {
       return {};
     }
+  },
+  // --- Phase 25: Signature Combos ---
+  // One Legend-gated duo skill per hero. Availability + potency live here;
+  // execution authority lives in Combat.performSignatureCombo (battle clones).
+  // Unlock flags (combo_<hero>) persist in G.state.flags exactly-once.
+  COMBOS: {
+    arjuna: { heroId: 'arjuna', name: 'Gandiva Twin Strike', kind: 'strike', base: 1.8, statScale: 0.04, hits: 2, flavor: 'Arjuna looses twin shafts of Gandiva in perfect unison with his bond-mate.' },
+    bhima: { heroId: 'bhima', name: 'Mountain-Guard Slam', kind: 'slam', base: 1.6, statScale: 0.04, shield: 15, flavor: 'Bhima brings the gada down as one, then stands as a living wall before his bond-mate.' },
+    karna: { heroId: 'karna', name: 'Sunburst Volley', kind: 'volley', base: 1.2, statScale: 0.03, flavor: 'Karna calls on Surya; shafts of dawn-fire fall upon every foe at once.' },
+    draupadi: { heroId: 'draupadi', name: 'Panchali Warding Aegis', kind: 'aegis', base: 0.25, statScale: 0.008, shield: 12, flavor: 'Draupadi raises a warding mantra; her blessing knits wounds and turns blades aside.' },
+    hanuman: { heroId: 'hanuman', name: 'Mountain-Leap Sunder', kind: 'leap', base: 2.2, statScale: 0.05, splash: 0.5, flavor: 'Hanuman leaps as at the ocean-crossing and falls among the foe, the shock scattering all.' }
+  },
+
+  comboFor: function(heroId) {
+    try {
+      if (!this._safeKey(heroId)) return null;
+      const known = this._knownIds();
+      if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) return null;
+      if (!Object.prototype.hasOwnProperty.call(this.COMBOS, heroId)) return null;
+      const entry = this.COMBOS[heroId];
+      const copy = {};
+      for (const key of Object.keys(entry)) copy[key] = entry[key];
+      return copy;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  _activeInParty: function(heroId) {
+    try {
+      if (typeof heroId !== 'string') return false;
+      const state = this._getState();
+      if (!state || !Array.isArray(state.party)) return false;
+      for (const h of state.party) {
+        if (h && h.id === heroId) return h.active !== false;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  comboAvailable: function(heroId, orderedIds, playerId) {
+    const denied = function(reason) {
+      return { available: false, heroId: (typeof heroId === 'string' ? heroId : null), partnerId: null, reason: reason };
+    };
+    try {
+      if (!this._safeKey(heroId)) return denied('unknown');
+      const known = this._knownIds();
+      if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) return denied('unknown');
+      if (!Object.prototype.hasOwnProperty.call(this.COMBOS, heroId)) return denied('unknown');
+      if (this.tierFor(this.valueFor(heroId)) !== 'Legend') return denied('not_legend');
+      if (!(this._isActiveInParty(heroId) || this.isLingering(heroId))) return denied('hero_inactive');
+      if (!Array.isArray(orderedIds)) return denied('no_partner');
+      let partnerId = null;
+      if (typeof playerId === 'string' && playerId !== heroId &&
+          orderedIds.indexOf(playerId) >= 0 && this._activeInParty(playerId)) {
+        partnerId = playerId;
+      } else {
+        for (const id of orderedIds) {
+          if (typeof id !== 'string' || id === heroId) continue;
+          if (this._activeInParty(id)) { partnerId = id; break; }
+        }
+      }
+      if (!partnerId) return denied('no_partner');
+      return { available: true, heroId: heroId, partnerId: partnerId, reason: 'ok' };
+    } catch (e) {
+      return denied('unknown');
+    }
+  },
+
+  comboPotencyFor: function(heroId, roleStatValue, weaponLvl, hasWeapon) {
+    try {
+      const def = (this._safeKey(heroId) && Object.prototype.hasOwnProperty.call(this.COMBOS, heroId))
+        ? this.COMBOS[heroId] : null;
+      const base = (def && Number.isFinite(Number(def.base))) ? Number(def.base) : 1.0;
+      const scale = (def && Number.isFinite(Number(def.statScale))) ? Number(def.statScale) : 0;
+      const stat = Number(roleStatValue);
+      const statSafe = Number.isFinite(stat) ? Math.max(0, stat) : 0;
+      const mult = base + scale * statSafe;
+      let bonus = 0;
+      if (hasWeapon) {
+        const lvl = Math.floor(Number(weaponLvl));
+        bonus = 0.15 * (Number.isFinite(lvl) ? Math.max(1, lvl) : 1);
+      }
+      return { mult: mult, bonus: bonus };
+    } catch (e) {
+      return { mult: 1.0, bonus: 0 };
+    }
+  },
+
+  _comboKey: function(heroId) {
+    return 'combo_' + heroId;
+  },
+
+  comboSeen: function(heroId) {
+    try {
+      if (!this._safeKey(heroId)) return false;
+      const known = this._knownIds();
+      if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) return false;
+      const flags = this._bondFlags();
+      return flags[this._comboKey(heroId)] === true;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  markComboSeen: function(heroId) {
+    try {
+      if (!this._safeKey(heroId)) return { ok: false };
+      const known = this._knownIds();
+      if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) return { ok: false };
+      if (!Object.prototype.hasOwnProperty.call(this.COMBOS, heroId)) return { ok: false };
+      const state = this._getState();
+      if (!state) return { ok: false };
+      if (!state.flags || typeof state.flags !== 'object' || Array.isArray(state.flags)) state.flags = {};
+      const key = this._comboKey(heroId);
+      if (!this._safeKey(key)) return { ok: false };
+      if (state.flags[key] === true) return { ok: true, first: false };
+      state.flags[key] = true;
+      return { ok: true, first: true };
+    } catch (e) {
+      return { ok: false };
+    }
+  },
+
+  normalizeCombo: function(flags) {
+    try {
+      const out = {};
+      if (!flags || typeof flags !== 'object' || Array.isArray(flags)) return out;
+      const known = this._knownIds();
+      for (const key of Object.keys(flags)) {
+        if (!this._safeKey(key)) continue;
+        if (typeof key === 'string' && key.indexOf('combo_') === 0) {
+          // Keep only true-valued flags for known combo heroes; drop the rest.
+          if (flags[key] !== true) continue;
+          const heroId = key.slice('combo_'.length);
+          if (!this._safeKey(heroId)) continue;
+          if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) continue;
+          if (!Object.prototype.hasOwnProperty.call(this.COMBOS, heroId)) continue;
+          out[key] = true;
+          continue;
+        }
+        out[key] = flags[key];
+      }
+      return out;
+    } catch (e) {
+      return {};
+    }
   }
 };
 
