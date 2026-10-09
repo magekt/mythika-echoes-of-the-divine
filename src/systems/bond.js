@@ -280,6 +280,199 @@ const BondSystem = {
     } catch (e) {
       return false;
     }
+  },
+
+  // --- Phase 24: Combat Bonds ---
+  // DAO-style non-cumulative tier bumps to the hero's role stat. Applied in
+  // combat stat calc only (Combat.applyBondPassives), never to G.state.
+  ROLE_STAT: { arjuna: 'str', bhima: 'def', karna: 'str', draupadi: 'mag', hanuman: 'agi' },
+
+  PASSIVE_BY_TIER: { Wary: 0, Trusted: 1, Sworn: 2, Legend: 4 },
+
+  // Single synergy tag per hero (not a tree). Gated on Sworn+ (see synergyFor)
+  // AND adjacency to the player in party order (see combatBonusFor).
+  SYNERGY: {
+    arjuna: { tag: 'crit', critBonus: 5, minTier: 'Sworn' },
+    bhima: { tag: 'intercept', interceptPct: 15, minTier: 'Sworn' },
+    karna: { tag: 'burst', dmgPct: 8, minTier: 'Sworn' },
+    draupadi: { tag: 'ward', healPct: 10, minTier: 'Sworn' },
+    hanuman: { tag: 'swiftness', agiBonus: 2, minTier: 'Sworn' }
+  },
+
+  passiveFor: function(heroId) {
+    try {
+      if (!this._safeKey(heroId)) return 0;
+      const known = this._knownIds();
+      if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) return 0;
+      const tier = this.tierFor(this.valueFor(heroId));
+      const bonus = this.PASSIVE_BY_TIER[tier];
+      return typeof bonus === 'number' ? bonus : 0;
+    } catch (e) {
+      return 0;
+    }
+  },
+
+  roleStatFor: function(heroId) {
+    try {
+      if (!this._safeKey(heroId)) return 'str';
+      const stat = this.ROLE_STAT[heroId];
+      return typeof stat === 'string' && stat ? stat : 'str';
+    } catch (e) {
+      return 'str';
+    }
+  },
+
+  synergyFor: function(heroId) {
+    try {
+      if (!this._safeKey(heroId)) return null;
+      const known = this._knownIds();
+      if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) return null;
+      if (!Object.prototype.hasOwnProperty.call(this.SYNERGY, heroId)) return null;
+      const tier = this.tierFor(this.valueFor(heroId));
+      if (tier !== 'Sworn' && tier !== 'Legend') return null;
+      const entry = this.SYNERGY[heroId];
+      const copy = {};
+      for (const key of Object.keys(entry)) copy[key] = entry[key];
+      return copy;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  adjacentToPlayer: function(heroId, orderedIds, playerId) {
+    try {
+      if (!Array.isArray(orderedIds)) return false;
+      if (typeof heroId !== 'string' || typeof playerId !== 'string') return false;
+      const hi = orderedIds.indexOf(heroId);
+      const pi = orderedIds.indexOf(playerId);
+      if (hi < 0 || pi < 0) return false;
+      return Math.abs(hi - pi) === 1;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  _lingerKey: function(heroId) {
+    return 'bond_linger_' + heroId;
+  },
+
+  isLingering: function(heroId) {
+    try {
+      if (!this._safeKey(heroId)) return false;
+      const known = this._knownIds();
+      if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) return false;
+      const flags = this._bondFlags();
+      return flags[this._lingerKey(heroId)] === true;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  isCombatEligible: function(heroId) {
+    try {
+      return this._isActiveInParty(heroId) || this.isLingering(heroId);
+    } catch (e) {
+      return false;
+    }
+  },
+
+  setActive: function(heroId, active) {
+    try {
+      if (!this._safeKey(heroId)) return { ok: false };
+      const known = this._knownIds();
+      if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) return { ok: false };
+      const state = this._getState();
+      if (!state || !Array.isArray(state.party)) return { ok: false };
+      let entry = null;
+      for (const h of state.party) {
+        if (h && h.id === heroId) { entry = h; break; }
+      }
+      if (!entry) return { ok: false };
+      if (!state.flags || typeof state.flags !== 'object' || Array.isArray(state.flags)) state.flags = {};
+      const key = this._lingerKey(heroId);
+      if (active === false) {
+        entry.active = false;
+        // Linger one battle: a benched hero that HAD a bonus keeps it for
+        // the next completed battle. Wary (passive 0) heroes set no flag.
+        if (this.passiveFor(heroId) > 0) {
+          state.flags[key] = true;
+          return { ok: true, lingering: true };
+        }
+        if (Object.prototype.hasOwnProperty.call(state.flags, key)) delete state.flags[key];
+        return { ok: true, lingering: false };
+      }
+      entry.active = true;
+      // Moving the hero back in resets normally.
+      if (Object.prototype.hasOwnProperty.call(state.flags, key)) delete state.flags[key];
+      return { ok: true, lingering: false };
+    } catch (e) {
+      return { ok: false };
+    }
+  },
+
+  combatBonusFor: function(heroId, orderedIds, playerId) {
+    const none = { eligible: false, passive: 0, roleStat: 'str', synergy: null, lingering: false, adjacent: false };
+    try {
+      if (!this._safeKey(heroId)) return none;
+      const known = this._knownIds();
+      if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) return none;
+      const lingering = this.isLingering(heroId);
+      const eligible = this._isActiveInParty(heroId) || lingering;
+      if (!eligible) return none;
+      const adjacent = this.adjacentToPlayer(heroId, orderedIds, playerId);
+      const synergy = adjacent ? this.synergyFor(heroId) : null;
+      return {
+        eligible: true,
+        passive: this.passiveFor(heroId),
+        roleStat: this.roleStatFor(heroId),
+        synergy: synergy,
+        lingering: lingering,
+        adjacent: adjacent
+      };
+    } catch (e) {
+      return none;
+    }
+  },
+
+  consumeLingerAfterBattle: function() {
+    try {
+      const state = this._getState();
+      if (!state || !state.flags || typeof state.flags !== 'object' || Array.isArray(state.flags)) return 0;
+      let cleared = 0;
+      for (const key of Object.keys(state.flags)) {
+        if (typeof key !== 'string' || key.indexOf('bond_linger_') !== 0) continue;
+        if (state.flags[key] !== true) continue;
+        delete state.flags[key];
+        cleared++;
+      }
+      return cleared;
+    } catch (e) {
+      return 0;
+    }
+  },
+
+  normalizeLinger: function(flags) {
+    try {
+      const out = {};
+      if (!flags || typeof flags !== 'object' || Array.isArray(flags)) return out;
+      const known = this._knownIds();
+      for (const key of Object.keys(flags)) {
+        if (!this._safeKey(key)) continue;
+        if (typeof key === 'string' && key.indexOf('bond_linger_') === 0) {
+          // Keep only true-valued flags for known heroes; drop the rest.
+          if (flags[key] !== true) continue;
+          const heroId = key.slice('bond_linger_'.length);
+          if (!this._safeKey(heroId)) continue;
+          if (known && !Object.prototype.hasOwnProperty.call(known, heroId)) continue;
+          out[key] = true;
+          continue;
+        }
+        out[key] = flags[key];
+      }
+      return out;
+    } catch (e) {
+      return {};
+    }
   }
 };
 

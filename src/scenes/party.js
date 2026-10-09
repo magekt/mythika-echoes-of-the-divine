@@ -369,7 +369,7 @@ const partyScene = Scene.create({
     const buttonH = 48;
     const gap = 8;
     const firstButtonY = panelY + topPad;
-    const actionCount = 5;
+    const actionCount = 6;
     const panelH = topPad + actionCount * buttonH + (actionCount - 1) * gap + 12;
 
     return {
@@ -550,6 +550,39 @@ const partyScene = Scene.create({
       partyScene.data.equipSlot = 'accessory';
       partyScene.data.scrollY = 0;
       partyScene.buildItemList('accessory');
+    };
+
+    // Phase 24 combat bonds: bench keeps bonuses for one battle (linger),
+    // returning clears them. Wired to BondSystem.setActive (canonical writer).
+    const benched = hero.active === false;
+    const benchBtn = makeActionButton(
+      (benched ? 'Return ' + hero.name + ' to Party' : 'Bench ' + hero.name),
+      R.colors.surfaceElevated,
+      R.colors.btnHover,
+      R.colors.textPrimary
+    );
+    benchBtn.onClick = function() {
+      const target = partyScene.data.selectedHero.active !== false ? false : true;
+      let lingering = false;
+      try {
+        if (typeof BondSystem !== 'undefined' && BondSystem.setActive) {
+          const r = BondSystem.setActive(partyScene.data.selectedHero.id, target);
+          lingering = !!(r && r.lingering);
+        } else {
+          partyScene.data.selectedHero.active = target;
+        }
+      } catch (e) {
+        partyScene.data.selectedHero.active = target;
+      }
+      partyScene.data.selectedHero.active = target;
+      if (target === false) {
+        if (lingering) UI.Feedback.Toast('Benched — bond lingers one battle', { color: R.colors.gold, icon: '🌙' });
+        else UI.Feedback.Toast('Benched — bond bonuses off', { color: R.colors.textDim, icon: '🌙' });
+      } else {
+        UI.Feedback.Toast(partyScene.data.selectedHero.name + ' returns to the party!', { color: R.colors.gold, icon: '★' });
+      }
+      Audio.click();
+      partyScene.buildDetail();
     };
 
     const back = UI.Button(20, y, G.W - 40, layout.buttonH, 'Back to Party', R.colors.surface, R.colors.btnHover, R.colors.textPrimary);

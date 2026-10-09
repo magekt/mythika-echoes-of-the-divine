@@ -5,8 +5,8 @@
 - [ ] **AFF-01**: Player can see each recruited hero's affinity meter (0–100) and tier (Wary→Trusted→Sworn→Legend) on the hero surface.
 - [ ] **AFF-02**: Encounter choices change affinity (gains only, no decay) when the hero is in the party.
 - [ ] **AFF-03**: Tier thresholds unlock bond dialogue events (recruit → crisis → oath) reusing encounter UI.
-- [ ] **AFF-04**: Tier grants a passive combat bonus that applies only when the hero is in the active party.
-- [ ] **AFF-05**: A bonded hero grants a small pair synergy buff alongside the player.
+- [x] **AFF-04**: Tier grants a passive combat bonus that applies only when the hero is in the active party.
+- [x] **AFF-05**: A bonded hero grants a small pair synergy buff alongside the player.
 - [ ] **AFF-06**: Tier 3 unlocks one signature duo skill per hero.
 
 ## Beast Bonding

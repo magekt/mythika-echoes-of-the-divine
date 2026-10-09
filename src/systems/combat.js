@@ -40,10 +40,77 @@ Combat.startBattle = function(heroes, enemies) {
   // Elite-class battle-scoped effects (reset every battle)
   this.firstCritUsed = false;
   this.spellBoostUsed = false;
+  // Phase 24 combat bonds: applied bonuses for scene display (reset every battle)
+  this.bondBonuses = [];
   for (const h of heroes) { h.ailments = {}; h.buffs = {}; }
   for (const e of enemies) { e.ailments = {}; e.buffs = {}; }
   this.applyElitePassives(heroes);
+  this.applyBondPassives(heroes);
   this.buildTurnOrder();
+};
+
+// Phase 24: tier passives (+1/+2/+4 role stat) + adjacent Sworn+ synergy tags.
+// Operates on battle clones only — never writes G.state. Missing BondSystem
+// means zero bonuses (formulas below degrade via || 0 guards).
+Combat.applyBondPassives = function(heroes) {
+  this.bondBonuses = [];
+  try {
+    if (typeof BondSystem === 'undefined' || !BondSystem || typeof BondSystem.combatBonusFor !== 'function') return;
+    if (!Array.isArray(heroes) || heroes.length === 0) return;
+    const orderedIds = heroes.map(h => h && h.id);
+    let playerId = heroes[0] && heroes[0].id;
+    try {
+      if (typeof G !== 'undefined' && G && G.state && G.state.player && G.state.player.id) playerId = G.state.player.id;
+    } catch (e) {}
+    for (const h of heroes) {
+      if (!h || !h.id) continue;
+      const b = BondSystem.combatBonusFor(h.id, orderedIds, playerId);
+      if (!b || !b.eligible || !(b.passive > 0)) continue;
+      h[b.roleStat] = (h[b.roleStat] || 0) + b.passive;
+      const entry = { heroId: h.id, name: h.name || h.id, passive: b.passive, roleStat: b.roleStat, synergy: b.synergy ? b.synergy.tag : null, lingering: !!b.lingering };
+      if (b.synergy) {
+        if (b.synergy.tag === 'crit' && b.synergy.critBonus) h.bondCritBonus = b.synergy.critBonus;
+        else if (b.synergy.tag === 'burst' && b.synergy.dmgPct) h.bondDmgPct = b.synergy.dmgPct;
+        else if (b.synergy.tag === 'ward' && b.synergy.healPct) h.bondHealPct = b.synergy.healPct;
+        else if (b.synergy.tag === 'swiftness' && b.synergy.agiBonus) h.agi = (h.agi || 0) + b.synergy.agiBonus;
+        else if (b.synergy.tag === 'intercept' && b.synergy.interceptPct) h.bondInterceptPct = b.synergy.interceptPct;
+      }
+      this.bondBonuses.push(entry);
+    }
+  } catch (e) {
+    this.bondBonuses = this.bondBonuses || [];
+  }
+};
+
+// Phase 24: Bhima intercept — damage TO a hero is reduced while a bonded
+// Sworn+ bhima (bondInterceptPct set at battle start) stands alive adjacent
+// to the player. Enemy-vs-enemy damage never intercepts.
+Combat._bondInterceptPctFor = function(defender) {
+  try {
+    if (!defender || !Array.isArray(this.heroes) || this.heroes.indexOf(defender) < 0) return 0;
+    let playerId = null;
+    try {
+      if (typeof G !== 'undefined' && G && G.state && G.state.player && G.state.player.id) playerId = G.state.player.id;
+    } catch (e) {}
+    const orderedIds = this.heroes.map(h => h && h.id);
+    if (!playerId) playerId = orderedIds[0];
+    for (const h of this.heroes) {
+      if (!h || h.hp <= 0 || !(h.bondInterceptPct > 0)) continue;
+      if (h === defender) continue;
+      let adjacent = false;
+      try {
+        if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.adjacentToPlayer === 'function') {
+          adjacent = BondSystem.adjacentToPlayer(h.id, orderedIds, playerId);
+        } else {
+          adjacent = Math.abs(orderedIds.indexOf(h.id) - orderedIds.indexOf(playerId)) === 1;
+        }
+      } catch (e) { adjacent = false; }
+      if (adjacent) return h.bondInterceptPct;
+    }
+    return 0;
+  } catch (e) {
+    return 0;
+  }
 };
 
 Combat.applyElitePassives = function(heroes) {
@@ -292,7 +359,9 @@ Combat.performAttack = function(attacker, defender, skill, damageMultiplier) {
   const weaponCrit = attacker.weaponEquipped && attacker.weaponEquipped.crit || 0;
   const armorCrit = attacker.armorEquipped && attacker.armorEquipped.crit || 0;
   const accessoryCrit = attacker.accessoryEquipped && attacker.accessoryEquipped.crit || 0;
-  const critChance = ((attacker.baseCrit || 10) + weaponCrit + armorCrit + accessoryCrit + (typeof Progression !== 'undefined' ? Progression.perkValue('drishti') : 0)) / 100;
+  // Phase 24: bonded archer synergy grants +crit alongside the player.
+  const bondCrit = (attacker.bondCritBonus || 0);
+  const critChance = ((attacker.baseCrit || 10) + weaponCrit + armorCrit + accessoryCrit + bondCrit + (typeof Progression !== 'undefined' ? Progression.perkValue('drishti') : 0)) / 100;
   const isCrit = Math.random() < critChance;
   let dmg = 0;
   if (skill && skill.mag) {
@@ -303,7 +372,12 @@ Combat.performAttack = function(attacker, defender, skill, damageMultiplier) {
   if (skill && !skill.heal && typeof Progression !== 'undefined') {
     dmg = Math.floor(dmg * (1 + Progression.perkValue('gyana') / 100));
   }
+  // Phase 24: bonded burst synergy amplifies the hero's own strikes.
+  if (attacker.bondDmgPct) dmg = Math.floor(dmg * (1 + attacker.bondDmgPct / 100));
   if (damageMultiplier !== undefined) dmg = Math.floor(dmg * damageMultiplier);
+  // Phase 24: bonded intercept reduces damage landing on heroes.
+  const interceptPct = this._bondInterceptPctFor(defender);
+  if (interceptPct > 0) dmg = Math.floor(dmg * (1 - interceptPct / 100));
   defender.hp -= dmg;
   if (defender.hp < 0) defender.hp = 0;
 
@@ -315,7 +389,9 @@ Combat.performAttack = function(attacker, defender, skill, damageMultiplier) {
   if (skill && skill.heal && attacker.type === 'hero') {
     for (const h of this.heroes) {
       if (h.hp > 0) {
-        const healAmt = Math.floor(h.maxHp * skill.heal);
+        let healAmt = Math.floor(h.maxHp * skill.heal);
+        // Phase 24: bonded ward synergy deepens the hero's own blessings.
+        if (attacker.bondHealPct) healAmt = Math.floor(healAmt * (1 + attacker.bondHealPct / 100));
         h.hp = Math.min(h.maxHp, h.hp + healAmt);
         if (attacker.healDualCast) {
           Combat.applyBuff(h, 'shield', Math.floor(healAmt * 0.2), 2);   // Paladin: dual cast leaves a ward
@@ -534,6 +610,11 @@ Combat.performEnemyAbility = function(enemy, target, ability, damageMultiplier) 
     const variance = 0.85 + Math.random() * 0.3;
     dmg = Math.floor(base * variance);
     if (damageMultiplier !== undefined) dmg = Math.floor(dmg * damageMultiplier);
+    // Phase 24: bonded intercept also softens enemy abilities landing on heroes.
+    if (this.heroes && this.heroes.indexOf(target) >= 0) {
+      const interceptPct = this._bondInterceptPctFor(target);
+      if (interceptPct > 0) dmg = Math.floor(dmg * (1 - interceptPct / 100));
+    }
     dmg = _applyShield(target, dmg);
     dmg = Math.max(1, dmg);
     target.hp -= dmg;

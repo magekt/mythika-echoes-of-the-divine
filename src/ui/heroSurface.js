@@ -51,6 +51,27 @@
           };
         }
       } catch (e) {}
+      // Phase 24 combat bonds: additive bonus state (adjacency is unknown
+      // without party order, so synergyTag reports AVAILABILITY at Sworn+;
+      // Combat decides application). Defaults keep legacy renders unchanged.
+      let bond = { passive: 0, roleStat: 'str', synergyTag: null, lingering: false, eligible: false };
+      try {
+        const Bond = global.BondSystem;
+        if (heroId && Bond) {
+          const passive = typeof Bond.passiveFor === 'function' ? Bond.passiveFor(heroId) : 0;
+          const roleStat = typeof Bond.roleStatFor === 'function' ? Bond.roleStatFor(heroId) : 'str';
+          const syn = typeof Bond.synergyFor === 'function' ? Bond.synergyFor(heroId) : null;
+          const lingering = typeof Bond.isLingering === 'function' ? Bond.isLingering(heroId) === true : false;
+          const eligible = typeof Bond.isCombatEligible === 'function' ? Bond.isCombatEligible(heroId) === true : false;
+          bond = {
+            passive: Math.max(0, Math.floor(finite(passive, 0))),
+            roleStat: typeof roleStat === 'string' && roleStat ? roleStat.slice(0, 12) : 'str',
+            synergyTag: syn && typeof syn.tag === 'string' ? syn.tag.slice(0, 24) : null,
+            lingering: lingering,
+            eligible: eligible
+          };
+        }
+      } catch (e) {}
       return {
         id: heroId, name: text(h.name, 'Unknown hero'), role: text(h.role, 'Unassigned role'),
         className: text(h.className || h.classId, ''), level,
@@ -65,6 +86,7 @@
         status: statuses.length ? statuses.join(' · ') : 'No active status',
         nextAction: context === 'result' ? (h.hp > 0 ? 'Continue' : 'Return to safety') : context === 'cultivation' ? 'Meditate or break through' : context === 'combat' ? 'Act or target a foe' : context === 'compact' ? 'Inspect hero' : 'Inspect or equip',
         affinity: affinity,
+        bond: bond,
         context: context || 'detail', alive: currentHp > 0
       };
     },
@@ -92,6 +114,14 @@
           R.roundRect(ctx, barX, barY, Math.max(0, barW * ratio), barH, R.radius ? R.radius.xs : 3, tierFills[model.affinity.tier] || R.colors.textDim);
         }
         R.text(ctx, model.affinity.tier + ' ' + Math.floor(model.affinity.value) + '/100', barX, barY + barH + 11, R.colors.textDim, R.fonts.xs);
+      }
+      // Phase 24: one bond-bonus line when the hero is combat-eligible with a
+      // passive (non-compact only; compact cards keep their fixed height).
+      if (context !== 'compact' && model.bond && model.bond.eligible === true && model.bond.passive > 0) {
+        const bondLine = '+' + model.bond.passive + ' ' + String(model.bond.roleStat).toUpperCase() + ' bond'
+          + (model.bond.synergyTag ? ' · ' + model.bond.synergyTag : '')
+          + (model.bond.lingering ? ' (lingering)' : '');
+        R.text(ctx, bondLine, x + 12, y + h - 10, R.colors.gold, R.fonts.xs);
       }
       return model;
     }

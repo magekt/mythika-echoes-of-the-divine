@@ -101,6 +101,11 @@ SaveSystem.migrate = function() {
     }
     G.state.affinity = out;
   }
+  // Phase 24 combat bonds: linger flags persist in flags; heal crafted or
+  // stale bond_linger_* values while leaving all other flags verbatim.
+  if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.normalizeLinger === 'function') {
+    G.state.flags = BondSystem.normalizeLinger(G.state.flags);
+  }
   if (typeof FarmSystem !== 'undefined' && FarmSystem.normalize) FarmSystem.normalize();
   const party = Array.isArray(G.state.party) ? G.state.party : [];
   if (party.length > 0) {

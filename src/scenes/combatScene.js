@@ -126,6 +126,26 @@ const combatScene = Scene.create({
     this.data.reactionResolved = false;
 
     Combat.startBattle(this.data.heroes, this.data.enemies);
+    // Phase 24 combat bonds: surface applied tier/synergy bonuses in the log
+    // (display only — Combat owns the numbers).
+    try {
+      const bonuses = Combat.bondBonuses || [];
+      if (bonuses.length > 0) {
+        for (const b of bonuses) {
+          let tierName = '';
+          try {
+            if (typeof BondSystem !== 'undefined' && BondSystem.tierFor && BondSystem.valueFor) {
+              tierName = ' (' + BondSystem.tierFor(BondSystem.valueFor(b.heroId)) + ')';
+            }
+          } catch (e) {}
+          let line = 'Bond: ' + b.name + ' +' + b.passive + ' ' + String(b.roleStat).toUpperCase() + tierName;
+          if (b.lingering) line += ' · lingering';
+          if (b.synergy) line += ' · Synergy: ' + b.synergy;
+          this.data.log.push(line);
+        }
+        if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Bond bonuses active (' + bonuses.length + ')', { color: R.colors.gold, icon: '★' });
+      }
+    } catch (e) {}
     const firstAlive = this.data.enemies.find(e => e.hp > 0);
     if (firstAlive) this.data.selectedEnemy = firstAlive;
     const firstActor = Combat.getCurrentActor();
@@ -688,6 +708,17 @@ const combatScene = Scene.create({
   endBattle: function() {
     this.data.turnState = 'result';
     const won = this.data.enemies.every(e => e.hp <= 0);
+    // Phase 24 combat bonds: linger lasts exactly one completed battle —
+    // consume here so both victory and defeat advance the bookkeeping.
+    // Never blocks the result path.
+    try {
+      if (typeof BondSystem !== 'undefined' && BondSystem.consumeLingerAfterBattle) {
+        const lingerCleared = BondSystem.consumeLingerAfterBattle();
+        if (lingerCleared > 0 && typeof UI !== 'undefined' && UI.Feedback) {
+          UI.Feedback.Toast('Lingering bond faded (' + lingerCleared + ')', { color: R.colors.textDim, icon: '🌙' });
+        }
+      }
+    } catch (e) {}
     const isBossFight = !!G.state.isBossFight;
     const heroes = this.data.heroes;
     const totalHp = heroes.reduce((s, h) => s + Math.max(0, h.hp), 0);
