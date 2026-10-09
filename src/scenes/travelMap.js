@@ -108,6 +108,7 @@ const travelMapScene = Scene.create({
             if (reward.karma) parts.push('+' + reward.karma + ' karma');
             if (reward.divineFragments) parts.push('+' + reward.divineFragments + ' DF');
             Notify.show('Event resolved: ' + (parts.length ? parts.join(', ') : 'Rewards claimed'), 3, R.colors.gold);
+            if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Event resolved: ' + (parts.length ? parts.join(', ') : 'Rewards claimed'), { color: R.colors.gold, icon: '✓' });
           }
           this.data.selectedEvent = null;
         }
@@ -115,6 +116,7 @@ const travelMapScene = Scene.create({
       }
       const zoneId = this.data.selectedZone;
       if (!zoneId || MapHelpers.getStatus(zoneId) === MapLayout.ZONE_STATE.LOCKED) {
+        if (zoneId && typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast(MapHelpers.getLockReason(zoneId) || 'Zone locked.', { color: R.colors.danger, icon: '🔒' });
         return false;
       }
       G.state.currentZone = zoneId;
@@ -153,6 +155,7 @@ const travelMapScene = Scene.create({
         if (!WorldState.markLandmarkNotified(landmarkId)) continue;
         const landmark = LANDMARKS[landmarkId];
         Notify.show('Discovered: ' + (landmark ? landmark.name : landmarkId), 3, R.colors.gold);
+        if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Discovered: ' + (landmark ? landmark.name : landmarkId), { color: R.colors.gold, icon: '★' });
       }
     }
     this.data.newlyDiscovered = discovered;

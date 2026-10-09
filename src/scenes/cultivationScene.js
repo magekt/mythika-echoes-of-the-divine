@@ -151,11 +151,13 @@ const cultivationScene = Scene.create({
       const result = CultivationSystem.attemptBreakthrough();
       if (result.success) {
         Notify.show('Breakthrough! ' + (result.bonusText || ''), 3, R.colors.accent);
+        if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Breakthrough! ' + (result.bonusText || ''), { color: R.colors.accent, icon: '★' });
         Audio.levelUp();
         this.syncBreakthroughButton();
         return true;
       }
       Notify.show(result.reason || 'Breakthrough failed!', 3);
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast(result.reason || 'Breakthrough failed!', { color: R.colors.danger, icon: '🔒' });
       Audio.error();
       this.syncBreakthroughButton();
       return false;

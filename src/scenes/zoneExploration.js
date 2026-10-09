@@ -29,11 +29,13 @@ const zoneExplorationScene = Scene.create({
     // Defensive: a stale/missing currentZone must not crash the scene.
     if (!this.data.zone) {
       Notify.show('No zone selected — returning to the map.', 2, R.colors.red);
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('No zone selected — returning to the map.', { color: R.colors.danger, icon: '🔒' });
       gScene('travelMap', true);
       return;
     }
     if (!ZoneAccess.status(this.data.zoneId).allowed) {
       Notify.show('This zone is still locked.', 2, R.colors.warning);
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('This zone is still locked.', { color: R.colors.danger, icon: '🔒' });
       gScene('travelMap', true);
       return;
     }

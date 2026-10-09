@@ -244,11 +244,13 @@ const equipmentScene = Scene.create({
         ? hero.name + ' cannot use ' + item.name + '!'
         : 'Cannot equip ' + item.name + '.';
       Notify.show(message, 2, R.colors.red);
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast(message, { color: R.colors.danger, icon: '🔒' });
       Audio.error();
       return;
     }
 
     Notify.show('Equipped ' + item.name, 2, getLootColor(item.rarity));
+    if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Equipped ' + item.name + '!', { color: R.colors.success, icon: '✓' });
     this.buildUI();
   },
 
@@ -259,6 +261,7 @@ const equipmentScene = Scene.create({
     if (!result.ok) return;
     
     Notify.show('Unequipped ' + result.item.name, 2, R.colors.textPrimary);
+    if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Unequipped ' + result.item.name + '.', { color: R.colors.textPrimary, icon: '✓' });
     this.buildUI();
   },
 

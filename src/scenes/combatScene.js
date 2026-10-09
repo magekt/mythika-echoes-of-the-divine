@@ -599,6 +599,7 @@ const combatScene = Scene.create({
   doFlee: function() {
     if (G.state.isBossFight) {
       this.data.log.push('Cannot flee from a boss!');
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Cannot flee from a boss!', { color: R.colors.danger, icon: '🔒' });
       return;
     }
     if (Math.random() < 0.5) {
@@ -714,6 +715,7 @@ const combatScene = Scene.create({
         if (e.hp <= 0) QuestSystem.trackKill(e.id, G.state.currentZone, !!e.isBoss);
       }
       this.data.log.push('Victory! Gained ' + loot.gold + ' gold, ' + xpPerHero + ' XP each');
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Victory! +' + loot.gold + 'g, +' + xpPerHero + ' XP', { color: R.colors.gold, icon: '★' });
 
       let zoneReward = null;
       if (typeof ZoneRewardSystem !== 'undefined') {
@@ -794,6 +796,7 @@ const combatScene = Scene.create({
     } else {
       if (typeof ZoneRewardSystem !== 'undefined') ZoneRewardSystem.clearPending();
       this.data.log.push('Defeated! Retreating to Ashram...');
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Defeated — retreating to Ashram.', { color: R.colors.danger, icon: '✚' });
       for (const h of G.state.party) h.hp = Math.floor(h.maxHp * 0.3);
       this.data.result = { won: false };
       if (G.state.isBossFight) G.state.isBossFight = false;

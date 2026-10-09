@@ -196,6 +196,7 @@ function createDefaultGameState() {
     zoneRewardLedger: {},
     tournamentWins: 0,
     totalPlayTime: 0,
+    debugMode: false,
     flags: {},
     encounters: {},
     world: {
@@ -369,6 +370,7 @@ function gLoopFrame(time) {
   G.frameCount++;
   G.state.totalPlayTime += G.dt;
   Notify.update(G.dt);
+  if (typeof UI !== 'undefined' && UI.Feedback && UI.Feedback.updateToasts) UI.Feedback.updateToasts(G.dt);
   R.updateEffects(G.dt);
   R.updateProjectiles(G.dt);
   R.updateLevelUp(G.dt);
@@ -406,6 +408,7 @@ function gLoopFrame(time) {
   }
   Fade.render(G.ctx);
   Notify.render(G.ctx);
+  if (typeof UI !== 'undefined' && UI.Feedback && UI.Feedback.renderToasts) UI.Feedback.renderToasts(G.ctx);
   // First frame is on screen: dissolve the CSS boot splash (150ms), then
   // drop the class entirely.
   if (G.frameCount === 1) {
@@ -476,7 +479,9 @@ function gScene(name, fade, enterOptions) {
   if (!G.scenes[name]) { if (typeof Notify !== 'undefined') Notify.show('Destination unavailable — returning to Ashram.', 2, R.colors.red); name = G.scenes.ashram ? 'ashram' : 'title'; }
   Input.clear();
   UI.Modal.clearAll();
-  if (fade && G.currentScene) {
+  // Navigation gets the shared transition veil by default; explicit false is
+  // retained for debug/bootstrap flows that need an immediate scene swap.
+  if (fade !== false && G.currentScene) {
     Fade.toScene(name, enterOptions);
   } else {
     if (G.currentScene && G.currentScene.leave) G.currentScene.leave();
