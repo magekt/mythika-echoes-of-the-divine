@@ -111,6 +111,25 @@ SaveSystem.migrate = function() {
   if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.normalizeCombo === 'function') {
     G.state.flags = BondSystem.normalizeCombo(G.state.flags);
   }
+  // Phase 26 beast hearts: beastBond persists under versioning; heal crafted
+  // or stale values while leaving all other state verbatim.
+  if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.normalize === 'function') {
+    G.state.beastBond = BeastBond.normalize(G.state.beastBond);
+  } else {
+    const bbUnsafe = { '__proto__': true, constructor: true, prototype: true };
+    const bbOut = { xp: {}, feed: { day: 0, counts: {} }, train: { day: 0, counts: {} }, trainCd: {} };
+    const bbCand = G.state.beastBond;
+    if (bbCand && typeof bbCand === 'object' && !Array.isArray(bbCand) && bbCand.xp && typeof bbCand.xp === 'object' && !Array.isArray(bbCand.xp)) {
+      const ids = (typeof SPIRIT_BEASTS !== 'undefined' && SPIRIT_BEASTS && typeof SPIRIT_BEASTS === 'object') ? SPIRIT_BEASTS : null;
+      for (const key of Object.keys(bbCand.xp)) {
+        if (typeof key !== 'string' || key.length === 0 || bbUnsafe[key]) continue;
+        if (ids && !Object.prototype.hasOwnProperty.call(ids, key)) continue;
+        const n = Math.floor(Number(bbCand.xp[key]));
+        bbOut.xp[key] = Number.isFinite(n) ? Math.max(0, Math.min(9999, n)) : 0;
+      }
+    }
+    G.state.beastBond = bbOut;
+  }
   if (typeof FarmSystem !== 'undefined' && FarmSystem.normalize) FarmSystem.normalize();
   const party = Array.isArray(G.state.party) ? G.state.party : [];
   if (party.length > 0) {

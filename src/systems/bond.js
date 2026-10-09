@@ -474,6 +474,14 @@ const BondSystem = {
       return {};
     }
   },
+  // --- Phase 26: Beast Hearts & Care Actions ---
+  // Bond hearts (0-3) derived from cumulative bond XP stored in
+  // G.state.beastBond = { xp, feed: {day, counts}, train: {day, counts},
+  // trainCd }. Hearts are DERIVED via HEART_THRESHOLDS, never stored.
+  // Mutations go through the canonical economy (Economy.spendGold /
+  // Economy.removeItemByName); prana decrements G.state.prana directly
+  // (no canonical spend helper exists — matches spiritBeast.js precedent).
+  // Every denial returns an explicit reason; nothing fails silently.
   // --- Phase 25: Signature Combos ---
   // One Legend-gated duo skill per hero. Availability + potency live here;
   // execution authority lives in Combat.performSignatureCombo (battle clones).
@@ -625,6 +633,379 @@ const BondSystem = {
   }
 };
 
+// --- Phase 26: BeastBond (hearts 0-3 via battle XP + feed/train care) ---
+// Standalone global (not on BondSystem) so hero-affinity thresholds stay
+// untouched. See the Phase 26 comment inside BondSystem for state shape.
+var BeastBond = {
+  HEART_THRESHOLDS: [0, 30, 80, 160],
+  BATTLE_XP: 8,
+  FEED_XP: 11,
+  PRANA_TRAIN_XP: 6,
+  GOLD_TRAIN_XP: 14,
+  FEED_GOLD_BASE: 20,
+  GOLD_TRAIN_BASE: 40,
+  PRANA_COST: 25,
+  FEED_CAP: 3,
+  TRAIN_CAP: 5,
+  GOLD_TRAIN_CD_MS: 300000,
+  MAX_XP: 9999,
+
+  _unsafeKeys: { '__proto__': true, constructor: true, prototype: true },
+
+  _safeKey: function(key) {
+    return typeof key === 'string' && key.length > 0 && !this._unsafeKeys[key];
+  },
+
+  _now: function() {
+    try {
+      if (typeof Date !== 'undefined' && Date.now) return Date.now();
+    } catch (e) {}
+    return 0;
+  },
+
+  _dayOf: function(now) {
+    const n = Number(now);
+    if (!Number.isFinite(n) || n < 0) return 0;
+    return Math.floor(n / 86400000);
+  },
+
+  _knownIds: function() {
+    try {
+      if (typeof SPIRIT_BEASTS !== 'undefined' && SPIRIT_BEASTS && typeof SPIRIT_BEASTS === 'object') return SPIRIT_BEASTS;
+      if (typeof globalThis !== 'undefined' && globalThis.SPIRIT_BEASTS && typeof globalThis.SPIRIT_BEASTS === 'object') return globalThis.SPIRIT_BEASTS;
+    } catch (e) {}
+    return null;
+  },
+
+  _isKnown: function(beastId) {
+    if (!this._safeKey(beastId)) return false;
+    const known = this._knownIds();
+    if (known && !Object.prototype.hasOwnProperty.call(known, beastId)) return false;
+    return true;
+  },
+
+  _getState: function() {
+    try {
+      if (typeof globalThis !== 'undefined' && globalThis.G && globalThis.G.state) return globalThis.G.state;
+      if (typeof G !== 'undefined' && G && G.state) return G.state;
+    } catch (e) {}
+    return null;
+  },
+
+  _emptyShape: function() {
+    return { xp: {}, feed: { day: 0, counts: {} }, train: { day: 0, counts: {} }, trainCd: {} };
+  },
+
+  _store: function() {
+    try {
+      const state = this._getState();
+      if (!state) return this._emptyShape();
+      if (!state.beastBond || typeof state.beastBond !== 'object' || Array.isArray(state.beastBond)) {
+        state.beastBond = this._emptyShape();
+      }
+      const bb = state.beastBond;
+      if (!bb.xp || typeof bb.xp !== 'object' || Array.isArray(bb.xp)) bb.xp = {};
+      if (!bb.feed || typeof bb.feed !== 'object' || Array.isArray(bb.feed)) bb.feed = { day: 0, counts: {} };
+      if (!bb.train || typeof bb.train !== 'object' || Array.isArray(bb.train)) bb.train = { day: 0, counts: {} };
+      if (!bb.trainCd || typeof bb.trainCd !== 'object' || Array.isArray(bb.trainCd)) bb.trainCd = {};
+      if (typeof bb.feed.day !== 'number') bb.feed.day = 0;
+      if (typeof bb.train.day !== 'number') bb.train.day = 0;
+      if (!bb.feed.counts || typeof bb.feed.counts !== 'object') bb.feed.counts = {};
+      if (!bb.train.counts || typeof bb.train.counts !== 'object') bb.train.counts = {};
+      return bb;
+    } catch (e) {
+      return this._emptyShape();
+    }
+  },
+
+  _clampHearts: function(h) {
+    const n = Math.floor(Number(h));
+    if (!Number.isFinite(n)) return 0;
+    return Math.max(0, Math.min(3, n));
+  },
+
+  _clampXp: function(x) {
+    const n = Math.floor(Number(x));
+    if (!Number.isFinite(n)) return 0;
+    return Math.max(0, Math.min(this.MAX_XP, n));
+  },
+
+  heartFor: function(xp) {
+    try {
+      const x = this._clampXp(xp);
+      const t = this.HEART_THRESHOLDS;
+      let heart = 0;
+      for (let i = 0; i < t.length; i++) {
+        if (x >= t[i]) heart = i;
+      }
+      return Math.max(0, Math.min(3, heart));
+    } catch (e) {
+      return 0;
+    }
+  },
+
+  xpFor: function(beastId) {
+    try {
+      if (!this._safeKey(beastId)) return 0;
+      const bb = this._store();
+      if (!Object.prototype.hasOwnProperty.call(bb.xp, beastId)) return 0;
+      return this._clampXp(bb.xp[beastId]);
+    } catch (e) {
+      return 0;
+    }
+  },
+
+  get: function(beastId) {
+    try {
+      const xp = this.xpFor(beastId);
+      return { xp: xp, heart: this.heartFor(xp) };
+    } catch (e) {
+      return { xp: 0, heart: 0 };
+    }
+  },
+
+  feedGoldFor: function(hearts) {
+    const h = this._clampHearts(hearts);
+    return Math.round(this.FEED_GOLD_BASE * Math.pow(1.2, h));
+  },
+
+  trainGoldFor: function(hearts) {
+    const h = this._clampHearts(hearts);
+    return Math.round(this.GOLD_TRAIN_BASE * Math.pow(1.2, h));
+  },
+
+  isFeedItem: function(item) {
+    try {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return false;
+      if (typeof item.name !== 'string' || item.name.length === 0) return false;
+      if (item.type === 'herb') return true;
+      if (item.type === 'consumable' && typeof item.recipeId === 'string' && item.recipeId.length > 0) return true;
+      try {
+        const hg = (typeof HERB_GROWTH !== 'undefined' && HERB_GROWTH)
+          || (typeof globalThis !== 'undefined' && globalThis.HERB_GROWTH) || null;
+        if (hg && typeof hg === 'object') {
+          for (const key of Object.keys(hg)) {
+            const entry = hg[key];
+            if (entry && entry.name === item.name) return true;
+          }
+        }
+      } catch (e) {}
+      return false;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  _addXp: function(beastId, amount) {
+    const before = this.xpFor(beastId);
+    const after = this._clampXp(before + Math.max(0, Math.floor(Number(amount) || 0)));
+    const bb = this._store();
+    bb.xp[beastId] = after;
+    const hb = this.heartFor(before), ha = this.heartFor(after);
+    return { xp: after, heart: ha, heartUp: ha > hb };
+  },
+
+  _rollDay: function(track, now) {
+    const day = this._dayOf(now);
+    if (track.day !== day) {
+      track.day = day;
+      track.counts = {};
+    }
+    return day;
+  },
+
+  _countFor: function(track, beastId) {
+    const n = Math.floor(Number(track.counts[beastId]));
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  },
+
+  addBattleXP: function(beastId) {
+    try {
+      if (!this._isKnown(beastId)) return { ok: false, reason: 'unknown_beast' };
+      const r = this._addXp(beastId, this.BATTLE_XP);
+      return { ok: true, xp: r.xp, heart: r.heart, heartUp: r.heartUp };
+    } catch (e) {
+      return { ok: false, reason: 'unknown_beast' };
+    }
+  },
+
+  _economy: function() {
+    try {
+      const eco = (typeof Economy !== 'undefined' && Economy)
+        || (typeof globalThis !== 'undefined' && globalThis.Economy) || null;
+      return eco;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  _findFeedItem: function(itemName) {
+    try {
+      const state = this._getState();
+      if (!state || !Array.isArray(state.inventory)) return null;
+      for (const item of state.inventory) {
+        if (item && item.name === itemName && this.isFeedItem(item)) return item;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  feed: function(beastId, itemName) {
+    try {
+      if (!this._isKnown(beastId)) return { ok: false, reason: 'unknown_beast' };
+      if (typeof itemName !== 'string' || itemName.length === 0) return { ok: false, reason: 'no_item' };
+      const found = this._findFeedItem(itemName);
+      if (!found) return { ok: false, reason: 'no_item' };
+      const bb = this._store();
+      const now = this._now();
+      this._rollDay(bb.feed, now);
+      if (this._countFor(bb.feed, beastId) >= this.FEED_CAP) return { ok: false, reason: 'capped' };
+      const cost = this.feedGoldFor(this.heartFor(this.xpFor(beastId)));
+      const eco = this._economy();
+      const gold = (function() {
+        try {
+          if (typeof globalThis !== 'undefined' && globalThis.G && globalThis.G.state) return globalThis.G.state.gold || 0;
+          if (typeof G !== 'undefined' && G && G.state) return G.state.gold || 0;
+        } catch (e) {}
+        return 0;
+      })();
+      if (gold < cost) return { ok: false, reason: 'no_gold', need: cost, have: Math.floor(gold) };
+      if (eco && typeof eco.removeItemByName === 'function' && typeof eco.spendGold === 'function') {
+        if (!eco.removeItemByName(itemName, 1)) return { ok: false, reason: 'no_item' };
+        if (!eco.spendGold(cost)) return { ok: false, reason: 'no_gold', need: cost, have: Math.floor(gold) };
+      } else {
+        return { ok: false, reason: 'no_item' };
+      }
+      const r = this._addXp(beastId, this.FEED_XP);
+      bb.feed.counts[beastId] = this._countFor(bb.feed, beastId) + 1;
+      return { ok: true, xp: r.xp, heart: r.heart, heartUp: r.heartUp, item: itemName, gold: cost };
+    } catch (e) {
+      return { ok: false, reason: 'no_item' };
+    }
+  },
+
+  pranaTrain: function(beastId) {
+    try {
+      if (!this._isKnown(beastId)) return { ok: false, reason: 'unknown_beast' };
+      const bb = this._store();
+      const now = this._now();
+      this._rollDay(bb.train, now);
+      if (this._countFor(bb.train, beastId) >= this.TRAIN_CAP) return { ok: false, reason: 'capped' };
+      const state = this._getState();
+      const prana = state ? (Number(state.prana) || 0) : 0;
+      if (prana < this.PRANA_COST) return { ok: false, reason: 'no_prana', need: this.PRANA_COST, have: Math.floor(prana) };
+      if (state) state.prana = prana - this.PRANA_COST;
+      const r = this._addXp(beastId, this.PRANA_TRAIN_XP);
+      bb.train.counts[beastId] = this._countFor(bb.train, beastId) + 1;
+      return { ok: true, xp: r.xp, heart: r.heart, heartUp: r.heartUp, prana: this.PRANA_COST };
+    } catch (e) {
+      return { ok: false, reason: 'no_prana' };
+    }
+  },
+
+  goldTrain: function(beastId) {
+    try {
+      if (!this._isKnown(beastId)) return { ok: false, reason: 'unknown_beast' };
+      const bb = this._store();
+      const now = this._now();
+      this._rollDay(bb.train, now);
+      if (this._countFor(bb.train, beastId) >= this.TRAIN_CAP) return { ok: false, reason: 'capped' };
+      const last = Number(bb.trainCd[beastId]);
+      if (Number.isFinite(last) && last > 0 && now < last + this.GOLD_TRAIN_CD_MS) {
+        return { ok: false, reason: 'cooldown', retryMs: Math.ceil(last + this.GOLD_TRAIN_CD_MS - now) };
+      }
+      const cost = this.trainGoldFor(this.heartFor(this.xpFor(beastId)));
+      const gold = (function() {
+        try {
+          if (typeof globalThis !== 'undefined' && globalThis.G && globalThis.G.state) return globalThis.G.state.gold || 0;
+          if (typeof G !== 'undefined' && G && G.state) return G.state.gold || 0;
+        } catch (e) {}
+        return 0;
+      })();
+      if (gold < cost) return { ok: false, reason: 'no_gold', need: cost, have: Math.floor(gold) };
+      const eco = this._economy();
+      if (!eco || typeof eco.spendGold !== 'function') return { ok: false, reason: 'no_gold', need: cost, have: Math.floor(gold) };
+      if (!eco.spendGold(cost)) return { ok: false, reason: 'no_gold', need: cost, have: Math.floor(gold) };
+      const r = this._addXp(beastId, this.GOLD_TRAIN_XP);
+      bb.train.counts[beastId] = this._countFor(bb.train, beastId) + 1;
+      bb.trainCd[beastId] = now;
+      return { ok: true, xp: r.xp, heart: r.heart, heartUp: r.heartUp, gold: cost };
+    } catch (e) {
+      return { ok: false, reason: 'no_gold' };
+    }
+  },
+
+  statusFor: function(beastId) {
+    const empty = { xp: 0, heart: 0, nextAt: this.HEART_THRESHOLDS[1], feedLeft: this.FEED_CAP, trainLeft: this.TRAIN_CAP, goldCdMs: 0 };
+    try {
+      if (!this._safeKey(beastId)) return empty;
+      const xp = this.xpFor(beastId);
+      const heart = this.heartFor(xp);
+      const nextAt = heart >= 3 ? null : this.HEART_THRESHOLDS[heart + 1];
+      const bb = this._store();
+      const now = this._now();
+      const feedDay = this._dayOf(now);
+      const feedLeft = (bb.feed.day === feedDay) ? Math.max(0, this.FEED_CAP - this._countFor(bb.feed, beastId)) : this.FEED_CAP;
+      const trainLeft = (bb.train.day === feedDay) ? Math.max(0, this.TRAIN_CAP - this._countFor(bb.train, beastId)) : this.TRAIN_CAP;
+      let goldCdMs = 0;
+      const last = Number(bb.trainCd[beastId]);
+      if (Number.isFinite(last) && last > 0 && now < last + this.GOLD_TRAIN_CD_MS) {
+        goldCdMs = Math.ceil(last + this.GOLD_TRAIN_CD_MS - now);
+      }
+      return { xp: xp, heart: heart, nextAt: nextAt, feedLeft: feedLeft, trainLeft: trainLeft, goldCdMs: goldCdMs };
+    } catch (e) {
+      return empty;
+    }
+  },
+
+  normalize: function(candidate) {
+    try {
+      const out = this._emptyShape();
+      if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return out;
+      const known = this._knownIds();
+      const scrubMap = function(src, max) {
+        const dst = {};
+        if (!src || typeof src !== 'object' || Array.isArray(src)) return dst;
+        for (const key of Object.keys(src)) {
+          if (typeof key !== 'string' || key.length === 0) continue;
+          if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
+          if (known && !Object.prototype.hasOwnProperty.call(known, key)) continue;
+          const n = Math.floor(Number(src[key]));
+          if (!Number.isFinite(n)) continue;
+          dst[key] = Math.max(0, Math.min(max, n));
+        }
+        return dst;
+      };
+      out.xp = scrubMap(candidate.xp, this.MAX_XP);
+      if (candidate.feed && typeof candidate.feed === 'object' && !Array.isArray(candidate.feed)) {
+        const d = Math.floor(Number(candidate.feed.day));
+        out.feed.day = Number.isFinite(d) && d > 0 ? d : 0;
+        out.feed.counts = scrubMap(candidate.feed.counts, 99);
+      }
+      if (candidate.train && typeof candidate.train === 'object' && !Array.isArray(candidate.train)) {
+        const d = Math.floor(Number(candidate.train.day));
+        out.train.day = Number.isFinite(d) && d > 0 ? d : 0;
+        out.train.counts = scrubMap(candidate.train.counts, 99);
+      }
+      if (candidate.trainCd && typeof candidate.trainCd === 'object' && !Array.isArray(candidate.trainCd)) {
+        for (const key of Object.keys(candidate.trainCd)) {
+          if (typeof key !== 'string' || key.length === 0) continue;
+          if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
+          if (known && !Object.prototype.hasOwnProperty.call(known, key)) continue;
+          const n = Number(candidate.trainCd[key]);
+          if (!Number.isFinite(n) || n <= 0) continue;
+          out.trainCd[key] = Math.floor(n);
+        }
+      }
+      return out;
+    } catch (e) {
+      return this._emptyShape();
+    }
+  }
+};
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { BondSystem };
+  module.exports = { BondSystem, BeastBond };
 }

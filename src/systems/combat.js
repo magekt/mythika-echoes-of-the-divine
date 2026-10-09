@@ -813,4 +813,16 @@ Combat.awardBeastXP = function() {
   }
   if (beast.level >= 30) beast.xp = Math.min(beast.xp, needed - 1);
   if (leveled) Notify.show(beast.name + ' reached Lv.' + beast.level + '!', 2, R.colors.green);
+  // Phase 26 beast hearts: battle-together bond XP rides the existing call
+  // site (no new hooks, no double-award). Absent BeastBond = level XP only.
+  try {
+    if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.addBattleXP === 'function') {
+      const bond = BeastBond.addBattleXP(activeId);
+      if (bond && bond.ok && bond.heartUp) {
+        const msg = beast.name + ' bond deepened! Hearts: ' + bond.heart + '/3';
+        if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast(msg, { color: R.colors.gold, icon: '♥' });
+        else if (typeof Notify !== 'undefined') Notify.show(msg, 3, R.colors.gold);
+      }
+    }
+  } catch (e) {}
 };

@@ -200,6 +200,7 @@ function createDefaultGameState() {
     flags: {},
     encounters: {},
     affinity: {},
+    beastBond: { xp: {}, feed: { day: 0, counts: {} }, train: { day: 0, counts: {} }, trainCd: {} },
     world: {
       regions: {},
       landmarks: { discovered: {}, notified: {} },
