@@ -28,6 +28,10 @@ Harness: extend `tools/verify_matrix.py` to wrap `R.text`/`R.textCenter`, record
 
 - [ ] **LAY-06**: Fit-finish bundle — nav More slot labeled with consistent icon; title wordmark legible, footer centered, hero sprite not a bare square; map lock icons, card heights fit content; Ashram single border + currency gold icon; Confirm Creation modal height fits content.
 
+## Backgrounds Paint
+
+- [ ] **LAY-07**: Backgrounds paint — every revamped scene renders its background slot (no split-R silent failure); harness samples one fixed point per scene and asserts it is not the clear color.
+
 ## Balance & Pacing (own checks)
 
 - [ ] **BAL-01**: Combat difficulty — headless sim of 200 first-zone fights: Lv1 hero loses ≥15% HP avg over first five fights; ≥5% of zone-1 runs see a hero death; Threat reads Normal on fresh Lv1 save.
@@ -54,6 +58,7 @@ Build the harness extension first (only proof for LAY-01–LAY-06). LAY-05 befor
 | LAY-05 — Toast lifecycle | Phase 31 | Pending |
 | LAY-01 — Combat header bands | Phase 32 | Pending |
 | LAY-02 — Combat buttons + toast lane | Phase 32 | Pending |
+| LAY-07 — Backgrounds paint | Phase 32 | Pending |
 | LAY-03 — Bazaar | Phase 33 | Pending |
 | LAY-04 — Zone exploration | Phase 33 | Pending |
 | LAY-06 — Fit-finish bundle | Phase 34 | Pending |

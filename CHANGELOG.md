@@ -43,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Scene `enter()` failures are now non-fatal (safeEnter) by `8468346`
 
 ### Fixed
+- Combat/cultivation routes pointed at nonexistent scenes (every combat entry fell back to Ashram since Phase 18); `Navigation.go` recursed infinitely on remapped names and dropped the fade flag (synchronous entry broken)
+- NOTE: combat entry was effectively unreachable between Phase 18 and this fix; BAL-01/BAL-02 baselines are unaffected (simulator drives the combat module directly, not the route)
 - Forge rendered zero (dead screen fix) by `db043e0`
 - Add `UI.Modal.clearAll` (missed from scene-transition commit) by `dc6f3d4`
 

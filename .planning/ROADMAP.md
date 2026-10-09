@@ -187,7 +187,7 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
 
 - [x] **Phase 30: Layout Harness Extension** - Text-bounds proof harness + combat sim (LAY-00)
 - [ ] **Phase 31: Toast Lifecycle Scoping** - Toasts die with their scene (LAY-05)
-- [ ] **Phase 32: Combat Layout** - Header bands + uniform action grid with safe toast lane (LAY-01, LAY-02)
+- [ ] **Phase 32: Combat Layout** - Header bands + uniform action grid with safe toast lane (LAY-01, LAY-02, LAY-07)
 - [ ] **Phase 33: Bazaar & Zone Exploration Layout** - Rows, HUD, and encounter-gated buttons (LAY-03, LAY-04)
 - [ ] **Phase 34: Fit & Finish Bundle** - Nav, title, map cards, Ashram, modal (LAY-06)
 - [ ] **Phase 35: Early-Game Pacing & Empty States** - Combat stakes, zone-clear rate, populated starts (BAL-01, BAL-02, BAL-03)
@@ -226,13 +226,16 @@ Plans:
 ### Phase 32: Combat Layout
 **Goal**: Combat reads in clean bands and actions never collide with toasts
 **Depends on**: Phase 31 (LAY-05 first — shared Notify)
-**Requirements**: LAY-01, LAY-02
+**Requirements**: LAY-01, LAY-02, LAY-07
 **Success Criteria** (what must be TRUE):
-  1. Hero name, HP/MP bars, enemy name/HP, and target button sit in separate non-overlapping bands with the target button inside the enemy panel, at 1, 3, and 5 heroes
+  1. Target pairs re-derived from a harness run on the current tree (report screenshots are advisory only)
+  2. Hero name, HP/MP bars, enemy name/HP, and target button sit in separate non-overlapping bands with the target button inside the enemy panel, at 1, 3, and 5 heroes
   2. Action buttons share one width/height/gap grid; engine defines one toast-lane constant in scene-helpers.js, Notify draws only inside it, and no scene places buttons or text in the lane
   3. Tutorial toasts never cover action buttons (including Gandiva + Rain of Arrows) in any scene
   4. Shared text-bounds criterion passes for combat 1v1 and 5v3 at 390x844 and 844x390
   5. Full 20-scene sweep at phase end (toast lane is engine-wide and may shift untargeted scenes)
+  6. Backgrounds paint in every revamped scene (split-R fixed); harness pixel-samples one fixed point per scene and asserts non-clear color
+  7. Fixed pairs move from expected_pairs to the must-stay-clean list in the same commit (fixture retirement rule: CI fails on regressions AND on pairs vanishing without a matching code change)
 **Plans**: TBD
 **UI hint**: yes
 
