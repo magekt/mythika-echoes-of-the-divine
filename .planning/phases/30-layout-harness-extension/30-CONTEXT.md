@@ -14,13 +14,15 @@ A proof harness for all v5.0 layout fixes: per-frame text-box recording with int
 ## Implementation Decisions
 
 ### Hook Point
-- Wrap `CanvasRenderingContext2D.prototype.fillText`, not `R.text`. Verified 2026-10-09: 34 raw `ctx.fillText` calls exist (26 in travelMap.js alone, plus diagnostics/renderer/feedback), so R-wrapper coverage would miss the travel-map cards under test. Install via Playwright `add_init_script`: sees every draw call, needs no game-code edits, sidesteps the lexical-`const` problem. Wrapper reads `ctx.font`, calls `measureText`, and applies `ctx.getTransform()` so boxes land in game coordinates (23 `ctx.translate` sites, including combat scroll panel, shift drawn text).
+- Wrap `CanvasRenderingContext2D.prototype.fillText`, not `R.text`. Verified 2026-10-09 on local master (post-v4.0): 34 raw `ctx.fillText` calls exist (26 in travelMap.js alone, plus diagnostics/renderer/feedback), so R-wrapper coverage would miss the travel-map cards under test. Reporter's `origin/master` clone showed 8 (pre-v2 travelMap rewrite) — planning must re-run the grep against current master and record the number, since the fixture's expected violations rest on what the wrapper sees. Install via Playwright `add_init_script`: sees every draw call, needs no game-code edits, sidesteps the lexical-`const` problem. Wrapper reads `ctx.font`, calls `measureText`, and applies `ctx.getTransform()` so boxes land in game coordinates (23 `ctx.translate` sites, including combat scroll panel, shift drawn text).
 
 ### Frame Sampling
 - Record per frame; assert on one settled frame. Reduce Motion on (or wait entrance tweens out): 150–250ms scene fades and toast slide-ins produce false positives mid-animation.
 
 ### Exclusion Mechanism
 - Z-layer flag set by `Notify.render` and `Modal.render` (two engine lines, zero scene changes). Rejected call-stack tagging as brittle. Covers toast lane, modal-over-dimmed-scene, and text-on-own-button.
+- Leakage guard: clear the flag in a `finally` block (a throw mid-render must not exempt later draws); harness self-checks the flag is false at frame end.
+- Install timing: `add_init_script` runs before page scripts, so the wrap is safe. Wrapper and vm sim are separate deliverables with separate acceptance checks.
 
 ### Containment Scope (v5.0)
 - Intersection between text boxes + containment within canvas and active scroll clip only. Panel-level containment deferred: the wrapper cannot see panel bounds and instrumenting every panel would bloat the critical-path enabler. All 11 reported defects are intersection/overflow class. Revisit if Phase 32/33 finds a miss.
