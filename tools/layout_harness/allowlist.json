@@ -1,0 +1,1 @@
+{"allowlist":[],"note":"Documented violation allowlist for the layout sweep (Phase 30 LAY-00). Starts empty: every waiver must be a committed {aMatch, bMatch?, reason} entry so blanket exceptions are impossible by format. The sweep exits nonzero on any violation NOT matched here."}

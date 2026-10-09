@@ -13,7 +13,7 @@ function loadNavigation() {
         party: [{ id: 'h1', name: 'Hero', level: 2, role: 'tank', hp: 80, maxHp: 100, mp: 20, maxMp: 30 }],
         player: null, currentZone: 'z1', inventory: [], scene: 'ashram'
       },
-      scenes: { ashram: {}, travelMap: {}, zoneExploration: {}, combat: {}, party: {}, equipment: {}, cultivation: {} },
+      scenes: { ashram: {}, travelMap: {}, zoneExploration: {}, combatScene: {}, party: {}, equipment: {}, cultivationScene: {} },
       W: 400, H: 720
     },
     R: { reducedMotion: () => false, colors: { red: '#f00' } },
@@ -57,7 +57,7 @@ test('Navigation.go completes core slice with origin-aware return', () => {
   assert.strictEqual(Nav.go('travelMap'), true);
   assert.strictEqual(Nav.go('zoneExploration', { zoneId: 'z1' }), true);
   assert.strictEqual(Nav.go('combat', { encounterId: 'e1' }), true);
-  assert.deepStrictEqual(ctx.gSceneCalls, ['travelMap', 'zoneExploration', 'combat']);
+  assert.deepStrictEqual(ctx.gSceneCalls, ['travelMap', 'zoneExploration', 'combatScene']);
   assert.strictEqual(ctx.G.state.transition.to, 'combat');
   assert.strictEqual(Nav.go('zoneExploration'), true);
   assert.strictEqual(Nav.go('travelMap'), true);
@@ -91,4 +91,21 @@ test('commands delegate to canonical systems and failure recovers to ashram', ()
   assert.strictEqual(ctx.gSceneCalls[ctx.gSceneCalls.length - 1], 'ashram');
   const ashramCommands = Nav.getCommands('ashram');
   assert(Object.keys(ashramCommands).length > 0, 'ashram must expose commands');
+});
+
+test('every registered route resolves to a real G.scenes key', () => {
+  const routesSrc = fs.readFileSync(path.join(__dirname, '..', 'src', 'engine', 'navigation_routes.js'), 'utf8');
+  const mainSrc = fs.readFileSync(path.join(__dirname, '..', 'src', 'main.js'), 'utf8');
+  const sceneNames = new Set();
+  const tableRe = /\['([A-Za-z]+)',\s*typeof\s+\w+\s*!==\s*'undefined'/g;
+  let m;
+  while ((m = tableRe.exec(mainSrc)) !== null) sceneNames.add(m[1]);
+  assert(sceneNames.size > 0, 'SCENE_TABLE keys must parse from main.js');
+  const routeRe = /scene:\s*'([A-Za-z]+)'/g;
+  let checked = 0;
+  while ((m = routeRe.exec(routesSrc)) !== null) {
+    checked++;
+    assert(sceneNames.has(m[1]), 'route scene ' + m[1] + ' must exist in SCENE_TABLE (regression: combat/cultivation fallback)');
+  }
+  assert(checked > 0, 'route scenes must parse from navigation_routes.js');
 });

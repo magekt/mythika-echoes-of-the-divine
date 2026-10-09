@@ -129,6 +129,8 @@ UI.Modal._paint = function(ctx, m) {
 };
 
 UI.Modal.render = function(ctx) {
+  if (typeof window !== 'undefined' && window.__layoutHarness) window.__layoutHarness.overlay = true;
+  try {
   // Ghost: the just-dismissed dialog dissolves over 100ms (visual only —
   // its result callback already fired and it takes no input).
   const g = UI.Modal._ghost;
@@ -154,6 +156,7 @@ UI.Modal.render = function(ctx) {
   m._alpha = e;
   m._scale = 0.96 + 0.04 * e;
   UI.Modal._paint(ctx, m);
+  } finally { if (typeof window !== 'undefined' && window.__layoutHarness) window.__layoutHarness.overlay = false; }
 };
 
 UI.Modal.confirm = function(title, body, onConfirm, options) {

@@ -57,6 +57,8 @@ const Notify = {
     }
   },
   render: function(ctx) {
+    if (typeof window !== 'undefined' && window.__layoutHarness) window.__layoutHarness.overlay = true;
+    try {
     const reduceMotion = !!G.state.reduceMotion;
     let ty = 470;
     const count = Math.min(this.queue.length, 3);
@@ -113,6 +115,7 @@ const Notify = {
       R.textCenter(ctx, a.desc, G.W / 2, y + 52, R.colors.textDim, R.fonts.sm);
       ctx.globalAlpha = 1;
     }
+    } finally { if (typeof window !== 'undefined' && window.__layoutHarness) window.__layoutHarness.overlay = false; }
   },
   clear: function() { this.queue = []; this.achievements = []; }
 };

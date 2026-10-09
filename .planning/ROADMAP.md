@@ -185,7 +185,7 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
 
 ## Phases (v5.0)
 
-- [ ] **Phase 30: Layout Harness Extension** - Text-bounds proof harness + combat sim (LAY-00)
+- [x] **Phase 30: Layout Harness Extension** - Text-bounds proof harness + combat sim (LAY-00)
 - [ ] **Phase 31: Toast Lifecycle Scoping** - Toasts die with their scene (LAY-05)
 - [ ] **Phase 32: Combat Layout** - Header bands + uniform action grid with safe toast lane (LAY-01, LAY-02)
 - [ ] **Phase 33: Bazaar & Zone Exploration Layout** - Rows, HUD, and encounter-gated buttons (LAY-03, LAY-04)
@@ -204,7 +204,12 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
   3. `tools/verify_matrix.py` wraps `R.text`/`R.textCenter`, recording measured text boxes per frame at 390x844 and 844x390
   4. Harness settles animations then asserts no two rendered text boxes intersect and no text box extends past its containing panel across the checked set (all 20 scenes via gScene with seeded save, combat 1v1 and 5v3, zone exploration with/without encounter, Bazaar Buy and Sell, Confirm Creation modal)
   3. Intentional overlays (toast lane, modal over dimmed scene) are excluded by tagging, not by blanket exception
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 30-01-PLAN.md — Text-bounds harness core (fillText injector, asserts, frozen fail-first fixture)
+- [ ] 30-02-PLAN.md — Headless 200-fight combat simulator with BAL metrics
+- [ ] 30-03-PLAN.md — Engine overlay-flag wiring + verify_matrix layout mode + fail-first proof
 
 ### Phase 31: Toast Lifecycle Scoping
 **Goal**: Toasts never leak across scenes

@@ -160,7 +160,7 @@ const Navigation = (function() {
     };
   }
 
-  function go(routeId, params) {
+  function go(routeId, params, fade) {
     const route = routeRegistry.get(routeId);
     if (!route) {
       console.warn('[Navigation] Invalid route:', routeId);
@@ -183,7 +183,14 @@ const Navigation = (function() {
     transitionState.timestamp = Date.now();
     G.state.transition = { ...transitionState };
 
-    gScene(sceneName, true, params);
+    // Forward the caller's fade flag (default veil). Call the PRE-WRAP
+    // gScene: the wrapper would re-map scene names back to routes and
+    // recurse (see _rawGScene above). Falls back to bare gScene only
+    // where no wrapper exists (unit-test contexts).
+    var useFade = (fade === false) ? false : true;
+    var raw = Navigation._rawGScene;
+    if (typeof raw === 'function') raw(sceneName, useFade, params);
+    else gScene(sceneName, useFade, params);
     return true;
   }
 
@@ -209,7 +216,11 @@ const Navigation = (function() {
     transition,
     routeRegistry,
     legacySceneMap,
-    transitionState
+    transitionState,
+    // Set by the legacy wrapper below: the pre-wrap gScene that go()
+    // must call. Without this, go() would call the wrapped gScene and
+    // recurse forever on remapped names (e.g. combatScene -> combat).
+    _rawGScene: null
   };
 })();
 
@@ -217,11 +228,12 @@ if (typeof window !== 'undefined') {
   window.Navigation = Navigation;
   // Legacy compatibility: gScene wrapper
   const originalGScene = window.gScene;
+  Navigation._rawGScene = originalGScene || null;
   window.gScene = function(name, fade, enterOptions) {
     const routeId = Navigation.legacySceneMap[name] || name;
     if (routeId !== name) {
-      return Navigation.go(routeId, enterOptions);
+      return Navigation.go(routeId, enterOptions, fade);
     }
-    return originalGScene ? originalGScene(name, fade, enterOptions) : Navigation.go(name, enterOptions);
+    return originalGScene ? originalGScene(name, fade, enterOptions) : Navigation.go(name, enterOptions, fade);
   };
 }

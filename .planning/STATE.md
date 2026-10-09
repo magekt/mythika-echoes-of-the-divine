@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Layout Fixes & Early-Game Pacing
 status: planning
-stopped_at: "v5.0 started; defining requirements"
+stopped_at: "v5.0 roadmap created (Phases 30-35); next: plan Phase 30"
 last_updated: "2026-10-09T00:00:00Z"
 last_activity: 2026-10-09 — Milestone v5.0 started
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,16 +21,16 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-10-09)
 
 **Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Define and plan v5.0 requirements before implementation.
+**Current focus:** v5.0 roadmap defined (Phases 30–35); plan Phase 30 next.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 30 (Layout Harness Extension — not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-10-09 — Milestone v5.0 started
+Status: Roadmap defined, awaiting planning
+Last activity: 2026-10-09 — Milestone v5.0 roadmap created (Phases 30–35)
 
-Progress: [░░░░░░░░░░] 0% (0 phases defined)
+Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 
 ## Performance Metrics
 
@@ -53,6 +53,12 @@ Progress: [░░░░░░░░░░] 0% (0 phases defined)
 | 27 Beast Power & Evolution Assist | 3/3 | Complete (automated; browser deferred) |
 | 28 Living Zones | 3/3 | Complete (automated; browser deferred) |
 | 29 Hero Gifts | 3/3 | Complete (automated; browser deferred) |
+| 30 Layout Harness Extension | 0/0 | Not started |
+| 31 Toast Lifecycle Scoping | 0/0 | Not started |
+| 32 Combat Layout | 0/0 | Not started |
+| 33 Bazaar & Zone Exploration Layout | 0/0 | Not started |
+| 34 Fit & Finish Bundle | 0/0 | Not started |
+| 35 Early-Game Pacing & Empty States | 0/0 | Not started |
 
 ## Accumulated Context
 
@@ -62,6 +68,7 @@ Progress: [░░░░░░░░░░] 0% (0 phases defined)
 - v3.0 shipped Phases 13–20 on 2026-10-09; REQ-021–REQ-034 validated at contract level, archives in `.planning/milestones/v3.0-*`.
 - v4.0 shipped Phases 21–29 on 2026-10-09; AFF-01..AFF-06, BST-01..BST-04, ZON-01..ZON-02, GFT-01, SAV-01 validated at contract level, archives in `.planning/milestones/v4.0-*`.
 - Preserve vanilla JS, script order, global namespaces, immediate-mode Canvas, localStorage, and authoritative systems.
+- v5.0 roadmap defined 2026-10-09: Phases 30–35 (harness → toast → combat → lists/zones → fit-finish → pacing last); LAY-05 before LAY-02; 9/9 requirements mapped.
 - Single-authority companion state (BondSystem + BeastBond, no parallel stores); combat clones only; COMMIT-ALL-FIVE readability verdict.
 - Diagnostics are local, bounded, and disabled by default behind a Settings debug toggle.
 - Evidence-led deprecation removal: call-site/runtime proof plus save-fixture hydration before deletion.

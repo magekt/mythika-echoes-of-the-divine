@@ -40,7 +40,7 @@
       }
     },
     combat: {
-      scene: 'combat',
+      scene: 'combatScene',
       contextSchema: { encounterSetup: 'object', partySurface: 'array', enemySurface: 'array' },
       commandSchema: {
         performAction: 'Combat.performAction',
@@ -68,7 +68,7 @@
       }
     },
     cultivation: {
-      scene: 'cultivation',
+      scene: 'cultivationScene',
       contextSchema: { realmProgress: 'object', heroSurface: 'object', partySummary: 'array' },
       commandSchema: {
         meditate: 'CultivationSystem.meditate',
