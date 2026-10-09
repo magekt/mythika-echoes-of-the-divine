@@ -1,0 +1,19 @@
+{
+  "_meta": { "updated_at": "2026-10-09T11:20:35Z", "source": ".planning/PROJECT.md Key Decisions + facades" },
+  "decisions": [
+    { "d": "Vanilla JS + Canvas 2D + localStorage + PWA; no framework/bundler/backend", "why": "incremental improvement beats rewrite; offline mobile-first", "status": "good" },
+    { "d": "index.html sync script order + classic globals as runtime contract", "why": "deterministic boot; reorder/defer/async banned", "status": "good" },
+    { "d": "Systems own mutations; data declarative; scenes present; UI factories presentation-only", "why": "single authority, no backdoor rewards", "status": "good" },
+    { "d": "Migrate via compatibility facades, not rewrites", "why": "cannot break mid-milestone globals", "examples": "Navigation.go+gScene wrapper, Scene.create auto-wrap, read-only selectors" },
+    { "d": "Navigation facade: canonical routes + legacy wrapper", "why": "REQ-030 modular seams with legacy callers intact", "status": "good" },
+    { "d": "Lifecycle guards + Scene.create auto-wrap", "why": "REQ-031 throw-safe enter, leak-free scenes", "status": "good" },
+    { "d": "Diagnostics opt-in behind Settings debug toggle (?probe/&selftest)", "why": "REQ-033/034 evidence without production noise; local only", "status": "good" },
+    { "d": "Remove deprecated code only with runtime evidence", "why": "script order + indirect globals evade static search; 19-REMOVALS.md proof", "status": "good" },
+    { "d": "Feedback presentation-owned, mutation-free, global drain in loop", "why": "toasts must never duplicate authoritative rewards", "status": "good" },
+    { "d": "Canvas-first: R.Backgrounds semantic slots + UI.HeroSurface read-only VM", "why": "art can evolve without touching gameplay authority", "status": "good" },
+    { "d": "Single-authority companions: BondSystem+BeastBond, shared exactly-once ledger, combat clones only, no new zone IDs", "why": "v4 depth without forking heroes/beasts/saves", "status": "good" },
+    { "d": "SaveSystem.migrate healing chain preserves unrelated state, fails safe", "why": "affinity/linger/combo/gifts/beastBond save-compatible", "status": "good" },
+    { "d": "Local deterministic world events; Firebase optional offline-safe", "why": "PWA/offline constraints, no server authority", "status": "good" },
+    { "d": "Browser-evidence deferral accepted v2+v3+v4 (matrices pending)", "why": "human browser matrix is bottleneck, not code", "status": "revisit: schedule owned browser slot next milestone" }
+  ]
+}

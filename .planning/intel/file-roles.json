@@ -1,0 +1,11 @@
+{
+  "_meta": { "updated_at": "2026-10-09T11:19:28Z", "source": "codemap.md files + AGENTS.md boundaries" },
+  "root": { "index.html": "sync entrypoint + script order", "src/main.js": "scene registry + boot", "sw.js/manifest.json": "PWA offline shell", "styles/game.css": "boot splash/container only (Canvas-first)", "tools/": "verify_matrix.py, check_ui_invariants.sh, diag_click.py" },
+  "src/engine/": "globals + loop: game.js(G/loop/Fade/Notify), scene.js/lifecycle.js guards, navigation.js/routes seams, renderer.js/backgrounds.js Canvas, input.js/audio.js, diagnostics.js opt-in, deprecation.js removal log, auth.js/firebase-config bridge",
+  "src/data/": "declarative only: heroes/enemies/zones/map_layout/landmarks/perks/auras/items(HERO_GIFTS)/classes/cultivation/alchemy_recipes/spirit_beasts/quests/achievements/journeys/encounters/zone_variants(bondReq)/bonds/narrative_echoes/world_events/influence_rules",
+  "src/systems/": "authoritative rules mutating G.state: save(world truth+persistence), world_state/influence/landmarks/narrative_echoes/world_events/living_zones, progression/combat/duel/economy/zone_rewards, quest/achievements/journey/encounter(exactly-once), bond/beastBond single authority, cultivation_sys/alchemy/farm loops, hints guidance",
+  "src/scenes/": "screens (enter/update/render/leave): title/characterCreate/welcome/authScene onboarding; ashram hub; travelMap/zoneExploration/map_helpers world; combatScene/tournament/trials fights; party/equipment/forge/cultivationScene/alchemyScene/punarjanma/spiritBeast/farm/fishing/bazaar/questLog/journeyScene/encounterScene/achievementsScene/settings/debug",
+  "src/ui/": "reusable immediate-mode factories (render/update/click/contains): button/panel/progressBar/text/list/tabbar/modal/card/heroSurface(read-only VM)/feedback(mutation-free)",
+  "tests/": "~50 node --test files co-located by feature (bond/beast/living_zones/navigation/lifecycle/combat/matrix); browser matrices *_browser_matrix + final_acceptance",
+  "docs": "codemap.md (root + src/*/codemap.md) = subsystem boundaries; .planning/PROJECT.md = decisions/requirements"
+}

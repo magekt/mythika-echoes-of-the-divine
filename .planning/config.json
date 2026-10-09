@@ -12,5 +12,8 @@
     "nyquist_validation": true,
     "auto_advance": true
   },
-  "research_instructions": "Before each plan, review the existing codebase, established patterns, reusable modules, lore-sensitive design, technical risks, error feedback, and debugging loops."
+  "research_instructions": "Before each plan, review the existing codebase, established patterns, reusable modules, lore-sensitive design, technical risks, error feedback, and debugging loops.",
+  "intel": {
+    "enabled": true
+  }
 }
