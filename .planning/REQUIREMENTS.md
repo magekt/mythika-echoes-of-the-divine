@@ -2,19 +2,19 @@
 
 ## Hero Affinity
 
-- [ ] **AFF-01**: Player can see each recruited hero's affinity meter (0–100) and tier (Wary→Trusted→Sworn→Legend) on the hero surface.
-- [ ] **AFF-02**: Encounter choices change affinity (gains only, no decay) when the hero is in the party.
-- [ ] **AFF-03**: Tier thresholds unlock bond dialogue events (recruit → crisis → oath) reusing encounter UI.
+- [x] **AFF-01**: Player can see each recruited hero's affinity meter (0–100) and tier (Wary→Trusted→Sworn→Legend) on the hero surface.
+- [x] **AFF-02**: Encounter choices change affinity (gains only, no decay) when the hero is in the party.
+- [x] **AFF-03**: Tier thresholds unlock bond dialogue events (recruit → crisis → oath) reusing encounter UI.
 - [x] **AFF-04**: Tier grants a passive combat bonus that applies only when the hero is in the active party.
 - [x] **AFF-05**: A bonded hero grants a small pair synergy buff alongside the player.
-- [ ] **AFF-06**: Tier 3 unlocks one signature duo skill per hero.
+- [x] **AFF-06**: Tier 3 unlocks one signature duo skill per hero.
 
 ## Beast Bonding
 
-- [ ] **BST-01**: Beast bond hearts (0–3) grow via battle-together XP plus feed/train actions.
-- [ ] **BST-02**: Each heart raises beast skill potency; heart 2 unlocks one passive.
-- [ ] **BST-03**: Heart 3 counts toward beast evolution requirements (evolution assist).
-- [ ] **BST-04**: Feed consumes farm/alchemy items and training spends gold/prana, both capped with cooldowns.
+- [x] **BST-01**: Beast bond hearts (0–3) grow via battle-together XP plus feed/train actions.
+- [x] **BST-02**: Each heart raises beast skill potency; heart 2 unlocks one passive.
+- [x] **BST-03**: Heart 3 counts toward beast evolution requirements (evolution assist).
+- [x] **BST-04**: Feed consumes farm/alchemy items and training spends gold/prana, both capped with cooldowns.
 
 ## Zone Deepening
 
@@ -23,11 +23,11 @@
 
 ## Gifts
 
-- [ ] **GFT-01**: Hero-liked items grant capped affinity with diminishing returns (no gift-vending).
+- [x] **GFT-01**: Hero-liked items grant capped affinity with diminishing returns (no gift-vending).
 
 ## Save Compatibility
 
-- [ ] **SAV-01**: Affinity, bond, and bond flags persist under save versioning with normalize healing (clamp, drop unknown keys, proto-pollution guard).
+- [x] **SAV-01**: Affinity, bond, and bond flags persist under save versioning with normalize healing (clamp, drop unknown keys, proto-pollution guard).
 
 ## Browser Evidence
 
