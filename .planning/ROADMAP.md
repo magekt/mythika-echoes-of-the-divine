@@ -4,7 +4,7 @@
 
 - ✅ **v2.0 Living Map & World State** — Phases 6-12 (shipped 2026-09-20)
 - ✅ **v3.0 Screen & Gameplay Revamp** — Phases 13-20 (shipped 2026-10-09)
-- 🚧 **v4.0 Deep Companions & Living Zones** — Phases 21-29 (active)
+- ✅ **v4.0 Deep Companions & Living Zones** — Phases 21-29 (shipped 2026-10-09)
 
 ## Completed Milestones
 
@@ -20,6 +20,12 @@ Accepted residual browser evidence: existing-worker cache activation/legacy-save
 
 Accepted residual browser evidence (same precedent as v2.0): live-browser matrix deferred across all 8 phases — console silence, `?probe` FPS, dense states, reduced motion, existing-worker cache activation, and the 10-combination full-loop journey matrix (all rows pending in 20-VERIFICATION.md). Feedback integration gap closed 2026-10-09.
 
+### v4.0 — Deep Companions & Living Zones ✅ SHIPPED (2026-10-09)
+
+9 phases, 26 plans, 14/15 requirements with passing automated contracts (suite 379/379 + UI invariants green). AFF-01 through GFT-01 plus SAV-01 validated at contract level; EVD-01 journey rows deferred. Full phase history and requirement outcomes: [v4.0-ROADMAP.md](milestones/v4.0-ROADMAP.md) · [v4.0-REQUIREMENTS.md](milestones/v4.0-REQUIREMENTS.md) · [v4.0-phases/](milestones/v4.0-phases/). Final audit: [v4.0-MILESTONE-AUDIT.md](milestones/v4.0-MILESTONE-AUDIT.md) (`gaps_found`, live-browser journey evidence only).
+
+Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headless harness green (3/3 profiles, 3 defects fixed); F1–F5/W1–W5 live journey rows pending plus feature walkthroughs across Phases 22–29 (affinity meter, bond scenes, combat log/Toast, duo button, feed/train taps, aura lines, variant tease, gift picker).
+
 ## Backlog
 
 - New zones or realms.
@@ -28,148 +34,46 @@ Accepted residual browser evidence (same precedent as v2.0): live-browser matrix
 
 ## Phases
 
-**Phase Numbering:** Milestone 1 completed Phases 1–5; Milestone 2 continued at Phase 6; Milestone 3 continued at Phase 13; Milestone v4.0 continues at Phase 21. Next milestone continues at Phase 30.
+**Phase Numbering:** Milestone 1 completed Phases 1–5; Milestone 2 continued at Phase 6; Milestone 3 continued at Phase 13; Milestone v4.0 completed Phases 21–29. Next milestone continues at Phase 30.
 
-## v4.0 — Deep Companions & Living Zones 🚧 ACTIVE
+## v4.0 — Deep Companions & Living Zones ✅ SHIPPED (2026-10-09)
 
-**Goal:** Existing zones feel deeper through companion relationships — heroes and spirit beasts grow with the player and reshape how familiar regions play.
+**Goal (achieved):** Existing zones feel deeper through companion relationships — heroes and spirit beasts grow with the player and reshape how familiar regions play.
 
-**Boundaries:** No new realm geography; no backend/multiplayer; no framework/renderer migration; companion state extends existing heroes/beasts/save contracts (no parallel stores); browser-evidence debt scheduled first, not re-deferred.
+**Boundaries held:** No new realm geography; no backend/multiplayer; no framework/renderer migration; companion state extends existing heroes/beasts/save contracts (no parallel stores); browser-evidence debt scheduled first (Phase 21 harness green, journey deferred as accepted residual).
 
 ## Phases
 
-- [x] **Phase 21: Browser Evidence Catch-Up** - Execute the combined v2.0 + v3.0 browser matrix early (completed 2026-10-09; harness green, journey deferred)
-- [x] **Phase 22: Affinity Foundation & Persistence** - Hero affinity meter, tiers, and save-compatible state
-- [x] **Phase 23: Choice-Driven Bonds & Dialogue** - Encounter choices grow affinity and unlock bond dialogue
-- [x] **Phase 24: Combat Bonds** - Tier passives and pair synergy in active-party combat
-- [x] **Phase 25: Signature Combos** - One Tier-3 duo skill on one hero before committing to all
-- [x] **Phase 26: Beast Hearts & Care Actions** - Bond hearts via battle XP plus feed/train
-- [x] **Phase 27: Beast Power & Evolution Assist** - Heart potency, passive, and earlier evolution
-- [x] **Phase 28: Living Zones** - Companion-gated encounters, landmarks, and narrative echoes (completed 2026-10-09; automated contracts green, browser deferred)
-- [x] **Phase 29: Hero Gifts** - Liked-item gifting with caps and diminishing returns
+*Phases 21–29 shipped 2026-10-09. Full details: [v4.0-ROADMAP.md](milestones/v4.0-ROADMAP.md).*
+
+- [x] **Phase 21: Browser Evidence Catch-Up** (2 plans — harness green, journey deferred)
+- [x] **Phase 22: Affinity Foundation & Persistence** (3 plans)
+- [x] **Phase 23: Choice-Driven Bonds & Dialogue** (3 plans)
+- [x] **Phase 24: Combat Bonds** (3 plans)
+- [x] **Phase 25: Signature Combos** (3 plans)
+- [x] **Phase 26: Beast Hearts & Care Actions** (3 plans)
+- [x] **Phase 27: Beast Power & Evolution Assist** (3 plans)
+- [x] **Phase 28: Living Zones** (3 plans)
+- [x] **Phase 29: Hero Gifts** (3 plans)
 
 ## Phase Details
 
-### Phase 21: Browser Evidence Catch-Up
-**Goal**: Deferred browser evidence is executed and recorded instead of re-deferred
-**Depends on**: Nothing (first phase of v4.0)
-**Requirements**: EVD-01
-**Success Criteria** (what must be TRUE):
-  1. Player can boot the game in a real browser with no console errors on legacy and current saves
-  2. Player experiences smooth frame rates on dense map states and reduced-motion mode behaves correctly
-  3. Returning player loads cached assets with the service worker active
-  4. The 10-combination full-loop journey matrix shows executed evidence rows
-**Plans**: 2 plans
+*Phases 6–20 details live in prior archives: [v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md), [v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md). Phases 21–29 details: [v4.0-ROADMAP.md](milestones/v4.0-ROADMAP.md).*
 
-Plans:
-- [x] 21-01-PLAN.md — Headless Chrome boot matrix + 21-VERIFICATION.md skeleton
-- [x] 21-02-PLAN.md (journey deferred) — 10-combination live journey matrix + defect triage
+<details>
+<summary>✅ v4.0 Deep Companions & Living Zones (Phases 21-29) — SHIPPED 2026-10-09</summary>
 
-### Phase 22: Affinity Foundation & Persistence
-**Goal**: Players can see and trust each recruited hero's affinity bond on the hero screen
-**Depends on**: Phase 21
-**Requirements**: AFF-01, SAV-01
-**Success Criteria** (what must be TRUE):
-  1. Player can see each recruited hero's affinity meter (0–100) and tier (Wary→Trusted→Sworn→Legend) on the hero screen
-  2. Player reloads the game and finds affinity values, bond hearts, and bond flags intact
-  3. Player loading a legacy or malformed save gets safe healed defaults instead of a crash
-**Plans**: 3 plans
+- [x] Phase 21: Browser Evidence Catch-Up (2/2 plans; harness green, journey deferred) — completed 2026-10-09
+- [x] Phase 22: Affinity Foundation & Persistence (3/3 plans) — completed 2026-10-09
+- [x] Phase 23: Choice-Driven Bonds & Dialogue (3/3 plans) — completed 2026-10-09
+- [x] Phase 24: Combat Bonds (3/3 plans) — completed 2026-10-09
+- [x] Phase 25: Signature Combos (3/3 plans) — completed 2026-10-09
+- [x] Phase 26: Beast Hearts & Care Actions (3/3 plans) — completed 2026-10-09
+- [x] Phase 27: Beast Power & Evolution Assist (3/3 plans) — completed 2026-10-09
+- [x] Phase 28: Living Zones (3/3 plans) — completed 2026-10-09
+- [x] Phase 29: Hero Gifts (3/3 plans) — completed 2026-10-09
 
-Plans:
-- [ ] 22-01-PLAN.md — BondSystem tier/accessor/normalize contract + script registration
-- [ ] 22-02-PLAN.md — HeroSurface affinity meter + tier display + recruit seeding
-- [ ] 22-03-PLAN.md — Save persistence + migrate healing + matrix contract
-**UI hint**: yes
-
-### Phase 23: Choice-Driven Bonds & Dialogue
-**Goal**: Player choices in encounters visibly deepen hero bonds through dialogue
-**Depends on**: Phase 22
-**Requirements**: AFF-02, AFF-03
-**Success Criteria** (what must be TRUE):
-  1. Player making an encounter choice with a party hero present sees that hero's affinity increase
-  2. Player reaching a new tier unlocks a bond dialogue event (recruit → crisis → oath) in the encounter UI
-  3. Player sees no affinity decay or loss from absence — bonds only grow or rest dormant
-**Plans**: 3 plans
-
-Plans:
-- [ ] 23-01-PLAN.md — Choice-gain wiring (+2/+4 via BondSystem.add, eligibility-gated)
-- [ ] 23-02-PLAN.md — Bond arc content + unlocks (15 recruit/crisis/oath scenes, replay caps)
-- [ ] 23-03-PLAN.md — Matrix contract (gains, arcs, caps, persistence, isolation)
-**UI hint**: yes
-
-### Phase 24: Combat Bonds
-**Goal**: Bonded heroes fight alongside the player with visible tier and synergy benefits
-**Depends on**: Phase 23
-**Requirements**: AFF-04, AFF-05
-**Success Criteria** (what must be TRUE):
-  1. Player entering combat with a bonded hero in the active party sees the tier passive bonus applied
-  2. Player fighting alongside a bonded hero sees the small pair synergy buff take effect
-  3. Player moving the hero out of the active party sees the bonuses removed
-**Plans**: 3 plans
-
-Plans:
-- [x] 24-01-PLAN.md — BondSystem passive/role-stat/synergy/linger contract + unit tests
-- [x] 24-02-PLAN.md — Combat application + scene surfacing + party bench action + HeroSurface bond state
-- [x] 24-03-PLAN.md — End-to-end matrix + linger persistence + full-suite guard + 24-VERIFICATION.md
-
-### Phase 25: Signature Combo Pilot
-**Goal**: One hero's Tier-3 duo skill proves the fantasy payoff without regressing combat readability
-**Depends on**: Phase 24
-**Requirements**: AFF-06
-**Success Criteria** (what must be TRUE):
-  1. Player with one pilot hero at Tier 3 can unleash that hero's signature duo skill in combat
-  2. Player can read what the combo did through existing combat feedback without confusion
-  3. Pilot readability verdict is recorded: commit to all heroes or keep scope contained
-**Plans**: TBD
-
-### Phase 26: Beast Hearts & Care Actions
-**Goal**: Players grow spirit-beast bonds through fighting together and caring actions
-**Depends on**: Phase 22
-**Requirements**: BST-01, BST-04
-**Success Criteria** (what must be TRUE):
-  1. Player sees beast bond hearts (0–3) grow from battle-together XP
-  2. Player can feed farm/alchemy items and spend gold/prana on training to earn capped bond XP
-  3. Player hitting daily caps or cooldowns gets a clear explanation instead of a silent denial
-**Plans**: TBD
-**UI hint**: yes
-
-### Phase 27: Beast Power & Evolution Assist
-**Goal**: Bonded beasts fight stronger and evolve earlier than unbonded ones
-**Depends on**: Phase 26
-**Requirements**: BST-02, BST-03
-**Success Criteria** (what must be TRUE):
-  1. Player sees each beast heart raise that beast's skill potency
-  2. Player reaching heart 2 sees the beast's unlocked passive in effect
-  3. Player with a heart-3 beast sees it qualify for evolution earlier via evolution assist
-**Plans**: TBD
-
-### Phase 28: Living Zones
-**Goal**: Familiar zones play differently because of the player's companion bonds
-**Depends on**: Phase 23, Phase 27
-**Requirements**: ZON-01, ZON-02
-**Success Criteria** (what must be TRUE):
-  1. Player entering an existing zone with the required affinity/bond minimum meets a companion-gated encounter variant
-  2. Player without the bond minimum gets the standard encounter with no dead ends or errors
-  3. Player visiting zone landmarks and narrative echoes sees them reference their highest-bond companion
-  4. Player sees no new zone IDs — all depth lives within current geography
-**Plans**: 3 plans
-
-Plans:
-- [x] 28-01-PLAN.md — Variant table + bondReq gating + contract suite
-- [x] 28-02-PLAN.md — LivingZones system + exploration tease hook
-- [x] 28-03-PLAN.md — Oath naming + full guard + 28-VERIFICATION.md
-**UI hint**: yes
-
-### Phase 29: Hero Gifts
-**Goal**: Players deepen bonds by giving heroes items they like, without gift-vending exploits
-**Depends on**: Phase 23
-**Requirements**: GFT-01
-**Success Criteria** (what must be TRUE):
-  1. Player giving a hero a liked item sees capped affinity gain
-  2. Player repeating the same gift sees diminishing returns instead of full gains
-  3. Player cannot farm unlimited affinity by bulk-gifting (caps hold)
-**Plans**: TBD
-**UI hint**: yes
+</details>
 
 <details>
 <summary>✅ v2.0 Living Map & World State (Phases 6-12) — SHIPPED 2026-09-20</summary>
@@ -268,7 +172,7 @@ Plans:
 | ZON-02 — Landmark/echo bond references | Phase 28 | v4.0 |
 | GFT-01 — Hero gift preferences | Phase 29 | v4.0 |
 
-**v4.0 Coverage:** 15/15 requirements mapped exactly once; no orphans or duplicates.
+**v4.0 Coverage:** 15/15 requirements mapped exactly once; no orphans or duplicates. 14/15 checked off; EVD-01 journey rows deferred (accepted residual).
 
 ---
-*Roadmap reorganized 2026-10-09 at v3.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md.*
+*Roadmap reorganized 2026-10-09 at v4.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md.*
