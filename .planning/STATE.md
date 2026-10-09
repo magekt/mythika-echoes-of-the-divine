@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v4.0
-milestone_name: Deep Companions & Living Zones
-status: shipped
-stopped_at: "v4.0 shipped 2026-10-09; Phases 21-29 archived"
+milestone: v5.0
+milestone_name: Layout Fixes & Early-Game Pacing
+status: planning
+stopped_at: "v5.0 started; defining requirements"
 last_updated: "2026-10-09T00:00:00Z"
-last_activity: 2026-10-09 — v4.0 milestone complete and archived (tag v4.0)
+last_activity: 2026-10-09 — Milestone v5.0 started
 progress:
-  total_phases: 9
-  completed_phases: 9
-  total_plans: 26
-  completed_plans: 26
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-10-09)
 
 **Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Planning next milestone (phase numbering continues at Phase 30; run `/gsd-new-milestone`).
+**Current focus:** Define and plan v5.0 requirements before implementation.
 
 ## Current Position
 
-Phase: — (v4.0 shipped)
+Phase: Not started (defining requirements)
 Plan: —
-Status: Milestone complete, archived, tagged v4.0
-Last activity: 2026-10-09 — v4.0 milestone complete and archived
+Status: Defining requirements
+Last activity: 2026-10-09 — Milestone v5.0 started
 
 Progress: [██████████] 100% (9/9 phases, 26/26 plans)
 

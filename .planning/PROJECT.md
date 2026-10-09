@@ -22,9 +22,16 @@ Validated requirements: AFF-01 through AFF-06, BST-01 through BST-04, ZON-01, ZO
 
 Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot, event walkthrough, and mobile FPS/dense-map/reduced-motion walkthroughs — plus the v3.0 10-combination full-loop journey matrix (all rows pending) — plus v4.0 feature walkthroughs (affinity meter, bond scenes, combat log/Toast, duo button, feed/train taps, aura lines, variant tease, gift picker).
 
-## Current Milestone: Planning next milestone
+## Current Milestone: v5.0 Layout Fixes & Early-Game Pacing
 
-**Goal:** TBD via `/gsd-new-milestone` — phase numbering continues at Phase 30.
+**Goal:** Remove the visible layout collisions and pacing problems the play report found, so the first hour plays clean.
+
+**Target features:**
+- Combat, Bazaar, and zone-exploration overlap fixes
+- Toast lifecycle, nav label, title, map-card, Ashram, and modal fixes
+- Early-combat and zone-clear pacing rebalance
+
+**Source:** 11 filed todos in `.planning/todos/pending/` from the 2026-10-09 headless-Chromium play report.
 
 ## Shipped Milestone v3.0 — Screen & Gameplay Revamp
 
@@ -106,6 +113,13 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 - Companion systems are presentation + authoritative-state extensions of existing heroes, beasts, and save/world-state contracts — no parallel stores.
 - Browser-evidence debt (v2.0 + v3.0 matrices) is scheduled early in v4.0, not re-deferred.
 
+### v5.0 Boundaries
+
+- Layout and pacing fixes only: no new systems, zones, or progression content.
+- Combat-band (Phase 14/24/25), feedback, navigation, and lifecycle contracts must keep passing.
+- No online backend, multiplayer, framework, renderer, or bundler changes.
+- Balance changes stay in data/tuning constants; no combat-rule rewrites.
+
 ## Context
 
 - Existing codebase: vanilla ES6, HTML5 Canvas 2D, Web Audio API, localStorage, PWA; `index.html` loads scripts in dependency order.
@@ -168,4 +182,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-09 — v4.0 Deep Companions & Living Zones shipped*
+*Last updated: 2026-10-09 — v5.0 Layout Fixes & Early-Game Pacing started*
