@@ -223,7 +223,7 @@ test('legacy save hydration adds canonical world state without changing unrelate
     party: [{ id: 'hero-1', name: 'Arjun', hp: 80 }],
     gold: 4321,
     karma: 17,
-    flags: { pilgrimageComplete: true },
+    flags: { pilgrimageComplete: true, welcomeGold: true },
     encounters: { seen: { hermit: true } },
     zoneProgress: { forest: 6 }
   };
@@ -249,6 +249,7 @@ test('save migration repairs partial and malformed world branches during load', 
   const { G, SaveSystem, localStorage } = loadContract({ withSave: true });
   const state = G.createDefaultState();
   state.gold = 99;
+  state.flags.welcomeGold = true;
   state.zoneProgress = { coast: 3 };
   state.world = JSON.parse(`{
     "regions":{"coast":{"explored":true},"__proto__":{"polluted":true}},
@@ -280,6 +281,7 @@ test('save migration repairs partial and malformed world branches during load', 
 test('every world domain and replay guard survives a save-load round trip', () => {
   const { G, WorldState, SaveSystem } = loadContract({ withSave: true });
   G.state.gold = 777;
+  G.state.flags.welcomeGold = true;
   G.state.zoneProgress = { mountain: 9 };
   G.state.world = WorldState.normalize({
     regions: { mountain: { explored: true, tier: 2 } },

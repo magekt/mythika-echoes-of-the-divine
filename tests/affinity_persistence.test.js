@@ -59,6 +59,7 @@ test('fresh state contains an empty affinity map', () => {
 test('affinity values survive a save-load round trip', () => {
   const { G, SaveSystem } = loadContract();
   G.state.gold = 500;
+  G.state.flags.welcomeGold = true;
   G.state.affinity = { arjuna: 40, bhima: 90 };
   assert.equal(SaveSystem.save(), true);
   G.state = G.createDefaultState();
@@ -73,7 +74,7 @@ test('legacy saves without affinity heal to an empty map', () => {
     player: { id: 'arjuna', name: 'Arjuna' },
     party: [{ id: 'arjuna', name: 'Arjuna', hp: 80 }],
     gold: 4321,
-    flags: { pilgrimageComplete: true },
+    flags: { pilgrimageComplete: true, welcomeGold: true },
     encounters: { seen: { hermit: true } }
   };
   assert.equal(SaveSystem.hydrate(legacy), true);
@@ -116,6 +117,7 @@ test('migrate heals via inline fallback when BondSystem is absent', () => {
 test('save envelope version stays 1 and unrelated state is preserved', () => {
   const { G, SaveSystem, localStorage } = loadContract();
   G.state.gold = 777;
+  G.state.flags.welcomeGold = true;
   G.state.zoneProgress = { mountain: 9 };
   G.state.affinity = { karna: 55 };
   assert.equal(SaveSystem.save(), true);

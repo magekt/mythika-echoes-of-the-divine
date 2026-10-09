@@ -423,7 +423,7 @@ test('matrix: combo flags survive save/load; crafted values heal', () => {
   crafted.affinity = {};
   crafted.flags = JSON.parse('{"questDone":2,"combo_arjuna":"yes","combo_unknownhero":true,"combo_bhima":true}');
   assert.equal(SaveSystem.hydrate(crafted), true);
-  assert.deepEqual(host(G.state.flags), { questDone: 2, combo_bhima: true });
+  assert.deepEqual(host(G.state.flags), { questDone: 2, combo_bhima: true, welcomeGold: true });
 });
 
 test('matrix: band separation — scene adds no visual layer for combos', () => {

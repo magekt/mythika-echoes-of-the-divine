@@ -169,13 +169,17 @@ const Fade = {
   }
 };
 
+// Welcome gift for every player (tune down later via this constant).
+// `var` keeps it visible on globalThis for save.js and tests.
+var WELCOME_GOLD = 9999;
+
 function createDefaultGameState() {
   return {
     scene: 'title',
     player: null,
     party: [],
     inventory: [],
-    gold: 0,
+    gold: WELCOME_GOLD,
     karma: 0,
     divineFragments: 0,
     prana: 0,

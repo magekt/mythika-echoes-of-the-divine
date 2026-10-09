@@ -70,6 +70,14 @@ SaveSystem.migrate = function() {
       G.state[field] = isFinite(n) && n >= 0 ? Math.floor(n) : 0;
     }
   }
+  // Welcome gift: one-time gold grant for every save (existing included).
+  // Tune via WELCOME_GOLD in game.js; flagged so it never grants twice.
+  var welcomeGold = (typeof WELCOME_GOLD !== 'undefined' && isFinite(WELCOME_GOLD)) ? Math.max(0, Math.floor(WELCOME_GOLD)) : 0;
+  if (welcomeGold > 0 && G.state.flags && !G.state.flags.welcomeGold) {
+    const base = (G.state.gold != null && isFinite(G.state.gold)) ? Math.floor(G.state.gold) : 0;
+    G.state.gold = Math.max(0, base) + welcomeGold;
+    G.state.flags.welcomeGold = true;
+  }
   if (typeof ZoneRewardSystem !== 'undefined' && ZoneRewardSystem.normalize) {
     ZoneRewardSystem.normalize();
   }

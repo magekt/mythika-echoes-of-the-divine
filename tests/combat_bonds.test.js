@@ -477,6 +477,6 @@ test('malformed healing: crafted linger values heal, quest flags verbatim', () =
   state.flags = JSON.parse('{"questDone":3,"bond_linger_arjuna":"yes","bond_linger_unknownhero":true}');
   state.flags['__proto__'] = { polluted: true };
   assert.equal(SaveSystem.hydrate(state), true);
-  assert.deepEqual(host(G.state.flags), { questDone: 3 });
+  assert.deepEqual(host(G.state.flags), { questDone: 3, welcomeGold: true });
   assert.equal({}.polluted, undefined);
 });
