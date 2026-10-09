@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Deep Companions & Living Zones
 status: planning
-stopped_at: "v4.0 started; defining requirements"
+stopped_at: "v4.0 roadmap created; Phases 21-29"
 last_updated: "2026-10-09T00:00:00Z"
-last_activity: 2026-10-09 — Milestone v4.0 started
+last_activity: 2026-10-09 — v4.0 roadmap created (Phases 21-29)
 progress:
-  total_phases: 0
+  total_phases: 9
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,16 +21,16 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-10-09)
 
 **Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Define and plan v4.0 requirements before implementation.
+**Current focus:** v4.0 Deep Companions & Living Zones — roadmap approved structure is Phases 21-29; plan Phase 21 next.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 21 - Browser Evidence Catch-Up (ready to plan)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-10-09 — Milestone v4.0 started
+Status: Roadmap complete, awaiting phase planning
+Last activity: 2026-10-09 — v4.0 roadmap created (Phases 21-29)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [░░░░░░░░░░] 0% (0/9 phases)
 
 ## Performance Metrics
 
@@ -72,7 +72,7 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Pending Todos
 
-No pending todo files. Next milestone should schedule the combined v2.0 + v3.0 browser-evidence matrix early rather than re-deferring it.
+v4.0 roadmap created with Phases 21-29. Next: `/gsd-plan-phase 21` (browser evidence catch-up, scheduled first per v4.0 boundary).
 
 ### Blockers/Concerns
 
