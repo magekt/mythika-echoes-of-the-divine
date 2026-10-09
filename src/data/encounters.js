@@ -270,6 +270,36 @@ function encounterAvailable(enc, ctx) {
     }
   }
 
+  // Companion-bond prerequisites (Phase 28 Living Zones): variant encounters
+  // declare bondReq { hero, affinityMin } or { beast, heartMin }. Absent or
+  // hostile bond systems degrade to ineligible — never a throw, and standard
+  // encounters (no bondReq) are unaffected.
+  if (enc.bondReq && typeof enc.bondReq === 'object' && !Array.isArray(enc.bondReq)) {
+    try {
+      const req = enc.bondReq;
+      const badKey = function(k) {
+        return typeof k !== 'string' || k.length === 0 || k === '__proto__' || k === 'constructor' || k === 'prototype';
+      };
+      if (typeof req.hero === 'string' && req.hero.length > 0) {
+        if (badKey(req.hero)) return false;
+        if (typeof BondSystem === 'undefined' || !BondSystem || typeof BondSystem.valueFor !== 'function') return false;
+        const min = Math.floor(Number(req.affinityMin));
+        if (!Number.isFinite(min)) return false;
+        if (BondSystem.valueFor(req.hero) < min) return false;
+      } else if (typeof req.beast === 'string' && req.beast.length > 0) {
+        if (badKey(req.beast)) return false;
+        if (typeof BeastBond === 'undefined' || !BeastBond || typeof BeastBond.heartFor !== 'function' || typeof BeastBond.xpFor !== 'function') return false;
+        const min = Math.floor(Number(req.heartMin));
+        if (!Number.isFinite(min)) return false;
+        if (BeastBond.heartFor(BeastBond.xpFor(req.beast)) < min) return false;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
   return true;
 }
 

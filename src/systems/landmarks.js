@@ -76,6 +76,19 @@ Landmarks.getAll = function(zoneId) {
 
   for (var i = 0; i < definitions.length; i++) {
     var landmark = definitions[i];
+    // Living Zones (Phase 28, ZON-02): read-time oath-companion note.
+    // Derived only — no persistence shape change; null when unbonded/absent.
+    var bondNote = null;
+    try {
+      if (typeof LivingZones !== 'undefined' && LivingZones && typeof LivingZones.landmarkBondNote === 'function') {
+        bondNote = LivingZones.landmarkBondNote(zoneId);
+      } else if (typeof globalThis !== 'undefined' && globalThis.LivingZones && typeof globalThis.LivingZones.landmarkBondNote === 'function') {
+        bondNote = globalThis.LivingZones.landmarkBondNote(zoneId);
+      }
+      if (typeof bondNote !== 'string') bondNote = null;
+    } catch (e) {
+      bondNote = null;
+    }
     result.push({
       id: landmark.id,
       name: landmark.name,
@@ -84,6 +97,7 @@ Landmarks.getAll = function(zoneId) {
       description: landmark.description,
       relevance: landmark.relevance,
       action: landmark.action,
+      bondNote: bondNote,
       discovered: this.isDiscovered(landmark.id)
     });
   }

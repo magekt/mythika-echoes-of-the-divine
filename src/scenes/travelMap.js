@@ -677,13 +677,23 @@ const travelMapScene = Scene.create({
     const w = G.W - 24;
     const h = 244;
 
-    // Cache wrapText results keyed by landmark ID
-    const cacheKey = 'landmark_' + this.data.selectedLandmark;
+    // Living Zones (Phase 28, ZON-02): oath-companion note appended to
+    // relevance at read time; byte-identical rendering when unbonded.
+    var bondNote = null;
+    try {
+      if (typeof LivingZones !== 'undefined' && LivingZones && typeof LivingZones.landmarkBondNote === 'function') {
+        var bn = LivingZones.landmarkBondNote(landmark.zoneId);
+        if (typeof bn === 'string' && bn.length > 0) bondNote = bn;
+      }
+    } catch (e) { bondNote = null; }
+
+    // Cache wrapText results keyed by landmark ID + bond note (bond state changes refresh the note)
+    const cacheKey = 'landmark_' + this.data.selectedLandmark + '|' + (bondNote || '');
     if (!this.data._descCache || this.data._descCache.key !== cacheKey) {
       this.data._descCache = {
         key: cacheKey,
         descLines: this.wrapText(ctx, landmark.description, w - 36).slice(0, 3),
-        relevanceLines: this.wrapText(ctx, landmark.relevance, w - 36).slice(0, 2)
+        relevanceLines: this.wrapText(ctx, landmark.relevance + (bondNote ? ' ' + bondNote : ''), w - 36).slice(0, bondNote ? 3 : 2)
       };
     }
 
@@ -859,7 +869,9 @@ const travelMapScene = Scene.create({
       ctx.fillText(echo.label, x + 18, y + 145);
       ctx.fillStyle = R.colors.textSecondary;
       ctx.font = R.fonts.xs;
-      ctx.fillText((echo.desc || '').length > 50 ? echo.desc.slice(0, 47) + '\u2026' : echo.desc, x + 18, y + 160);
+      // Living Zones (Phase 28, ZON-02): oath witness suffix; identical when null.
+      const echoText = (echo.desc || '') + (typeof echo.companion === 'string' ? echo.companion : '');
+      ctx.fillText(echoText.length > 50 ? echoText.slice(0, 47) + '\u2026' : echoText, x + 18, y + 160);
     }
 
     if (lockReason) {

@@ -18,8 +18,8 @@
 
 ## Zone Deepening
 
-- [ ] **ZON-01**: Existing zones surface companion-gated encounter variants requiring affinity/bond minimums (no new zone IDs).
-- [ ] **ZON-02**: Landmarks and narrative echoes reference the highest-bond companion per zone.
+- [x] **ZON-01**: Existing zones surface companion-gated encounter variants requiring affinity/bond minimums (no new zone IDs).
+- [x] **ZON-02**: Landmarks and narrative echoes reference the highest-bond companion per zone.
 
 ## Gifts
 

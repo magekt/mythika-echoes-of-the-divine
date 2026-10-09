@@ -277,6 +277,21 @@ const zoneExplorationScene = Scene.create({
         const narrId = (typeof EncounterTrigger !== 'undefined' && EncounterTrigger.rollZone) ? EncounterTrigger.rollZone(this.data.zoneId) : null;
         if (narrId) {
           this.data.log.push('Something stirs in the ' + (this.data.zone ? this.data.zone.name : 'wilds') + '...');
+          // Living Zones tease (Phase 28): standard encounters hint at deeper
+          // bonds; variant (lz_) rolls need no tease. Toast only, never blocks.
+          try {
+            if (typeof narrId === 'string' && narrId.indexOf('lz_') !== 0
+              && typeof LivingZones !== 'undefined' && LivingZones && typeof LivingZones.teaseFor === 'function') {
+              const tease = LivingZones.teaseFor(this.data.zoneId);
+              if (typeof tease === 'string' && tease.length > 0) {
+                if (typeof Notify !== 'undefined' && Notify && typeof Notify.show === 'function') {
+                  Notify.show(tease, 4);
+                } else if (typeof UI !== 'undefined' && UI && UI.Feedback && typeof UI.Feedback.Toast === 'function') {
+                  UI.Feedback.Toast(tease, { icon: '💬', duration: 4 });
+                }
+              }
+            }
+          } catch (e) {}
           gScene('encounterScene', true, { encounterId: narrId, origin: 'zoneExploration' });
           this.data.encounterTimer = 2 + Math.random() * 2;
           this.data.totalEncounterTimer = this.data.encounterTimer;
