@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 31-toast-lifecycle-scoping
 source: [31-01-SUMMARY.md, 31-02-SUMMARY.md]
 started: 2026-10-10T00:00:00Z
@@ -50,7 +50,13 @@ blocked: 0
   reason: "User reported: when I click recruit, new hero, the toast still has previous screen of the initially selected hero visible."
   severity: major
   test: 5
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "partyScene.render() (src/scenes/party.js ~814-875) has no branch for data.view==='recruit', so the Recruit Hall falls through to the detail else-branch and repaints the previously selected hero's header/detail/action-button shell behind the recruit-candidate buttons. selectedHero is never cleared on the list-to-recruit switch. No scene transition occurs (in-scene view switch by design), so Phase 31 clearSceneToasts correctly never fires — the stale pixels are chrome, not queued toasts."
+  artifacts:
+    - path: "src/scenes/party.js"
+      issue: "missing view==='recruit' render branch; falls into detail else-branch painting stale selectedHero; recruit header staticDraw built but never painted"
+    - path: "src/ui/feedback.js"
+      issue: "recruitHero fires two 3s toasts at fixed ty=470 over rebuilt list buttons, compounding the overlap complaint"
+  missing:
+    - "Add explicit view==='recruit' render branch (header + clip + recruit buttons + staticDraws)"
+    - "Clear or ignore selectedHero chrome while in recruit view"
+  debug_session: ".planning/debug/recruit-stale-screen.md"
