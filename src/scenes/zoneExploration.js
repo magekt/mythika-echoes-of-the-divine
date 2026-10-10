@@ -45,6 +45,7 @@ const zoneExplorationScene = Scene.create({
     this.data.progressGained = 0;
     this.data.log = ['Entering ' + this.data.zone.name + '...'];
     this.data.state = 'exploring';
+    TourSystem.start('firstBattle');
     this.data.zoneComplete = (G.state.zoneProgress[this.data.zoneId] || 0) >= 100;
     this.data.scrollY = 0;
     this.data.currentEnemy = null;
@@ -286,6 +287,15 @@ const zoneExplorationScene = Scene.create({
   },
 
   update: function(dt) {
+    if (TourSystem.isActive()) {
+      const tap = Input.peekTap();
+      if (tap) {
+        Input.getTap();
+        TourSystem.advance();
+      }
+      UI.updateButtons(this.data.buttons, dt);
+      return;
+    }
     if (!this.data.zone) return;
     if (this.data.state === 'exploring' && !this.data.zoneComplete) {
       this.data.encounterTimer -= dt;
@@ -379,5 +389,6 @@ const zoneExplorationScene = Scene.create({
     ctx.restore();
 
     Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY, 18);
+    TourSystem.render(ctx);
   }
 });

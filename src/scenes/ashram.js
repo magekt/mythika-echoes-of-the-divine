@@ -352,6 +352,32 @@ const ashramScene = Scene.create({
       R.textCenter(ctx, 'Zone: ' + zoneName + ' (' + zonePct + '%)', G.W / 2, 236, R.colors.textDim, R.fonts.sm);
     }
 
+    if (G.state.journeys && G.state.journeys.active) {
+      const aj = JOURNEYS[G.state.journeys.active];
+      if (aj && !JourneySystem.isCompleted(G.state.journeys.active)) {
+        const prog = JourneySystem.getProgress(G.state.journeys.active);
+        const totalNodes = aj.nodes ? aj.nodes.length : 0;
+        const label = aj.icon + ' ' + aj.name + '  ' + (prog.nodeId ? 'node ' + (totalNodes ? '' : '') + '' : '') + '';
+        const progressText = totalNodes > 0 ? ' ' + (totalNodes === 1 ? 'active' : 'in progress') : 'active';
+        R.roundRect(ctx, G.W/2 - 100, 248, 200, 28, 8, 'rgba(200,160,48,0.08)');
+        ctx.strokeStyle = R.colors.gold;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        const rj = 8, xj = G.W/2 - 100, yj = 248, wj = 200, hj = 28;
+        ctx.moveTo(xj + rj, yj); ctx.lineTo(xj + wj - rj, yj);
+        ctx.quadraticCurveTo(xj + wj, yj, xj + wj, yj + rj);
+        ctx.lineTo(xj + wj, yj + hj - rj);
+        ctx.quadraticCurveTo(xj + wj, yj + hj, xj + wj - rj, yj + hj);
+        ctx.lineTo(xj + rj, yj + hj);
+        ctx.quadraticCurveTo(xj, yj + hj, xj, yj + hj - rj);
+        ctx.lineTo(xj, yj + rj);
+        ctx.quadraticCurveTo(xj, yj, xj + rj, yj);
+        ctx.closePath(); ctx.stroke();
+        R.textCenter(ctx, aj.icon + ' ' + aj.name, G.W/2, 258, R.colors.gold, R.fonts.sm);
+        R.textCenter(ctx, 'Journey — tap to continue', G.W/2, 270, R.colors.textDim, R.fonts.xs);
+      }
+    }
+
     const top = this.getContentTop();
     const contentH = this.getContentHeight();
     ctx.save();

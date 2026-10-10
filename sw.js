@@ -53,6 +53,8 @@ const ASSETS = [
   'src/systems/quest.js',
   'src/systems/achievements.js',
   'src/systems/journey.js',
+  'src/systems/tour.js',
+  'src/systems/gloss.js',
   'src/systems/encounter.js',
   'src/systems/living_zones.js',
   'src/systems/narrative_echoes.js',

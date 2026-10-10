@@ -163,6 +163,16 @@ const characterCreateScene = Scene.create({
         if (sb.mp) bonusParts.push('MP+' + sb.mp);
         const bonusStr = bonusParts.join(' ');
         R.text(ctx, bonusStr, bx + 18, by + 60, R.colors.blueLight, R.fonts.sm);
+        const seen = G.state.glossSeen || {};
+        const shownGlosses = [];
+        if (!seen.__step0GlossesShown) {
+          for (const label of ['HP','STR','MAG','MP']) {
+            const g = GlossSystem.gloss(label);
+            if (g) { R.text(ctx, g, bx + 18, by + 72, R.colors.textDim, R.fonts.xs); shownGlosses.push(label); }
+          }
+          G.state.glossSeen = G.state.glossSeen || {};
+          G.state.glossSeen.__step0GlossesShown = true;
+        }
       };
       btn.onClick = function() {
         characterCreateScene.data.selectedClass = this._id;
