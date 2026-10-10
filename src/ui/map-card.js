@@ -17,25 +17,31 @@ UI.MapCard = function(x, y, w, opts) {
       const h = this.height;
       
       // Card background
+      const r8 = Math.min(8, this.w / 2, h / 2);
       ctx.fillStyle = this.locked ? 'rgba(40,40,60,0.6)' : 'rgba(60,80,120,0.8)';
-      R.roundRect(ctx, this.x, this.y, this.w, h, 4, ctx.fillStyle);
+      R.roundRect(ctx, this.x, this.y, this.w, h, r8, ctx.fillStyle);
 
       // Card border
       ctx.strokeStyle = this.locked ? R.colors.textDim : R.colors.gold;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      const r = 4, x = this.x, y = this.y, w = this.w;
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + w - r, y);
-      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-      ctx.lineTo(x + w, y + h - r);
-      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      ctx.lineTo(x + r, y + h);
-      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
+      const x = this.x, y = this.y, w = this.w;
+      ctx.moveTo(x + r8, y);
+      ctx.lineTo(x + w - r8, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r8);
+      ctx.lineTo(x + w, y + h - r8);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r8, y + h);
+      ctx.lineTo(x + r8, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r8);
+      ctx.lineTo(x, y + r8);
+      ctx.quadraticCurveTo(x, y, x + r8, y);
       ctx.closePath();
       ctx.stroke();
+      // Subtle top highlight
+      if (!this.locked) {
+        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+        ctx.fillRect(this.x + 4, this.y + 2, this.w - 8, 1);
+      }
 
       // Lock icon (if locked)
       if (this.locked) {

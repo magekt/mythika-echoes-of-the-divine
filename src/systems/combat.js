@@ -552,6 +552,11 @@ Combat.performAttack = function(attacker, defender, skill, damageMultiplier) {
     Audio.hit();
   }
 
+  if (typeof CombatFX !== 'undefined') {
+    const el = (skill && skill.element) || attacker.element || 'dark';
+    CombatFX.spawn(el, G.W / 2, G.H / 2);
+  }
+
   this.checkCombo(attacker);
   this.checkBattleEnd();
   return { dmg, isCrit };
