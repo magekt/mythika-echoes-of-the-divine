@@ -258,7 +258,9 @@ Plans:
   1. Bazaar name, description, stat, and price sit in separate columns/lines with tall-enough rows; resource HUD is clear of titles on both Buy and Sell tabs with 8+ rows
   2. Zone name, subtitle, progress bar, and labels never overlap; Attack/Skill/Flee are hidden or disabled with no encounter, with ≥8px gaps between adjacent buttons
   3. Shared text-bounds criterion passes for Bazaar Buy/Sell and zone exploration with and without encounter at 390x844 and 844x390
-**Plans**: TBD
+**Plans**: 2 plans in 1 wave
+- [ ] 33-01-PLAN.md — Variable-height Bazaar rows with text wrapping and HUD clarity
+- [ ] 33-02-PLAN.md — Zone exploration HUD bands and dimmed-but-visible action buttons
 **UI hint**: yes
 
 ### Phase 34: Fit & Finish Bundle
