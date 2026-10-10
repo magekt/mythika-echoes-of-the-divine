@@ -254,6 +254,8 @@ const partyScene = Scene.create({
       rec.enabled = recruitStatus.allowed;
       rec.onClick = function() {
         partyScene.data.view = 'recruit';
+        partyScene.data.selectedHero = null;
+        partyScene.data.itemsView = false;
         partyScene.data.scrollY = 0;
         partyScene.buildRecruitList();
       };
@@ -780,7 +782,21 @@ const partyScene = Scene.create({
                 partyScene.data.itemsView = false;
                 partyScene.data.scrollY = 0;
                 partyScene.buildDetail();
-              } else {
+    } else if (this.data.view === 'recruit') {
+      Scene.drawHeader(ctx, 62);
+      R.textCenter(ctx, 'Recruit Heroes', G.W / 2, 24, R.colors.gold, R.fonts.lg);
+      R.textCenter(ctx, 'Choose an ally to recruit:', G.W / 2, 48, R.colors.text, R.fonts.sm);
+
+      const top = this.getContentTop();
+      Scene.clipContent(ctx, this);
+      for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
+      Scene.drawStatic(ctx, this.data.staticDraws);
+      UI.HUD().render(ctx);
+      ctx.restore();
+
+      Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
+
+    } else {
                 UI.Feedback.Toast(giftDenialCopy(res.reason, hero, item, res.need), { color: R.colors.danger, icon: '🔒' });
                 Audio.error();
               }
