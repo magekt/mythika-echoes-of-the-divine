@@ -78,6 +78,16 @@ const zoneExplorationScene = Scene.create({
   },
 
   // ── Build the full zone exploration UI ──────────────────────────
+  updateButtonStates: function() {
+    // Update action button enabled states based on encounter state
+    const hasEnemy = this.data.currentEnemy !== null;
+    for (const btn of this.data.buttons) {
+      if (btn._isActionButton) {
+        btn.enabled = hasEnemy;
+      }
+    }
+  },
+
   buildButtons: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
@@ -142,6 +152,8 @@ const zoneExplorationScene = Scene.create({
 
     // Attack button - primary, BtnGold
     const attackBtn = UI.BtnGold(14 + btnGap, btnY, btnW, 44, 'Attack');
+    attackBtn._isActionButton = true;
+    attackBtn.enabled = !!this.data.currentEnemy;
     attackBtn.onClick = function() {
       zoneExplorationScene.triggerEncounter();
     };
@@ -149,6 +161,8 @@ const zoneExplorationScene = Scene.create({
 
     // Skill button
     const skillBtn = UI.Button(14 + btnGap + btnW + btnGap, btnY, btnW, 44, 'Skill');
+    skillBtn._isActionButton = true;
+    skillBtn.enabled = !!this.data.currentEnemy;
     skillBtn.onClick = function() {
       Notify.show('Skill selection coming soon', 2, R.colors.blueLight);
     };
@@ -156,6 +170,8 @@ const zoneExplorationScene = Scene.create({
 
     // Flee button
     const fleeBtn = UI.Button(14 + btnGap + 2 * (btnW + btnGap), btnY, btnW, 44, 'Flee');
+    fleeBtn._isActionButton = true;
+    fleeBtn.enabled = !!this.data.currentEnemy;
     fleeBtn.onClick = function() {
       gScene('travelMap', true);
     };
@@ -265,6 +281,7 @@ const zoneExplorationScene = Scene.create({
     G.state.returnToExploration = true;
     this.data.currentEnemy = enemy;
     this.data.enemyHpPct = enemy.hp / enemy.maxHp * 100;
+    this.updateButtonStates();
     gScene('combatScene');
   },
 
