@@ -59,7 +59,11 @@ globalThis.UI.Feedback = (function() {
       age: 0,
       color: color,
       icon: icon,
-      enterProgress: 0
+      enterProgress: 0,
+      // Scene that created this toast (LAY-05). Toast.clearScene drops every
+      // toast regardless of tag — Feedback has no achievement concept, so all
+      // of its toasts die with the scene.
+      sceneTag: (typeof G !== 'undefined' && G.state && G.state.scene) || null
     };
 
     toastQueue.push(toast);
@@ -123,6 +127,12 @@ globalThis.UI.Feedback = (function() {
   };
 
   Toast.clear = function() {
+    toastQueue = [];
+  };
+
+  // Scene-scoped clearing (LAY-05): drops ALL Feedback toasts on transition.
+  // Invoked from the gScene/Fade.update choke points via clearSceneToasts.
+  Toast.clearScene = function() {
     toastQueue = [];
   };
 
@@ -529,6 +539,8 @@ globalThis.UI.Feedback = (function() {
     getToastQueue: function() { return toastQueue; },
     updateToasts: Toast.update,
     renderToasts: Toast.render,
+    // Scene-transition clearing (LAY-05), called by clearSceneToasts in game.js
+    clearSceneToasts: Toast.clearScene,
 
     // Dismissal helpers
     isDismissed: isDismissed,

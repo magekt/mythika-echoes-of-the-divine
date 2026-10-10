@@ -300,7 +300,13 @@ const Backgrounds = (function() {
   };
 })();
 
+// Bridge to the lexical `R` binding from renderer.js (classic scripts share one
+// scope in load order; `const R` never attaches to window, so window-only
+// attach would strand Backgrounds on a disjoint object).
+if (typeof R !== 'undefined') {
+  R.Backgrounds = Backgrounds;
+}
 if (typeof window !== 'undefined') {
-  window.R = window.R || {};
+  window.R = window.R || R;
   window.R.Backgrounds = Backgrounds;
 }

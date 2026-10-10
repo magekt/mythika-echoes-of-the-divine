@@ -3,8 +3,12 @@ const Notify = {
   achievements: [],
   show: function(msg, duration, color) {
     if (this.queue.length >= 3) this.queue.shift();
-    this.queue.push({ msg: msg || '', timer: duration || 2, color: color || R.colors.gold, age: 0 });
+    this.queue.push({ msg: msg || '', timer: duration || 2, color: color || R.colors.gold, age: 0, scene: (typeof G !== 'undefined' && G.state && G.state.scene) || null });
   },
+  // Scene-scoped clearing (LAY-05): drops every regular toast so the previous
+  // scene's messages never render over the new scene. Achievement banners live
+  // in `achievements`, never in `queue`, and are deliberately untouched here.
+  clearScene: function() { this.queue = []; },
   achievement: function(name, desc, icon) {
     this.achievements.push({ name, desc, icon, timer: 3.5, phase: 'in' });
     Audio.levelUp();
@@ -141,6 +145,7 @@ const Fade = {
           const name = typeof pending === 'string' ? pending : pending.name;
           const enterOptions = typeof pending === 'string' ? undefined : pending.enterOptions;
           this.pendingScene = null;
+          clearSceneToasts();
           Input.clear();
           UI.Modal.clearAll();
           if (G.currentScene && G.currentScene.leave) G.currentScene.leave();
@@ -484,7 +489,26 @@ function safeEnter(scene, enterOptions) {
   }
 }
 
+// Single choke point for scene-scoped toast lifetime (LAY-05): drops stale
+// toasts from BOTH toast systems on every transition. Achievement banners
+// survive by design (Notify.clearScene never touches Notify.achievements;
+// Feedback has no achievement concept). Clearing is idempotent, so the
+// immediate path (swap here) and the deferred path (swap in Fade.update)
+// each observe exactly-once clearing per transition even though both sites
+// call this helper — the second clear of an already-empty queue is a no-op.
+// Note: navigation.js calls Fade.toScene directly, bypassing gScene, which
+// is why the Fade.update swap site must also clear.
+function clearSceneToasts() {
+  if (typeof Notify !== 'undefined' && Notify.clearScene) Notify.clearScene();
+  try {
+    if (typeof UI !== 'undefined' && UI.Feedback && UI.Feedback.clearSceneToasts) UI.Feedback.clearSceneToasts();
+  } catch (e) {}
+}
+
 function gScene(name, fade, enterOptions) {
+  // Clear stale toasts first so the redirect notice below (a transition
+  // message describing the new scene) is the only toast that survives.
+  clearSceneToasts();
   if (!G.scenes[name]) { if (typeof Notify !== 'undefined') Notify.show('Destination unavailable — returning to Ashram.', 2, R.colors.red); name = G.scenes.ashram ? 'ashram' : 'title'; }
   Input.clear();
   UI.Modal.clearAll();
