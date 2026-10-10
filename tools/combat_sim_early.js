@@ -10,7 +10,7 @@ const SIM = path.join(__dirname, 'combat_sim.js');
 const OUTPUT_FILE = path.join(__dirname, '../tests/combat_metrics_early.json');
 
 try {
-  const output = execFileSync(process.execPath, [SIM, '--fights', '200', '--seed', '42'], { encoding: 'utf8' });
+  const output = execFileSync(process.execPath, [`"${SIM}"`, '--fights', '200', '--seed', '42'], { encoding: 'utf8', shell: true });
   fs.writeFileSync(OUTPUT_FILE, output);
   console.log(`Metrics written to ${OUTPUT_FILE}`);
 } catch (e) {

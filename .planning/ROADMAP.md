@@ -187,10 +187,10 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
 
 - [x] **Phase 30: Layout Harness Extension** - Text-bounds proof harness + combat sim (LAY-00)
 - [x] **Phase 31: Toast Lifecycle Scoping** - Toasts die with their scene (LAY-05) — complete 2026-10-10
-- [ ] **Phase 32: Combat Layout** - Header bands + uniform action grid with safe toast lane (LAY-01, LAY-02, LAY-07)
-- [ ] **Phase 33: Bazaar & Zone Exploration Layout** - Rows, HUD, and encounter-gated buttons (LAY-03, LAY-04)
-- [ ] **Phase 34: Fit & Finish Bundle** - Nav, title, map cards, Ashram, modal (LAY-06)
-- [ ] **Phase 35: Early-Game Pacing & Empty States** - Combat stakes, zone-clear rate, populated starts (BAL-01, BAL-02, BAL-03)
+- [x] **Phase 32: Combat Layout** - Header bands + uniform action grid with safe toast lane (LAY-01, LAY-02, LAY-07) — complete 2026-10-10
+- [x] **Phase 33: Bazaar & Zone Exploration Layout** - Rows, HUD, and encounter-gated buttons (LAY-03, LAY-04) — complete 2026-10-10
+- [x] **Phase 34: Fit & Finish Bundle** - Nav, title, map cards, Ashram, modal (LAY-06) — complete 2026-10-10
+- [x] **Phase 35: Early-Game Pacing & Empty States** - Combat stakes, zone-clear rate, populated starts (BAL-01, BAL-02, BAL-03) — complete 2026-10-10
 
 ## Phase Details (v5.0)
 
@@ -292,12 +292,12 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 30. Layout Harness Extension | v5.0 | 0/0 | Not started | - |
-| 31. Toast Lifecycle Scoping | v5.0 | 1/3 | In progress (31-03 done) | - |
-| 32. Combat Layout | v5.0 | 0/0 | Not started | - |
-| 33. Bazaar & Zone Exploration Layout | v5.0 | 0/0 | Not started | - |
-| 34. Fit & Finish Bundle | v5.0 | 0/0 | Not started | - |
-| 35. Early-Game Pacing & Empty States | v5.0 | 0/0 | Not started | - |
+| 30. Layout Harness Extension | v5.0 | 3/3 | Complete | 2026-10-09 |
+| 31. Toast Lifecycle Scoping | v5.0 | 3/3 | Complete | 2026-10-10 |
+| 32. Combat Layout | v5.0 | 3/3 | Complete | 2026-10-10 |
+| 33. Bazaar & Zone Exploration Layout | v5.0 | 2/2 | Complete | 2026-10-10 |
+| 34. Fit & Finish Bundle | v5.0 | 4/4 | Complete | 2026-10-10 |
+| 35. Early-Game Pacing & Empty States | v5.0 | 2/2 | Complete | 2026-10-10 |
 
 ## Coverage (v5.0)
 

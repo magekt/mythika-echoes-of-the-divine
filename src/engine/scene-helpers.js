@@ -432,8 +432,6 @@
     };
   };
 
-})();
-
   // Toast lane: reserved space where notification toasts and guidance render.
   // Both viewports: portrait 400x720 (logical) and landscape 720x400 (logical).
   // Returns { x, y, w, h } in logical coordinates.

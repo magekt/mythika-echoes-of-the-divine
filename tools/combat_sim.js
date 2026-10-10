@@ -153,7 +153,7 @@ function buildContext(seed) {
     parts.push(fs.readFileSync(full, 'utf8') + '\n');
     loaded.push(rel);
   }
-  const combined = parts.join('\n;\n');
+  const combined = parts.join('\n');
   try {
     vm.runInContext(combined, context, { filename: 'combat_sim_combined.js' });
   } catch (e) {

@@ -47,10 +47,16 @@ const spiritBeastScene = Scene.create({
 
     if (this.data.beasts.length === 0) {
       y += 10;
-      SD.push({ text: ['No spirit beasts yet.', 20, y, R.colors.textDim, R.fonts.sm] });
-      y += 18;
-      SD.push({ text: ['Defeat enemies to find beasts!', 20, y, R.colors.textDim, R.fonts.sm] });
-      y += 40;
+      // Explanatory empty-state panel: tell the player what populates this screen.
+      SD.push({ render: function(ctx) {
+        R.roundRect(ctx, 14, y, G.W - 28, 76, 8, R.colors.panel);
+        ctx.strokeStyle = R.colors.borderHairline;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(14.5, y + 0.5, G.W - 28 - 1, 76 - 1);
+        R.textCenter(ctx, 'No spirit beasts yet', G.W / 2, y + 30, R.colors.gold, R.fonts.md);
+        R.textCenter(ctx, 'Complete early-game missions to unlock.', G.W / 2, y + 52, R.colors.textSecondary, R.fonts.sm);
+      }});
+      y += 96;
     } else {
       for (const beast of this.data.beasts) {
         const active = beast.active || beast.id === G.state.activeBeast;

@@ -3,26 +3,36 @@
   "allowlistRef": "tools/layout_harness/allowlist.json (starts empty; waivers live there, never here)",
   "counts": {
     "breakdown": {
-      "clip": {
-        "engine/scene-helpers.js": 1,
-        "scenes/ashram.js": 1,
-        "scenes/combatScene.js": 1,
-        "scenes/debug.js": 1,
-        "scenes/travelMap.js": 1,
-        "ui/list.js": 1
-      },
       "fillText": {
-        "engine/diagnostics.js": 3,
-        "engine/renderer.js": 3,
+        "ui/feedback.js": 2,
+        "ui/map-card.js": 2,
+        "ui/wordmark.js": 2,
+        "ui/currency-badge.js": 2,
         "scenes/travelMap.js": 26,
-        "ui/feedback.js": 2
+        "engine/diagnostics.js": 3,
+        "engine/renderer.js": 3
       },
       "translate": {
-        "note": "21 ctx.translate sites; boxes must be transformed via ctx.getTransform()"
+        "ui/button.js": 7,
+        "ui/modal.js": 2,
+        "scenes/cultivationScene.js": 3,
+        "scenes/combatScene.js": 1,
+        "scenes/ashram.js": 1,
+        "engine/game.js": 1,
+        "engine/renderer.js": 2,
+        "engine/scene-helpers.js": 4
+      },
+      "clip": {
+        "ui/list.js": 1,
+        "scenes/combatScene.js": 1,
+        "scenes/travelMap.js": 1,
+        "scenes/ashram.js": 1,
+        "scenes/debug.js": 1,
+        "engine/scene-helpers.js": 1
       }
     },
     "clip": 6,
-    "fillText": 34,
+    "fillText": 40,
     "localScripts": 94,
     "translate": 21
   },

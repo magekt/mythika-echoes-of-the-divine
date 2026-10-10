@@ -179,6 +179,21 @@ const partyScene = Scene.create({
     this.data.buttons.push(hdr);
     y += secHh + 8;
 
+    // Explanatory empty-state panel when the party has no companions yet.
+    if (!G.state.party || G.state.party.length === 0) {
+      const empty = UI.Button(14, y, G.W - 28, 76, '', R.colors.panel);
+      empty.render = function(ctx) {
+        R.roundRect(ctx, this.x, this.y, this.w, this.h, 8, R.colors.panel);
+        ctx.strokeStyle = R.colors.borderHairline;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(this.x + 0.5, this.y + 0.5, this.w - 1, this.h - 1);
+        R.textCenter(ctx, 'No companions yet', G.W / 2, this.y + 30, R.colors.gold, R.fonts.md);
+        R.textCenter(ctx, 'Explore zones to recruit heroes.', G.W / 2, this.y + 52, R.colors.textSecondary, R.fonts.sm);
+      };
+      this.data.buttons.push(empty);
+      y += 76 + 8;
+    }
+
     // --- 3-Column Grid Cards (86px height per design system) ---
     // Since party list is effectively 1-column on mobile, use 86px cards
     // with full-width layout matching the grid pattern

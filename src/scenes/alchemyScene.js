@@ -53,10 +53,16 @@ const alchemyScene = Scene.create({
 
     if (recipes.length === 0) {
       y += 10;
-      SD.push({ text: ['No recipes learned yet.', 20, y, R.colors.textDim, R.fonts.sm] });
-      y += 18;
-      SD.push({ text: ['Farm herbs and find recipes!', 20, y, R.colors.textDim, R.fonts.sm] });
-      y += 30;
+      // Explanatory empty-state panel: tell the player what populates this screen.
+      SD.push({ render: function(ctx) {
+        R.roundRect(ctx, 14, y, G.W - 28, 76, 8, R.colors.panel);
+        ctx.strokeStyle = R.colors.borderHairline;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(14.5, y + 0.5, G.W - 28 - 1, 76 - 1);
+        R.textCenter(ctx, 'No potions yet', G.W / 2, y + 30, R.colors.gold, R.fonts.md);
+        R.textCenter(ctx, 'Visit the Bazaar to buy ingredients.', G.W / 2, y + 52, R.colors.textSecondary, R.fonts.sm);
+      }});
+      y += 96;
     } else {
       // 3-column grid: 14px margin, 8px gap, 86px cards
       const gridCols = 3;

@@ -9,7 +9,7 @@ test('BAL-01 metrics meet pacing requirements', () => {
   
   // Ensure data exists
   if (!fs.existsSync(metricsPath)) {
-      execSync(path.join(__dirname, '../tools/combat_sim_early.js'));
+      execSync(`"${process.execPath}" "${path.join(__dirname, '../tools/combat_sim_early.js')}"`);
   }
   
   const results = JSON.parse(fs.readFileSync(metricsPath, 'utf8'));
