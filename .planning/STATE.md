@@ -108,6 +108,6 @@ Milestone v4.0 completed Phases 21–29 on 2026-10-09. Archive references: `.pla
 ## Session Continuity
 
 Last session: 2026-10-10
-Stopped at: Phase 31 complete (toast lifecycle scoping + recruit-view gap closure; 31-UAT test-5 human retest approved)
-Resume file: .planning/phases/31-toast-lifecycle-scoping/31-VERIFICATION.md
-Next: Phase 32 (Combat Layout)
+Stopped at: Phase 32 context gathered (bands/grid/lane discretion to downstream; result discipline locked; 3 todos folded)
+Resume file: .planning/phases/32-combat-layout/32-CONTEXT.md
+Next: Plan Phase 32 (Combat Layout)
