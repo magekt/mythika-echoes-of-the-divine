@@ -73,7 +73,9 @@ const combatScene = Scene.create({
     reactionTimer: null,
     reactionAutoTimer: null,
     enemyTimer: null,
-    autoTimer: null
+    autoTimer: null,
+    _bgAlpha: 0,
+    _enemyType: null
   },
 
   enter: function() {
@@ -94,6 +96,13 @@ const combatScene = Scene.create({
       }, 600);
       return;
     }
+    // Determine enemy type for background
+    const firstEnemy = this.data.enemies.find(e => e.hp > 0);
+    this.data._enemyType = firstEnemy ? firstEnemy.id : 'default';
+    this.data._bgAlpha = 0;
+    // Register combat background slot
+    R.Backgrounds.registerSlot('combat:' + this.data._enemyType);
+    
     this.data.beastSkillUsed = false;
     this.data.beastCooldown = 0;
     this.data.turnCount = 0;
@@ -117,6 +126,26 @@ const combatScene = Scene.create({
     this.data.reactionResolved = false;
 
     Combat.startBattle(this.data.heroes, this.data.enemies);
+    // Phase 24 combat bonds: surface applied tier/synergy bonuses in the log
+    // (display only — Combat owns the numbers).
+    try {
+      const bonuses = Combat.bondBonuses || [];
+      if (bonuses.length > 0) {
+        for (const b of bonuses) {
+          let tierName = '';
+          try {
+            if (typeof BondSystem !== 'undefined' && BondSystem.tierFor && BondSystem.valueFor) {
+              tierName = ' (' + BondSystem.tierFor(BondSystem.valueFor(b.heroId)) + ')';
+            }
+          } catch (e) {}
+          let line = 'Bond: ' + b.name + ' +' + b.passive + ' ' + String(b.roleStat).toUpperCase() + tierName;
+          if (b.lingering) line += ' · lingering';
+          if (b.synergy) line += ' · Synergy: ' + b.synergy;
+          this.data.log.push(line);
+        }
+        if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Bond bonuses active (' + bonuses.length + ')', { color: R.colors.gold, icon: '★' });
+      }
+    } catch (e) {}
     const firstAlive = this.data.enemies.find(e => e.hp > 0);
     if (firstAlive) this.data.selectedEnemy = firstAlive;
     const firstActor = Combat.getCurrentActor();
@@ -155,8 +184,23 @@ const combatScene = Scene.create({
     this.data.autoTimer = null;
   },
 
-  getActionAreaTop: function() { return 270; },
+  getActionAreaTop: function() { return 248; },
   getActionAreaHeight: function() { return G.H - this.getActionAreaTop(); },
+
+  // The logical combat surface is divided into state-owned bands.  Normal
+  // feedback uses the log band; reaction owns the intent band instead; result
+  // owns the lower outcome band and never reuses live combat controls.
+  getCombatLayout: function() {
+    const actionTop = this.getActionAreaTop();
+    return {
+      header: { x: 10, y: 4, w: G.W - 20, h: 52 },
+      roster: { x: 8, y: 58, w: G.W - 16, h: 122 },
+      intent: { x: 12, y: 184, w: G.W - 24, h: 54 },
+      log: { x: 14, y: actionTop - 78, w: G.W - 28, h: 72 },
+      actions: { x: 8, y: actionTop - 4, w: G.W - 16, h: this.getActionAreaHeight() + 4 },
+      result: { x: 12, y: actionTop, w: G.W - 24, h: this.getActionAreaHeight() }
+    };
+  },
 
   clampScroll: function() {
     if (this.data.actionButtons.length === 0) return;
@@ -251,6 +295,34 @@ const combatScene = Scene.create({
           }
         }
 
+        // Phase 25 signature combos: one duo button when a Legend pair is able.
+        // Display only — Combat.performSignatureCombo owns execution. No new
+        // visual layer: result flows through the existing log band + Toast.
+        try {
+          if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.comboAvailable === 'function') {
+            const orderedIds = this.data.heroes.map(function(h) { return h && h.id; });
+            let playerId = orderedIds[0];
+            try {
+              if (typeof G !== 'undefined' && G && G.state && G.state.player && G.state.player.id) playerId = G.state.player.id;
+            } catch (e) {}
+            const avail = BondSystem.comboAvailable(hero.id, orderedIds, playerId);
+            if (avail && avail.available) {
+              const partner = this.data.heroes.find(function(h) { return h && h.id === avail.partnerId && h.hp > 0; });
+              if (partner) {
+                let comboName = 'Duo Skill';
+                try {
+                  const def = BondSystem.comboFor(hero.id);
+                  if (def && def.name) comboName = def.name;
+                } catch (e) {}
+                const duoBtn = UI.BtnGold(20, y, G.W - 40, 44, 'Duo: ' + comboName + ' (' + partner.name + ')');
+                duoBtn.onClick = function() { combatScene.doSignatureCombo(); };
+                this.data.actionButtons.push(duoBtn);
+                y += 46;
+              }
+            }
+          }
+        } catch (e) {}
+
         y += 4;
 
         const autoBtn = UI.Button(20, y, (G.W - 40) / 2 - 3, 44, this.data.autoBattle ? 'Auto: ON' : 'Auto: OFF', this.data.autoBattle ? R.colors.green : R.colors.btn);
@@ -313,10 +385,27 @@ const combatScene = Scene.create({
     if (!beastData) return;
     const skill = beastData.skill;
 
+    // Phase 27 beast power (BST-02): bond hearts raise skill potency.
+    // Guarded read; absent BeastBond = legacy magnitudes, no aura.
+    var bondHeart = 0, bondMult = 1, bondAura = null;
+    try {
+      if (typeof BeastBond !== 'undefined' && BeastBond) {
+        if (typeof BeastBond.potencyFor === 'function') {
+          var p = BeastBond.potencyFor(beast.id);
+          if (p && typeof p === 'object') {
+            bondHeart = Math.max(0, Math.min(3, Math.floor(Number(p.heart)) || 0));
+            bondMult = Number(p.mult);
+            if (!Number.isFinite(bondMult) || bondMult < 1) bondMult = 1;
+          }
+        }
+        if (typeof BeastBond.auraFor === 'function') bondAura = BeastBond.auraFor(beast.id) || null;
+      }
+    } catch (e) { bondHeart = 0; bondMult = 1; bondAura = null; }
+
     switch (skill) {
       case 'Howl':
         for (const h of this.data.heroes) {
-          if (h.hp > 0) Combat.applyBuff(h, 'atkBuff', 1.1, 3);
+          if (h.hp > 0) Combat.applyBuff(h, 'atkBuff', 1 + 0.10 * bondMult, 3);
         }
         this.data.log.push('Beast: Howl — Party ATK +10% for 3 turns');
         break;
@@ -324,20 +413,20 @@ const combatScene = Scene.create({
       case 'Venom Bite': {
         let t = this.data.selectedEnemy;
         if (!t || t.hp <= 0) t = Combat.getRandomEnemy();
-        if (t) { Combat.applyAilment(t, 'visha', 3); this.data.log.push('Beast: Venom Bite — ' + t.name + ' poisoned!'); }
+        if (t) { Combat.applyAilment(t, 'visha', 3 + bondHeart); this.data.log.push('Beast: Venom Bite — ' + t.name + ' poisoned!'); }
         break;
       }
 
       case 'Dark Veil':
         for (const e of this.data.enemies) {
-          if (e.hp > 0) Combat.applyBuff(e, 'accDebuff', 0.85, 3);
+          if (e.hp > 0) Combat.applyBuff(e, 'accDebuff', 1 - 0.15 * bondMult, 3);
         }
         this.data.log.push('Beast: Dark Veil — Enemy accuracy reduced');
         break;
 
       case 'Fortify':
         for (const h of this.data.heroes) {
-          if (h.hp > 0) Combat.applyBuff(h, 'defBuff', 1.2, 3);
+          if (h.hp > 0) Combat.applyBuff(h, 'defBuff', 1 + 0.20 * bondMult, 3);
         }
         this.data.log.push('Beast: Fortify — Party DEF +20% for 3 turns');
         break;
@@ -346,7 +435,7 @@ const combatScene = Scene.create({
         let t = this.data.selectedEnemy;
         if (!t || t.hp <= 0) t = Combat.getRandomEnemy();
         if (t) {
-          const dmg = Math.max(1, Math.floor(25 * (1 + (beast.mag || 1) * 0.1)));
+          const dmg = Math.max(1, Math.floor(25 * (1 + (beast.mag || 1) * 0.1) * bondMult));
           t.hp -= dmg;
           if (t.hp < 0) t.hp = 0;
           if (t.hp <= 0) this.deathBurstAt(t, false);
@@ -355,22 +444,23 @@ const combatScene = Scene.create({
         break;
       }
 
-      case 'Tempest':
+      case 'Tempest': {
+        const tempestDmg = Math.max(1, Math.floor(40 * (1 + (beast.mag || 1) * 0.1) * bondMult));
         for (const e of this.data.enemies) {
           if (e.hp <= 0) continue;
-          const dmg = Math.max(1, Math.floor(40 * (1 + (beast.mag || 1) * 0.1)));
-          e.hp -= dmg;
+          e.hp -= tempestDmg;
           if (e.hp < 0) e.hp = 0;
           if (e.hp <= 0) this.deathBurstAt(e, false);
         }
-        this.data.log.push('Beast: ' + beast.name + ' — Tempest AoE ' + (Math.max(1, Math.floor(40 * (1 + (beast.mag || 1) * 0.1)))) + ' wind dmg to all');
+        this.data.log.push('Beast: ' + beast.name + ' — Tempest AoE ' + tempestDmg + ' wind dmg to all');
         R.screenShake(6, 0.3);
         break;
+      }
 
       case 'Rebirth Flame': {
         const fallen = this.data.heroes.find(h => h.hp <= 0);
         if (fallen) {
-          fallen.hp = Math.floor(fallen.maxHp * 0.3);
+          fallen.hp = Math.floor(fallen.maxHp * (0.30 + 0.05 * bondHeart));
           this.data.log.push('Beast: Rebirth Flame — ' + fallen.name + ' revived with 30% HP!');
           this.data.beastSkillUsed = true;
           this.data.beastCooldown = 999;
@@ -385,7 +475,7 @@ const combatScene = Scene.create({
       case 'Shell Guard': {
         const t = Combat.getRandomHero();
         if (t) {
-          Combat.applyBuff(t, 'shield', 20, 2);
+          Combat.applyBuff(t, 'shield', Math.floor(20 * bondMult), 2);
           this.data.log.push('Beast: Shell Guard — ' + t.name + ' shielded for 20 damage');
         }
         break;
@@ -395,11 +485,11 @@ const combatScene = Scene.create({
         let t = this.data.selectedEnemy;
         if (!t || t.hp <= 0) t = Combat.getRandomEnemy();
         if (t) {
-          const dmg = Math.max(1, Math.floor(30 * (1 + (beast.str || 1) * 0.1)));
+          const dmg = Math.max(1, Math.floor(30 * (1 + (beast.str || 1) * 0.1) * bondMult));
           t.hp -= dmg;
           if (t.hp < 0) t.hp = 0;
           if (t.hp <= 0) this.deathBurstAt(t, false);
-          Combat.applyAilment(t, 'rakta', 3);
+          Combat.applyAilment(t, 'rakta', 3 + bondHeart);
           this.data.log.push('Beast: Rending Claw — ' + t.name + ' takes ' + dmg + ' damage + Bleed!');
         }
         break;
@@ -409,12 +499,34 @@ const combatScene = Scene.create({
         let t = this.data.selectedEnemy;
         if (!t || t.hp <= 0) t = Combat.getRandomEnemy();
         if (t) {
-          Combat.applyAilment(t, 'confuse', 1);
+          Combat.applyAilment(t, 'confuse', 1 + bondHeart);
           this.data.log.push('Beast: Mirage — ' + t.name + ' confused!');
         }
         break;
       }
     }
+
+    // Phase 27 beast power: heart-2 aura fires on skill use (BST-02).
+    // Combat authority: buffs via Combat.applyBuff, heals clamped on clones.
+    try {
+      if (bondAura && bondAura.effect && typeof Combat !== 'undefined' && Combat) {
+        const fx = bondAura.effect;
+        const living = this.data.heroes.filter(function(h) { return h && h.hp > 0; });
+        if (fx.kind === 'heal' && Number.isFinite(Number(fx.amount))) {
+          const amt = Math.max(0, Math.floor(Number(fx.amount)));
+          for (const h of living) h.hp = Math.min(h.maxHp || h.hp, h.hp + amt);
+          this.data.log.push('Beast aura: ' + bondAura.name + ' — party mended');
+        } else if (fx.kind === 'shield' && living.length > 0 && typeof Combat.applyBuff === 'function') {
+          Combat.applyBuff(living[Math.floor(Math.random() * living.length)], 'shield', Math.max(0, Math.floor(Number(fx.amount))), 2);
+          this.data.log.push('Beast aura: ' + bondAura.name + ' — ally warded');
+        } else if (fx.kind === 'buff' && (fx.buff === 'atkBuff' || fx.buff === 'defBuff') && typeof Combat.applyBuff === 'function') {
+          const val = Number(fx.value) || 1;
+          const turns = Math.max(1, Math.floor(Number(fx.turns)) || 1);
+          for (const h of living) Combat.applyBuff(h, fx.buff, val, turns);
+          this.data.log.push('Beast aura: ' + bondAura.name + ' — party empowered');
+        }
+      }
+    } catch (e) {}
 
     if (!this.data.beastSkillUsed) this.data.beastCooldown = 2;
     Combat.checkBattleEnd();
@@ -563,6 +675,44 @@ const combatScene = Scene.create({
     this.advanceTurn();
   },
 
+  doSignatureCombo: function() {
+    // Phase 25: execute the current hero's Legend duo skill through Combat
+    // authority. Feedback reuses the existing log band + Toast only.
+    const actor = Combat.getCurrentActor();
+    if (!actor || actor.type !== 'hero' || this.data.turnState !== 'playerTurn') return;
+    const hero = actor.ref;
+    if (!hero || hero.hp <= 0) return;
+    let avail = null;
+    try {
+      if (typeof BondSystem === 'undefined' || !BondSystem || typeof BondSystem.comboAvailable !== 'function') return;
+      const orderedIds = this.data.heroes.map(function(h) { return h && h.id; });
+      let playerId = orderedIds[0];
+      try {
+        if (typeof G !== 'undefined' && G && G.state && G.state.player && G.state.player.id) playerId = G.state.player.id;
+      } catch (e) {}
+      avail = BondSystem.comboAvailable(hero.id, orderedIds, playerId);
+    } catch (e) { return; }
+    if (!avail || !avail.available) return;
+    const partner = this.data.heroes.find(function(h) { return h && h.id === avail.partnerId && h.hp > 0; });
+    if (!partner) return;
+    let target = this.data.selectedEnemy;
+    if (!target || target.hp <= 0) target = Combat.getRandomEnemy();
+    let result = null;
+    try {
+      result = Combat.performSignatureCombo(hero, partner, { target: target });
+    } catch (e) { result = null; }
+    if (!result || !result.ok) {
+      this.data.log.push(hero.name + ' + ' + partner.name + ': the duo falters — no opening.');
+      this.advanceTurn();
+      return;
+    }
+    for (const line of (result.lines || []).slice(0, 2)) this.data.log.push(line);
+    if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast(result.name + ' unleashed!', { color: R.colors.gold, icon: '★' });
+    try { Audio.skill(); } catch (e) {}
+    this.data.damageFlash = 0.2;
+    this.advanceTurn();
+  },
+
   doDefend: function() {
     const actor = Combat.getCurrentActor();
     if (!actor || actor.type !== 'hero') return;
@@ -575,6 +725,7 @@ const combatScene = Scene.create({
   doFlee: function() {
     if (G.state.isBossFight) {
       this.data.log.push('Cannot flee from a boss!');
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Cannot flee from a boss!', { color: R.colors.danger, icon: '🔒' });
       return;
     }
     if (Math.random() < 0.5) {
@@ -663,6 +814,17 @@ const combatScene = Scene.create({
   endBattle: function() {
     this.data.turnState = 'result';
     const won = this.data.enemies.every(e => e.hp <= 0);
+    // Phase 24 combat bonds: linger lasts exactly one completed battle —
+    // consume here so both victory and defeat advance the bookkeeping.
+    // Never blocks the result path.
+    try {
+      if (typeof BondSystem !== 'undefined' && BondSystem.consumeLingerAfterBattle) {
+        const lingerCleared = BondSystem.consumeLingerAfterBattle();
+        if (lingerCleared > 0 && typeof UI !== 'undefined' && UI.Feedback) {
+          UI.Feedback.Toast('Lingering bond faded (' + lingerCleared + ')', { color: R.colors.textDim, icon: '🌙' });
+        }
+      }
+    } catch (e) {}
     const isBossFight = !!G.state.isBossFight;
     const heroes = this.data.heroes;
     const totalHp = heroes.reduce((s, h) => s + Math.max(0, h.hp), 0);
@@ -690,6 +852,7 @@ const combatScene = Scene.create({
         if (e.hp <= 0) QuestSystem.trackKill(e.id, G.state.currentZone, !!e.isBoss);
       }
       this.data.log.push('Victory! Gained ' + loot.gold + ' gold, ' + xpPerHero + ' XP each');
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Victory! +' + loot.gold + 'g, +' + xpPerHero + ' XP', { color: R.colors.gold, icon: '★' });
 
       let zoneReward = null;
       if (typeof ZoneRewardSystem !== 'undefined') {
@@ -726,6 +889,13 @@ const combatScene = Scene.create({
         G.state.flags.bossesDefeated = (G.state.flags.bossesDefeated || 0) + 1;
         G.state.flags['boss_' + G.state.currentZone] = true;
         this.data.log.push('Boss defeated!');
+        if (typeof Influence !== 'undefined' && Influence.applyAction) {
+          const inf = Influence.applyAction('boss_defeat', G.state.currentZone, G.state.currentZone);
+          if (inf.changed && inf.to.control !== inf.from.control) {
+            this.data.log.push('Region influence shifted: ' + inf.to.control);
+            if (typeof Notify !== 'undefined') Notify.show('Boss defeated! ' + G.state.currentZone + ' shifts to ' + inf.to.control, 4, R.colors.gold);
+          }
+        }
       }
       if (G.state.isBossFight) G.state.isBossFight = false;
       if (leveled) { this.data.log.push('Level up!'); R.triggerLevelUp(); }
@@ -763,6 +933,7 @@ const combatScene = Scene.create({
     } else {
       if (typeof ZoneRewardSystem !== 'undefined') ZoneRewardSystem.clearPending();
       this.data.log.push('Defeated! Retreating to Ashram...');
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Defeated — retreating to Ashram.', { color: R.colors.danger, icon: '✚' });
       for (const h of G.state.party) h.hp = Math.floor(h.maxHp * 0.3);
       this.data.result = { won: false };
       if (G.state.isBossFight) G.state.isBossFight = false;
@@ -872,26 +1043,36 @@ const combatScene = Scene.create({
   },
 
   render: function(ctx) {
-    R.drawZoneBackground(ctx, G.state.currentZone);
+    const layout = this.getCombatLayout();
+    const reducedMotion = R.reducedMotion ? R.reducedMotion() : false;
+
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    R.Backgrounds.renderBackground(ctx, 'combat:' + this.data._enemyType, bgAlpha);
+
+    // Render enemy character moment (center-top behind intent band)
+    R.Backgrounds.renderCharacterMoment(ctx, 'combat:' + this.data._enemyType, G.W / 2 - 50, 200, 100, 100, bgAlpha * 0.4);
+
     UI.HUD().render(ctx);
     if (this.data.damageFlash > 0) {
       ctx.fillStyle = R.colors.subtleWhite;
       ctx.fillRect(0, 0, G.W, G.H);
     }
 
-    R.roundRect(ctx, 10, 6, G.W - 20, 96, 8, R.colors.panel);
+    R.roundRect(ctx, layout.header.x, layout.header.y, layout.header.w, layout.header.h, 8, R.colors.panel);
     ctx.strokeStyle = R.colors.borderHairline;
     ctx.lineWidth = 1;
-    ctx.strokeRect(10.5, 6.5, G.W - 21, 95);
+    ctx.strokeRect(10.5, 4.5, G.W - 21, 51);
 
-    R.textCenter(ctx, '\u2694 Combat ' + (G.state.isBossFight ? '\u2605 BOSS' : ''), G.W / 2, 22, G.state.isBossFight ? R.colors.red : R.colors.gold, R.fonts.lg);
+    R.textCenter(ctx, '\u2694 Combat ' + (G.state.isBossFight ? '\u2605 BOSS' : ''), G.W / 2, 20, G.state.isBossFight ? R.colors.red : R.colors.gold, R.fonts.lg);
 
     if (this.data.turnState === 'playerTurn') {
       const currentActor = Combat.getCurrentActor();
       if (currentActor && currentActor.ref) {
         // Gold background strip for player turn
-        R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, R.radius.m, R.colors.gold);
-        R.textCenter(ctx, '\u25B6 ' + currentActor.ref.name + '\'s Turn', G.W / 2, 88, R.colors.white, R.fonts.md);
+        R.roundRect(ctx, G.W / 2 - 70, 34, 140, 16, R.radius.m, R.colors.gold);
+        R.textCenter(ctx, '\u25B6 ' + currentActor.ref.name + '\'s Turn', G.W / 2, 42, R.colors.white, R.fonts.md);
       }
       if (Combat.comboCount >= 2) {
         const multiplier = 1.0 + Math.min(10, Combat.comboCount - 1) * 0.1;
@@ -900,23 +1081,23 @@ const combatScene = Scene.create({
         // Subtle glow effect: draw background rect first, then text
         ctx.fillStyle = R.colors.gold;
         ctx.globalAlpha = 0.3;
-        ctx.fillRect(G.W / 2 - 60, 100, 120, 24);
+        ctx.fillRect(G.W / 2 - 60, 58, 120, 24);
         ctx.globalAlpha = 1;
-        R.textCenter(ctx, comboText, G.W / 2, 104, R.colors.gold, R.fonts.sm);
+        R.textCenter(ctx, comboText, G.W / 2, 62, R.colors.gold, R.fonts.sm);
       }
     } else if (this.data.turnState === 'enemyTurn') {
       // Red background strip for enemy turn
-      R.roundRect(ctx, G.W / 2 - 70, 76, 140, 16, R.radius.m, R.colors.red);
-      R.textCenter(ctx, '\u25C0 Enemy Turn', G.W / 2, 88, R.colors.white, R.fonts.md);
+      R.roundRect(ctx, G.W / 2 - 70, 34, 140, 16, R.radius.m, R.colors.red);
+      R.textCenter(ctx, '\u25C0 Enemy Turn', G.W / 2, 42, R.colors.white, R.fonts.md);
     }
 
     // Enemy display area - PremiumShell panel with selected enemy sprite, name, HP bar
     const selectedEnemy = this.data.enemies.find(e => e.hp > 0);
     if (selectedEnemy) {
       const panelW = 170;
-      const panelH = 80;
+      const panelH = 68;
       const panelX = G.W - panelW;
-      const panelY = 32;
+      const panelY = 112;
       const premiumShell = UI.PremiumShell(panelX, panelY, panelW, panelH, { outerR: 16 });
       premiumShell.render(ctx);
       const content = premiumShell.contentRect();
@@ -925,19 +1106,20 @@ const combatScene = Scene.create({
       if (selectedEnemy.sprite) {
         R.drawEnemy(ctx, selectedEnemy.id, content.x + content.w / 2, content.y + 10, 22);
       }
-      R.textCenter(ctx, selectedEnemy.name, content.x + content.w / 2, content.y + 38, selectedEnemy.hp > 0 ? R.colors.red : R.colors.textDim, R.fonts.lg);
-      
+      R.textCenter(ctx, selectedEnemy.name, content.x + content.w / 2, content.y + 36, selectedEnemy.hp > 0 ? R.colors.red : R.colors.textDim, R.fonts.lg);
+
       // HP bar inside panel
-      const hpBar = UI.ProgressBar(content.x + 20, content.y + 50, content.w - 40, 8, R.colors.gold, R.colors.borderHairline);
+      const hpBar = UI.ProgressBar(content.x + 20, content.y + 46, content.w - 40, 8, R.colors.gold, R.colors.borderHairline);
       hpBar.setProgress(selectedEnemy.hp, selectedEnemy.maxHp);
       hpBar.render(ctx);
-      R.textCenter(ctx, Math.floor(selectedEnemy.hp) + '/' + selectedEnemy.maxHp, content.x + content.w / 2, content.y + 62, R.colors.white, R.fonts.sm);
+      R.textCenter(ctx, Math.floor(selectedEnemy.hp) + '/' + selectedEnemy.maxHp, content.x + content.w / 2, content.y + 56, R.colors.white, R.fonts.sm);
     }
     
     let hx = 12;
     const heroStep = this.data.heroes.length <= 3 ? 90 : 68;   // keep 4-5 hero bars on-canvas
-    const hy = 32;
+    const hy = 62;
     for (const h of this.data.heroes) {
+      UI.HeroSurface.renderCompact(ctx, hx, hy - 4, heroStep - 8, 62, h);
       const col = h.hp > 0 ? R.colors.text : R.colors.textDim;
       R.drawHero(ctx, h.id, hx + 12, hy, 22);
       R.textCenter(ctx, h.name, hx + 12, hy + 30, col, R.fonts.sm);
@@ -974,7 +1156,7 @@ const combatScene = Scene.create({
       if (e.hp > 0) {
         // Same ghost trail as hero bars (see above).
         if (typeof e._ghostHp !== 'number' || e.hp > e._ghostHp) e._ghostHp = e.hp;
-        e._ghostHp += (e.hp - e._ghostHp) * Math.min(1, G.dt * 6);
+        e._ghostHp = reducedMotion ? e.hp : e._ghostHp + (e.hp - e._ghostHp) * Math.min(1, G.dt * 6);
         R.roundRect(ctx, ex - 48, ey + 34, 48, 4, 2, R.colors.damageBarBackground);
         const gw = 48 * Math.min(1, Math.max(0, e._ghostHp / e.maxHp));
         if (gw > 0) R.roundRect(ctx, ex - 48, ey + 34, gw, 4, 2, R.colors.white);
@@ -990,21 +1172,23 @@ const combatScene = Scene.create({
       const intent = this.data.enemyIntent;
       const remain = Math.max(0, this.data.reactionRemaining);
       const pct = remain / Math.max(0.1, this.data.reactionDuration);
-      R.roundRect(ctx, 12, 108, G.W - 24, 54, 8, R.colors.overlayDark);
+      R.roundRect(ctx, layout.intent.x, layout.intent.y, layout.intent.w, layout.intent.h, 8, R.colors.overlayDark);
       ctx.strokeStyle = intent.attackType === 'ranged' ? R.colors.blue : R.colors.red;
       ctx.lineWidth = 1;
-      ctx.strokeRect(12.5, 108.5, G.W - 25, 53);
-      R.text(ctx, 'INCOMING ' + intent.attackType.toUpperCase(), 22, 126, R.colors.red, R.fonts.xs);
-      R.text(ctx, intent.name + ' -> ' + intent.target.name, 22, 144, R.colors.text, R.fonts.md);
-      R.roundRect(ctx, 22, 149, G.W - 44, 6, 3, R.colors.damageBarBackground);
-      R.roundRect(ctx, 22, 149, (G.W - 44) * pct, 6, 3, pct > 0.38 ? R.colors.gold : R.colors.red);
-      R.textRight(ctx, remain.toFixed(1) + 's  PERFECT / GOOD / LATE', G.W - 22, 126, R.colors.textDim, R.fonts.xs);
+      ctx.strokeRect(layout.intent.x + 0.5, layout.intent.y + 0.5, layout.intent.w - 1, layout.intent.h - 1);
+      R.text(ctx, 'INCOMING ' + intent.attackType.toUpperCase(), 22, 202, R.colors.red, R.fonts.xs);
+      R.text(ctx, intent.name + ' -> ' + intent.target.name, 22, 220, R.colors.text, R.fonts.md);
+      R.roundRect(ctx, 22, 225, G.W - 44, 6, 3, R.colors.damageBarBackground);
+      R.roundRect(ctx, 22, 225, (G.W - 44) * pct, 6, 3, pct > 0.38 ? R.colors.gold : R.colors.red);
+      R.textRight(ctx, remain.toFixed(1) + 's  PERFECT / GOOD / LATE', G.W - 22, 202, R.colors.textDim, R.fonts.xs);
     }
     for (const b of this.data.enemyButtons) b.render(ctx);
-    // Fixed combat log (does not scroll with action list)
-    {
+    // Fixed combat log (does not scroll with action list). The reaction intent
+    // panel occupies this same vertical band, so suppress the log while it is
+    // visible instead of drawing two layers on top of each other.
+    if (this.data.turnState !== 'reactionWindow' && this.data.turnState !== 'result') {
       const logSlice = this.data.log.slice(-4);
-      let logY = this.getActionAreaTop() - 78;
+      let logY = layout.log.y;
       for (const msg of logSlice) {
         // 8px padding inside panel for text breathing room
         R.roundRect(ctx, 14, logY - 1, G.W - 28, 24, 3, R.colors.panel);
@@ -1013,10 +1197,10 @@ const combatScene = Scene.create({
       }
     }
 
-    const top = this.getActionAreaTop();
+    const top = layout.actions.y + 4;
     ctx.save();
     ctx.beginPath();
-    ctx.rect(8, top - 4, G.W - 16, this.getActionAreaHeight() + 4);
+    ctx.rect(layout.actions.x, layout.actions.y, layout.actions.w, layout.actions.h);
     ctx.clip();
     ctx.translate(0, top - 6 - this.data.scrollY);
     
@@ -1081,6 +1265,9 @@ const combatScene = Scene.create({
     }
 
     if (this.data.turnState === 'result' && !this.data.showEnlightenment) {
+      if (this.data.heroes[0]) UI.HeroSurface.renderResult(ctx, layout.result.x, layout.result.y + 8, layout.result.w, 76, this.data.heroes[0]);
+      R.textCenter(ctx, this.data.result && this.data.result.won ? 'Victory — rewards secured' : 'Defeat — retreat to safety', G.W / 2, ly, this.data.result && this.data.result.won ? R.colors.gold : R.colors.red, R.fonts.md);
+      ly += 24;
       ly += 8;
       if (this.data.rewards) {
         const rw = this.data.rewards;

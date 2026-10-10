@@ -8,6 +8,7 @@ const settingsScene = Scene.create({
   },
 
   enter: function() {
+    this.data.layout = Scene.responsive();
     this.data.scrollY = 0;
     this.buildButtons();
   },
@@ -173,6 +174,19 @@ const settingsScene = Scene.create({
       });
     };
     this.data.buttons.push(deleteBtn);
+    y += 44;
+
+    // --- Advanced Section ---
+    // Debug Diagnostics toggle (disabled by default; opt-in local collectors)
+    const dbgBtn = UI.Button(20, y, G.W - 40, 38, 'Debug Diagnostics: ' + (G.state.debugMode ? 'ON' : 'OFF'));
+    dbgBtn.onClick = function() {
+      const next = !G.state.debugMode;
+      G.state.debugMode = next;
+      if (typeof Diagnostics !== 'undefined' && Diagnostics.toggle) Diagnostics.toggle(next);
+      Notify.show('Diagnostics ' + (next ? 'on' : 'off'), 2);
+      settingsScene.buildButtons();
+    };
+    this.data.buttons.push(dbgBtn);
     y += 44;
 
     // --- Updates Section ---

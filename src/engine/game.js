@@ -3,8 +3,12 @@ const Notify = {
   achievements: [],
   show: function(msg, duration, color) {
     if (this.queue.length >= 3) this.queue.shift();
-    this.queue.push({ msg: msg || '', timer: duration || 2, color: color || R.colors.gold, age: 0 });
+    this.queue.push({ msg: msg || '', timer: duration || 2, color: color || R.colors.gold, age: 0, scene: (typeof G !== 'undefined' && G.state && G.state.scene) || null });
   },
+  // Scene-scoped clearing (LAY-05): drops every regular toast so the previous
+  // scene's messages never render over the new scene. Achievement banners live
+  // in `achievements`, never in `queue`, and are deliberately untouched here.
+  clearScene: function() { this.queue = []; },
   achievement: function(name, desc, icon) {
     this.achievements.push({ name, desc, icon, timer: 3.5, phase: 'in' });
     Audio.levelUp();
@@ -57,6 +61,8 @@ const Notify = {
     }
   },
   render: function(ctx) {
+    if (typeof window !== 'undefined' && window.__layoutHarness) window.__layoutHarness.overlay = true;
+    try {
     const reduceMotion = !!G.state.reduceMotion;
     let ty = 470;
     const count = Math.min(this.queue.length, 3);
@@ -113,6 +119,7 @@ const Notify = {
       R.textCenter(ctx, a.desc, G.W / 2, y + 52, R.colors.textDim, R.fonts.sm);
       ctx.globalAlpha = 1;
     }
+    } finally { if (typeof window !== 'undefined' && window.__layoutHarness) window.__layoutHarness.overlay = false; }
   },
   clear: function() { this.queue = []; this.achievements = []; }
 };
@@ -124,15 +131,21 @@ const Fade = {
   pendingScene: null,
   update: function(dt) {
     if (this.alpha !== this.target) {
-      const dir = this.target > this.alpha ? 1 : -1;
-      this.alpha += dir * this.speed * dt;
-      if ((dir > 0 && this.alpha >= this.target) || (dir < 0 && this.alpha <= this.target)) {
+      const rm = R.reducedMotion && R.reducedMotion();
+      if (rm) {
+        this.alpha = this.target;
+      } else {
+        const dir = this.target > this.alpha ? 1 : -1;
+        this.alpha += dir * this.speed * dt;
+      }
+      if (this.alpha === this.target) {
         this.alpha = this.target;
         if (this.pendingScene) {
           const pending = this.pendingScene;
           const name = typeof pending === 'string' ? pending : pending.name;
           const enterOptions = typeof pending === 'string' ? undefined : pending.enterOptions;
           this.pendingScene = null;
+          clearSceneToasts();
           Input.clear();
           UI.Modal.clearAll();
           if (G.currentScene && G.currentScene.leave) G.currentScene.leave();
@@ -164,17 +177,17 @@ const Fade = {
   }
 };
 
-const G = {
-  W: 400, H: 720,
-  SCROLL_SPEED: 0.5,
-  CONTENT_TOP: 116,
-  canvas: null, ctx: null,
-  state: {
+// Welcome gift for every player (tune down later via this constant).
+// `var` keeps it visible on globalThis for save.js and tests.
+var WELCOME_GOLD = 9999;
+
+function createDefaultGameState() {
+  return {
     scene: 'title',
     player: null,
     party: [],
     inventory: [],
-    gold: 0,
+    gold: WELCOME_GOLD,
     karma: 0,
     divineFragments: 0,
     prana: 0,
@@ -195,8 +208,29 @@ const G = {
     zoneRewardLedger: {},
     tournamentWins: 0,
     totalPlayTime: 0,
-    flags: {}
-  },
+    debugMode: false,
+    flags: {},
+    encounters: {},
+    affinity: {},
+    beastBond: { xp: {}, feed: { day: 0, counts: {} }, train: { day: 0, counts: {} }, trainCd: {} },
+    world: {
+      regions: {},
+      landmarks: { discovered: {}, notified: {} },
+      influence: {},
+      narrativeEchoes: {},
+      events: { active: {}, resolved: {} },
+      transitions: {}
+    }
+  };
+}
+
+const G = {
+  W: 400, H: 720,
+  SCROLL_SPEED: 0.5,
+  CONTENT_TOP: 116,
+  canvas: null, ctx: null,
+  state: createDefaultGameState(),
+  createDefaultState: createDefaultGameState,
   frameCount: 0,
   dt: 0,
   lastTime: 0,
@@ -210,7 +244,9 @@ function fitGame() {
   const el = document.getElementById('game-container');
   if (!el) return;
   // Clamp so a zero-sized viewport (hidden iframe) can never scale the game to nothing.
-  const scale = Math.max(0.2, Math.min(window.innerWidth / 404, window.innerHeight / 724, 1));
+  const vw = Math.max(1, window.innerWidth || G.W), vh = Math.max(1, window.innerHeight || G.H);
+  const scale = Math.max(0.2, Math.min(vw / 404, vh / 724, 1));
+  G.viewportProfile = vw > vh ? 'landscape' : (vw >= 800 ? 'wide-desktop' : (vw >= 500 ? 'large-portrait' : 'portrait'));
   el.style.transform = 'scale(' + scale + ')';
   el.style.transformOrigin = 'center center';
   // Landscape phones get a squeezed viewport; nudge the player upright (once).
@@ -218,8 +254,10 @@ function fitGame() {
     Hints.show('rotate', 'Rotate your device upright for the best experience.');
   }
 }
+if (typeof window !== 'undefined') window.fitGame = fitGame;
 
 function gInit() {  G.canvas = document.getElementById('game-canvas');
+  fitGame();
   // Back the canvas at device resolution so text/edges stay crisp on phones
   // (DPR 2-3), while ALL game code keeps using 400x720 logical coordinates.
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
@@ -306,6 +344,13 @@ function gInit() {  G.canvas = document.getElementById('game-canvas');
     }, 900);
   }
   gLoop(performance.now());
+  // ?probe&map: boot directly into the travel map for map-specific FPS measurement
+  if (G._probe && /[?&]map/.test(location.search)) {
+    setTimeout(function() {
+      SaveSystem.load();
+      gScene('travelMap');
+    }, 100);
+  }
   // Boot beacon: lets the verification harness (and devtools) confirm the
   // loop actually started on this device/DPR.
   console.log('[Mythika] booted dpr=' + G.dpr);
@@ -339,6 +384,7 @@ function gLoopFrame(time) {
   G.frameCount++;
   G.state.totalPlayTime += G.dt;
   Notify.update(G.dt);
+  if (typeof UI !== 'undefined' && UI.Feedback && UI.Feedback.updateToasts) UI.Feedback.updateToasts(G.dt);
   R.updateEffects(G.dt);
   R.updateProjectiles(G.dt);
   R.updateLevelUp(G.dt);
@@ -354,6 +400,7 @@ function gLoopFrame(time) {
   Fade.update(G.dt);
   if (UI.Modal.active) UI.updateButtons(UI.Modal.active._buttonList, G.dt);
   if (typeof FarmSystem !== 'undefined' && FarmSystem.tick) FarmSystem.tick(G.dt);
+  if (typeof WorldEvents !== 'undefined' && WorldEvents.tick) WorldEvents.tick(G.dt);
   if (G.currentScene && G.currentScene.update) G.currentScene.update(G.dt);
   G.ctx.clearRect(0, 0, G.W, G.H);
   G.ctx.save();
@@ -375,6 +422,7 @@ function gLoopFrame(time) {
   }
   Fade.render(G.ctx);
   Notify.render(G.ctx);
+  if (typeof UI !== 'undefined' && UI.Feedback && UI.Feedback.renderToasts) UI.Feedback.renderToasts(G.ctx);
   // First frame is on screen: dissolve the CSS boot splash (150ms), then
   // drop the class entirely.
   if (G.frameCount === 1) {
@@ -441,11 +489,32 @@ function safeEnter(scene, enterOptions) {
   }
 }
 
+// Single choke point for scene-scoped toast lifetime (LAY-05): drops stale
+// toasts from BOTH toast systems on every transition. Achievement banners
+// survive by design (Notify.clearScene never touches Notify.achievements;
+// Feedback has no achievement concept). Clearing is idempotent, so the
+// immediate path (swap here) and the deferred path (swap in Fade.update)
+// each observe exactly-once clearing per transition even though both sites
+// call this helper — the second clear of an already-empty queue is a no-op.
+// Note: navigation.js calls Fade.toScene directly, bypassing gScene, which
+// is why the Fade.update swap site must also clear.
+function clearSceneToasts() {
+  if (typeof Notify !== 'undefined' && Notify.clearScene) Notify.clearScene();
+  try {
+    if (typeof UI !== 'undefined' && UI.Feedback && UI.Feedback.clearSceneToasts) UI.Feedback.clearSceneToasts();
+  } catch (e) {}
+}
+
 function gScene(name, fade, enterOptions) {
-  if (!G.scenes[name]) return;
+  // Clear stale toasts first so the redirect notice below (a transition
+  // message describing the new scene) is the only toast that survives.
+  clearSceneToasts();
+  if (!G.scenes[name]) { if (typeof Notify !== 'undefined') Notify.show('Destination unavailable — returning to Ashram.', 2, R.colors.red); name = G.scenes.ashram ? 'ashram' : 'title'; }
   Input.clear();
   UI.Modal.clearAll();
-  if (fade && G.currentScene) {
+  // Navigation gets the shared transition veil by default; explicit false is
+  // retained for debug/bootstrap flows that need an immediate scene swap.
+  if (fade !== false && G.currentScene) {
     Fade.toScene(name, enterOptions);
   } else {
     if (G.currentScene && G.currentScene.leave) G.currentScene.leave();

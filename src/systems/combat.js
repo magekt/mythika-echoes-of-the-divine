@@ -40,10 +40,80 @@ Combat.startBattle = function(heroes, enemies) {
   // Elite-class battle-scoped effects (reset every battle)
   this.firstCritUsed = false;
   this.spellBoostUsed = false;
+  // Phase 24 combat bonds: applied bonuses for scene display (reset every battle)
+  this.bondBonuses = [];
+  // Phase 25 signature combos: partner-turn consumption flags + result ledger.
+  this.consumedTurns = {};
+  this.comboResults = [];
   for (const h of heroes) { h.ailments = {}; h.buffs = {}; }
   for (const e of enemies) { e.ailments = {}; e.buffs = {}; }
   this.applyElitePassives(heroes);
+  this.applyBondPassives(heroes);
   this.buildTurnOrder();
+};
+
+// Phase 24: tier passives (+1/+2/+4 role stat) + adjacent Sworn+ synergy tags.
+// Operates on battle clones only — never writes G.state. Missing BondSystem
+// means zero bonuses (formulas below degrade via || 0 guards).
+Combat.applyBondPassives = function(heroes) {
+  this.bondBonuses = [];
+  try {
+    if (typeof BondSystem === 'undefined' || !BondSystem || typeof BondSystem.combatBonusFor !== 'function') return;
+    if (!Array.isArray(heroes) || heroes.length === 0) return;
+    const orderedIds = heroes.map(h => h && h.id);
+    let playerId = heroes[0] && heroes[0].id;
+    try {
+      if (typeof G !== 'undefined' && G && G.state && G.state.player && G.state.player.id) playerId = G.state.player.id;
+    } catch (e) {}
+    for (const h of heroes) {
+      if (!h || !h.id) continue;
+      const b = BondSystem.combatBonusFor(h.id, orderedIds, playerId);
+      if (!b || !b.eligible || !(b.passive > 0)) continue;
+      h[b.roleStat] = (h[b.roleStat] || 0) + b.passive;
+      const entry = { heroId: h.id, name: h.name || h.id, passive: b.passive, roleStat: b.roleStat, synergy: b.synergy ? b.synergy.tag : null, lingering: !!b.lingering };
+      if (b.synergy) {
+        if (b.synergy.tag === 'crit' && b.synergy.critBonus) h.bondCritBonus = b.synergy.critBonus;
+        else if (b.synergy.tag === 'burst' && b.synergy.dmgPct) h.bondDmgPct = b.synergy.dmgPct;
+        else if (b.synergy.tag === 'ward' && b.synergy.healPct) h.bondHealPct = b.synergy.healPct;
+        else if (b.synergy.tag === 'swiftness' && b.synergy.agiBonus) h.agi = (h.agi || 0) + b.synergy.agiBonus;
+        else if (b.synergy.tag === 'intercept' && b.synergy.interceptPct) h.bondInterceptPct = b.synergy.interceptPct;
+      }
+      this.bondBonuses.push(entry);
+    }
+  } catch (e) {
+    this.bondBonuses = this.bondBonuses || [];
+  }
+};
+
+// Phase 24: Bhima intercept — damage TO a hero is reduced while a bonded
+// Sworn+ bhima (bondInterceptPct set at battle start) stands alive adjacent
+// to the player. Enemy-vs-enemy damage never intercepts.
+Combat._bondInterceptPctFor = function(defender) {
+  try {
+    if (!defender || !Array.isArray(this.heroes) || this.heroes.indexOf(defender) < 0) return 0;
+    let playerId = null;
+    try {
+      if (typeof G !== 'undefined' && G && G.state && G.state.player && G.state.player.id) playerId = G.state.player.id;
+    } catch (e) {}
+    const orderedIds = this.heroes.map(h => h && h.id);
+    if (!playerId) playerId = orderedIds[0];
+    for (const h of this.heroes) {
+      if (!h || h.hp <= 0 || !(h.bondInterceptPct > 0)) continue;
+      if (h === defender) continue;
+      let adjacent = false;
+      try {
+        if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.adjacentToPlayer === 'function') {
+          adjacent = BondSystem.adjacentToPlayer(h.id, orderedIds, playerId);
+        } else {
+          adjacent = Math.abs(orderedIds.indexOf(h.id) - orderedIds.indexOf(playerId)) === 1;
+        }
+      } catch (e) { adjacent = false; }
+      if (adjacent) return h.bondInterceptPct;
+    }
+    return 0;
+  } catch (e) {
+    return 0;
+  }
 };
 
 Combat.applyElitePassives = function(heroes) {
@@ -77,6 +147,136 @@ Combat.getCurrentActor = function() {
   return this.turnOrder[this.currentTurn] || null;
 };
 
+// Phase 25: fallback combo table used only when BondSystem is absent.
+// Mirrors BondSystem.COMBOS kinds so offline/degraded combat still resolves.
+Combat.SIGNATURE_FALLBACK = {
+  arjuna: { heroId: 'arjuna', name: 'Gandiva Twin Strike', kind: 'strike', base: 1.8, statScale: 0.04, hits: 2 },
+  bhima: { heroId: 'bhima', name: 'Mountain-Guard Slam', kind: 'slam', base: 1.6, statScale: 0.04, shield: 15 },
+  karna: { heroId: 'karna', name: 'Sunburst Volley', kind: 'volley', base: 1.2, statScale: 0.03 },
+  draupadi: { heroId: 'draupadi', name: 'Panchali Warding Aegis', kind: 'aegis', base: 0.25, statScale: 0.008, shield: 12 },
+  hanuman: { heroId: 'hanuman', name: 'Mountain-Leap Sunder', kind: 'leap', base: 2.2, statScale: 0.05, splash: 0.5 }
+};
+
+Combat.SIGNATURE_ROLE_STAT = { arjuna: 'str', bhima: 'def', karna: 'str', draupadi: 'mag', hanuman: 'agi' };
+
+// Phase 25: signature duo skill. Operates on battle clones only — never writes
+// G.state except the exactly-once combo_* unlock flag (best-effort, guarded).
+// Consumes the partner's upcoming turn via consumedTurns (skipped once by
+// nextTurn); the hero's own turn is consumed by the caller advancing.
+// Returns { ok, kind, name, total, lines } (lines: 1-2 log-band strings).
+Combat.performSignatureCombo = function(hero, partner, opts) {
+  const fail = function(reason) { return { ok: false, reason: reason }; };
+  try {
+    if (!hero || !hero.id || !(hero.hp > 0)) return fail('hero_unable');
+    if (!partner || !partner.id || !(partner.hp > 0)) return fail('partner_unable');
+    if (partner.id === hero.id) return fail('no_partner');
+    if (!Array.isArray(this.heroes) ||
+        this.heroes.indexOf(hero) < 0 || this.heroes.indexOf(partner) < 0) return fail('not_in_battle');
+    let def = null;
+    try {
+      if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.comboFor === 'function') {
+        def = BondSystem.comboFor(hero.id);
+      }
+    } catch (e) { def = null; }
+    if (!def && Object.prototype.hasOwnProperty.call(this.SIGNATURE_FALLBACK, hero.id)) {
+      const f = this.SIGNATURE_FALLBACK[hero.id];
+      def = {};
+      for (const k of Object.keys(f)) def[k] = f[k];
+    }
+    if (!def) return fail('unknown');
+    let roleStat = this.SIGNATURE_ROLE_STAT[hero.id] || 'str';
+    try {
+      if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.roleStatFor === 'function') {
+        roleStat = BondSystem.roleStatFor(hero.id) || roleStat;
+      }
+    } catch (e) {}
+    const roleVal = Number(hero[roleStat]);
+    const hasWeapon = !!(hero.weaponEquipped);
+    let mult = def.base, bonus = 0;
+    try {
+      if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.comboPotencyFor === 'function') {
+        const p = BondSystem.comboPotencyFor(hero.id, roleVal, hero.weaponLvl, hasWeapon);
+        if (p && Number.isFinite(Number(p.mult))) mult = Number(p.mult);
+        if (p && Number.isFinite(Number(p.bonus))) bonus = Number(p.bonus);
+      } else {
+        mult = Number(def.base) + Number(def.statScale || 0) * (Number.isFinite(roleVal) ? Math.max(0, roleVal) : 0);
+        bonus = hasWeapon ? 0.15 * Math.max(1, Math.floor(Number(hero.weaponLvl) || 1)) : 0;
+      }
+    } catch (e) {}
+    const eff = mult * (1 + bonus);
+    const o = (opts && typeof opts === 'object' && !Array.isArray(opts)) ? opts : {};
+    let target = (o.target && o.target.hp > 0) ? o.target : null;
+    if (!target) target = this.getRandomEnemy();
+    const kind = def.kind;
+    let total = 0;
+    const heroName = hero.name || hero.id;
+    const partnerName = partner.name || partner.id;
+    if (kind === 'strike') {
+      if (!target) return fail('no_target');
+      const hits = Math.max(1, Math.floor(Number(def.hits) || 1));
+      for (let i = 0; i < hits && target.hp > 0; i++) {
+        const r = this.performAttack(hero, target, { dmg: eff });
+        total += r.dmg;
+      }
+    } else if (kind === 'leap') {
+      if (!target) return fail('no_target');
+      const r = this.performAttack(hero, target, { dmg: eff });
+      total += r.dmg;
+      const splashMult = eff * (Number(def.splash) || 0.5);
+      for (const e of this.enemies) {
+        if (e === target || e.hp <= 0) continue;
+        const rs = this.performAttack(hero, e, { dmg: splashMult });
+        total += rs.dmg;
+      }
+    } else if (kind === 'volley') {
+      const foes = this.getAliveEnemies();
+      if (foes.length === 0) return fail('no_target');
+      for (const e of foes) {
+        const r = this.performAttack(hero, e, { dmg: eff });
+        total += r.dmg;
+      }
+    } else if (kind === 'slam') {
+      if (!target) return fail('no_target');
+      const r = this.performAttack(hero, target, { dmg: eff });
+      total += r.dmg;
+      const shieldAmt = Math.max(1, Math.floor(Number(def.shield) || 10));
+      for (const h of this.heroes) {
+        if (h.hp > 0) this.applyBuff(h, 'shield', shieldAmt, 2);
+      }
+    } else if (kind === 'aegis') {
+      const healFrac = Math.max(0, mult);
+      for (const h of this.heroes) {
+        if (h.hp <= 0) continue;
+        const healAmt = Math.floor(h.maxHp * healFrac * (1 + bonus));
+        h.hp = Math.min(h.maxHp, h.hp + healAmt);
+        total += healAmt;
+      }
+      const shieldAmt = Math.max(1, Math.floor(Number(def.shield) || 10));
+      for (const h of this.heroes) {
+        if (h.hp > 0) this.applyBuff(h, 'shield', shieldAmt, 2);
+      }
+    } else {
+      return fail('unknown');
+    }
+    this.consumedTurns = this.consumedTurns || {};
+    this.consumedTurns[partner.id] = true;
+    this.comboResults = this.comboResults || [];
+    this.comboResults.push({ heroId: hero.id, partnerId: partner.id, kind: kind, total: total });
+    try {
+      if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.markComboSeen === 'function') {
+        BondSystem.markComboSeen(hero.id);
+      }
+    } catch (e) {}
+    this.checkBattleEnd();
+    const lines = (kind === 'aegis')
+      ? [heroName + ' + ' + partnerName + ': ' + def.name + ' - party warded (+' + total + ' HP)!']
+      : [heroName + ' + ' + partnerName + ': ' + def.name + ' - ' + total + ' damage!'];
+    return { ok: true, kind: kind, name: def.name, total: total, lines: lines };
+  } catch (e) {
+    return fail('error');
+  }
+};
+
 Combat.nextTurn = function() {
   this.currentTurn++;
   if (this.currentTurn >= this.turnOrder.length) {
@@ -86,8 +286,20 @@ Combat.nextTurn = function() {
     return;
   }
   let tries = 0;
-  while (tries++ < this.turnOrder.length) {
+  while (tries++ < this.turnOrder.length + 1) {
     const actor = this.turnOrder[this.currentTurn];
+    // Phase 25: a duo skill consumes the partner's upcoming turn exactly once.
+    if (actor && actor.ref && actor.ref.id && this.consumedTurns && this.consumedTurns[actor.ref.id]) {
+      delete this.consumedTurns[actor.ref.id];
+      this.currentTurn++;
+      if (this.currentTurn >= this.turnOrder.length) {
+        this.processAilments();
+        this.buildTurnOrder();
+        this.checkBattleEnd();
+        return;
+      }
+      continue;
+    }
     if (!actor || (actor.ref && actor.ref.hp > 0)) break;
     this.currentTurn++;
     if (this.currentTurn >= this.turnOrder.length) {
@@ -168,7 +380,7 @@ Combat.applyAilment = function(target, ailmentId, duration) {
 };
 
 function _getEffectiveAtk(attacker, skill) {
-  let atk = (attacker.str || 1) + (attacker.equipAtk || 0);
+  let atk = attacker.str || 1;
   if (attacker.weaponEquipped && attacker.weaponEquipped.atk) {
     atk += attacker.weaponEquipped.atk;
   }
@@ -193,7 +405,7 @@ function _getEffectiveAtk(attacker, skill) {
 }
 
 function _getEffectiveMag(attacker, skill) {
-  let mag = (attacker.mag || 1) + (attacker.equipAccMag || 0) + (attacker.equipArmorMag || 0);
+  let mag = attacker.mag || 1;
   if (attacker.weaponEquipped && attacker.weaponEquipped.mag) {
     mag += attacker.weaponEquipped.mag;
   }
@@ -223,7 +435,7 @@ function _getEffectiveMag(attacker, skill) {
 }
 
 function _getEffectiveDef(defender) {
-  let def = (defender.def || 0) + (defender.equipDef || 0) + (defender.equipAccDef || 0);
+  let def = defender.def || 0;
   if (defender.armorEquipped && defender.armorEquipped.def) {
     def += defender.armorEquipped.def;
   }
@@ -289,7 +501,12 @@ Combat.calcMagicDamage = function(attacker, defender, skill) {
 };
 
 Combat.performAttack = function(attacker, defender, skill, damageMultiplier) {
-  const critChance = ((attacker.baseCrit || 10) + (attacker.equipCrit || 0) + (typeof Progression !== 'undefined' ? Progression.perkValue('drishti') : 0)) / 100;
+  const weaponCrit = attacker.weaponEquipped && attacker.weaponEquipped.crit || 0;
+  const armorCrit = attacker.armorEquipped && attacker.armorEquipped.crit || 0;
+  const accessoryCrit = attacker.accessoryEquipped && attacker.accessoryEquipped.crit || 0;
+  // Phase 24: bonded archer synergy grants +crit alongside the player.
+  const bondCrit = (attacker.bondCritBonus || 0);
+  const critChance = ((attacker.baseCrit || 10) + weaponCrit + armorCrit + accessoryCrit + bondCrit + (typeof Progression !== 'undefined' ? Progression.perkValue('drishti') : 0)) / 100;
   const isCrit = Math.random() < critChance;
   let dmg = 0;
   if (skill && skill.mag) {
@@ -300,7 +517,12 @@ Combat.performAttack = function(attacker, defender, skill, damageMultiplier) {
   if (skill && !skill.heal && typeof Progression !== 'undefined') {
     dmg = Math.floor(dmg * (1 + Progression.perkValue('gyana') / 100));
   }
+  // Phase 24: bonded burst synergy amplifies the hero's own strikes.
+  if (attacker.bondDmgPct) dmg = Math.floor(dmg * (1 + attacker.bondDmgPct / 100));
   if (damageMultiplier !== undefined) dmg = Math.floor(dmg * damageMultiplier);
+  // Phase 24: bonded intercept reduces damage landing on heroes.
+  const interceptPct = this._bondInterceptPctFor(defender);
+  if (interceptPct > 0) dmg = Math.floor(dmg * (1 - interceptPct / 100));
   defender.hp -= dmg;
   if (defender.hp < 0) defender.hp = 0;
 
@@ -312,7 +534,9 @@ Combat.performAttack = function(attacker, defender, skill, damageMultiplier) {
   if (skill && skill.heal && attacker.type === 'hero') {
     for (const h of this.heroes) {
       if (h.hp > 0) {
-        const healAmt = Math.floor(h.maxHp * skill.heal);
+        let healAmt = Math.floor(h.maxHp * skill.heal);
+        // Phase 24: bonded ward synergy deepens the hero's own blessings.
+        if (attacker.bondHealPct) healAmt = Math.floor(healAmt * (1 + attacker.bondHealPct / 100));
         h.hp = Math.min(h.maxHp, h.hp + healAmt);
         if (attacker.healDualCast) {
           Combat.applyBuff(h, 'shield', Math.floor(healAmt * 0.2), 2);   // Paladin: dual cast leaves a ward
@@ -531,6 +755,11 @@ Combat.performEnemyAbility = function(enemy, target, ability, damageMultiplier) 
     const variance = 0.85 + Math.random() * 0.3;
     dmg = Math.floor(base * variance);
     if (damageMultiplier !== undefined) dmg = Math.floor(dmg * damageMultiplier);
+    // Phase 24: bonded intercept also softens enemy abilities landing on heroes.
+    if (this.heroes && this.heroes.indexOf(target) >= 0) {
+      const interceptPct = this._bondInterceptPctFor(target);
+      if (interceptPct > 0) dmg = Math.floor(dmg * (1 - interceptPct / 100));
+    }
     dmg = _applyShield(target, dmg);
     dmg = Math.max(1, dmg);
     target.hp -= dmg;
@@ -584,4 +813,16 @@ Combat.awardBeastXP = function() {
   }
   if (beast.level >= 30) beast.xp = Math.min(beast.xp, needed - 1);
   if (leveled) Notify.show(beast.name + ' reached Lv.' + beast.level + '!', 2, R.colors.green);
+  // Phase 26 beast hearts: battle-together bond XP rides the existing call
+  // site (no new hooks, no double-award). Absent BeastBond = level XP only.
+  try {
+    if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.addBattleXP === 'function') {
+      const bond = BeastBond.addBattleXP(activeId);
+      if (bond && bond.ok && bond.heartUp) {
+        const msg = beast.name + ' bond deepened! Hearts: ' + bond.heart + '/3';
+        if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast(msg, { color: R.colors.gold, icon: '♥' });
+        else if (typeof Notify !== 'undefined') Notify.show(msg, 3, R.colors.gold);
+      }
+    }
+  } catch (e) {}
 };

@@ -222,6 +222,27 @@ QuestSystem.trackForge = function(slotId) {
   return anyCompleted;
 };
 
+QuestSystem.trackEncounter = function(encounterId) {
+  this.init();
+  const allQuests = getAllQuests();
+  let anyCompleted = false;
+  for (const q of allQuests) {
+    if (q.type !== 'encounter') continue;
+    if (q.target !== encounterId) continue;
+    const prog = G.state.quests[q.id] || { count: 0, completed: false, claimed: false };
+    if (prog.completed) continue;
+    prog.count = (prog.count || 0) + 1;
+    if (prog.count >= q.count) {
+      prog.completed = true;
+      anyCompleted = true;
+      Notify.show('Quest complete: ' + q.name + '!', 3, R.colors.gold);
+    }
+    G.state.quests[q.id] = prog;
+  }
+  this._advanceChainForEncounter(encounterId);
+  return anyCompleted;
+};
+
 QuestSystem._advanceChainForExplore = function(zoneId, amount) {
   this.init();
   for (const chainId of Object.keys(G.state.questChains || {})) {
@@ -287,6 +308,35 @@ QuestSystem._advanceChainForForge = function(slotId) {
       if (chainProg.completed) continue;
       const step = chain.steps[chainProg.currentStep];
       if (!step || step.type !== 'forge') continue;
+      const stepProg = G.state.quests[step.id] || { count: 0, completed: false };
+      if (stepProg.completed) continue;
+      stepProg.count = (stepProg.count || 0) + 1;
+      if (stepProg.count >= step.count) {
+        stepProg.completed = true;
+        G.state.quests[step.id] = stepProg;
+        if (chainProg.currentStep < chain.steps.length - 1) {
+          chainProg.currentStep++;
+        } else {
+          chainProg.completed = true;
+          Notify.show('Quest chain complete: ' + chain.name + '!', 4, R.colors.gold);
+          Audio.levelUp();
+        }
+        G.state.questChains[chain.id] = chainProg;
+      } else {
+        G.state.quests[step.id] = stepProg;
+      }
+    }
+  }
+};
+
+QuestSystem._advanceChainForEncounter = function(encounterId) {
+  this.init();
+  for (const zoneId of Object.keys(QUEST_CHAINS)) {
+    for (const chain of QUEST_CHAINS[zoneId]) {
+      const chainProg = G.state.questChains[chain.id] || { currentStep: 0, completed: false };
+      if (chainProg.completed) continue;
+      const step = chain.steps[chainProg.currentStep];
+      if (!step || step.type !== 'encounter' || step.target !== encounterId) continue;
       const stepProg = G.state.quests[step.id] || { count: 0, completed: false };
       if (stepProg.completed) continue;
       stepProg.count = (stepProg.count || 0) + 1;

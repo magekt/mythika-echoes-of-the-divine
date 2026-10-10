@@ -11,6 +11,23 @@ function forgeFitText(ctx, text, maxWidth, font) {
   return value.replace(/\s+\S*$/, '') + '\u2026';
 }
 
+const ForgeAccess = {
+  costs: { weapon: 30, armor: 25, accessory: 20 },
+  status: function(heroId, slot) {
+    const hero = (G.state.party || []).find(h => h && h.id === heroId);
+    if (!hero) return { allowed: false, reason: 'Hero not found', hero: null };
+    const cost = ForgeAccess.costs[slot] || 30;
+    const gold = G.state.gold || 0;
+    if (gold < cost) return { allowed: false, reason: 'Need ' + cost + 'g (' + gold + 'g available)', hero: hero, cost: cost };
+    return { allowed: true, reason: '', hero: hero, cost: cost };
+  },
+  enter: function(heroId, slot) {
+    const s = this.status(heroId, slot);
+    if (!s.allowed) return s;
+    return { ...s, allowed: true };
+  }
+};
+
 const forgeScene = Scene.create({
   name: 'forge',
   data: {
@@ -18,7 +35,7 @@ const forgeScene = Scene.create({
     selectedHero: null,
     staticDraws: [],
     slot: null,
-    upgradeCosts: { weapon: 30, armor: 25, accessory: 20 },
+    upgradeCosts: ForgeAccess.costs,
     scrollY: 0,
     contentHeight: 0
   },
@@ -188,6 +205,11 @@ const forgeScene = Scene.create({
       };
       btn.onClick = function() {
         const s = this._slot;
+        const gate = ForgeAccess.enter(hero.id, s.id);
+        if (!gate.allowed) {
+          Notify.show(gate.reason, 2, R.colors.red);
+          return;
+        }
         forgeScene.upgradeSlot(s.id);
       };
       this.data.buttons.push(btn);
@@ -229,6 +251,11 @@ const forgeScene = Scene.create({
 
   upgradeSlot: function(slotId) {
     const hero = this.data.selectedHero;
+    const gate = ForgeAccess.enter(hero ? hero.id : null, slotId);
+    if (!gate.allowed) {
+      Notify.show(gate.reason, 2, R.colors.red);
+      return false;
+    }
     const costMultiplier = (G.state.quests && G.state.quests.ary_forge1 && G.state.quests.ary_forge1.completed) ? 0.9 : 1;
     const cost = Math.floor(this.data.upgradeCosts[slotId] * costMultiplier);
     const slotName = slotId.charAt(0).toUpperCase() + slotId.slice(1);

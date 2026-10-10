@@ -29,9 +29,9 @@ No control flow — data is read-only at runtime. Systems query data via global 
 ## File Inventory
 | File | Export | Description |
 |------|--------|-------------|
-| `heroes.js` | `HEROES` | 3 launch heroes (Arjuna, Bhima, Karna) + base stats |
+| `heroes.js` | `HEROES`, `createHeroState`, `calcHeroStats` | 3 launch heroes (Arjuna, Bhima, Karna) + canonical equipped-slot stat calculations |
 | `enemies.js` | `ENEMIES`, `ENEMY_ABILITIES` | ~30 enemy definitions + ability table |
-| `zones.js` | `ZONES` | 7 zones (3 MVP + 4 post-launch) with biome, reqLevel, bgColor |
+| `zones.js` | `ZONES`, `ZoneAccess` | 7 zones (3 MVP + 4 post-launch) with biome, reqLevel, bgColor, and authoritative entry checks |
 | `perks.js` | `PERKS` | 3-tier rebirth perk tree (Perks 1, Perks 2, Ascension) |
 | `auras.js` | `AURAS` | 24 auras (8 per class path) with effects |
 | `classes.js` | `CLASSES` | 3 class paths (Kshatriya, Rishi, Yogi) + elite classes |
@@ -41,7 +41,7 @@ No control flow — data is read-only at runtime. Systems query data via global 
 | `journeys.js` | `JOURNEYS` | Journey definitions with choices/rewards |
 | `quests.js` | `QUESTS` | Quest definitions with objectives/rewards; includes new quest types: collect, explore, fish, forge alongside combat quests; standalone forge quest |
 | `achievements.js` | `ACHIEVEMENTS` | Achievement list with unlock conditions |
-| `items.js` | `ITEMS` | Equipment, consumables, materials. Includes zone-specific weapons/armor/accessories with rarity tiers; new entries: obsidiancleaver, voidlance, jadevest, sageRing; consumables: fishStew, herbPoultice |
+| `items.js` | `ITEMS`, `EquipmentSystem` | Equipment, consumables, materials, and canonical owned-item equipment swaps. Includes zone-specific weapons/armor/accessories with rarity tiers; new entries: obsidiancleaver, voidlance, jadevest, sageRing; consumables: fishStew, herbPoultice |
 | `data.js` | (none) | Re-exports all for convenience |
 
 ## Key Invariants

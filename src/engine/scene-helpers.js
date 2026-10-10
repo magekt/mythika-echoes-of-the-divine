@@ -83,6 +83,35 @@
     if (title) R.textCenter(ctx, title, G.W / 2, titleY || 22, R.colors.gold, R.fonts.lg);
   };
 
+  Scene.responsive = function(viewport) {
+    const w = Math.max(1, Number(viewport && viewport.width) || G.W);
+    const h = Math.max(1, Number(viewport && viewport.height) || G.H);
+    const profile = w > h ? 'landscape' : (w >= 800 ? 'wide-desktop' : (w >= 500 ? 'large-portrait' : 'portrait'));
+    return { profile, safe: { x: 14, y: 10, w: G.W - 28, h: G.H - 20 }, header: { x: 14, y: 8, w: G.W - 28, h: 72 }, primary: { x: 40, y: G.H - 92, w: G.W - 80, h: 48 }, back: { x: 40, y: G.H - 40, w: G.W - 80, h: 32 } };
+  };
+  Scene.contextHeader = function(ctx, title, context, opts) {
+    const box = (opts && opts.rect) || Scene.responsive().header;
+    Scene.drawHeader(ctx, box.h, title, box.y + 20);
+    if (context) R.textCenter(ctx, context, G.W / 2, box.y + 50, R.colors.textSecondary, R.fonts.sm);
+    return box;
+  };
+  Scene.primaryAction = function(label, action, opts) {
+    const o = opts || {}, r = o.rect || Scene.responsive().primary;
+    const b = UI.MagneticBtn(r.x, r.y, r.w, r.h, label, { variant: o.variant || 'primary' });
+    b.onClick = action || function() {};
+    b._grammarRole = 'primary';
+    return b;
+  };
+  Scene.recoverableState = function(opts) {
+    const o = opts || {}, y = o.y || 330;
+    return { kind: o.kind || 'empty', label: o.title || 'Nothing to show', hint: o.hint || 'Try another path.', ctaLabel: o.ctaLabel, ctaAction: o.ctaAction || function() {}, render: function(ctx) {
+      R.textCenter(ctx, this.label, G.W / 2, y, R.colors.gold, R.fonts.md);
+      R.textCenter(ctx, this.hint, G.W / 2, y + 22, R.colors.textSecondary, R.fonts.sm);
+      if (this.ctaLabel) Scene.primaryAction(this.ctaLabel, this.ctaAction, { rect: { x: 70, y: y + 42, w: G.W - 140, h: 44 } }).render(ctx);
+    } };
+  };
+  Scene.grammarState = Scene.recoverableState;
+
   // save + clip to the scrollable content band + translate by -scrollY.
   // Caller MUST ctx.restore() after drawing its content.
   Scene.clipContent = function(ctx, scene) {
@@ -101,9 +130,15 @@
     const target = o.target || 'ashram';
     const btn = UI.Button(60, y, G.W - 120, 30, o.label || 'Back to Ashram', R.colors.btnGold);
     btn.onClick = function() {
-      gScene(target, !!o.fade, target === 'ashram' ? { restoreScroll: true } : undefined);
+      Scene.navigate(target, { fade: !!o.fade, enterOptions: target === 'ashram' ? { restoreScroll: true } : undefined });
     };
     return btn;
+  };
+  Scene.navigate = function(target, opts) {
+    const o = opts || {}, known = target && G.scenes && G.scenes[target] ? target : 'ashram';
+    if (target !== known && typeof Notify !== 'undefined') Notify.show('Destination unavailable — returning to Ashram.', 2, R.colors.red);
+    gScene(known, !!o.fade, o.enterOptions);
+    return known;
   };
 
   // ============================================================================

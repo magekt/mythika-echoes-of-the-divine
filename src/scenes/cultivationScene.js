@@ -30,13 +30,16 @@ const cultivationScene = Scene.create({
     buttons: [],
     scrollY: 0,
     contentHeight: 0,
-    breakthroughButton: null
+    breakthroughButton: null,
+    _bgAlpha: 0
   },
 
   enter: function() {
     this.data.buttons = [];
     this.data.scrollY = 0;
     this.data.breakthroughButton = null;
+    this.data._bgAlpha = 0;
+    R.Backgrounds.registerSlot('cultivation:' + G.state.realm);
     this.buildButtons();
   },
 
@@ -148,11 +151,13 @@ const cultivationScene = Scene.create({
       const result = CultivationSystem.attemptBreakthrough();
       if (result.success) {
         Notify.show('Breakthrough! ' + (result.bonusText || ''), 3, R.colors.accent);
+        if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Breakthrough! ' + (result.bonusText || ''), { color: R.colors.accent, icon: '★' });
         Audio.levelUp();
         this.syncBreakthroughButton();
         return true;
       }
       Notify.show(result.reason || 'Breakthrough failed!', 3);
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast(result.reason || 'Breakthrough failed!', { color: R.colors.danger, icon: '🔒' });
       Audio.error();
       this.syncBreakthroughButton();
       return false;
@@ -180,6 +185,7 @@ const cultivationScene = Scene.create({
     const shell = UI.PremiumShell(10, py, G.W - 20, this.infoPanelH, { outerR: 12 });
     shell.render(ctx);
     const content = shell.contentRect();
+    UI.HeroSurface.renderDetail(ctx, content.x, content.y, content.w, 76, G.state.player, 'cultivation');
 
     const realm = CultivationSystem.getRealmData();
     const progress = CultivationSystem.getRealmProgress();
@@ -187,7 +193,7 @@ const cultivationScene = Scene.create({
     const canBreak = status.canBreakthrough;
     const stats = CultivationSystem.getBreakthroughStats(getRealmIndex(G.state.realm));
 
-    let iy = content.y + 10;
+    let iy = content.y + 86;
     R.textCenter(ctx, 'Cultivation Realm', content.x + content.w / 2, iy, R.colors.accent, R.fonts.md);
     iy += 20;
     R.textCenter(ctx, 'Realm: ' + realm.name, content.x + content.w / 2, iy, R.colors.textPrimary, R.fonts.md);
@@ -231,6 +237,14 @@ const cultivationScene = Scene.create({
   },
 
   render: function(ctx) {
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    R.Backgrounds.renderBackground(ctx, 'cultivation:' + G.state.realm, bgAlpha);
+
+    // Render meditation moment left gutter below realm panel
+    R.Backgrounds.renderCharacterMoment(ctx, 'hero:' + G.state.player.id, 20, 200, 60, 100, bgAlpha * 0.3);
+
     // Render noise/grain overlay for editorial luxury feel
     R.renderNoise(ctx);
 

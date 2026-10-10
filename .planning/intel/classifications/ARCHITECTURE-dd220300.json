@@ -1,0 +1,26 @@
+{
+  "source_path": "/Users/admin/Documents/Deepankar Project/dragonSword_EXPMinima/ARCHITECTURE.md",
+  "type": "DOC",
+  "confidence": "medium",
+  "manifest_override": false,
+  "title": "Architecture Overview",
+  "summary": "Describes Mythika's layered vanilla JavaScript game architecture, including engine, systems, scenes, data, UI, state flow, and core abstractions.",
+  "scope": [
+    "Mythika: Echoes of the Divine",
+    "HTML5 Canvas 2D",
+    "vanilla JavaScript",
+    "PWA",
+    "engine layer",
+    "game systems",
+    "scene layer",
+    "static data",
+    "UI components",
+    "global state",
+    "rendering",
+    "persistence"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": "Architecture reference with explanatory diagrams, data flows, directory structure, and rationale; no singular locked decision, product requirements, or formal API contract."
+}

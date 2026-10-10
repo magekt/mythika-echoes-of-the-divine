@@ -1,3 +1,19 @@
+const TournamentAccess = {
+  status: function() {
+    const cost = 50 + ((G.state.tournamentWins || 0) * 25);  // tournament entry fee (escalates with wins)
+    const gold = G.state.gold || 0;
+    const hasPlayer = !!G.state.player;
+    if (!hasPlayer) return { allowed: false, reason: 'No hero available', cost: cost };
+    if (gold < cost) return { allowed: false, reason: 'Need ' + cost + 'g (' + gold + 'g available)', cost: cost };
+    return { allowed: true, reason: '', cost: cost };
+  },
+  enter: function() {
+    const s = this.status();
+    if (!s.allowed) return s;
+    return { ...s, allowed: true };
+  }
+};
+
 const tournamentScene = Scene.create({
   name: 'tournament',
   data: {
@@ -67,9 +83,10 @@ const tournamentScene = Scene.create({
     this.data.staticDraws = [];
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
-    const cost = 50 + (this.data.wins * 25);
 
-    const canEnter = !!G.state.player && (G.state.gold || 0) >= cost;
+    const tournamentStatus = TournamentAccess.status();
+    const canEnter = tournamentStatus.allowed;
+    const cost = tournamentStatus.cost;
     const btn = UI.MagneticBtn(30, y, G.W - 60, 48, 'Enter Tournament (' + cost + 'g)', { variant: 'primary' });
     btn.enabled = canEnter;
     btn.onClick = function() {
@@ -92,6 +109,12 @@ const tournamentScene = Scene.create({
   },
 
   startMatch: function() {
+    const gate = TournamentAccess.enter();
+    if (!gate.allowed) {
+      Notify.show(gate.reason, 2, R.colors.red);
+      this.data.log = [gate.reason];
+      return;
+    }
     this.data.state = 'fighting';
     this.data.log = [];
     this.data.round++;

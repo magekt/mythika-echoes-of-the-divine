@@ -1,6 +1,6 @@
 const Scene = {
   create(def) {
-    return Object.assign({
+    var scene = Object.assign({
       name: def.name || 'unnamed',
       enter: def.enter || (() => {}),
       leave: def.leave || (() => {}),
@@ -8,6 +8,20 @@ const Scene = {
       render: def.render || (() => {}),
       data: def.data || {}
     }, def);
+    // Phase 19: lifecycle guards wrap enter/leave internally; scene API unchanged.
+    if (typeof Lifecycle !== 'undefined' && Lifecycle) {
+      var rawEnter = scene.enter, rawLeave = scene.leave;
+      scene.enter = Lifecycle.wrapEnter(scene, rawEnter);
+      scene.leave = (function (s, fn) {
+        var wrapped = Lifecycle.wrapLeave(s, fn);
+        return function () {
+          var out = wrapped.apply(s, arguments);
+          try { Lifecycle.assertClean(s); } catch (e) {}
+          return out;
+        };
+      })(scene, rawLeave);
+    }
+    return scene;
   }
 };
 

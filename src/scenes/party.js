@@ -1,3 +1,116 @@
+const RecruitAccess = {
+  costs: [800, 2500, 6000, 14000],  // cost indexed by current party length (1→4 heroes)
+  status: function(heroId) {
+    const party = G.state.party || [];
+    const cost = RecruitAccess.costs[party.length - 1] || 14000;
+    const gold = G.state.gold || 0;
+    if (party.length >= 5) return { allowed: false, reason: 'Party is full (max 5)', cost: cost };
+    if (party.some(h => h && h.id === heroId)) return { allowed: false, reason: heroId + ' already in party', cost: cost };
+    if (gold < cost) return { allowed: false, reason: 'Need ' + cost + 'g (' + gold + 'g available)', cost: cost };
+    return { allowed: true, reason: '', cost: cost };
+  },
+  enter: function(heroId) {
+    const s = this.status(heroId);
+    if (!s.allowed) return s;
+    return { ...s, allowed: true };
+  }
+};
+
+// Helper: get next action hint for party
+function getNextPartyHint() {
+  const party = G.state.party || [];
+  if (!party.length) return 'Recruit your first hero to begin your journey.';
+
+  // Check for heroes ready to equip
+  for (const hero of party) {
+    const inv = G.state.inventory || [];
+    const hasWeapon = inv.some(i => i.type === 'weapon');
+    const hasArmor = inv.some(i => i.type === 'armor');
+    const hasAccessory = inv.some(i => i.type === 'accessory');
+    if (!hero.weaponEquipped && hasWeapon) return 'Tap a hero → Equip Weapon to boost ATK.';
+    if (!hero.armorEquipped && hasArmor) return 'Tap a hero → Equip Armor to boost DEF.';
+    if (!hero.accessoryEquipped && hasAccessory) return 'Tap a hero → Equip Accessory to boost MAG.';
+  }
+
+  // Check for cultivation readiness
+  for (const hero of party) {
+    if (typeof CultivationSystem !== 'undefined' && CultivationSystem.canBreakthrough && CultivationSystem.canBreakthrough(hero)) {
+      return 'Tap a hero → Cultivate to break through to the next realm.';
+    }
+  }
+
+  return 'Manage your party: equip gear, cultivate, or recruit new heroes.';
+}
+
+// Helper: get contextual badge for hero
+function getHeroBadge(hero) {
+  // Check if hero can equip something
+  const inv = G.state.inventory || [];
+  const hasWeapon = inv.some(i => i.type === 'weapon');
+  const hasArmor = inv.some(i => i.type === 'armor');
+  const hasAccessory = inv.some(i => i.type === 'accessory');
+
+  if (!hero.weaponEquipped && hasWeapon) {
+    return UI.Feedback.ContextualBadge('ready', 'Can equip weapon', { x: 0, y: 0, size: 20 });
+  }
+  if (!hero.armorEquipped && hasArmor) {
+    return UI.Feedback.ContextualBadge('ready', 'Can equip armor', { x: 0, y: 0, size: 20 });
+  }
+  if (!hero.accessoryEquipped && hasAccessory) {
+    return UI.Feedback.ContextualBadge('ready', 'Can equip accessory', { x: 0, y: 0, size: 20 });
+  }
+
+  // Check cultivation readiness
+  if (typeof CultivationSystem !== 'undefined' && CultivationSystem.canBreakthrough && CultivationSystem.canBreakthrough(hero)) {
+    return UI.Feedback.ContextualBadge('ready', 'Breakthrough available', { x: 0, y: 0, size: 20 });
+  }
+
+  // Check if hero needs cultivation (progress)
+  if (typeof CultivationSystem !== 'undefined' && CultivationSystem.getRealmProgress) {
+    const prog = CultivationSystem.getRealmProgress(hero);
+    if (prog && prog.current > 0 && prog.current < prog.needed) {
+      return UI.Feedback.ContextualBadge('progress', 'Cultivation: ' + Math.floor(prog.current) + '/' + prog.needed, { x: 0, y: 0, size: 20 });
+    }
+  }
+
+  return UI.Feedback.ContextualBadge('complete', 'Fully equipped', { x: 0, y: 0, size: 20 });
+}
+
+// Helper: gift list suffix for a hero (liked ♥, tier-locked 🔒<tier>).
+// Defensive: absent BondSystem/HERO_GIFTS/ITEMS yields a plain label.
+function giftSuffixFor(item, hero) {
+  try {
+    if (!item || !hero) return '';
+    const table = (typeof HERO_GIFTS !== 'undefined' && HERO_GIFTS) ? HERO_GIFTS : null;
+    const liked = !!(table && Array.isArray(table[hero.id]) && table[hero.id].indexOf(item.giftKey) !== -1);
+    let suffix = liked ? ' ♥' : '';
+    const gifts = (typeof ITEMS !== 'undefined' && ITEMS && ITEMS.gifts) ? ITEMS.gifts : null;
+    const def = (gifts && item.giftKey && gifts[item.giftKey]) ? gifts[item.giftKey] : null;
+    if (def && def.minTier && typeof BondSystem !== 'undefined' && BondSystem &&
+        typeof BondSystem._tierMeets === 'function' && typeof BondSystem.valueFor === 'function') {
+      if (!BondSystem._tierMeets(BondSystem.valueFor(hero.id), def.minTier)) {
+        suffix += ' 🔒' + def.minTier;
+      }
+    }
+    return suffix;
+  } catch (e) {
+    return '';
+  }
+}
+
+// Helper: player-facing copy for a gift denial reason.
+function giftDenialCopy(reason, hero, item, need) {
+  const name = hero ? hero.name : 'They';
+  const itemName = item ? item.name : 'gift';
+  if (reason === 'not_liked') return name + ' has no fondness for ' + itemName + '.';
+  if (reason === 'tier_locked') return itemName + ' stirs only a ' + (need || 'higher') + '+ bond.';
+  if (reason === 'capped') return name + ' needs time — gifts rest for now.';
+  if (reason === 'no_item') return 'No ' + itemName + ' left.';
+  if (reason === 'not_recruited' || reason === 'inactive') return name + ' must stand with you to receive gifts.';
+  if (reason === 'maxed') return 'Your bond with ' + name + ' cannot deepen further.';
+  return 'The gift finds no purchase.';
+}
+
 const partyScene = Scene.create({
   name: 'party',
   data: {
@@ -9,7 +122,8 @@ const partyScene = Scene.create({
     equipSlot: null,
     scrollY: 0,
     contentHeight: 0,
-    recruitCosts: [800, 2500, 6000, 14000]
+    recruitCosts: RecruitAccess.costs,
+    _bgAlpha: 0
   },
 
   enter: function() {
@@ -18,6 +132,8 @@ const partyScene = Scene.create({
     this.data.itemsView = false;
     this.data.equipSlot = null;
     this.data.scrollY = 0;
+    this.data._bgAlpha = 0;
+    R.Backgrounds.registerSlot('ashram');
     this.buildList();
   },
 
@@ -68,12 +184,26 @@ const partyScene = Scene.create({
     // with full-width layout matching the grid pattern
     const cardH = 86; // was 66px — upgraded for tap target (44×44 minimum)
 
+    // Inline hint for next action (equip/cultivate) - stored for reuse
+    this.data.nextHint = UI.Feedback.InlineHint('party-next-action', getNextPartyHint(), {
+      x: 14,
+      y: y - 4,
+      w: G.W - 28,
+      accentColor: R.colors.accent
+    });
+
     for (const hero of G.state.party) {
       const alive = hero.hp > 0;
       const btn = UI.Button(14, y, G.W - 28, cardH, '', alive ? R.colors.panel : R.colors.btn);
       btn._hero = hero;
       btn._alive = alive;
+
+      // Contextual badge on hero card
+      const badge = getHeroBadge(hero);
+      btn._badge = badge;
+
       btn.render = function(ctx) {
+        UI.HeroSurface.renderCompact(ctx, this.x, this.y, this.w, this.h, this._hero);
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
         R.roundRect(ctx, bx, by, bw, bh, 8, this.color);
         ctx.strokeStyle = R.colors.borderHairline;
@@ -102,6 +232,14 @@ const partyScene = Scene.create({
         R.roundRect(ctx, tx, by + 62, Math.max(0, barW * mpPct), 8, 4, ctx.fillStyle);
         R.text(ctx, Math.floor(this._hero.mp) + '/' + this._hero.maxMp, right, by + 70, R.colors.white, R.fonts.xs, 'right');
         ctx.globalAlpha = 1;
+
+        // Render contextual badge
+        if (this._badge && this._badge.visible) {
+          this._badge.x = bx + bw - this._badge.size - 8;
+          this._badge.y = by + 8;
+          this._badge.update(G.dt || 0.016);
+          this._badge.render(ctx);
+        }
       };
       btn.onClick = function() { partyScene.selectHero(this._hero); };
       this.data.buttons.push(btn);
@@ -109,12 +247,11 @@ const partyScene = Scene.create({
     }
 
     // Recruit Hall: grow the party toward the full pantheon (max 5 heroes).
-    if (G.state.party.length < 5) {
-      const cost = this.data.recruitCosts[G.state.party.length - 1] || 14000;
-      const canAfford = (G.state.gold || 0) >= cost;
+    const recruitStatus = RecruitAccess.status(null);  // null = just checking capacity + gold
+    if (recruitStatus.cost !== undefined) {
       // Primary action button: minimum 38px height, prefer 38px
-      const rec = UI.Button(14, y + 4, G.W - 28, 38, 'Recruit Hero (' + cost + 'g)', canAfford ? R.colors.btnGold : R.colors.btn);
-      rec.enabled = canAfford;
+      const rec = UI.Button(14, y + 4, G.W - 28, 38, 'Recruit Hero (' + recruitStatus.cost + 'g)', recruitStatus.allowed ? R.colors.btnGold : R.colors.btn);
+      rec.enabled = recruitStatus.allowed;
       rec.onClick = function() {
         partyScene.data.view = 'recruit';
         partyScene.data.scrollY = 0;
@@ -141,16 +278,20 @@ const partyScene = Scene.create({
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
 
-    const cost = this.data.recruitCosts[G.state.party.length - 1] || 14000;
+    const recruitInfo = RecruitAccess.status(null);
+    const cost = recruitInfo.cost;
     const inParty = G.state.party.map(x => x.id);
     SD.push({ text: ['Recruit joins at 60% of your leader\'s level — ' + cost + 'g', 18, y + 8, R.colors.gold, R.fonts.sm] });
     y += 24;
 
     for (const hid of Object.keys(HEROES)) {
       if (inParty.indexOf(hid) !== -1) continue;
+      const heroStatus = RecruitAccess.status(hid);
+      if (!heroStatus.allowed && heroStatus.reason.indexOf('already') !== -1) continue;
       const heroDef = HEROES[hid];
-      const btn = UI.Button(14, y, G.W - 28, 54, '', R.colors.panel);
+      const btn = UI.Button(14, y, G.W - 28, 54, '', heroStatus.allowed ? R.colors.panel : R.colors.btn);
       btn._hid = hid;
+      btn.enabled = heroStatus.allowed;
       btn.render = function(ctx) {
         const bx = this.x, by = this.y, bw = this.w, bh = this.h;
         R.roundRect(ctx, bx, by, bw, bh, 6, R.colors.panel);
@@ -179,8 +320,12 @@ const partyScene = Scene.create({
   },
 
   recruitHero: function(hid) {
-    const idx = G.state.party.length - 1;
-    const cost = this.data.recruitCosts[idx] || 14000;
+    const gate = RecruitAccess.enter(hid);
+    if (!gate.allowed) {
+      UI.Feedback.Toast(gate.reason, { color: R.colors.danger, icon: '🔒' });
+      return false;
+    }
+    const cost = gate.cost;
     if (!Economy.spendGoldOrNotify(cost)) return false;
 
     const recruit = createHeroState(hid);
@@ -196,7 +341,20 @@ const partyScene = Scene.create({
     recruit.mp = recruit.maxMp;
 
     G.state.party.push(recruit);
-    Notify.show(recruit.name + ' joins your party!', 3, R.colors.gold);
+    try {
+      if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.ensureSeed === 'function') {
+        BondSystem.ensureSeed(hid);
+      }
+      // Seed recruit-scene availability: clear any stale completion flag so
+      // BondSystem.bondAvailable(hid) offers bond_<hid>_recruit.
+      if (G.state && G.state.flags && typeof G.state.flags === 'object') {
+        delete G.state.flags['bond_' + hid + '_recruit'];
+      }
+    } catch (e) {}
+    UI.Feedback.Toast(recruit.name + ' joins your party!', { color: R.colors.gold, icon: '★', duration: 3 });
+    try {
+      UI.Feedback.Toast('A bond scene awaits ' + recruit.name + '!', { color: R.colors.gold, icon: '💬', duration: 3 });
+    } catch (e) {}
     Audio.levelUp();
     Hints.show('recruit', 'Allies fight alongside you automatically in every battle.');
     AchievementSystem.check();
@@ -246,7 +404,7 @@ const partyScene = Scene.create({
     const buttonH = 48;
     const gap = 8;
     const firstButtonY = panelY + topPad;
-    const actionCount = 5;
+    const actionCount = 7;
     const panelH = topPad + actionCount * buttonH + (actionCount - 1) * gap + 12;
 
     return {
@@ -298,14 +456,17 @@ const partyScene = Scene.create({
     y += 18;
 
     const wepName = Scene.gearLabel(hero.weaponEquipped);
-    const equipLine = 'Weapon: ' + wepName + ' (Lv.' + hero.weaponLvl + ')' + (hero.equipAtk ? ' +' + hero.equipAtk + ' ATK' : '');
+    const weaponAtk = hero.weaponEquipped && hero.weaponEquipped.atk || 0;
+    const equipLine = 'Weapon: ' + wepName + ' (Lv.' + hero.weaponLvl + ')' + (weaponAtk ? ' +' + weaponAtk + ' ATK' : '');
     R.text(ctx, equipLine, 18, y, R.colors.textDim, R.fonts.sm);
     y += 14;
     const armName = Scene.gearLabel(hero.armorEquipped);
-    R.text(ctx, 'Armor: ' + armName + ' (Lv.' + hero.armorLvl + ')' + (hero.equipDef ? ' +' + hero.equipDef + ' DEF' : ''), 18, y, R.colors.textDim, R.fonts.sm);
+    const armorDef = hero.armorEquipped && hero.armorEquipped.def || 0;
+    R.text(ctx, 'Armor: ' + armName + ' (Lv.' + hero.armorLvl + ')' + (armorDef ? ' +' + armorDef + ' DEF' : ''), 18, y, R.colors.textDim, R.fonts.sm);
     y += 14;
     const accName = Scene.gearLabel(hero.accessoryEquipped);
-    R.text(ctx, 'Accessory: ' + accName + ' (Lv.' + hero.accessoryLvl + ')' + (hero.equipAccMag ? ' +' + hero.equipAccMag + ' MAG' : ''), 18, y, R.colors.textDim, R.fonts.sm);
+    const accessoryMag = hero.accessoryEquipped && hero.accessoryEquipped.mag || 0;
+    R.text(ctx, 'Accessory: ' + accName + ' (Lv.' + hero.accessoryLvl + ')' + (accessoryMag ? ' +' + accessoryMag + ' MAG' : ''), 18, y, R.colors.textDim, R.fonts.sm);
     y += 20;
 
     if (hero.skills && hero.skills.length) {
@@ -337,6 +498,7 @@ const partyScene = Scene.create({
     this.data.buttons = [];
     this.data.scrollY = 0;
     const hero = this.data.selectedHero;
+    const heroSurface = UI.HeroSurface.getModel(hero, 'detail');
     const layout = this.getDetailActionLayout();
     let y = layout.firstButtonY;
 
@@ -386,6 +548,22 @@ const partyScene = Scene.create({
       partyScene.buildItemList('consumable');
     };
 
+    // Phase 29 hero gifts: Give Gift routes through BondSystem.giveGift
+    // (sole gifting authority; the scene never writes affinity/flags and
+    // never removes inventory — Economy owns consumption inside giveGift).
+    const giftBtn = makeActionButton(
+      'Give Gift 🎁',
+      R.colors.surfaceElevated,
+      R.colors.btnHover,
+      R.colors.textPrimary
+    );
+    giftBtn.onClick = function() {
+      partyScene.data.itemsView = true;
+      partyScene.data.equipSlot = 'gift';
+      partyScene.data.scrollY = 0;
+      partyScene.buildItemList('gift');
+    };
+
     const equipWeaponBtn = makeActionButton(
       'Equip Weapon (' + Scene.gearLabel(hero.weaponEquipped) + ')',
       R.colors.surfaceElevated,
@@ -425,6 +603,39 @@ const partyScene = Scene.create({
       partyScene.buildItemList('accessory');
     };
 
+    // Phase 24 combat bonds: bench keeps bonuses for one battle (linger),
+    // returning clears them. Wired to BondSystem.setActive (canonical writer).
+    const benched = hero.active === false;
+    const benchBtn = makeActionButton(
+      (benched ? 'Return ' + hero.name + ' to Party' : 'Bench ' + hero.name),
+      R.colors.surfaceElevated,
+      R.colors.btnHover,
+      R.colors.textPrimary
+    );
+    benchBtn.onClick = function() {
+      const target = partyScene.data.selectedHero.active !== false ? false : true;
+      let lingering = false;
+      try {
+        if (typeof BondSystem !== 'undefined' && BondSystem.setActive) {
+          const r = BondSystem.setActive(partyScene.data.selectedHero.id, target);
+          lingering = !!(r && r.lingering);
+        } else {
+          partyScene.data.selectedHero.active = target;
+        }
+      } catch (e) {
+        partyScene.data.selectedHero.active = target;
+      }
+      partyScene.data.selectedHero.active = target;
+      if (target === false) {
+        if (lingering) UI.Feedback.Toast('Benched — bond lingers one battle', { color: R.colors.gold, icon: '🌙' });
+        else UI.Feedback.Toast('Benched — bond bonuses off', { color: R.colors.textDim, icon: '🌙' });
+      } else {
+        UI.Feedback.Toast(partyScene.data.selectedHero.name + ' returns to the party!', { color: R.colors.gold, icon: '★' });
+      }
+      Audio.click();
+      partyScene.buildDetail();
+    };
+
     const back = UI.Button(20, y, G.W - 40, layout.buttonH, 'Back to Party', R.colors.surface, R.colors.btnHover, R.colors.textPrimary);
     const backBaseRender = back.render;
     back.render = function(ctx) {
@@ -456,6 +667,7 @@ const partyScene = Scene.create({
       if (filterType === 'armor' && item.type === 'armor') return true;
       if (filterType === 'accessory' && item.type === 'accessory') return true;
       if (filterType === 'consumable' && item.type === 'consumable') return true;
+      if (filterType === 'gift' && item.type === 'gift') return true;
       return false;
     });
 
@@ -473,9 +685,10 @@ const partyScene = Scene.create({
         let label = item.name + qtyStr;
         let comparison = '';
         if (filterType !== 'consumable') {
-          const currentAtk = hero.equipAtk || 0;
-          const currentDef = hero.equipDef || 0;
-          const currentMag = hero.equipAccMag || 0;
+          const equipped = hero[filterType + 'Equipped'] || {};
+          const currentAtk = equipped.atk || 0;
+          const currentDef = equipped.def || 0;
+          const currentMag = equipped.mag || 0;
           const newAtk = item.atk || 0;
           const newDef = item.def || 0;
           const newMag = item.mag || 0;
@@ -490,6 +703,11 @@ const partyScene = Scene.create({
         btn._idx = idx;
         btn._type = filterType;
         btn._hero = hero;
+        if (filterType === 'gift') {
+          // Liked / tier-locked indicators ride on the label (no stat diffs
+          // for gifts — the render splits on ' (' so plain suffixes are safe).
+          btn.text = label + giftSuffixFor(item, hero);
+        }
         btn.render = function(ctx) {
           const bx = this.x, by = this.y, bw = this.w, bh = this.h;
           R.roundRect(ctx, bx, by, bw, bh, 4, R.colors.btnGold);
@@ -513,41 +731,59 @@ const partyScene = Scene.create({
             if (filterType === 'consumable') {
               applyItemEffect(item, hero);
               Economy.removeItem(idx);
-              Notify.show('Used ' + item.name + ' on ' + hero.name + '!', 2);
+              UI.Feedback.Toast('Used ' + item.name + ' on ' + hero.name + '!', { color: R.colors.success, icon: '✓' });
               Audio.heal();
               partyScene.data.itemsView = false;
               partyScene.data.scrollY = 0;
               partyScene.buildDetail();
             } else if (filterType === 'weapon' || filterType === 'armor' || filterType === 'accessory') {
-              const slot = filterType;
-              if (slot === 'weapon') {
-                if (item.subtype && item.subtype !== hero.weaponType) {
-                  Notify.show(hero.name + ' cannot use ' + item.name + '!', 2);
-                  Audio.error();
-                  return;
-                }
-                hero.weaponEquipped = item;
-                hero.weaponLvl = item.atk ? 1 : hero.weaponLvl;
-                hero.equipAtk = item.atk || 0;
-                hero.equipCrit = item.crit || 0;
-              } else if (slot === 'armor') {
-                hero.armorEquipped = item;
-                hero.armorLvl = item.def ? 1 : hero.armorLvl;
-                hero.equipDef = item.def || 0;
-                hero.equipArmorMag = item.mag || 0;
-              } else if (slot === 'accessory') {
-                hero.accessoryEquipped = item;
-                hero.equipAccMag = item.mag || 0;
-                hero.equipAccDef = item.def || 0;
-                hero.equipAccHp = item.hp || 0;
-                hero.equipCrit = item.crit || 0;
+              const result = EquipmentSystem.equip(hero, item);
+              if (!result.ok) {
+                const message = result.reason === 'incompatible-weapon'
+                  ? hero.name + ' cannot use ' + item.name + '!'
+                  : 'Cannot equip ' + item.name + '.';
+                UI.Feedback.Toast(message, { color: R.colors.danger, icon: '🔒' });
+                Audio.error();
+                return;
               }
-              Economy.removeItem(idx);
-              Notify.show('Equipped ' + item.name + '!', 2);
+              UI.Feedback.Toast('Equipped ' + item.name + '!', { color: R.colors.success, icon: '✓' });
               Audio.click();
               partyScene.data.itemsView = false;
               partyScene.data.scrollY = 0;
               partyScene.buildDetail();
+            } else if (filterType === 'gift') {
+              let res = null;
+              try {
+                if (typeof BondSystem !== 'undefined' && BondSystem && typeof BondSystem.giveGift === 'function') {
+                  res = BondSystem.giveGift(hero.id, item.giftKey);
+                }
+              } catch (e) {
+                res = null;
+              }
+              if (!res || typeof res !== 'object') {
+                UI.Feedback.Toast('Gifting unavailable right now.', { color: R.colors.danger, icon: '🔒' });
+                Audio.error();
+                return;
+              }
+              if (res.ok) {
+                UI.Feedback.Toast('+' + res.applied + ' bond with ' + hero.name + '!', { color: R.colors.success, icon: '🎁' });
+                if (res.tierUp) {
+                  let tierName = 'a new tier';
+                  try {
+                    if (typeof BondSystem !== 'undefined' && BondSystem.tierFor && BondSystem.valueFor) {
+                      tierName = BondSystem.tierFor(BondSystem.valueFor(hero.id));
+                    }
+                  } catch (e) {}
+                  UI.Feedback.Toast(hero.name + ' reaches ' + tierName + '!', { color: R.colors.gold, icon: '★', duration: 3 });
+                }
+                Audio.heal();
+                partyScene.data.itemsView = false;
+                partyScene.data.scrollY = 0;
+                partyScene.buildDetail();
+              } else {
+                UI.Feedback.Toast(giftDenialCopy(res.reason, hero, item, res.need), { color: R.colors.danger, icon: '🔒' });
+                Audio.error();
+              }
             }
           };
         })(item, idx, hero, filterType);
@@ -575,14 +811,24 @@ const partyScene = Scene.create({
     UI.handleButtons(this.data.buttons, -this.data.scrollY);
   },
 
-  render: function(ctx) {
+render: function(ctx) {
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    R.Backgrounds.renderBackground(ctx, 'ashram', bgAlpha);
+
+    // Render hero character moment in detail view right gutter (low opacity)
+    if (this.data.view === 'detail' && this.data.selectedHero) {
+      R.Backgrounds.renderCharacterMoment(ctx, 'hero:' + this.data.selectedHero.id, G.W - 140, 150, 120, 180, bgAlpha * 0.15);
+    }
+
     if (this.data.view === 'list') {
       Scene.drawHeader(ctx, 62);
       R.textCenter(ctx, 'Party', G.W / 2, 24, R.colors.gold, R.fonts.lg);
       R.textCenter(ctx, 'Tap a hero to manage:', G.W / 2, 48, R.colors.text, R.fonts.sm);
 
       const top = this.getContentTop();
-Scene.clipContent(ctx, this);
+      Scene.clipContent(ctx, this);
     for (const b of this.data.buttons) b.render(ctx);
     UI.HUD().render(ctx);
     ctx.restore();
@@ -626,6 +872,12 @@ Scene.clipContent(ctx, this);
       ctx.restore();
 
       Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
+    }
+
+    // Render inline hint in list view (reuse stored instance)
+    if (this.data.view === 'list' && this.data.nextHint && this.data.nextHint.visible) {
+      this.data.nextHint.update(G.dt || 0.016);
+      this.data.nextHint.render(ctx);
     }
   }
 });

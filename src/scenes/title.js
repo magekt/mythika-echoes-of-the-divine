@@ -7,6 +7,7 @@ const titleScene = Scene.create({
   },
 
   enter: function() {
+    this.data.layout = Scene.responsive();
     Audio.playMusic('title');
     this.data.particles = [];
     for (let i = 0; i < 40; i++) {

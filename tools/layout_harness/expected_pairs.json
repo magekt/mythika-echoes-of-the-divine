@@ -1,0 +1,125 @@
+{
+  "_comment": "FAIL-FIRST ORACLE (Phase 30 LAY-00). Violation count dropping to zero without a game-code change means the harness is the bug \u2014 debug the wrapper/driver, never empty this fixture. Counts below are fresh greps on the generating commit (the CONTEXT estimates of 36 fillText / 23 translate were stale: feedback.js was miscounted and modal.js has zero raw fillText). Matchers are {scene, aMatch, bMatch, kind} substring rules; bMatch '' means wildcard (RNG-picked story text, seed-pinned but loose). Pairs marked tentative must be confirmed or corrected to what the build truly renders by the Plan 30-03 live sweep.",
+  "allowlistRef": "tools/layout_harness/allowlist.json (starts empty; waivers live there, never here)",
+  "counts": {
+    "breakdown": {
+      "clip": {
+        "engine/scene-helpers.js": 1,
+        "scenes/ashram.js": 1,
+        "scenes/combatScene.js": 1,
+        "scenes/debug.js": 1,
+        "scenes/travelMap.js": 1,
+        "ui/list.js": 1
+      },
+      "fillText": {
+        "engine/diagnostics.js": 3,
+        "engine/renderer.js": 3,
+        "scenes/travelMap.js": 26,
+        "ui/feedback.js": 2
+      },
+      "translate": {
+        "note": "21 ctx.translate sites; boxes must be transformed via ctx.getTransform()"
+      }
+    },
+    "clip": 6,
+    "fillText": 34,
+    "localScripts": 94,
+    "translate": 21
+  },
+  "expectedViolations": [
+    {
+      "aMatch": "/",
+      "bMatch": "/",
+      "kind": "intersect",
+      "note": "SOLID (static analysis): hero HP text 'hp/maxHp' baseline hy+48 overlaps MP text 'mp/maxMp' baseline hy+54; sm=10px boxes are ~12px tall so ~6px overlap. Same column, every hero, every combat frame.",
+      "scene": "combatScene"
+    },
+    {
+      "aMatch": "Combat",
+      "bMatch": "",
+      "kind": "intersect",
+      "note": "SOLID (static analysis): header title 'Combat ...' (lg=16px, baseline y=20) overlaps the encounter-story log line (sm=10px, baseline y=23); both centered at G.W/2. bMatch is wildcard: story text is RNG-picked from ENCOUNTER_STORIES (seed-pinned in the sweep, tightened after the live run).",
+      "scene": "combatScene"
+    },
+    {
+      "aMatch": "Recipe: ",
+      "bMatch": "Teaches ",
+      "kind": "intersect",
+      "note": "SOLID (static analysis): Bazaar Buy rows render item.name (sm, y+26) over item.desc (xs, y+h-6=y+30) at the same x+34; ~5.6px vertical overlap whenever desc exists. Recipe scrolls always carry desc, so this pair is RNG-proof; seeded save keeps alchemyRecipes empty so scrolls are always offered.",
+      "scene": "bazaar"
+    },
+    {
+      "aMatch": "Aryavarta Grasslands",
+      "bMatch": "Golden plains",
+      "kind": "intersect",
+      "note": "CONFIRMED by live sweep 2026-10-09: zone-exploration title block \u2014 log line over zone name over subtitle (areas 9227/3625/4244). Zone name x subtitle is the play-report pair; log-line overlaps also recorded.",
+      "scene": "zoneExploration"
+    }
+  ],
+  "generatedFrom": {
+    "commit": "86980b1",
+    "date": "2026-10-09"
+  },
+  "scenes": {
+    "checkedSubset": [
+      "title",
+      "ashram",
+      "travelMap",
+      "zoneExploration",
+      "combatScene",
+      "party",
+      "cultivationScene",
+      "alchemyScene",
+      "punarjanma",
+      "spiritBeast",
+      "questLog",
+      "forge",
+      "tournament",
+      "trials",
+      "bazaar",
+      "farm",
+      "fishing",
+      "settings",
+      "achievements",
+      "equipment"
+    ],
+    "fullRegistry": [
+      "title",
+      "characterCreate",
+      "ashram",
+      "travelMap",
+      "zoneExploration",
+      "combatScene",
+      "party",
+      "cultivationScene",
+      "alchemyScene",
+      "punarjanma",
+      "spiritBeast",
+      "questLog",
+      "forge",
+      "tournament",
+      "trials",
+      "bazaar",
+      "farm",
+      "fishing",
+      "settings",
+      "achievements",
+      "equipment",
+      "welcome",
+      "debug",
+      "journeyScene",
+      "authScene"
+    ],
+    "subsetNote": "checked set = 20 core scenes per LAY criterion; sweep adds combatScene-1v1/combatScene-5v3, zoneExploration-encounter, bazaar-buy/bazaar-sell and modal-open variants",
+    "sweepVariants": [
+      "combatScene-1v1",
+      "combatScene-5v3",
+      "zoneExploration",
+      "zoneExploration-encounter",
+      "bazaar-buy",
+      "bazaar-sell",
+      "modal-open"
+    ],
+    "totalRegistry": 25
+  }
+}

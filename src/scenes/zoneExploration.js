@@ -13,6 +13,7 @@ const zoneExplorationScene = Scene.create({
     zoneComplete: false,
     scrollY: 0,
     contentHeight: 0,
+    _bgAlpha: 0,
 
     // New: encounter state
     currentEnemy: null,
@@ -21,12 +22,20 @@ const zoneExplorationScene = Scene.create({
   },
 
   enter: function() {
+    this.data.layout = Scene.responsive();
     if (typeof ZoneRewardSystem !== 'undefined') ZoneRewardSystem.normalize();
     this.data.zoneId = G.state.currentZone;
     this.data.zone = ZONES[this.data.zoneId];
     // Defensive: a stale/missing currentZone must not crash the scene.
     if (!this.data.zone) {
       Notify.show('No zone selected — returning to the map.', 2, R.colors.red);
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('No zone selected — returning to the map.', { color: R.colors.danger, icon: '🔒' });
+      gScene('travelMap', true);
+      return;
+    }
+    if (!ZoneAccess.status(this.data.zoneId).allowed) {
+      Notify.show('This zone is still locked.', 2, R.colors.warning);
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('This zone is still locked.', { color: R.colors.danger, icon: '🔒' });
       gScene('travelMap', true);
       return;
     }
@@ -41,6 +50,9 @@ const zoneExplorationScene = Scene.create({
     this.data.currentEnemy = null;
     this.data.enemyHpPct = 0;
     this.data.lootItems = [];
+    this.data._bgAlpha = 0;
+    // Register zone background slot
+    R.Backgrounds.registerSlot('zone:' + this.data.zoneId);
     this.buildButtons();
   },
 
@@ -261,6 +273,30 @@ const zoneExplorationScene = Scene.create({
     if (this.data.state === 'exploring' && !this.data.zoneComplete) {
       this.data.encounterTimer -= dt;
       if (this.data.encounterTimer <= 0) {
+        // Narrative encounter roll — replaces one enemy slot if eligible
+        const narrId = (typeof EncounterTrigger !== 'undefined' && EncounterTrigger.rollZone) ? EncounterTrigger.rollZone(this.data.zoneId) : null;
+        if (narrId) {
+          this.data.log.push('Something stirs in the ' + (this.data.zone ? this.data.zone.name : 'wilds') + '...');
+          // Living Zones tease (Phase 28): standard encounters hint at deeper
+          // bonds; variant (lz_) rolls need no tease. Toast only, never blocks.
+          try {
+            if (typeof narrId === 'string' && narrId.indexOf('lz_') !== 0
+              && typeof LivingZones !== 'undefined' && LivingZones && typeof LivingZones.teaseFor === 'function') {
+              const tease = LivingZones.teaseFor(this.data.zoneId);
+              if (typeof tease === 'string' && tease.length > 0) {
+                if (typeof Notify !== 'undefined' && Notify && typeof Notify.show === 'function') {
+                  Notify.show(tease, 4);
+                } else if (typeof UI !== 'undefined' && UI && UI.Feedback && typeof UI.Feedback.Toast === 'function') {
+                  UI.Feedback.Toast(tease, { icon: '💬', duration: 4 });
+                }
+              }
+            }
+          } catch (e) {}
+          gScene('encounterScene', true, { encounterId: narrId, origin: 'zoneExploration' });
+          this.data.encounterTimer = 2 + Math.random() * 2;
+          this.data.totalEncounterTimer = this.data.encounterTimer;
+          return;
+        }
         this.data.log.push('An enemy appears!');
         this.triggerEncounter();
         this.data.encounterTimer = 2 + Math.random() * 2;
@@ -274,7 +310,14 @@ const zoneExplorationScene = Scene.create({
 
   render: function(ctx) {
     if (!this.data.zone) return;
-    R.drawZoneBackground(ctx, this.data.zoneId);
+
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    R.Backgrounds.renderBackground(ctx, 'zone:' + this.data.zoneId, bgAlpha);
+
+    // Render journey moment in side gutter
+    R.Backgrounds.renderCharacterMoment(ctx, 'zone:' + this.data.zoneId, G.W - 80, 150, 60, 100, bgAlpha * 0.3);
 
     Scene.drawHeader(ctx, 122, this.data.zone.name, 24);
 

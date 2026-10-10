@@ -71,6 +71,20 @@ const spiritBeastScene = Scene.create({
           // Stats row
           const bonus = getBeastBonus(beast);
           R.text(ctx, 'HP:' + bonus.hp + ' STR:' + bonus.str + ' AGI:' + bonus.agi + ' DEF:' + bonus.def, bx + 14, by + 48, R.colors.textDim, R.fonts.xs);
+          // Phase 26 beast hearts + Phase 27 power hint (guarded; absent BeastBond = current card).
+          try {
+            if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.get === 'function') {
+              const h = BeastBond.get(this._beast.id).heart || 0;
+              let powHint = '';
+              try {
+                if (h > 0 && typeof BeastBond.potencyFor === 'function') {
+                  const pm = BeastBond.potencyFor(this._beast.id);
+                  if (pm && Number(pm.mult) > 1) powHint = ' +' + Math.round((Number(pm.mult) - 1) * 100) + '%';
+                }
+              } catch (e2) {}
+              R.text(ctx, 'Bond: ' + '♥'.repeat(h) + '♡'.repeat(3 - h) + powHint, bx + 14, by + 62, R.colors.gold, R.fonts.xs);
+            }
+          } catch (e) {}
           if (this._active) R.text(ctx, 'ACTIVE', bx + bw - 60, by + 16, R.colors.green, R.fonts.sm);
           ctx.globalAlpha = 1;
         };
@@ -112,20 +126,77 @@ const spiritBeastScene = Scene.create({
     const beastData = SPIRIT_BEASTS[beast.id];
     let y = this.getContentTop();
 
-    const infoH = 80;
+    const hasPower = (function() {
+      try {
+        return (typeof BeastBond !== 'undefined' && BeastBond
+          && typeof BeastBond.potencyFor === 'function'
+          && typeof BeastBond.auraFor === 'function');
+      } catch (e) { return false; }
+    })();
+    const infoH = (function() {
+      try {
+        if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.statusFor === 'function') return hasPower ? 132 : 96;
+      } catch (e) {}
+      return 80;
+    })();
     SD.push({ rect: [10, y, G.W - 20, infoH, 6, R.colors.panel] });
     let iy = y + 12;
     SD.push({ text: [beast.name + ' (Tier ' + beast.tier + ' Lv.' + beast.level + ')', 22, iy, R.colors.gold, R.fonts.md] });
     SD.push({ text: ['Skill: ' + (beast.skill || '?'), 22, iy + 20, R.colors.text, R.fonts.sm] });
     const bonus = getBeastBonus(beast);
     SD.push({ text: ['HP:' + bonus.hp + ' STR:' + bonus.str + ' AGI:' + bonus.agi + ' MAG:' + bonus.mag + ' DEF:' + bonus.def, 22, iy + 38, R.colors.textDim, R.fonts.sm] });
+    // Phase 26 beast hearts: hearts + XP progress line (guarded; absent BeastBond = legacy layout).
+    try {
+      if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.statusFor === 'function') {
+        const st = BeastBond.statusFor(beast.id);
+        const hh = Math.max(0, Math.min(3, st.heart || 0));
+        const prog = 'Bond: ' + '♥'.repeat(hh) + '♡'.repeat(3 - hh) + '  Bond XP: ' + st.xp + (st.nextAt ? '/' + st.nextAt : ' (MAX)');
+        SD.push({ text: [prog, 22, iy + 56, R.colors.gold, R.fonts.sm] });
+      }
+    } catch (e) {}
+    // Phase 27 beast power: potency + aura lines below the bond progress
+    // line (guarded view-only reads; absent BeastBond = legacy layout).
+    try {
+      if (hasPower) {
+        let heart = 0, mult = 1, aura = null;
+        try { const pm = BeastBond.potencyFor(beast.id); if (pm) { heart = pm.heart || 0; mult = pm.mult || 1; } } catch (e2) {}
+        try { aura = BeastBond.auraFor(beast.id); } catch (e2) { aura = null; }
+        SD.push({ text: ['Power: +' + (Math.max(0, heart) * 10) + '% skill potency (x' + mult + ')', 22, iy + 74, R.colors.orange, R.fonts.sm] });
+        if (aura && aura.name) {
+          SD.push({ text: ['Aura: ' + aura.name + ' — ' + (aura.desc || ''), 22, iy + 92, R.colors.green, R.fonts.sm] });
+        } else {
+          SD.push({ text: ['Aura: unlocks at ♥♥ (heart 2)', 22, iy + 92, R.colors.textDim, R.fonts.sm] });
+        }
+      }
+    } catch (e) {}
     if (beast.passiveDesc) {
-      SD.push({ text: ['Passive: ' + beast.passiveDesc, 22, iy + 56, R.colors.green, R.fonts.sm] });
+      SD.push({ text: ['Passive: ' + beast.passiveDesc, 22, iy + (hasPower ? 110 : (infoH > 80 ? 74 : 56)), R.colors.green, R.fonts.sm] });
     } else {
-      SD.push({ text: ['Active: ' + (beast.active ? 'Yes' : 'No'), 22, iy + 56, beast.active ? R.colors.green : R.colors.textDim, R.fonts.sm] });
+      SD.push({ text: ['Active: ' + (beast.active ? 'Yes' : 'No'), 22, iy + (hasPower ? 110 : (infoH > 80 ? 74 : 56)), beast.active ? R.colors.green : R.colors.textDim, R.fonts.sm] });
     }
 
     y += infoH + 8;
+
+    // Phase 27 evolution assist hint (BST-03): view-only, guarded. The
+    // existing EVOLUTION AVAILABLE panel owns the evolvable case below.
+    try {
+      if (hasPower && !canEvolve(beast) && typeof requiredLevelFor === 'function'
+          && typeof BEAST_EVOLUTIONS !== 'undefined' && BEAST_EVOLUTIONS) {
+        const stages = BEAST_EVOLUTIONS[beast.id];
+        const stage = beast.evolutionStage || 0;
+        if (stages && stage < stages.length && stages[stage] && Number.isFinite(Number(stages[stage].level))) {
+          const baseReq = Number(stages[stage].level);
+          const assistedReq = requiredLevelFor(beast.id, stage);
+          if (Number.isFinite(assistedReq) && assistedReq < baseReq) {
+            SD.push({ text: ['Bond assist active: evolves at Lv.' + assistedReq + ' (base Lv.' + baseReq + ')', 22, y, R.colors.green, R.fonts.xs] });
+            y += 18;
+          } else {
+            SD.push({ text: ['Bond assist: ♥♥♥ halves evolution level (now Lv.' + baseReq + ')', 22, y, R.colors.textDim, R.fonts.xs] });
+            y += 18;
+          }
+        }
+      }
+    } catch (e) {}
 
     if (canEvolve(beast)) {
       const evo = getBeastEvolution(beast.id, beast.level);
@@ -209,6 +280,103 @@ const spiritBeastScene = Scene.create({
     };
     this.data.buttons.push(fishBtn);
     y += 48;
+
+    // Phase 26 beast hearts: feed + prana/gold training via BeastBond.
+    // The scene never mutates gold/inventory/prana directly; every denial
+    // explains itself via Toast. Hidden when BeastBond is absent.
+    try {
+      if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.feed === 'function') {
+        const hasBond = function() {
+          try { return typeof BeastBond.statusFor === 'function'; } catch (e) { return false; }
+        }();
+        if (hasBond) {
+          const say = function(msg, color) {
+            try {
+              if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast(msg, { color: color || R.colors.text, icon: '♥' });
+              else Notify.show(msg, 2);
+            } catch (e) {}
+          };
+          const deny = function(r) {
+            if (!r || r.ok) return false;
+            if (r.reason === 'capped') say('Care limit reached for today — bonds deepen with rest.', R.colors.textDim);
+            else if (r.reason === 'cooldown') say('Training cooldown: ' + Math.max(1, Math.ceil((r.retryMs || 0) / 1000)) + 's', R.colors.textDim);
+            else if (r.reason === 'no_item') say('No feed item — harvest a crop or brew a herb.', R.colors.textDim);
+            else if (r.reason === 'no_gold') say('Not enough gold (need ' + (r.need || 0) + 'g).', R.colors.red);
+            else if (r.reason === 'no_prana') say('Not enough prana (need ' + (r.need || 0) + ').', R.colors.red);
+            else say('This beast cannot train right now.', R.colors.textDim);
+            return true;
+          };
+          const praise = function(r, xpText) {
+            if (r.heartUp) {
+              say(beast.name + ' bond deepened! Hearts: ' + r.heart + '/3', R.colors.gold);
+              try { Audio.levelUp(); } catch (e) {}
+            } else {
+              say(xpText + ' bond XP', R.colors.green);
+            }
+            spiritBeastScene.buildDetail();
+          };
+          const heartNow = (function() {
+            try { return BeastBond.get(beast.id).heart || 0; } catch (e) { return 0; }
+          })();
+          const firstFeedItem = function() {
+            try {
+              const inv = (typeof G !== 'undefined' && G.state && G.state.inventory) || [];
+              for (const it of inv) {
+                if (it && BeastBond.isFeedItem(it)) return it;
+              }
+            } catch (e) {}
+            return null;
+          };
+          let feedGold = 20;
+          try { feedGold = BeastBond.feedGoldFor(heartNow); } catch (e) {}
+          let trainGold = 40;
+          try { trainGold = BeastBond.trainGoldFor(heartNow); } catch (e) {}
+          const pick = firstFeedItem();
+          const feedBtn = UI.MagneticBtn(14, y, G.W - 28, 38, pick ? 'Feed ' + pick.name + ' (' + feedGold + 'g)' : 'Feed (need herb/draught)', pick ? 'primary' : 'secondary');
+          feedBtn.onClick = function() {
+            try {
+              const item = (function() {
+                try {
+                  const inv = (G.state && G.state.inventory) || [];
+                  for (const it of inv) {
+                    if (it && BeastBond.isFeedItem(it)) return it;
+                  }
+                } catch (e) {}
+                return null;
+              })();
+              if (!item) { say('No feed item — harvest a crop or brew a herb.', R.colors.textDim); return; }
+              const r = BeastBond.feed(beast.id, item.name);
+              if (!r || !r.ok) { deny(r); return; }
+              praise(r, 'Yum! +11');
+            } catch (e) {}
+          };
+          this.data.buttons.push(feedBtn);
+          y += 46;
+
+          const pranaBtn = UI.MagneticBtn(14, y, G.W - 28, 38, 'Train (' + BeastBond.PRANA_COST + ' prana)', 'primary');
+          pranaBtn.onClick = function() {
+            try {
+              const r = BeastBond.pranaTrain(beast.id);
+              if (!r || !r.ok) { deny(r); return; }
+              praise(r, '+6');
+            } catch (e) {}
+          };
+          this.data.buttons.push(pranaBtn);
+          y += 46;
+
+          const goldBtn = UI.MagneticBtn(14, y, G.W - 28, 38, 'Intense Train (' + trainGold + 'g)', 'primary');
+          goldBtn.onClick = function() {
+            try {
+              const r = BeastBond.goldTrain(beast.id);
+              if (!r || !r.ok) { deny(r); return; }
+              praise(r, '+14');
+            } catch (e) {}
+          };
+          this.data.buttons.push(goldBtn);
+          y += 48;
+        }
+      }
+    } catch (e) {}
 
     const back = UI.MagneticBtn(60, y + 4, G.W - 120, 38, 'Back to List', R.colors.btnGold);
     back.onClick = function() {
