@@ -328,7 +328,7 @@ Plans:
 ## Phases (v6.0)
 
 - [x] **Phase 36: Ship Readiness** — LICENSE, Firebase 404 suppression, debug-scene gate, clean prod console — complete 2026-10-10
-- [ ] **Phase 37: Onboarding Polish** — guided first-battle walkthrough, stat glosses, journey HUD badge
+- [x] **Phase 37: Onboarding Polish** — guided first-battle walkthrough, stat glosses, journey HUD badge — complete 2026-10-10
 - [ ] **Phase 38: Zone & Enemy Art** — 8 zone backdrops, 20 enemy portrait icons
 - [ ] **Phase 39: Combat FX & UI Polish** — 5 element particle FX, card radius/tint polish
 - [ ] **Phase 40: Audio Foundation** — audio engine extensions, 3 UI SFX, music/SFX/mute toggle in Settings
@@ -363,9 +363,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 37-01-PLAN.md — Guided first-battle callout system (state machine, dismiss-on-tap, fresh-save trigger)
-- [ ] 37-02-PLAN.md — Stat gloss inline system (first-encounter trigger, suppression on repeat)
-- [ ] 37-03-PLAN.md — Journey quest HUD badge in Ashram scene
+- [x] 37-01-PLAN.md — Guided first-battle callout system (state machine, dismiss-on-tap, fresh-save trigger)
+- [x] 37-02-PLAN.md — Stat gloss inline system (first-encounter trigger, suppression on repeat)
+- [x] 37-03-PLAN.md — Journey quest HUD badge in Ashram scene
 
 **UI hint**: yes
 
