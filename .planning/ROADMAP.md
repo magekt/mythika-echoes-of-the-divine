@@ -5,7 +5,7 @@
 - ✅ **v2.0 Living Map & World State** — Phases 6-12 (shipped 2026-09-20)
 - ✅ **v3.0 Screen & Gameplay Revamp** — Phases 13-20 (shipped 2026-10-09)
 - ✅ **v4.0 Deep Companions & Living Zones** — Phases 21-29 (shipped 2026-10-09)
-- 🚧 **v5.0 Layout Fixes & Early-Game Pacing** — Phases 30-35 (in planning)
+- ✅ **v5.0 Layout Fixes & Early-Game Pacing** — Phases 30-35 (shipped 2026-10-10)
 
 ## Completed Milestones
 
@@ -175,7 +175,7 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
 
 **v4.0 Coverage:** 15/15 requirements mapped exactly once; no orphans or duplicates. 14/15 checked off; EVD-01 journey rows deferred (accepted residual).
 
-## v5.0 — Layout Fixes & Early-Game Pacing 🚧 IN PLANNING
+## v5.0 — Layout Fixes & Early-Game Pacing ✅ SHIPPED (2026-10-10)
 
 **Goal:** Remove the visible layout collisions and pacing problems the play report found, so the first hour plays clean.
 

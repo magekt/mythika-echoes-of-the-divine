@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Layout Fixes & Early-Game Pacing
-status: complete
-stopped_at: "All 6 phases (30-35) complete; milestone audit pending"
+status: shipped
+stopped_at: "All 6 phases (30-35) complete; audit shipped 2026-10-10"
 last_updated: "2026-10-10T18:30:00Z"
 last_activity: 2026-10-10 — Phase 35 complete (BAL-01 sim + BAL-03 empty states); v5.0 all phases done
 progress:
