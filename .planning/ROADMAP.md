@@ -316,4 +316,170 @@ Plans:
 **v5.0 Coverage:** 11/11 requirements mapped exactly once (LAY-00–07, BAL-01–03); no orphans or duplicates. (Phase 30 carries LAY-00, the harness requirement itself — the stated first build and sole proof for LAY-01–LAY-06.)
 
 ---
-*Roadmap reorganized 2026-10-09 at v4.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md.*
+
+## v6.0 — Ship Polish, Art & Audio, Onboarding (In Progress)
+
+**Goal:** Make the game shippable and beautiful — clean the console, fix licensing, polish onboarding, upgrade procedural art, and build a real audio identity. No new mechanics, zones, or heroes. No external asset files. No framework migration.
+
+**Boundaries held:** No new gameplay mechanics, zones, or heroes; all art is canvas-drawn/procedural (no external image files); all audio is Web Audio synthesized (no external audio files); `R.colors`/`R.fonts` exclusively in scene code; no raw hex in scenes; new art code lives in `src/systems/` or `src/ui/`, not inline in scenes; all new particle/animation code checks `R.reducedMotion()`; audio only starts after first user gesture (autoplay policy); local play remains the default, Firebase optional and must not block offline play.
+
+**Sequencing:** Ship fixes first (low-risk, high-visibility, unblocks everything) → onboarding polish → zone/enemy art → combat FX/UI polish → audio foundation → music & ambient SFX.
+
+## Phases (v6.0)
+
+- [ ] **Phase 36: Ship Readiness** — LICENSE, Firebase 404 suppression, debug-scene gate, clean prod console
+- [ ] **Phase 37: Onboarding Polish** — guided first-battle walkthrough, stat glosses, journey HUD badge
+- [ ] **Phase 38: Zone & Enemy Art** — 8 zone backdrops, 20 enemy portrait icons
+- [ ] **Phase 39: Combat FX & UI Polish** — 5 element particle FX, card radius/tint polish
+- [ ] **Phase 40: Audio Foundation** — audio engine extensions, 3 UI SFX, music/SFX/mute toggle in Settings
+- [ ] **Phase 41: Music & Ambient** — title ambient loop, Ashram ambient loop, 8 combat SFX
+
+## Phase Details (v6.0)
+
+### Phase 36: Ship Readiness
+**Goal**: The deployed build is clean, legally licensed, and free of developer-facing surfaces
+**Depends on**: Nothing (first phase of v6.0)
+**Requirements**: SHP-01, SHP-02, SHP-03, SHP-04
+**Success Criteria** (what must be TRUE):
+  1. `LICENSE` file exists at repo root with MIT (or GPLv3) text; `index.html` and `src/main.js` carry an SPDX license identifier comment header
+  2. On first load without `firebase-config.js` (default local play), the console shows zero Firebase-related warnings or errors; with `?probe` appended, the warning is visible
+  3. The debug scene is not reachable in a normal session; it is only reachable when `?debug` is in the URL or `G.state.debugMode` is set via a dev-only code path
+  4. `python3 -m http.server 3000` + opening the game in Chrome/Chromium with DevTools open shows zero unhandled errors or warnings in the console on first load (prod, no `?probe`, no `?debug`); `tools/check_ui_invariants.sh` passes; `node --test tests/*.test.js` passes
+**Plans**: 3 plans
+
+Plans:
+- [ ] 36-01-PLAN.md — LICENSE file + SPDX headers on entry points
+- [ ] 36-02-PLAN.md — Firebase 404 silent fallback + ?probe-gated warning; debug scene gated behind ?debug
+- [ ] 36-03-PLAN.md — Console-clean proof: full Node suite + UI invariants + manual boot verification recorded
+
+### Phase 37: Onboarding Polish
+**Goal**: A first-time player understands the basics within one battle without reading a manual
+**Depends on**: Phase 36
+**Requirements**: ONB-01, ONB-02, ONB-03
+**Success Criteria** (what must be TRUE):
+  1. After character creation, the first zone encounter shows 3–5 inline callouts (tap-to-start, attack button location, turn-order explanation, reward collection); each callout is dismissible (tap-to-continue) and non-blocking — the player can tap past any callout without being stuck; a regression test confirms all 3–5 callouts fire in order on a fresh save
+  2. On first encounter with each stat abbreviation (STR, AGI, MAG, ELEM, MP-regen), a 1-line gloss appears inline (not a modal wall); glosses are shown once and suppressed on subsequent encounters; a Node test asserts the gloss map has entries for all five stat keys
+  3. When a journey quest is active, the Ashram HUD displays a visible badge or indicator (not just in the Quest Log); the badge is absent when no journey is active; the nav item at `ashram.js:129` shows the active journey name or a "No journey" state; a screenshot or harness render confirms the badge is visible in the Ashram scene with an active journey
+**Plans**: 3 plans
+
+Plans:
+- [ ] 37-01-PLAN.md — Guided first-battle callout system (state machine, dismiss-on-tap, fresh-save trigger)
+- [ ] 37-02-PLAN.md — Stat gloss inline system (first-encounter trigger, suppression on repeat)
+- [ ] 37-03-PLAN.md — Journey quest HUD badge in Ashram scene
+
+**UI hint**: yes
+
+### Phase 38: Zone & Enemy Art
+**Goal**: Zone exploration and combat screens look painted, not utilitarian text cards
+**Depends on**: Phase 37
+**Requirements**: ART-01, ART-02
+**Success Criteria** (what must be TRUE):
+  1. All 8 zone backdrops are canvas-drawn with a dark-navy/gold palette; each zone has a distinct visual identity; `R.colors` and `R.fonts` used exclusively (no raw hex in scene code); backdrops render through `registerSlot`/`renderBackground` in `src/engine/backgrounds.js`; a visual proof (screenshot per zone) confirms all 8 render correctly
+  2. 20 enemy portrait icons are canvas-drawn silhouettes/ink-style; each maps to a named enemy type; portraits appear on enemy cards in both combat and exploration UIs; a Node test or render assertion confirms all 20 portrait slots are populated
+  3. All new art code lives in `src/systems/` or `src/ui/`; `R.reducedMotion()` is checked for any animated backdrop layer
+**Plans**: 2 plans
+
+Plans:
+- [ ] 38-01-PLAN.md — 8 zone backdrop implementations (dark-navy/gold, one per zone ID)
+- [ ] 38-02-PLAN.md — 20 enemy portrait icons + card rendering integration
+
+**UI hint**: yes
+
+### Phase 39: Combat FX & UI Polish
+**Goal**: Combat hits feel alive and UI cards feel less utilitarian
+**Depends on**: Phase 38
+**Requirements**: ART-03, ART-04
+**Success Criteria** (what must be TRUE):
+  1. Five element-keyed particle effects (fire, ice, lightning, earth, spirit or equivalent) are visible on attack hits in combat; each effect uses `ctx` particle drawing (not inline `fillRect` only); particles respect `R.reducedMotion()` (disabled or static fallback when set); a combat-sim or screenshot proves all 5 elements produce distinct visual FX
+  2. UI card radius and tint polish applied: cards use `R.roundRect` with a slightly larger radius than before; subtle per-zone background tint applied to cards; a visual diff (before/after screenshot) confirms the change; `R.colors`/`R.radius` used (no raw values in scene code)
+  3. `node --test tests/*.test.js` and `tools/check_ui_invariants.sh` pass
+**Plans**: 2 plans
+
+Plans:
+- [ ] 39-01-PLAN.md — 5 element particle FX system (canvas particle emitter keyed to element type)
+- [ ] 39-02-PLAN.md — UI card radius/tint polish across card components
+
+**UI hint**: yes
+
+### Phase 40: Audio Foundation
+**Goal**: The audio engine supports SFX and music on separate gain nodes with user-controllable toggles
+**Depends on**: Phase 36
+**Requirements**: AUD-04, AUD-05
+**Success Criteria** (what must be TRUE):
+  1. Three UI SFX (button tap, modal open, toast notification) are defined in the audio engine and fire on the corresponding UI interactions; SFX are silent when `Audio.sfxOn` is false; a Node test or manual verification confirms each SFX fires on its trigger
+  2. Settings scene has three independent toggles: Music on/off, SFX on/off, Mute (master); toggles persist to `localStorage`; a regression test confirms all three toggle states survive a save/reload cycle
+  3. Music and SFX are on separate gain nodes; toggling music does not silence SFX and vice versa; audio only starts after first user gesture (autoplay policy respected)
+  4. `Audio.enabled` respects `Audio.reducedMotion` where appropriate (audio cues suppressed or reduced when `R.reducedMotion()` is true)
+**Plans**: 2 plans
+
+Plans:
+- [ ] 40-01-PLAN.md — 3 UI SFX definitions + trigger wiring + gain-node separation verification
+- [ ] 40-02-PLAN.md — Settings audio toggle (music/SFX/mute) + localStorage persistence + autoplay gate
+
+### Phase 41: Music & Ambient
+**Goal**: The game has a real audio identity — ambient loops for title and Ashram, and combat SFX for key moments
+**Depends on**: Phase 40
+**Requirements**: AUD-01, AUD-02, AUD-03
+**Success Criteria** (what must be TRUE):
+  1. Title screen plays a 30–60s procedural ambient loop (oscillator + gain + delay/reverb-like nodes); mood is mystical/slow/drone; loop is seamless (no audible click or gap); plays only after first user gesture; silent when `Audio.musicOn` is false; a manual listen-test confirms the loop
+  2. Ashram hub plays a low-volume ambient loop (bells/wind texture) that starts on Ashram enter and stops on leave; loop is seamless; silent when music is toggled off; a manual listen-test confirms it
+  3. Eight combat SFX (attack hit, enemy hit, dodge, victory jingle, defeat thud, level-up chime, potion brew, spirit-beast summon pulse) are defined and fire on their corresponding combat events; SFX are silent when `Audio.sfxOn` is false; a combat-sim or manual verification confirms each SFX fires on its event
+  4. All new audio code is in `src/engine/audio.js` (or a new `src/systems/audio.js` module); no external audio files; `Audio.reducedMotion` respected for non-essential cues
+**Plans**: 3 plans
+
+Plans:
+- [ ] 41-01-PLAN.md — Title screen ambient loop (procedural, 30–60s, seamless)
+- [ ] 41-02-PLAN.md — Ashram ambient loop (procedural, scene-scoped start/stop)
+- [ ] 41-03-PLAN.md — 8 combat SFX definitions + combat-event wiring
+
+## Progress (v6.0)
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 36. Ship Readiness | v6.0 | 0/3 | Not started | - |
+| 37. Onboarding Polish | v6.0 | 0/3 | Not started | - |
+| 38. Zone & Enemy Art | v6.0 | 0/2 | Not started | - |
+| 39. Combat FX & UI Polish | v6.0 | 0/2 | Not started | - |
+| 40. Audio Foundation | v6.0 | 0/2 | Not started | - |
+| 41. Music & Ambient | v6.0 | 0/3 | Not started | - |
+
+## Coverage (v6.0)
+
+| Requirement | Assigned Phase | Milestone |
+|-------------|----------------|-----------|
+| SHP-01 — LICENSE added | Phase 36 | v6.0 |
+| SHP-02 — Firebase 404 suppressed in prod | Phase 36 | v6.0 |
+| SHP-03 — Debug scene removed or gated behind ?debug | Phase 36 | v6.0 |
+| SHP-04 — Console clean on first load (prod, no ?probe) | Phase 36 | v6.0 |
+| ONB-01 — Guided first-battle walkthrough | Phase 37 | v6.0 |
+| ONB-02 — Character creation stat glosses | Phase 37 | v6.0 |
+| ONB-03 — Journey quest surfaced in Ashram HUD | Phase 37 | v6.0 |
+| ART-01 — 8 zone backdrops (procedural, dark-navy/gold) | Phase 38 | v6.0 |
+| ART-02 — 20 enemy portrait icons | Phase 38 | v6.0 |
+| ART-03 — 5 element combat FX (particles) | Phase 39 | v6.0 |
+| ART-04 — UI card radius/tint polish | Phase 39 | v6.0 |
+| AUD-04 — 3 UI SFX | Phase 40 | v6.0 |
+| AUD-05 — Audio toggle (music/SFX/mute) in Settings | Phase 40 | v6.0 |
+| AUD-01 — Title screen ambient loop | Phase 41 | v6.0 |
+| AUD-02 — Ashram ambient loop | Phase 41 | v6.0 |
+| AUD-03 — 8 combat SFX | Phase 41 | v6.0 |
+
+**v6.0 Coverage:** 16/16 requirements mapped exactly once; no orphans or duplicates.
+
+## Dependency Graph (v6.0)
+
+```
+Phase 36 (Ship Readiness)
+  └─→ Phase 37 (Onboarding Polish)
+        └─→ Phase 38 (Zone & Enemy Art)
+              └─→ Phase 39 (Combat FX & UI Polish)
+
+Phase 36 (Ship Readiness)
+  └─→ Phase 40 (Audio Foundation)
+        └─→ Phase 41 (Music & Ambient)
+```
+
+Art and audio tracks are independent after Phase 36; they can be executed in parallel or interleaved.
+
+---
+*Roadmap reorganized 2026-10-10 at v5.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md. v6.0 section appended 2026-10-10.*
