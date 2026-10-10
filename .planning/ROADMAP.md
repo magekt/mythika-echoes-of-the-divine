@@ -242,7 +242,12 @@ Plans:
   5. Full 20-scene sweep at phase end (toast lane is engine-wide and may shift untargeted scenes)
   6. Backgrounds paint in every revamped scene (split-R fixed); harness samples ≥4 points per scene (corners + center) with minimum channel delta vs clear color and per-scene expected colors recorded from the first correct render
   7. Fixed pairs move from expected_pairs to the must-stay-clean list in the same commit (fixture retirement rule: CI fails on regressions AND on pairs vanishing without a matching code change)
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 32-01-PLAN.md — Combat band rebuild (enemy-panel targets, 5-hero clearance, D-01 result bands)
+- [ ] 32-02-PLAN.md — Toast-lane constant + uniform action grid + guidance clearance
+- [ ] 32-03-PLAN.md — Pair re-derivation + backgrounds evidence + 20-scene sweep + fixture retirement
 **UI hint**: yes
 
 ### Phase 33: Bazaar & Zone Exploration Layout
