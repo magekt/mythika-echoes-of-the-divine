@@ -65,6 +65,32 @@ test('recruit branch paints staticDraws and never reads selectedHero', () => {
   assert.doesNotMatch(body, /selectedHero/, 'recruit branch must NOT reference selectedHero (no stale chrome)');
 });
 
+test('recruit branch lives inside render(), not in an event handler', () => {
+  const src = loadPartySource();
+  // Regression guard: the branch must be part of the render() dispatch.
+  // A same-shaped `else if (view === 'recruit')` chained onto an onClick
+  // `if` (e.g. the gift handler) would satisfy the string checks above
+  // while leaving render() falling through to detail chrome — and would
+  // crash on the undefined `ctx` at runtime. Pin the location.
+  const recruitIdx = src.search(/else\s+if\s*\(\s*this\.data\.view\s*===\s*['"]recruit['"]/);
+  assert.ok(recruitIdx !== -1, 'recruit else-if branch must exist');
+  const renderStart = src.lastIndexOf('render: function(ctx)', recruitIdx);
+  assert.ok(renderStart !== -1, 'recruit branch must come after render() starts');
+  const between = src.slice(renderStart, recruitIdx);
+  // No other top-level scene member may intervene between render() start
+  // and the branch (members are 2-space indented `name: function`).
+  assert.doesNotMatch(
+    between,
+    /\n  [a-zA-Z_$][\w$]*\s*:\s*function/,
+    'recruit branch must be inside render() — no other scene member may sit between render() and the branch'
+  );
+  // The only `=== 'recruit'` comparison in the file must be this one:
+  // the view switch uses assignment (`=`), never comparison.
+  const allCompares = [...src.matchAll(/===\s*['"]recruit['"]/g)];
+  assert.equal(allCompares.length, 1, 'exactly one view === recruit comparison must exist (the render branch)');
+  assert.ok(allCompares[0].index > renderStart, 'the single comparison sits inside render()');
+});
+
 test('list-to-recruit switch clears selectedHero and itemsView', () => {
   const src = loadPartySource();
   // The Recruit Hero onClick sets view='recruit'; it must also null the

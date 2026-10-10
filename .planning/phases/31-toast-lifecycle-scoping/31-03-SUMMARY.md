@@ -66,6 +66,29 @@ completed: 2026-10-10
 
 None - plan executed exactly as written.
 
+## Post-Review Correction (orchestrator spot-check, 2026-10-10)
+
+Spot-check found the recruit branch had been inserted chained onto `if (res.ok)`
+inside the gift `btn.onClick` handler — not in `render()`. Consequences of the
+misplacement: (1) `render()` still fell through to the detail else for
+`view==='recruit'` (gap NOT closed); (2) a denied gift while in recruit view
+would have executed scene-draw calls with an undefined `ctx` (ReferenceError).
+The static regression test passed vacuously because it only checked string
+presence/order, not location.
+
+Correction: removed the misplaced branch (gift-denial `else` restored verbatim)
+and inserted the identical branch body into `render()` between the `itemsView`
+branch and the final detail `else` (party.js `} else if (this.data.view ===
+'recruit')`, single `=== 'recruit'` comparison in the file). Added a
+location-pinning test (`recruit branch lives inside render(), not in an event
+handler`: branch must sit after `render: function(ctx)` with no intervening
+scene member; exactly one `=== 'recruit'` comparison). Would-have-caught check:
+pre-fix, the branch preceded `render()`, so `lastIndexOf('render:
+function(ctx)')` returns -1 and the new test fails.
+
+Re-verified: `node --test tests/*.test.js` 427 total — 426 pass, 1 intentional
+skip, 0 fail; `tools/check_ui_invariants.sh` green; `git diff --check` clean.
+
 ## Known Stubs
 
 None.
