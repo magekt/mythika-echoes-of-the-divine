@@ -64,7 +64,8 @@ const Notify = {
     if (typeof window !== 'undefined' && window.__layoutHarness) window.__layoutHarness.overlay = true;
     try {
     const reduceMotion = !!G.state.reduceMotion;
-    let ty = 470;
+    const toastLaneTop = Scene.toastLane().y;
+    let ty = toastLaneTop - 50; // start above lane with margin
     const count = Math.min(this.queue.length, 3);
     for (let i = 0; i < count; i++) {
       const n = this.queue[i];

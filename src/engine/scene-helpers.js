@@ -433,3 +433,21 @@
   };
 
 })();
+
+  // Toast lane: reserved space where notification toasts and guidance render.
+  // Both viewports: portrait 400x720 (logical) and landscape 720x400 (logical).
+  // Returns { x, y, w, h } in logical coordinates.
+  Scene.toastLane = function() {
+    // Bottom 120px: y:600-720 in portrait (400x720)
+    // Landscape: y:(G.H - 120) to G.H
+    const laneHeight = 120;
+    const laneY = G.H - laneHeight;
+    return {
+      x: 0,
+      y: laneY,
+      w: G.W,
+      h: laneHeight
+    };
+  };
+
+})();

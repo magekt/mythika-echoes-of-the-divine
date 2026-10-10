@@ -185,19 +185,23 @@ const combatScene = Scene.create({
   },
 
   getActionAreaTop: function() { return 248; },
-  getActionAreaHeight: function() { return G.H - this.getActionAreaTop(); },
+  getActionAreaHeight: function() { 
+    const toastLaneTop = Scene.toastLane().y;
+    return toastLaneTop - this.getActionAreaTop();
+  },
 
   // The logical combat surface is divided into state-owned bands.  Normal
   // feedback uses the log band; reaction owns the intent band instead; result
   // owns the lower outcome band and never reuses live combat controls.
+  // Band discipline: no overlaps at 1, 3, 5 heroes. Each band has explicit start/end.
   getCombatLayout: function() {
     const actionTop = this.getActionAreaTop();
     return {
-      header: { x: 10, y: 4, w: G.W - 20, h: 52 },
-      roster: { x: 8, y: 58, w: G.W - 16, h: 122 },
-      intent: { x: 12, y: 184, w: G.W - 24, h: 54 },
-      log: { x: 14, y: actionTop - 78, w: G.W - 28, h: 72 },
-      actions: { x: 8, y: actionTop - 4, w: G.W - 16, h: this.getActionAreaHeight() + 4 },
+      header: { x: 10, y: 4, w: G.W - 20, h: 50 },
+      roster: { x: 8, y: 58, w: G.W - 16, h: 110 },
+      intent: { x: 12, y: 172, w: G.W - 24, h: 50 },
+      log: { x: 14, y: 226, w: G.W - 28, h: 18 },
+      actions: { x: 8, y: actionTop, w: G.W - 16, h: this.getActionAreaHeight() },
       result: { x: 12, y: actionTop, w: G.W - 24, h: this.getActionAreaHeight() }
     };
   },
