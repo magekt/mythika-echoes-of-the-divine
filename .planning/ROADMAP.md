@@ -327,7 +327,7 @@ Plans:
 
 ## Phases (v6.0)
 
-- [ ] **Phase 36: Ship Readiness** — LICENSE, Firebase 404 suppression, debug-scene gate, clean prod console
+- [x] **Phase 36: Ship Readiness** — LICENSE, Firebase 404 suppression, debug-scene gate, clean prod console — complete 2026-10-10
 - [ ] **Phase 37: Onboarding Polish** — guided first-battle walkthrough, stat glosses, journey HUD badge
 - [ ] **Phase 38: Zone & Enemy Art** — 8 zone backdrops, 20 enemy portrait icons
 - [ ] **Phase 39: Combat FX & UI Polish** — 5 element particle FX, card radius/tint polish
@@ -348,9 +348,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 36-01-PLAN.md — LICENSE file + SPDX headers on entry points
-- [ ] 36-02-PLAN.md — Firebase 404 silent fallback + ?probe-gated warning; debug scene gated behind ?debug
-- [ ] 36-03-PLAN.md — Console-clean proof: full Node suite + UI invariants + manual boot verification recorded
+- [x] 36-01-PLAN.md — LICENSE file + SPDX headers on entry points
+- [x] 36-02-PLAN.md — Firebase 404 silent fallback + ?probe-gated warning; debug scene gated behind ?debug
+- [x] 36-03-PLAN.md — Console-clean proof: full Node suite + UI invariants + manual boot verification recorded
 
 ### Phase 37: Onboarding Polish
 **Goal**: A first-time player understands the basics within one battle without reading a manual
