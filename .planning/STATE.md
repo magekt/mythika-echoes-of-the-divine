@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-09)
 
 ## Current Position
 
-Phase: 30 (Layout Harness Extension — not started)
-Plan: —
-Status: Roadmap defined, awaiting planning
-Last activity: 2026-10-09 — Milestone v5.0 roadmap created (Phases 30–35)
+Phase: 31 (Toast Lifecycle Scoping — plan 03 complete)
+Plan: 31-03
+Status: Recruit-view gap closure executed; UAT test-5 root cause fixed
+Last activity: 2026-10-10 — Phase 31 plan 03 complete (recruit render branch + regression test)
 
 Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 
@@ -69,6 +69,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 - v4.0 shipped Phases 21–29 on 2026-10-09; AFF-01..AFF-06, BST-01..BST-04, ZON-01..ZON-02, GFT-01, SAV-01 validated at contract level, archives in `.planning/milestones/v4.0-*`.
 - Preserve vanilla JS, script order, global namespaces, immediate-mode Canvas, localStorage, and authoritative systems.
 - v5.0 roadmap defined 2026-10-09: Phases 30–35 (harness → toast → combat → lists/zones → fit-finish → pacing last); LAY-05 before LAY-02; 11/11 requirements mapped (LAY-00–07, BAL-01–03).
+- Phase 31 plan 03 (2026-10-10): Recruit Hall stale-chrome gap closed — explicit view==='recruit' render branch + selectedHero nulling on view switch; stale pixels diagnosed as scene chrome (not queued toasts), so no toast-system change; suite 425 pass + 1 skip, invariants green.
 - Single-authority companion state (BondSystem + BeastBond, no parallel stores); combat clones only; COMMIT-ALL-FIVE readability verdict.
 - Diagnostics are local, bounded, and disabled by default behind a Settings debug toggle.
 - Evidence-led deprecation removal: call-site/runtime proof plus save-fixture hydration before deletion.
@@ -106,7 +107,7 @@ Milestone v4.0 completed Phases 21–29 on 2026-10-09. Archive references: `.pla
 
 ## Session Continuity
 
-Last session: 2026-10-09
-Stopped at: v4.0 milestone complete and archived (tag v4.0)
-Resume file: None
-Next: `/gsd-new-milestone` to start the next milestone (roadmap/requirements fresh; phase numbering continues at 30)
+Last session: 2026-10-10
+Stopped at: Phase 31 plan 03 complete (recruit-view gap closure)
+Resume file: .planning/phases/31-toast-lifecycle-scoping/31-03-SUMMARY.md
+Next: Manual UAT retest of 31-UAT.md test 5 path, then Phase 32 (Combat Layout)

@@ -226,6 +226,7 @@ Plans:
 Plans:
 - [ ] 31-01-PLAN.md — R.Backgrounds binding-split crash fix + repro-or-rule-out the stale-toast path (fix-vs-harden branch)
 - [ ] 31-02-PLAN.md — Scene-tagged toast lifecycle in both toast systems + regression test + lane bounds evidence
+- [x] 31-03-PLAN.md — Recruit-view gap closure: explicit recruit render branch + stale-selection clearing + regression test (31-UAT test 5)
 **UI hint**: yes
 
 ### Phase 32: Combat Layout
@@ -285,7 +286,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 30. Layout Harness Extension | v5.0 | 0/0 | Not started | - |
-| 31. Toast Lifecycle Scoping | v5.0 | 0/0 | Not started | - |
+| 31. Toast Lifecycle Scoping | v5.0 | 1/3 | In progress (31-03 done) | - |
 | 32. Combat Layout | v5.0 | 0/0 | Not started | - |
 | 33. Bazaar & Zone Exploration Layout | v5.0 | 0/0 | Not started | - |
 | 34. Fit & Finish Bundle | v5.0 | 0/0 | Not started | - |
