@@ -270,6 +270,7 @@ function gInit() {  G.canvas = document.getElementById('game-canvas');
   initSceneManager();
   initInput();
   initAudio();
+  if (typeof ZoneArt !== 'undefined') ZoneArt.registerAll();
   G.lastTime = performance.now();
   // Perf probe: only active when loaded with ?probe (harness --fps mode).
   G._probe = /[?&]probe/.test(location.search);

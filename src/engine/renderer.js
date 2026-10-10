@@ -182,6 +182,18 @@ R.pixelText = function(ctx, str, x, y, color, size) {
 };
 
 R.drawEnemy = function(ctx, name, x, y, size, showLabel) {
+  if (typeof EnemyPortrait !== 'undefined' && EnemyPortrait.getCanvas(name)) {
+    const ps = size || 32;
+    EnemyPortrait.render(ctx, x - ps, y, ps * 2, ps * 2, name);
+    if (showLabel !== false) {
+      ctx.fillStyle = R.colors.text;
+      ctx.font = R.fonts.sm;
+      ctx.textAlign = 'center';
+      ctx.fillText(name.charAt(0).toUpperCase() + name.slice(1), x, y + ps + 12);
+      ctx.textAlign = 'left';
+    }
+    return;
+  }
   const s = size || 32;
   ctx.fillStyle = R.colors.textDim;
   ctx.font = '8px monospace';

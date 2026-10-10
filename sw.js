@@ -64,6 +64,8 @@ const ASSETS = [
   'src/data/bonds.js',
   'src/data/narrative_echoes.js',
   'src/data/world_events.js',
+  'src/systems/zoneArt.js',
+  'src/systems/enemyPortraits.js',
   'src/systems/zone_rewards.js',
   'src/scenes/encounterScene.js',
   'src/ui/button.js',
