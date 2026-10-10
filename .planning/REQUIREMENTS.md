@@ -22,7 +22,7 @@ Harness: extend `tools/verify_matrix.py` to wrap `R.text`/`R.textCenter`, record
 
 ## Toast Lifecycle
 
-- [ ] **LAY-05**: Toast lifecycle — first reproduce stale toast via real tap navigation (locked-zone toast → Back → Ashram → Party); each toast carries a scene tag cleared on transition except achievement banners; harness regression test runs the same tap path; concurrent-toast cap documented. Acceptable outcome: not reproducible via real taps → regression test added + scene-tag clearing applied as hardening. Dependency of LAY-02 (shared Notify).
+- [x] **LAY-05**: Toast lifecycle — first reproduce stale toast via real tap navigation (locked-zone toast → Back → Ashram → Party); each toast carries a scene tag cleared on transition except achievement banners; harness regression test runs the same tap path; concurrent-toast cap documented. Acceptable outcome: not reproducible via real taps → regression test added + scene-tag clearing applied as hardening. Dependency of LAY-02 (shared Notify). — validated Phase 31, 2026-10-10 (31-VERIFICATION.md 9/9; 31-UAT test-5 gap closed by 31-03, human retest approved)
 
 ## Fit & Finish
 
@@ -55,7 +55,7 @@ Build the harness extension first (only proof for LAY-01–LAY-06). LAY-05 befor
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | LAY-00 — Layout harness | Phase 30 | Pending |
-| LAY-05 — Toast lifecycle | Phase 31 | Pending |
+| LAY-05 — Toast lifecycle | Phase 31 | Complete (2026-10-10) |
 | LAY-01 — Combat header bands | Phase 32 | Pending |
 | LAY-02 — Combat buttons + toast lane | Phase 32 | Pending |
 | LAY-07 — Backgrounds paint | Phase 32 | Pending |

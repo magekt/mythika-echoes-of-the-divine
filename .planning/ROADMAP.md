@@ -186,7 +186,7 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
 ## Phases (v5.0)
 
 - [x] **Phase 30: Layout Harness Extension** - Text-bounds proof harness + combat sim (LAY-00)
-- [ ] **Phase 31: Toast Lifecycle Scoping** - Toasts die with their scene (LAY-05)
+- [x] **Phase 31: Toast Lifecycle Scoping** - Toasts die with their scene (LAY-05) — complete 2026-10-10
 - [ ] **Phase 32: Combat Layout** - Header bands + uniform action grid with safe toast lane (LAY-01, LAY-02, LAY-07)
 - [ ] **Phase 33: Bazaar & Zone Exploration Layout** - Rows, HUD, and encounter-gated buttons (LAY-03, LAY-04)
 - [ ] **Phase 34: Fit & Finish Bundle** - Nav, title, map cards, Ashram, modal (LAY-06)
@@ -224,8 +224,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 31-01-PLAN.md — R.Backgrounds binding-split crash fix + repro-or-rule-out the stale-toast path (fix-vs-harden branch)
-- [ ] 31-02-PLAN.md — Scene-tagged toast lifecycle in both toast systems + regression test + lane bounds evidence
+- [x] 31-01-PLAN.md — R.Backgrounds binding-split crash fix + repro-or-rule-out the stale-toast path (fix-vs-harden branch)
+- [x] 31-02-PLAN.md — Scene-tagged toast lifecycle in both toast systems + regression test + lane bounds evidence
 - [x] 31-03-PLAN.md — Recruit-view gap closure: explicit recruit render branch + stale-selection clearing + regression test (31-UAT test 5)
 **UI hint**: yes
 

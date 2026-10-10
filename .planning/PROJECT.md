@@ -79,6 +79,10 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 - ✓ GFT-01 — Hero gifts with diminishing returns and caps (Phase 29)
 - ✓ SAV-01 — Affinity/linger/combo/gift/beastBond persistence + normalize healing (Phases 22+24–29)
 
+### Validated — v5.0
+
+- ✓ LAY-05 — Toast lifecycle: scene-tagged toasts cleared on transition (achievement banners exempt), regression test + documented 3/system cap, Ashram R.Backgrounds binding fix, Recruit Hall explicit render branch (Phase 31)
+
 ### Shipped Milestone v4.0 — Deep Companions & Living Zones
 
 **Goal (achieved):** Make familiar zones play differently through companion bonds, without new geography.
