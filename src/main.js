@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 (function() {
   // Installable PWA (offline fallback), skip on file://.
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
@@ -57,7 +58,7 @@
     ['achievements', typeof achievementsScene !== 'undefined' ? achievementsScene : null],
     ['equipment', typeof equipmentScene !== 'undefined' ? equipmentScene : null],
     ['welcome', typeof welcomeScene !== 'undefined' ? welcomeScene : null],
-    ['debug', typeof debugScene !== 'undefined' ? debugScene : null],
+    ['debug', (typeof debugScene !== 'undefined' && /debug/.test(window.location.search)) ? debugScene : null],
     ['journeyScene', typeof journeyScene !== 'undefined' ? journeyScene : null],
     ['authScene', typeof authScene !== 'undefined' ? authScene : null]
   ];
