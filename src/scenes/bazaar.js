@@ -1,3 +1,22 @@
+// Helper: compute wrapped text height for bazaar items
+const computeBazaarItemHeight = function(item, listWidth) {
+  // Layout: left 5px bar + 4px padding + content (name, desc, stat, price)
+  // Content width: listWidth - 5 (bar) - 34 (padding+type) - 50 (price) - 8 (gaps)
+  const contentW = listWidth - 5 - 34 - 50 - 8;
+  let lines = 1; // minimum 1 line for name
+  
+  // Estimate lines: name (often wraps), description (if present)
+  const nameLines = Math.ceil((item.name ? item.name.length : 0) * 5.5 / contentW) || 1;
+  const descLines = item.desc ? Math.ceil(item.desc.length * 4.8 / contentW) : 0;
+  lines = Math.max(1, nameLines + (descLines > 0 ? 1 + descLines : 0));
+  
+  // Cap at 3 lines; clamp at least 1
+  lines = Math.min(3, Math.max(1, lines));
+  
+  // Base 14px per line + 4px padding = 14*lines + 4
+  return lines * 14 + 4;
+};
+
 const bazaarScene = Scene.create({
   name: 'bazaar',
   data: {
@@ -71,8 +90,9 @@ const bazaarScene = Scene.create({
 
     if (isBuy) {
       const buyItems = this.data.inventory;
-      const list = UI.ScrollList(14, listY, G.W - 28, listH, {
-        itemHeight: 36,
+      const listW = G.W - 28;
+      const list = UI.ScrollList(14, listY, listW, listH, {
+        getItemHeight: function(item) { return computeBazaarItemHeight(item, listW); },
         itemGap: 4,
         onRenderItem: function(ctx, item, i, x, y, w, h, selected) {
           const cost = getItemCost(item);
@@ -81,15 +101,15 @@ const bazaarScene = Scene.create({
           if (!canBuy) ctx.globalAlpha = 0.45;
           R.roundRect(ctx, x, y, 5, h, 0, R.colors.gold);
           const typeLabel = item.type || '';
-          R.text(ctx, typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1), x + 34, y + 14, R.colors.gold, R.fonts.xs);
-          R.text(ctx, item.name, x + 34, y + 26, R.colors.white, R.fonts.sm);
-          R.text(ctx, cost + 'g', x + w - 50, y + 14, canBuy ? R.colors.gold : R.colors.red, R.fonts.sm);
+          R.text(ctx, typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1), x + 34, y + 8, R.colors.gold, R.fonts.xs);
+          R.text(ctx, item.name, x + 34, y + 20, R.colors.white, R.fonts.sm);
+          R.text(ctx, cost + 'g', x + w - 50, y + 8, canBuy ? R.colors.gold : R.colors.red, R.fonts.sm);
           if (item.desc) {
-            R.text(ctx, item.desc, x + 34, y + h - 6, R.colors.textDim, R.fonts.xs);
+            R.text(ctx, item.desc, x + 34, y + h - 14, R.colors.textDim, R.fonts.xs);
           }
-          if (item.atk) R.text(ctx, 'ATK+' + item.atk, x + w - 90, y + 26, R.colors.orange, R.fonts.xs);
-          if (item.def) R.text(ctx, 'DEF+' + item.def, x + w - 90, y + 26, R.colors.blueLight, R.fonts.xs);
-          if (item.mag) R.text(ctx, 'MAG+' + item.mag, x + w - 90, y + 26, R.colors.blueLight, R.fonts.xs);
+          if (item.atk) R.text(ctx, 'ATK+' + item.atk, x + w - 90, y + 20, R.colors.orange, R.fonts.xs);
+          if (item.def) R.text(ctx, 'DEF+' + item.def, x + w - 90, y + 20, R.colors.blueLight, R.fonts.xs);
+          if (item.mag) R.text(ctx, 'MAG+' + item.mag, x + w - 90, y + 20, R.colors.blueLight, R.fonts.xs);
           ctx.globalAlpha = 1;
         },
         onClick: function(item, i) {
@@ -138,7 +158,7 @@ const bazaarScene = Scene.create({
     } else {
       const inv = (G.state.inventory || []).filter(i => typeof i === 'object' && i.name);
       const list = UI.ScrollList(14, listY, G.W - 28, listH, {
-        itemHeight: 36,
+        getItemHeight: function(item) { return computeBazaarItemHeight(item, G.W - 28); },
         itemGap: 4,
         onRenderItem: function(ctx, item, i, x, y, w, h, selected) {
           const sellPrice = Math.floor((getItemCost(item) || 5) * 0.5);
@@ -146,9 +166,12 @@ const bazaarScene = Scene.create({
           R.roundRect(ctx, x, y, w, h, 5, selected ? R.colors.gold : 'rgba(138,138,160,0.08)');
           R.roundRect(ctx, x, y, 5, h, 0, R.colors.textDim);
           const typeLabel = item.type || '';
-          R.text(ctx, typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1) + qtyStr, x + 34, y + 14, R.colors.textDim, R.fonts.sm);
-          R.text(ctx, item.name, x + 34, y + 26, R.colors.white, R.fonts.sm);
-          R.text(ctx, sellPrice + 'g', x + w - 50, y + 18, R.colors.gold, R.fonts.sm);
+          R.text(ctx, typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1) + qtyStr, x + 34, y + 8, R.colors.textDim, R.fonts.sm);
+          R.text(ctx, item.name, x + 34, y + 20, R.colors.white, R.fonts.sm);
+          R.text(ctx, sellPrice + 'g', x + w - 50, y + 8, R.colors.gold, R.fonts.sm);
+          if (item.desc) {
+            R.text(ctx, item.desc, x + 34, y + h - 14, R.colors.textDim, R.fonts.xs);
+          }
         },
         onClick: function(item, i) {
           const realIdx = G.state.inventory.indexOf(item);
