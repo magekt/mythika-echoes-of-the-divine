@@ -330,7 +330,7 @@ Plans:
 - [x] **Phase 36: Ship Readiness** — LICENSE, Firebase 404 suppression, debug-scene gate, clean prod console — complete 2026-10-10
 - [x] **Phase 37: Onboarding Polish** — guided first-battle walkthrough, stat glosses, journey HUD badge — complete 2026-10-10
 - [x] **Phase 38: Zone & Enemy Art** — 8 zone backdrops, 20 enemy portrait icons — complete 2026-10-10
-- [ ] **Phase 39: Combat FX & UI Polish** — 5 element particle FX, card radius/tint polish
+- [x] **Phase 39: Combat FX & UI Polish** — 5 element particle FX, card radius/tint polish — complete 2026-10-10
 - [ ] **Phase 40: Audio Foundation** — audio engine extensions, 3 UI SFX, music/SFX/mute toggle in Settings
 - [ ] **Phase 41: Music & Ambient** — title ambient loop, Ashram ambient loop, 8 combat SFX
 
@@ -396,8 +396,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 39-01-PLAN.md — 5 element particle FX system (canvas particle emitter keyed to element type)
-- [ ] 39-02-PLAN.md — UI card radius/tint polish across card components
+- [x] 39-01-PLAN.md — 5 element particle FX system (canvas particle emitter keyed to element type)
+- [x] 39-02-PLAN.md — UI card radius/tint polish across card components
 
 **UI hint**: yes
 
