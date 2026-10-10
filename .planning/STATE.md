@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Ship Polish, Art & Audio, Onboarding
 status: in_progress
-stopped_at: "Phase 37 complete; Phase 38 next"
+stopped_at: "Phase 38 complete; Phase 39 next"
 last_updated: "2026-10-10T21:30:00Z"
 last_activity: 2026-10-10 — Phase 36 Ship Readiness complete (3/3 plans, SHP-01-04); Phase 37 next
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 15
-  completed_plans: 6
-  percent: 33
+  completed_plans: 8
+  percent: 50
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-09)
 
 ## Current Position
 
-Phase: 38 (Zone & Enemy Art — next)
+Phase: 39 (Combat FX & UI Polish — next)
 Plan: 37-01
-Status: Phase 37 complete. Phase 38 ready to plan.
+Status: Phase 38 complete. Phase 39 ready to plan.
 Last activity: 2026-10-10 — Phase 36 Ship Readiness: LICENSE+SPDX, Firebase silent fallback, debug gate all shipped in 636804a.
 
-Progress: [███████░░░] 33% (2/6 phases complete, 6/15 plans)
+Progress: [████████░░] 50% (3/6 phases complete, 8/15 plans)
 
 ## Performance Metrics
 
@@ -45,7 +45,7 @@ Progress: [███████░░░] 33% (2/6 phases complete, 6/15 plans)
 |-------|-------|--------|
 | 36 Ship Readiness | 3/3 | Complete (LICENSE+SPDX, Firebase gate, debug gate) 2026-10-10 |
 | 37 Onboarding Polish | 3/3 | Complete (tour, glosses, journey badge) 2026-10-10 |
-| 38 Zone & Enemy Art | 2/2 | Not started |
+| 38 Zone & Enemy Art | 2/2 | Complete (zoneArt + enemyPortraits) 2026-10-10 |
 | 39 Combat FX & UI Polish | 2/2 | Not started |
 | 40 Audio Foundation | 2/2 | Not started |
 | 41 Music & Ambient | 3/3 | Not started |
@@ -74,8 +74,6 @@ Progress: [███████░░░] 33% (2/6 phases complete, 6/15 plans)
 ### Pending Todos
 
 v6.0 remaining:
-- ART-01 → Phase 38
-- ART-02 → Phase 38
 - ART-03 → Phase 39
 - ART-04 → Phase 39
 - AUD-04 → Phase 40
@@ -105,5 +103,5 @@ Milestone v5.0 completed Phases 30–35 on 2026-10-10. Archive: `.planning/v5-MI
 ## Session Continuity
 
 Last session: 2026-10-10
-Stopped at: Phase 37 complete; Phase 38 ready to plan
-Resume: `/gsd-plan-phase 38`
+Stopped at: Phase 38 complete; Phase 39 ready to plan
+Resume: `/gsd-plan-phase 39`
