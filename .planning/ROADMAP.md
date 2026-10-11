@@ -317,7 +317,7 @@ Plans:
 
 ---
 
-## v6.0 — Ship Polish, Art & Audio, Onboarding (In Progress)
+## v6.0 — Ship Polish, Art & Audio, Onboarding ✅ SHIPPED (2026-10-11)
 
 **Goal:** Make the game shippable and beautiful — clean the console, fix licensing, polish onboarding, upgrade procedural art, and build a real audio identity. No new mechanics, zones, or heroes. No external asset files. No framework migration.
 
@@ -331,8 +331,8 @@ Plans:
 - [x] **Phase 37: Onboarding Polish** — guided first-battle walkthrough, stat glosses, journey HUD badge — complete 2026-10-10
 - [x] **Phase 38: Zone & Enemy Art** — 8 zone backdrops, 20 enemy portrait icons — complete 2026-10-10
 - [x] **Phase 39: Combat FX & UI Polish** — 5 element particle FX, card radius/tint polish — complete 2026-10-10
-- [ ] **Phase 40: Audio Foundation** — audio engine extensions, 3 UI SFX, music/SFX/mute toggle in Settings
-- [ ] **Phase 41: Music & Ambient** — title ambient loop, Ashram ambient loop, 8 combat SFX
+- [x] **Phase 40: Audio Foundation** — audio engine extensions, 3 UI SFX, music/SFX/mute toggle in Settings — complete 2026-10-11
+- [x] **Phase 41: Music & Ambient** — title ambient loop, Ashram ambient loop, 8 combat SFX — complete 2026-10-11
 
 ## Phase Details (v6.0)
 
