@@ -83,7 +83,7 @@ v6.0 remaining: none — all 16 requirements complete.
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 261011-k66 | install https://github.com/garrytan/gstack | 2026-10-11 | a853256 | [261011-k66-install-https-github-com-garrytan-gstack](./quick/261011-k66-install-https-github-com-garrytan-gstack/) |
+| 261011-k66 | install https://github.com/garrytan/gstack | 2026-10-11 | 385c1af | [261011-k66-install-https-github-com-garrytan-gstack](./quick/261011-k66-install-https-github-com-garrytan-gstack/) |
 
 ## Deferred Items
 
