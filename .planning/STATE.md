@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-10-09)
 Phase: 41 (Music & Ambient — complete)
 Plan: done
 Status: All 6 phases of v6.0 complete.
-Last activity: 2026-10-11 — Phase 41 Music & Ambient: ambient drone music system, delay wash, scene wiring.
+Last activity: 2026-10-11 - Completed quick task 261011-k66: install https://github.com/garrytan/gstack
 
 Progress: [████████████] 100% (6/6 phases complete, 15/15 plans)
 
@@ -78,6 +78,12 @@ v6.0 remaining: none — all 16 requirements complete.
 ### Blockers/Concerns
 
 - No blockers.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 261011-k66 | install https://github.com/garrytan/gstack | 2026-10-11 | a853256 | [261011-k66-install-https-github-com-garrytan-gstack](./quick/261011-k66-install-https-github-com-garrytan-gstack/) |
 
 ## Deferred Items
 
