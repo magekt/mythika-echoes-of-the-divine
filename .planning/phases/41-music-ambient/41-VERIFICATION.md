@@ -2,8 +2,8 @@
 
 **Phase:** 41-music-ambient
 **Requirements:** AUD-01, AUD-02, AUD-03
-**Date:** 2026-10-11
-**Status:** Automated contracts green; live audio confirmation deferred
+**Date:** 2026-10-11 (live-audio addendum 2026-10-11)
+**Status:** Automated contracts green; live audio confirmation DONE 2026-10-11 (see Live Addendum)
 
 ## Automated
 - `node --check audio.js`, `title.js`, `ashram.js`, `combatScene.js`, `fishing.js` — all clean
@@ -29,3 +29,11 @@
 ## Unlock Flow
 - `Audio.unlock()` routes pending tracks: ambient IDs (`title/ashram/combat_dark/combat_boss`) → `playAmbient()`, others → `playMusic()`
 - Both ambient and melodic tracks are pending-tracked through `_pendingTrack`
+
+## Live Addendum (2026-10-11, real Chrome headless, autoplay unlocked)
+
+- `playAmbient('title')`: 4 oscs at C-major chord, delay 0.7s, feedback 0.65, interval scheduled.
+- Chord crossfade tick: frequencies advance 261.63…→293.66… after one interval (seamless, no clicks).
+- `combat_dark`: 4 oscs, feedback 0.70. `ashram`: 4 oscs, feedback 0.60. `combat_boss`: 4 oscs, feedback 0.75.
+- `stopAll()` leaves 0 ambient nodes.
+- Script: `/var/folders/0w/fmpw5lvx5h91vpbxbmn4nzs40000gn/T/opencode/mythika_cdp_verify.py`.
