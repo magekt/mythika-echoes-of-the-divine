@@ -355,10 +355,6 @@ const ashramScene = Scene.create({
     if (G.state.journeys && G.state.journeys.active) {
       const aj = JOURNEYS[G.state.journeys.active];
       if (aj && !JourneySystem.isCompleted(G.state.journeys.active)) {
-        const prog = JourneySystem.getProgress(G.state.journeys.active);
-        const totalNodes = aj.nodes ? aj.nodes.length : 0;
-        const label = aj.icon + ' ' + aj.name + '  ' + (prog.nodeId ? 'node ' + (totalNodes ? '' : '') + '' : '') + '';
-        const progressText = totalNodes > 0 ? ' ' + (totalNodes === 1 ? 'active' : 'in progress') : 'active';
         R.roundRect(ctx, G.W/2 - 100, 248, 200, 28, 8, 'rgba(200,160,48,0.08)');
         ctx.strokeStyle = R.colors.gold;
         ctx.lineWidth = 1;

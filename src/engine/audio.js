@@ -15,6 +15,7 @@ const Audio = {
   _delayFeedback: null,
   _delayDryGain: null,
   _delayWetGain: null,
+  AMBIENT_IDS: ['title', 'ashram', 'combat_dark', 'combat_boss'],
   musicVolume: function(v) {
     if (this._musicGain) this._musicGain.gain.value = (v || 0.7) * 0.04;
   }
@@ -50,17 +51,24 @@ Audio.toggleMute = function() {
   if (Audio.mute) {
     Audio.musicOn = false;
     Audio.sfxOn = false;
+    Audio.stopAll();
+  } else {
+    Audio.musicOn = true;
+    Audio.sfxOn = true;
   }
   Audio.savePrefs();
-  if (Audio.mute) Audio.stopMusic();
 };
 
 Audio.toggleMusic = function() {
   if (Audio.mute) return;
   Audio.musicOn = !Audio.musicOn;
   Audio.savePrefs();
-  if (!Audio.musicOn) Audio.stopMusic();
-  else Audio.playMusic(Audio._currentTrack || 'title');
+  if (!Audio.musicOn) Audio.stopAll();
+  else {
+    const id = Audio._currentTrack || 'title';
+    if (Audio.AMBIENT_IDS.indexOf(id) !== -1) Audio.playAmbient(id);
+    else Audio.playMusic(id);
+  }
 };
 
 Audio.toggleSFX = function() {
@@ -101,7 +109,7 @@ Audio.unlock = function() {
       if (Audio._pendingTrack && Audio._ctx.state === 'running') {
         const trackId = Audio._pendingTrack;
         Audio._pendingTrack = null;
-        const ambientIds = ['title', 'ashram', 'combat_dark', 'combat_boss'];
+        const ambientIds = Audio.AMBIENT_IDS;
         if (ambientIds.indexOf(trackId) !== -1) Audio.playAmbient(trackId);
         else Audio.playMusic(trackId);
       }
@@ -229,7 +237,7 @@ Audio.TRACKS = {
 };
 
 Audio.playMusic = function(trackId) {
-   this.stopMusic();
+   this.stopAll();
    if (!this.musicOn || this.mute) return;
    if (!this.ready()) {
     // Locked (pre-gesture): remember the request; Audio.unlock() starts it.
@@ -278,7 +286,7 @@ Audio.stopMusic = function() {
 // ── Ambient drone + delay-wash system (Phase 41 — AUD-01/02/03) ──────────
 
 Audio.playAmbient = function(trackId) {
-  this.stopAmbient();
+  this.stopAll();
   if (!this.musicOn || this.mute) return;
   if (!this.ready()) {
     this._pendingTrack = trackId;

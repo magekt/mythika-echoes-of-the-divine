@@ -73,5 +73,6 @@ const TourSystem = {
     ctx.textBaseline = 'middle';
     ctx.fillText(text, G.W / 2, y + h / 2);
     ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
   }
 };

@@ -14,14 +14,14 @@ UI.Modal.clearAll = function() {
 };
 
 UI.Modal.show = function(opts) {
-   // Canvas fillText ignores "\n" — fold multi-line bodies into wrapped lines.
-   let body = opts.body || '';
-   let lines = opts.lines || [];
-   if (body.indexOf('\n') !== -1) {
-     lines = body.split('\n').concat(lines);
-     body = '';
-   }
-   if (typeof Audio !== 'undefined' && Audio.modalOpen) Audio.modalOpen();
+  // Canvas fillText ignores "\n" — fold multi-line bodies into wrapped lines.
+  let body = opts.body || '';
+  let lines = opts.lines || [];
+  if (body.indexOf('\n') !== -1) {
+    lines = body.split('\n').concat(lines);
+    body = '';
+  }
+  if (typeof Audio !== 'undefined' && Audio.modalOpen) Audio.modalOpen();
   const m = {
     title: opts.title || '',
     body: body,
