@@ -207,9 +207,9 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
 **Plans**: 3 plans
 
 Plans:
-- [ ] 30-01-PLAN.md — Text-bounds harness core (fillText injector, asserts, frozen fail-first fixture)
-- [ ] 30-02-PLAN.md — Headless 200-fight combat simulator with BAL metrics
-- [ ] 30-03-PLAN.md — Engine overlay-flag wiring + verify_matrix layout mode + fail-first proof
+- [x] 30-01-PLAN.md — Text-bounds harness core (fillText injector, asserts, frozen fail-first fixture)
+- [x] 30-02-PLAN.md — Headless 200-fight combat simulator with BAL metrics
+- [x] 30-03-PLAN.md — Engine overlay-flag wiring + verify_matrix layout mode + fail-first proof
 
 ### Phase 31: Toast Lifecycle Scoping
 **Goal**: Toasts never leak across scenes
@@ -245,9 +245,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 32-01-PLAN.md — Combat band rebuild (enemy-panel targets, 5-hero clearance, D-01 result bands)
-- [ ] 32-02-PLAN.md — Toast-lane constant + uniform action grid + guidance clearance
-- [ ] 32-03-PLAN.md — Pair re-derivation + backgrounds evidence + 20-scene sweep + fixture retirement
+- [x] 32-01-PLAN.md — Combat band rebuild (enemy-panel targets, 5-hero clearance, D-01 result bands)
+- [x] 32-02-PLAN.md — Toast-lane constant + uniform action grid + guidance clearance
+- [x] 32-03-PLAN.md — Pair re-derivation + backgrounds evidence + 20-scene sweep + fixture retirement
 **UI hint**: yes
 
 ### Phase 33: Bazaar & Zone Exploration Layout
@@ -259,8 +259,8 @@ Plans:
   2. Zone name, subtitle, progress bar, and labels never overlap; Attack/Skill/Flee are hidden or disabled with no encounter, with ≥8px gaps between adjacent buttons
   3. Shared text-bounds criterion passes for Bazaar Buy/Sell and zone exploration with and without encounter at 390x844 and 844x390
 **Plans**: 2 plans in 1 wave
-- [ ] 33-01-PLAN.md — Variable-height Bazaar rows with text wrapping and HUD clarity
-- [ ] 33-02-PLAN.md — Zone exploration HUD bands and dimmed-but-visible action buttons
+- [x] 33-01-PLAN.md — Variable-height Bazaar rows with text wrapping and HUD clarity
+- [x] 33-02-PLAN.md — Zone exploration HUD bands and dimmed-but-visible action buttons
 **UI hint**: yes
 
 ### Phase 34: Fit & Finish Bundle
