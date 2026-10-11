@@ -83,6 +83,9 @@ v6.0 remaining: none — all 16 requirements complete.
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
+| Human UAT | F-02: Phase 37 first-battle tour tap-through (human gameplay judgment) | Open — awaiting playtest | 2026-10-11 audit-fix |
+| Human UAT | F-07: 31-HUMAN-UAT recruit-hall retest (human gameplay judgment) | Open — awaiting playtest | 2026-10-11 audit-fix |
+|----------|------|--------|-------------|
 | Online systems | Backend sync, multiplayer, server-driven events, remote telemetry | Out of scope | v3.0 definition |
 | Content | New zones, realms, broad progression, deep companion relationships | Out of scope | v3.0 definition |
 | Architecture | Framework, renderer, bundler, ES-module replacement | Out of scope | v3.0 definition |
