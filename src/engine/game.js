@@ -2,6 +2,7 @@ const Notify = {
   queue: [],
   achievements: [],
   show: function(msg, duration, color) {
+    if (typeof Audio !== 'undefined' && Audio.toast) Audio.toast();
     if (this.queue.length >= 3) this.queue.shift();
     this.queue.push({ msg: msg || '', timer: duration || 2, color: color || R.colors.gold, age: 0, scene: (typeof G !== 'undefined' && G.state && G.state.scene) || null });
   },
@@ -270,6 +271,7 @@ function gInit() {  G.canvas = document.getElementById('game-canvas');
   initSceneManager();
   initInput();
   initAudio();
+  if (typeof Audio !== 'undefined' && Audio.loadPrefs) Audio.loadPrefs();
   if (typeof ZoneArt !== 'undefined') ZoneArt.registerAll();
   G.lastTime = performance.now();
   // Perf probe: only active when loaded with ?probe (harness --fps mode).

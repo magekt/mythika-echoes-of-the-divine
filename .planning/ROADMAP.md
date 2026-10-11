@@ -413,8 +413,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 40-01-PLAN.md — 3 UI SFX definitions + trigger wiring + gain-node separation verification
-- [ ] 40-02-PLAN.md — Settings audio toggle (music/SFX/mute) + localStorage persistence + autoplay gate
+- [x] 40-01-PLAN.md — 3 UI SFX definitions + trigger wiring + gain-node separation verification
+- [x] 40-02-PLAN.md — Settings audio toggle (music/SFX/mute) + localStorage persistence + autoplay gate
 
 ### Phase 41: Music & Ambient
 **Goal**: The game has a real audio identity — ambient loops for title and Ashram, and combat SFX for key moments
@@ -436,11 +436,11 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 36. Ship Readiness | v6.0 | 0/3 | Not started | - |
-| 37. Onboarding Polish | v6.0 | 0/3 | Not started | - |
-| 38. Zone & Enemy Art | v6.0 | 0/2 | Not started | - |
-| 39. Combat FX & UI Polish | v6.0 | 0/2 | Not started | - |
-| 40. Audio Foundation | v6.0 | 0/2 | Not started | - |
+| 36. Ship Readiness | v6.0 | 3/3 | Complete | 2026-10-10 |
+| 37. Onboarding Polish | v6.0 | 3/3 | Complete | 2026-10-10 |
+| 38. Zone & Enemy Art | v6.0 | 2/2 | Complete | 2026-10-10 |
+| 39. Combat FX & UI Polish | v6.0 | 2/2 | Complete | 2026-10-10 |
+| 40. Audio Foundation | v6.0 | 2/2 | Complete | 2026-10-11 |
 | 41. Music & Ambient | v6.0 | 0/3 | Not started | - |
 
 ## Coverage (v6.0)
