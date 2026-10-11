@@ -13,7 +13,7 @@ const ashramScene = Scene.create({
     this.data.layout = Scene.responsive();
     Hints.show('welcome', 'Welcome to your Ashram. Tap Travel to begin your journey.');
     if ((G.state.gold || 0) >= 100) Hints.show('bazaar', 'You have coin to spend — the Bazaar buys and sells gear.');
-    Audio.playMusic('ashram');
+    Audio.playAmbient('ashram');
     this.data.popup = null;
     this.data._bgAlpha = 0;
     R.Backgrounds.registerSlot('ashram');

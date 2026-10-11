@@ -101,7 +101,9 @@ Audio.unlock = function() {
       if (Audio._pendingTrack && Audio._ctx.state === 'running') {
         const trackId = Audio._pendingTrack;
         Audio._pendingTrack = null;
-        Audio.playMusic(trackId);
+        const ambientIds = ['title', 'ashram', 'combat_dark', 'combat_boss'];
+        if (ambientIds.indexOf(trackId) !== -1) Audio.playAmbient(trackId);
+        else Audio.playMusic(trackId);
       }
     };
     if (Audio._ctx.state === 'suspended') {

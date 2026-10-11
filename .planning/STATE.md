@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Ship Polish, Art & Audio, Onboarding
-status: in_progress
-stopped_at: "Phase 40 complete; Phase 41 next"
-last_updated: "2026-10-11T00:00:00Z"
-last_activity: 2026-10-11 — Phase 40 Audio Foundation complete (mute toggle, SFX, localStorage persistence)
+status: complete
+stopped_at: "All 6 phases complete"
+last_updated: "2026-10-11T00:30:00Z"
+last_activity: 2026-10-11 — Phase 41 Music & Ambient complete (ambient drones, delay wash, scene wiring)
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 15
-  completed_plans: 12
-  percent: 83
+  completed_plans: 15
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-09)
 
 ## Current Position
 
-Phase: 41 (Music & Ambient — next)
-Plan: 41-01
-Status: Phase 40 complete. Phase 41 ready to plan.
-Last activity: 2026-10-11 — Phase 40 Audio Foundation: UI SFX + mute toggle + localStorage persistence shipped.
+Phase: 41 (Music & Ambient — complete)
+Plan: done
+Status: All 6 phases of v6.0 complete.
+Last activity: 2026-10-11 — Phase 41 Music & Ambient: ambient drone music system, delay wash, scene wiring.
 
-Progress: [███████████░] 83% (5/6 phases complete, 12/15 plans)
+Progress: [████████████] 100% (6/6 phases complete, 15/15 plans)
 
 ## Performance Metrics
 
@@ -48,7 +48,7 @@ Progress: [███████████░] 83% (5/6 phases complete, 12/15
 | 38 Zone & Enemy Art | 2/2 | Complete (zoneArt + enemyPortraits) 2026-10-10 |
 | 39 Combat FX & UI Polish | 2/2 | Complete (combatFx + card polish) 2026-10-10 |
 | 40 Audio Foundation | 2/2 | Complete (SFX, mute, localStorage) 2026-10-11 |
-| 41 Music & Ambient | 3/3 | Not started |
+| 41 Music & Ambient | 3/3 | Complete (ambient drones, delay wash, scene wiring) 2026-10-11 |
 
 ## Accumulated Context
 

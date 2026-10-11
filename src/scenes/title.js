@@ -8,7 +8,7 @@ const titleScene = Scene.create({
 
   enter: function() {
     this.data.layout = Scene.responsive();
-    Audio.playMusic('title');
+    Audio.playAmbient('title');
     this.data.particles = [];
     for (let i = 0; i < 40; i++) {
       const slow = i % 4 === 0;
@@ -46,7 +46,7 @@ const titleScene = Scene.create({
     this._heroMoment = null;
     this.data.buttons = [];
     this.data.particles = [];
-    Audio.stopMusic();
+    Audio.stopAmbient();
   },
 
   update: function(dt) {

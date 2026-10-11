@@ -428,9 +428,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 41-01-PLAN.md — Title screen ambient loop (procedural, 30–60s, seamless)
-- [ ] 41-02-PLAN.md — Ashram ambient loop (procedural, scene-scoped start/stop)
-- [ ] 41-03-PLAN.md — 8 combat SFX definitions + combat-event wiring
+- [x] 41-01-PLAN.md — Title screen ambient loop (procedural, 30–60s, seamless)
+- [x] 41-02-PLAN.md — Ashram ambient loop (procedural, scene-scoped start/stop)
+- [x] 41-03-PLAN.md — 8 combat SFX definitions + combat-event wiring
 
 ## Progress (v6.0)
 
@@ -441,7 +441,7 @@ Plans:
 | 38. Zone & Enemy Art | v6.0 | 2/2 | Complete | 2026-10-10 |
 | 39. Combat FX & UI Polish | v6.0 | 2/2 | Complete | 2026-10-10 |
 | 40. Audio Foundation | v6.0 | 2/2 | Complete | 2026-10-11 |
-| 41. Music & Ambient | v6.0 | 0/3 | Not started | - |
+| 41. Music & Ambient | v6.0 | 3/3 | Complete | 2026-10-11 |
 
 ## Coverage (v6.0)
 

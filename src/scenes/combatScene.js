@@ -82,8 +82,8 @@ const combatScene = Scene.create({
     Hints.show('combat', 'Tap a foe on the right to target it. Chained hits build combo damage.');
     const zone = G.state.currentZone;
     if (G.state.isBossFight && typeof ZoneRewardSystem !== 'undefined') ZoneRewardSystem.clearPending();
-    const musicMap = { aryavarta: 'combat_aryavarta', dandaka: 'combat_dandaka', meru: 'combat_meru', patala: 'combat_patala', svarga: 'combat_svarga' };
-    Audio.playMusic(musicMap[zone] || 'combat_aryavarta');
+    const musicMap = { aryavarta: 'combat_dark', dandaka: 'combat_dark', meru: 'combat_dark', patala: 'combat_dark', svarga: 'combat_boss' };
+    Audio.playAmbient(musicMap[zone] || 'combat_dark');
     this.data.heroes = JSON.parse(JSON.stringify(G.state.party.filter(h => h.hp > 0)));
     this.data.enemies = JSON.parse(JSON.stringify(G.state.currentEnemies || []));
     if (this.data.enemies.length === 0) {
@@ -170,7 +170,7 @@ const combatScene = Scene.create({
     this.data.heroes = [];
     this.data.enemies = [];
     this.data.enemyIntent = null;
-    Audio.stopMusic();
+    Audio.stopAmbient();
   },
 
   clearCombatTimers: function() {
