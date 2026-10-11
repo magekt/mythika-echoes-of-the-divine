@@ -2,8 +2,8 @@
 
 **Phase:** 40-audio-foundation
 **Requirements:** AUD-04, AUD-05
-**Date:** 2026-10-11
-**Status:** Automated contracts green; live audio confirmation deferred
+**Date:** 2026-10-11 (live-audio addendum 2026-10-11)
+**Status:** Automated contracts green; live audio confirmation DONE 2026-10-11 (see Live Addendum)
 
 ## Automated
 - `node --check audio.js`, `settings.js`, `game.js` — all clean
@@ -30,3 +30,12 @@
 - `Audio.mute` gates: `beep()`, `playMusic()`, `toast()`, `modalOpen()`, `btnTap()`
 - Individual toggles (`musicOn`, `sfxOn`) work independently when `mute=false`
 - `stopAll()` stops both melodic and ambient tracks on cleanup
+
+## Live Addendum (2026-10-11, real Chrome headless, autoplay unlocked)
+
+- `Audio.toast()`, `Audio.modalOpen()`, `Audio.btnTap()` fire with no exceptions.
+- `Audio.toggleMute()` round-trip: `mute=true` forces `musicOn=false` + `sfxOn=false`;
+  localStorage `mythika_audio` reads `{"mute":true,"musicOn":false,"sfxOn":false}`.
+- Pre-gesture gating confirmed: with context suspended, `playAmbient('title')`
+  defers to `_pendingTrack` with zero nodes created (no warning spam).
+- Script: `/var/folders/0w/fmpw5lvx5h91vpbxbmn4nzs40000gn/T/opencode/mythika_cdp_verify.py`.
