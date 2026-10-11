@@ -73,12 +73,7 @@ Progress: [████████████] 100% (6/6 phases complete, 15/1
 
 ### Pending Todos
 
-v6.0 remaining:
-- AUD-04 → Phase 40
-- AUD-05 → Phase 40
-- AUD-01 → Phase 41
-- AUD-02 → Phase 41
-- AUD-03 → Phase 41
+v6.0 remaining: none — all 16 requirements complete.
 
 ### Blockers/Concerns
 
@@ -100,6 +95,6 @@ Milestone v5.0 completed Phases 30–35 on 2026-10-10. Archive: `.planning/v5-MI
 
 ## Session Continuity
 
-Last session: 2026-10-10
-Stopped at: Phase 39 complete; Phase 40 ready to plan
-Resume: `/gsd-plan-phase 40`
+Last session: 2026-10-11
+Stopped at: v6.0 shipped — audit FINAL (gaps_found, no blockers), 16/16 requirements
+Resume: next milestone planning (Phase 42+)

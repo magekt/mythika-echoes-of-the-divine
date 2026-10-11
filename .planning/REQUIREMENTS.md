@@ -54,22 +54,22 @@ Build the harness extension first (only proof for LAY-01–LAY-06). LAY-05 befor
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SHP-01 — LICENSE added | Phase 36 | Pending |
-| SHP-02 — Firebase 404 suppressed in prod | Phase 36 | Pending |
-| SHP-03 — Debug scene gated behind ?debug | Phase 36 | Pending |
-| SHP-04 — Console clean on first load | Phase 36 | Pending |
-| ONB-01 — Guided first-battle walkthrough | Phase 37 | Pending |
-| ONB-02 — Character creation stat glosses | Phase 37 | Pending |
-| ONB-03 — Journey quest surfaced in Ashram HUD | Phase 37 | Pending |
-| ART-01 — 8 zone backdrops | Phase 38 | Pending |
-| ART-02 — 20 enemy portrait icons | Phase 38 | Pending |
-| ART-03 — 5 element combat FX (particles) | Phase 39 | Pending |
-| ART-04 — UI card radius/tint polish | Phase 39 | Pending |
-| AUD-04 — 3 UI SFX | Phase 40 | Pending |
-| AUD-05 — Audio toggle in Settings | Phase 40 | Pending |
-| AUD-01 — Title screen ambient loop | Phase 41 | Pending |
-| AUD-02 — Ashram ambient loop | Phase 41 | Pending |
-| AUD-03 — 8 combat SFX | Phase 41 | Pending |
+| SHP-01 — LICENSE added | Phase 36 | Complete (2026-10-10) |
+| SHP-02 — Firebase 404 suppressed in prod | Phase 36 | Complete (2026-10-10) |
+| SHP-03 — Debug scene gated behind ?debug | Phase 36 | Complete (2026-10-10) |
+| SHP-04 — Console clean on first load | Phase 36 | Complete (2026-10-10) |
+| ONB-01 — Guided first-battle walkthrough | Phase 37 | Complete (2026-10-10) |
+| ONB-02 — Character creation stat glosses | Phase 37 | Complete (2026-10-10) |
+| ONB-03 — Journey quest surfaced in Ashram HUD | Phase 37 | Complete (2026-10-10) |
+| ART-01 — 8 zone backdrops | Phase 38 | Complete (2026-10-10) |
+| ART-02 — 20 enemy portrait icons | Phase 38 | Complete (2026-10-10) |
+| ART-03 — 5 element combat FX (particles) | Phase 39 | Complete (2026-10-10) |
+| ART-04 — UI card radius/tint polish | Phase 39 | Complete (2026-10-10) |
+| AUD-04 — 3 UI SFX | Phase 40 | Complete (2026-10-11) |
+| AUD-05 — Audio toggle in Settings | Phase 40 | Complete (2026-10-11) |
+| AUD-01 — Title screen ambient loop | Phase 41 | Complete (2026-10-11) |
+| AUD-02 — Ashram ambient loop | Phase 41 | Complete (2026-10-11) |
+| AUD-03 — 8 combat SFX | Phase 41 | Complete (2026-10-11) |
 
 ## Traceability
 

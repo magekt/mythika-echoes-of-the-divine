@@ -65,7 +65,9 @@
   SCENE_TABLE.forEach(function(pair) {
     try {
       if (pair[1]) registerScene(pair[0], pair[1]);
-      else if (window.console) console.warn('[Mythika] scene script missing, skipped: ' + pair[0]);
+      // 'debug' is intentionally ungated in prod (SHP-03: ?debug only) —
+      // skipping its warn keeps the prod console clean (SHP-04).
+      else if (pair[0] !== 'debug' && window.console) console.warn('[Mythika] scene script missing, skipped: ' + pair[0]);
     } catch (err) {
       if (window.console) console.warn('[Mythika] scene registration failed, skipped: ' + pair[0], err);
     }
