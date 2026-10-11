@@ -403,7 +403,7 @@ Plans:
 
 ### Phase 40: Audio Foundation
 **Goal**: The audio engine supports SFX and music on separate gain nodes with user-controllable toggles
-**Depends on**: Phase 36
+**Depends on**: Phase 36 (plus serialize-after-38 in practice: both edit adjacent `initAudio()` lines in `src/engine/game.js` — 38 adds `ZoneArt.registerAll()`, 40 adds `Audio.loadPrefs()`)
 **Requirements**: AUD-04, AUD-05
 **Success Criteria** (what must be TRUE):
   1. Three UI SFX (button tap, modal open, toast notification) are defined in the audio engine and fire on the corresponding UI interactions; SFX are silent when `Audio.sfxOn` is false; a Node test or manual verification confirms each SFX fires on its trigger
