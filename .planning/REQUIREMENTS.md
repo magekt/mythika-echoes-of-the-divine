@@ -36,6 +36,16 @@ Harness: extend `tools/verify_matrix.py` to wrap `R.text`/`R.textCenter`, record
 
 - [ ] **LAY-08**: Adaptive fill viewport — whole game never cuts on mobile sizes and fills the screen edge-to-edge in portrait and landscape; refit on visualViewport/resize/orientation with safe-area-aware sizing and DPR re-init; verified at 390x844 and 844x390 plus the responsive set.
 
+## v7.0 Requirements — Adaptive Viewport
+
+**Defined:** 2026-10-12
+**Core Value:** Every play session should feel like a meaningful cultivation journey (viewport must never hide the player's next path).
+
+- [ ] **LAY-08**: User plays edge-to-edge with nothing cut — whole game never clips on mobile sizes and fills the screen in portrait and landscape; refit on visualViewport/resize/orientation with safe-area-aware sizing and DPR re-init; verified at 390x844 and 844x390 plus the responsive set (400x720, 540x900, 720x400, 1024x768, 1440x900).
+
+**Deferred:** none — single-requirement milestone.
+**Out of scope:** standing boundaries (no backend/multiplayer, no framework/renderer migration, no new zones/content); human-UAT playtests (F-02, F-07) and v5/v6 bookkeeping explicitly not in v7.0.
+
 ## Balance & Pacing (own checks)
 
 - [ ] **BAL-01**: Combat difficulty — headless sim of 200 first-zone fights: Lv1 hero loses ≥15% HP avg over first five fights; ≥5% of zone-1 runs see a hero death; Threat reads Normal on fresh Lv1 save.
