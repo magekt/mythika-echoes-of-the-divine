@@ -7,6 +7,8 @@
 - ✅ **v3.0 Screen & Gameplay Revamp** — Phases 13-20 (shipped 2026-10-09)
 - ✅ **v4.0 Deep Companions & Living Zones** — Phases 21-29 (shipped 2026-10-09)
 - ✅ **v5.0 Layout Fixes & Early-Game Pacing** — Phases 30-35 (shipped 2026-10-10)
+- ✅ **v6.0 Ship Polish, Art & Audio, Onboarding** — Phases 36-41 (shipped 2026-10-11)
+- ◆ **v7.0 Adaptive Viewport** — Phase 42 (in progress)
 
 ## Completed Milestones
 
@@ -42,7 +44,7 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
 
 ## Phases
 
-**Phase Numbering:** Milestone 1 completed Phases 1–5; Milestone 2 continued at Phase 6; Milestone 3 continued at Phase 13; Milestone v4.0 completed Phases 21–29. Milestone v5.0 completed Phases 30–35; Milestone v6.0 completed Phases 36–41. Next milestone continues at Phase 42.
+**Phase Numbering:** Milestone 1 completed Phases 1–5; Milestone 2 continued at Phase 6; Milestone 3 continued at Phase 13; Milestone v4.0 completed Phases 21–29. Milestone v5.0 completed Phases 30–35; Milestone v6.0 completed Phases 36–41. Milestone v7.0 starts at Phase 42.
 
 ## v4.0 — Deep Companions & Living Zones ✅ SHIPPED (2026-10-09)
 
@@ -517,6 +519,54 @@ Phase 36 (Ship Readiness)
 ```
 
 Art and audio tracks are independent after Phase 36; they can be executed in parallel or interleaved.
+
+## v7.0 — Adaptive Viewport (in progress)
+
+**Goal:** The whole game fills any phone screen edge-to-edge with nothing cut, so mobile play feels clean.
+
+**Boundaries held:** No backend/multiplayer; no framework/renderer migration; no new zones/content; input mapping untouched (`getBoundingClientRect` scaling is resolution-independent); fixed 400-wide logical coordinates preserved (height adapts).
+
+## Phases (v7.0)
+
+- [ ] **Phase 42: Adaptive Fill Viewport** - Safe-area-aware sizing, visualViewport/DPR refit, background extension + HUD anchors (LAY-08)
+
+## Phase Details (v7.0)
+
+### Phase 42: Adaptive Fill Viewport
+**Goal**: The whole game fills any phone screen edge-to-edge with nothing cut, in portrait and landscape
+**Depends on**: Nothing (standalone; touches `fitGame`, `game.css`, canvas backing, scene anchors)
+**Requirements**: LAY-08
+**Success Criteria** (what must be TRUE):
+  1. At 390x844 portrait and 844x390 landscape the full game is visible with zero clipped content and no dead bars beyond safe-area insets; desktop 1440x900 behavior is unchanged (centered, scale capped at 1)
+  2. Rotation, resize, and browser-chrome show/hide refit without clipping or stale DPR blur — canvas backing matches the refit size and text stays crisp
+  3. Backgrounds paint the extended area on tall/short viewports (LAY-07 slot contract holds); HUD primary/back actions anchor to the real viewport bottom; scroll/cull regions use the real content height
+  4. Full Node suite (`node --test tests/*.test.js`) + `tools/check_ui_invariants.sh` green; `verify_matrix.py` boot profiles clean
+**Plans**: 3 plans (estimated)
+
+Plans:
+- [ ] 42-01-PLAN.md — Fitting core: safe-area-aware `fitGame`, `visualViewport` refit triggers, container `box-sizing`/origin fix, per-refit DPR backing
+- [ ] 42-02-PLAN.md — Fill: background extension, HUD top/bottom anchors, `Scene.responsive` landscape values, scroll/cull height consistency
+- [ ] 42-03-PLAN.md — Verification across the responsive set (390x844, 844x390, 400x720, 540x900, 720x400, 1024x768, 1440x900)
+
+## Progress (v7.0)
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 42. Adaptive Fill Viewport | v7.0 | 0/3 | Not started | — |
+
+## Coverage (v7.0)
+
+| Requirement | Assigned Phase | Milestone |
+|-------------|----------------|-----------|
+| LAY-08 — Adaptive fill viewport | Phase 42 | v7.0 |
+
+**v7.0 Coverage:** 1/1 requirements mapped exactly once; no orphans or duplicates.
+
+## Dependency Graph (v7.0)
+
+```
+Phase 42 (Adaptive Fill Viewport) — standalone, no dependencies
+```
 
 ---
 *Roadmap reorganized 2026-10-10 at v5.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md. v6.0 section appended 2026-10-10.*

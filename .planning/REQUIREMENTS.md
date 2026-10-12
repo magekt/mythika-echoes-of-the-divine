@@ -97,7 +97,7 @@ Build the harness extension first (only proof for LAY-01–LAY-06). LAY-05 befor
 | LAY-03 — Bazaar | Phase 33 | Pending |
 | LAY-04 — Zone exploration | Phase 33 | Pending |
 | LAY-06 — Fit-finish bundle | Phase 34 | Pending |
-| LAY-08 — Adaptive fill viewport | Unphased | Pending |
+| LAY-08 — Adaptive fill viewport | Phase 42 | Pending |
 | BAL-01 — Combat difficulty | Phase 35 | Pending |
 | BAL-02 — Zone-clear rate | Phase 35 | Pending |
 | BAL-03 — Empty screens | Phase 35 | Pending |
