@@ -22,16 +22,17 @@ Validated requirements: AFF-01 through AFF-06, BST-01 through BST-04, ZON-01, ZO
 
 Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot, event walkthrough, and mobile FPS/dense-map/reduced-motion walkthroughs — plus the v3.0 10-combination full-loop journey matrix (all rows pending) — plus v4.0 feature walkthroughs (affinity meter, bond scenes, combat log/Toast, duo button, feed/train taps, aura lines, variant tease, gift picker).
 
-## Current Milestone: v5.0 Layout Fixes & Early-Game Pacing
+## Current Milestone: v7.0 Adaptive Viewport
 
-**Goal:** Remove the visible layout collisions and pacing problems the play report found, so the first hour plays clean.
+**Goal:** The whole game fills any phone screen edge-to-edge with nothing cut, so mobile play feels clean.
 
 **Target features:**
-- Combat, Bazaar, and zone-exploration overlap fixes
-- Toast lifecycle, nav label, title, map-card, Ashram, and modal fixes
-- Early-combat and zone-clear pacing rebalance
+- Safe-area-aware viewport sizing (notch/browser-chrome aware)
+- Refit on visualViewport/resize/orientation with DPR backing re-init
+- Background extension with HUD anchors for taller/shorter viewports
+- Verified at 390x844 and 844x390 plus the responsive set
 
-**Source:** 11 filed todos in `.planning/todos/pending/` from the 2026-10-09 headless-Chromium play report.
+**Source:** LAY-08 requirement captured in the 2026-10-12 explore session (`.planning/notes/mobile-viewport-fitting.md`); phases continue at 42.
 
 ## Shipped Milestone v3.0 — Screen & Gameplay Revamp
 
@@ -82,6 +83,13 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 ### Validated — v5.0
 
 - ✓ LAY-05 — Toast lifecycle: scene-tagged toasts cleared on transition (achievement banners exempt), regression test + documented 3/system cap, Ashram R.Backgrounds binding fix, Recruit Hall explicit render branch (Phase 31)
+
+### Validated — v6.0
+
+- ✓ SHP-01 through SHP-04 — Ship readiness: LICENSE + SPDX, Firebase 404 gated to ?probe, debug scene gated behind ?debug, clean console on first load (Phase 36)
+- ✓ ONB-01 through ONB-03 — Onboarding polish: guided first-battle walkthrough, character-creation stat glosses, journey quest surfaced in Ashram HUD (Phase 37)
+- ✓ ART-01 through ART-04 — Zone backdrops, enemy portraits, element combat FX, UI card radius/tint polish (Phases 38–39)
+- ✓ AUD-01 through AUD-05 — Title + Ashram ambient loops, combat SFX, UI SFX, Settings audio toggle (Phases 40–41)
 
 ### Shipped Milestone v4.0 — Deep Companions & Living Zones
 
@@ -186,4 +194,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-09 — v5.0 Layout Fixes & Early-Game Pacing started*
+*Last updated: 2026-10-12 — v7.0 Adaptive Viewport started*

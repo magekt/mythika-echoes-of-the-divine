@@ -1,40 +1,38 @@
 ---
 gsd_state_version: 1.0
-milestone: v6.0
-milestone_name: Ship Polish, Art & Audio, Onboarding
-status: complete
-stopped_at: "All 6 phases complete"
-last_updated: "2026-10-11T00:30:00Z"
-last_activity: 2026-10-11 — Phase 41 Music & Ambient complete (ambient drones, delay wash, scene wiring)
+milestone: v7.0
+milestone_name: Adaptive Viewport
+status: planning
+last_updated: "2026-10-12T16:18:54.576Z"
+last_activity: 2026-10-12
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 15
-  completed_plans: 15
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-10-09)
+See: `.planning/PROJECT.md` (updated 2026-10-12)
 
 **Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Milestone v6.0 — Ship Polish, Art & Audio, Onboarding (Phases 36–41)
+**Current focus:** Milestone v7.0 — Adaptive Viewport (from Phase 42)
 
 ## Current Position
 
-Phase: 41 (Music & Ambient — complete)
-Plan: done
-Status: All 6 phases of v6.0 complete.
-Last activity: 2026-10-11 - Completed quick task 261011-k66: install https://github.com/garrytan/gstack
-
-Progress: [████████████] 100% (6/6 phases complete, 15/15 plans)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-10-12 — Milestone v7.0 started
 
 ## Performance Metrics
 
 **Velocity:**
+
 - v4.0 plans completed: 26 (9 phases, single day 2026-10-09)
 - v5.0 plans completed: 16 (6 phases, 2 days 2026-10-09 → 2026-10-10)
 - v6.0: 15 plans across 6 phases
