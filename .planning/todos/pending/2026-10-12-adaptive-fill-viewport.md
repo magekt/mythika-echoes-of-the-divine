@@ -3,6 +3,7 @@ created: 2026-10-12T00:00:00Z
 title: Implement adaptive fill viewport
 area: ui
 priority: high
+resolves_phase: 42
 files:
   - src/engine/game.js
   - index.html
