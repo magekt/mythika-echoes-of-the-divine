@@ -32,6 +32,10 @@ Harness: extend `tools/verify_matrix.py` to wrap `R.text`/`R.textCenter`, record
 
 - [ ] **LAY-07**: Backgrounds paint — every revamped scene renders its background slot (no split-R silent failure); harness samples ≥4 points per scene (corners + center), asserts each differs from the clear color by a minimum channel delta, and records per-scene expected colors from the first correct render so a wrong background also fails.
 
+## Viewport Fit
+
+- [ ] **LAY-08**: Adaptive fill viewport — whole game never cuts on mobile sizes and fills the screen edge-to-edge in portrait and landscape; refit on visualViewport/resize/orientation with safe-area-aware sizing and DPR re-init; verified at 390x844 and 844x390 plus the responsive set.
+
 ## Balance & Pacing (own checks)
 
 - [ ] **BAL-01**: Combat difficulty — headless sim of 200 first-zone fights: Lv1 hero loses ≥15% HP avg over first five fights; ≥5% of zone-1 runs see a hero death; Threat reads Normal on fresh Lv1 save.
@@ -83,6 +87,7 @@ Build the harness extension first (only proof for LAY-01–LAY-06). LAY-05 befor
 | LAY-03 — Bazaar | Phase 33 | Pending |
 | LAY-04 — Zone exploration | Phase 33 | Pending |
 | LAY-06 — Fit-finish bundle | Phase 34 | Pending |
+| LAY-08 — Adaptive fill viewport | Unphased | Pending |
 | BAL-01 — Combat difficulty | Phase 35 | Pending |
 | BAL-02 — Zone-clear rate | Phase 35 | Pending |
 | BAL-03 — Empty screens | Phase 35 | Pending |

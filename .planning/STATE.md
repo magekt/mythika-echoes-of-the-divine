@@ -63,7 +63,7 @@ Progress: [████████████] 100% (6/6 phases complete, 15/1
 - LICENSE: MIT at repo root; SPDX headers on index.html + src/main.js.
 - Journey quest HUD: no badge currently; add one in Ashram HUD (Phase 37 ONB-03).
 - New particle system: none exists — ART-03 builds one in src/systems/ (Phase 39).
-- Phase numbering: v6.0 continues at Phase 36; next milestone at Phase 42.
+- Phase numbering: v6.0 continues at Phase 36; the next milestone resumes at the next free number (42).
 
 ### Project Skill Constraints
 
@@ -106,4 +106,4 @@ Milestone v5.0 completed Phases 30–35 on 2026-10-10. Archive: `.planning/v5-MI
 
 Last session: 2026-10-11
 Stopped at: v6.0 shipped — audit FINAL (gaps_found, no blockers), 16/16 requirements
-Resume: next milestone planning (Phase 42+)
+Resume: next milestone planning (numbering resumes at 42)

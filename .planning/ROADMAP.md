@@ -2,12 +2,19 @@
 
 ## Milestones
 
+- ✅ **v1.0 Core Systems Foundation** — Phases 1-5 (shipped 2026-09-15)
 - ✅ **v2.0 Living Map & World State** — Phases 6-12 (shipped 2026-09-20)
 - ✅ **v3.0 Screen & Gameplay Revamp** — Phases 13-20 (shipped 2026-10-09)
 - ✅ **v4.0 Deep Companions & Living Zones** — Phases 21-29 (shipped 2026-10-09)
 - ✅ **v5.0 Layout Fixes & Early-Game Pacing** — Phases 30-35 (shipped 2026-10-10)
 
 ## Completed Milestones
+
+### v1.0 — Core Systems Foundation ✅ SHIPPED (2026-09-15)
+
+5 phases, 10 plans, all executed and closed via the milestone close-out record (commit `d339303`, "milestone complete — all 5 phases executed"). REQ-001 through REQ-010 (trustworthy progression, reliable save/migration, mythological encounters, persistent consequences, connected loop, authoritative access gates, combat integrity, legible mobile combat UI, clear travel-map locked-state UX, cross-screen consistency) validated through per-gate browser UAT matrices at milestone close. No separate v1.0 archive exists in `milestones/`; the phase directories under `phases/` (01–05) are the primary record, with the historical close-out STATE preserved in git history at `d339303`.
+
+Delivered: authoritative `SaveSystem.hydrate()` with migrations; canonical shared `EquipmentSystem` (gear-cache double-counting removed); `ZoneAccess` + 6 authority gates (journey, rebirth, forge, recruit, tournament, trials); mythological narrative encounter system (registry, triggers, choice UI, 8 lore encounters with marker chains, canonical reward routing); combat UI reflow (52px compact header, vertical stacking, ≥48px tap targets); cross-system polish (QuestSystem.trackEncounter hooks, narrative_enthusiast achievement, loop-coherence and performance audits).
 
 ### v2.0 — Living Map & World State ✅ SHIPPED (2026-09-20)
 
@@ -35,7 +42,7 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
 
 ## Phases
 
-**Phase Numbering:** Milestone 1 completed Phases 1–5; Milestone 2 continued at Phase 6; Milestone 3 continued at Phase 13; Milestone v4.0 completed Phases 21–29. Milestone v5.0 continues at Phase 30 (Phases 30–35). Next milestone continues at Phase 36.
+**Phase Numbering:** Milestone 1 completed Phases 1–5; Milestone 2 continued at Phase 6; Milestone 3 continued at Phase 13; Milestone v4.0 completed Phases 21–29. Milestone v5.0 completed Phases 30–35; Milestone v6.0 completed Phases 36–41. Next milestone continues at Phase 42.
 
 ## v4.0 — Deep Companions & Living Zones ✅ SHIPPED (2026-10-09)
 
@@ -103,10 +110,40 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
 
 </details>
 
+<details>
+<summary>✅ v1.0 Core Systems Foundation (Phases 01-05) — SHIPPED 2026-09-15</summary>
+
+### Phase 01: Save Hydration & Equipment Authority
+- [x] Complete — 2026-09-14 · commit `f0f150d` · browser UAT 4/4 (locked-zone guard, eligible/completed-zone play, equipment validation, hydration)
+- `SaveSystem.hydrate()` defaults+migration; canonical shared `EquipmentSystem`; gear-cache double-counting removed; `ZoneAccess` authority; Travel Map locked-state UX aligned
+
+### Phase 02: Access-Gate Enforcement
+- [x] Complete — 2026-09-14 · 2/2 plans · 6-gate browser UAT all pass · commits `71757ef` `352d1bd` `0feb2ea` `8b6c182` `20bad46`
+- JourneyAccess, RebirthAccess, ForgeAccess, RecruitAccess, TournamentAccess, TrialsAccess authority gates; invalid attempts return `{allowed:false}` without side effects
+
+### Phase 03: Mythological Narrative Encounters
+- [x] Complete — 2026-09-15 · 3/3 plans · commit `603bdc4`
+- ENCOUNTERS registry with prerequisite/pool/weight helpers; EncounterSystem + EncounterTrigger (rollZone/rollTravel); encounterScene choice UI; 8 lore-grounded encounters with marker chains; canonical reward routing only
+
+### Phase 04: Combat UI Reflow
+- [x] Complete — 2026-09-15 · 1/1 plan · commit `a985acd`
+- 52px compact header; vertical stacking of hero strip and enemy panel; ≥48px tap targets; reduced-motion preserved
+
+### Phase 05: Connected Systems Polish
+- [x] Complete — 2026-09-15 · 3/3 plans · commits `8fc1d56` `74be246` `fc05ca0` `59fed48`
+- QuestSystem.trackEncounter + narrative_enthusiast achievement; encounter Continue button + journey grant routing through JourneySystem.start; performance audit (state mutation, unbounded arrays, scene cleanup, save serialization) — all checks pass
+
+</details>
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
+| 1. Save Hydration & Equipment Authority | v1.0 | 1/1 | Complete (browser UAT 4/4) | 2026-09-14 |
+| 2. Access-Gate Enforcement | v1.0 | 2/2 | Complete (6-gate browser UAT) | 2026-09-14 |
+| 3. Mythological Narrative Encounters | v1.0 | 3/3 | Complete (8 encounters, marker chains) | 2026-09-15 |
+| 4. Combat UI Reflow | v1.0 | 1/1 | Complete | 2026-09-15 |
+| 5. Connected Systems Polish | v1.0 | 3/3 | Complete (audit all-pass) | 2026-09-15 |
 | 6. World-State Continuity | v2.0 | 3/3 | Complete | 2026-09-19 |
 | 7. Visual Region Map | v2.0 | 2/2 | Complete | 2026-09-17 |
 | 8. Landmark Discovery | v2.0 | 2/2 | Complete | 2026-09-17 |

@@ -1,5 +1,22 @@
 # Milestones
 
+## v1.0 — Core Systems Foundation
+
+**Status:** ✅ SHIPPED 2026-09-15  
+**Scope:** Phases 1–5 · 5 phases · 10 plans  
+**Evidence:** REQ-001 through REQ-010 validated via per-gate browser UAT matrices at milestone close (close-out record in git at `d339303`); no separate archive — `phases/01`–`05` directories are the primary record.  
+**Archive:** none (predates the milestones/ archive convention)
+
+### Delivered
+
+- Authoritative save hydration (`SaveSystem.hydrate()` defaults + migration) and canonical shared `EquipmentSystem` with gear-cache double-counting removed.
+- `ZoneAccess` authority plus six entry-point gates (journey, rebirth, forge, recruit, tournament, trials) — invalid attempts fail without side effects.
+- Mythological narrative encounters: registry, zone/travel triggers, choice UI, 8 lore encounters with persistent marker chains, rewards routed only through canonical APIs.
+- Combat UI reflow: 52px compact header, vertical stacking, ≥48px tap targets.
+- Cross-system polish: quest/achievement hooks for encounters, loop-coherence walkthrough, performance audit all-pass.
+
+---
+
 ## v4.0 — Deep Companions & Living Zones
 
 **Status:** ✅ SHIPPED 2026-10-09  
