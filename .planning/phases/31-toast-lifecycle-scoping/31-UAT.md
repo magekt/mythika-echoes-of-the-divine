@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: resolved
 phase: 31-toast-lifecycle-scoping
 source: [31-01-SUMMARY.md, 31-02-SUMMARY.md]
 started: 2026-10-10T00:00:00Z
-updated: 2026-10-10T00:10:00Z
+updated: 2026-10-13T00:00:00Z
 ---
 
 ## Current Test
@@ -30,15 +30,15 @@ result: pass
 
 ### 5. Toasts never cover action buttons
 expected: Tutorial and regular toasts draw inside their lane and never overlap action buttons or other text
-result: issue
+result: pass — retest passed, user-approved 2026-10-10 (see 31-HUMAN-UAT.md; audit-fix F-02 sync)
 reported: "when I click recruit, new hero, the toast still has previous screen of the initially selected hero visible."
 severity: major
 
 ## Summary
 
 total: 5
-passed: 4
-issues: 1
+passed: 5
+issues: 0
 pending: 0
 skipped: 0
 blocked: 0
@@ -46,10 +46,11 @@ blocked: 0
 ## Gaps
 
 - truth: "Tutorial and regular toasts draw inside their lane and never overlap action buttons or other text"
-  status: failed
+  status: resolved
   reason: "User reported: when I click recruit, new hero, the toast still has previous screen of the initially selected hero visible."
   severity: major
   test: 5
+  resolved_by: "31-03 gap closure (explicit recruit render branch + clear stale selection, party.js:869, regression-tested); retest passed, user-approved 2026-10-10 — see 31-HUMAN-UAT.md (audit-fix F-02 sync)"
   root_cause: "partyScene.render() (src/scenes/party.js ~814-875) has no branch for data.view==='recruit', so the Recruit Hall falls through to the detail else-branch and repaints the previously selected hero's header/detail/action-button shell behind the recruit-candidate buttons. selectedHero is never cleared on the list-to-recruit switch. No scene transition occurs (in-scene view switch by design), so Phase 31 clearSceneToasts correctly never fires — the stale pixels are chrome, not queued toasts."
   artifacts:
     - path: "src/scenes/party.js"
