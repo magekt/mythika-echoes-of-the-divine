@@ -87,6 +87,9 @@
     const w = Math.max(1, Number(viewport && viewport.width) || G.W);
     const h = Math.max(1, Number(viewport && viewport.height) || G.H);
     const profile = w > h ? 'landscape' : (w >= 800 ? 'wide-desktop' : (w >= 500 ? 'large-portrait' : 'portrait'));
+    if (profile === 'landscape') {
+      return { profile, safe: { x: 14, y: 8, w: G.W - 28, h: G.H - 16 }, header: { x: 14, y: 6, w: G.W - 28, h: 56 }, primary: { x: 40, y: G.H - 80, w: G.W - 80, h: 40 }, back: { x: 40, y: G.H - 34, w: G.W - 80, h: 28 } };
+    }
     return { profile, safe: { x: 14, y: 10, w: G.W - 28, h: G.H - 20 }, header: { x: 14, y: 8, w: G.W - 28, h: 72 }, primary: { x: 40, y: G.H - 92, w: G.W - 80, h: 48 }, back: { x: 40, y: G.H - 40, w: G.W - 80, h: 32 } };
   };
   Scene.contextHeader = function(ctx, title, context, opts) {
