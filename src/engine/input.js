@@ -141,6 +141,7 @@ Input.getTap = function() {
 };
 
 Input.getSwipe = function() {
+  if (!this._ready) return null;
   const s = this._lastSwipe;
   this._lastSwipe = null;
   if (s) this.touches = [];
@@ -148,12 +149,14 @@ Input.getSwipe = function() {
 };
 
 Input.getScrollDelta = function() {
+  if (!this._ready) return 0;
   const d = this._scrollDelta || 0;
   this._scrollDelta = 0;
   return d;
 };
 
 Input.isLongPressing = function() {
+  if (!this._ready) return false;
   if (this._touchStart && this._touchCurrent) {
     const elapsed = Date.now() - this._touchStartTime;
     const dx = Math.abs(this._touchCurrent.x - this._touchStart.x);
@@ -173,6 +176,7 @@ Input.isLongPressing = function() {
 };
 
 Input.getLongPressPos = function() {
+  if (!this._ready) return null;
   if (!this._longPressActive) return null;
   return this._touchStart || this._pressPos;
 };
