@@ -45,11 +45,12 @@
       if (!barEl) return;
       var group = GROUPS[currentGroup];
       if (!group) return;
-      var pct = Math.round((group.cumDone / TOTAL) * 100);
+      var doneGroup = GROUPS[currentGroup - 1];
+      var pct = Math.round(((doneGroup ? doneGroup.cumDone : 0) / TOTAL) * 100);
       barEl.style.width = pct + '%';
       if (labelEl) {
         var stage = currentGroup < GROUPS.length - 1
-          ? 'Loading ' + GROUPS[currentGroup + 1].name
+          ? 'Loading ' + group.name
           : 'Booting game';
         labelEl.textContent = pct + '%  ' + stage;
       }
@@ -58,8 +59,13 @@
     function markError() {
       ensureDom();
       var container = document.getElementById('game-container');
-      if (container) container.classList.add('load-error');
+      if (container) container.classList.add('error');
     }
+
+    // Belt-and-braces: if any SCRIPT tag fails to load, surface it.
+    window.addEventListener('error', function(e) {
+      if (e.target && e.target.tagName === 'SCRIPT') __mythikaLoadTracker.markError();
+    }, true);
 
     updateOverlay();
     return {
