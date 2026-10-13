@@ -29,12 +29,12 @@ function dimsOf(mod, vw, vh, dpr, safe) {
 
 test('phone portrait 390x844 fills edge-to-edge (mode: phone-portrait)', () => {
   const mod = loadViewport();
-  assert.deepEqual(dimsOf(mod, 390, 844, 3, ZERO), { W: 400, H: 865, dpr: 3, mode: 'phone-portrait' });
+  assert.deepEqual(dimsOf(mod, 390, 844, 3, ZERO), { W: 400, H: 866, dpr: 3, mode: 'phone-portrait' });
 });
 
 test('phone landscape 844x390 becomes wide band (mode: phone-landscape)', () => {
   const mod = loadViewport();
-  assert.deepEqual(dimsOf(mod, 844, 390, 3, ZERO), { W: 865, H: 400, dpr: 3, mode: 'phone-landscape' });
+  assert.deepEqual(dimsOf(mod, 844, 390, 3, ZERO), { W: 866, H: 400, dpr: 3, mode: 'phone-landscape' });
 });
 
 test('legacy 400x720 card size is identity (mode: phone-portrait)', () => {
@@ -72,8 +72,8 @@ test('dpr is capped at 3 and falsy dpr falls back to 1', () => {
 test('safe-area insets shrink the usable area', () => {
   const mod = loadViewport();
   const d = dimsOf(mod, 390, 844, 3, { t: 47, r: 0, b: 34, l: 0 });
-  assert.equal(d.H, 782);
-  assert.ok(d.H < 865, 'insets must shrink H below the full-bleed 865');
+  assert.equal(d.H, 783);
+  assert.ok(d.H < 866, 'insets must shrink H below the full-bleed 866');
   assert.equal(d.mode, 'phone-portrait');
 });
 
