@@ -1,10 +1,12 @@
 ---
 phase: 31-toast-lifecycle-scoping
 verified: 2026-10-10T00:00:00Z
-status: human_needed
-score: 9/9 must-haves verified
+status: passed
+score: 9/9 must-haves verified + 1/1 human retest passed
 overrides_applied: 0
-re_verification: false
+re_verification: true
+re_verified: 2026-10-13T00:00:00Z
+re_verify_reason: "31-HUMAN-UAT.md records test-5 retest result pass, approved by user 2026-10-10; syncing stale human_needed status to the recorded approval (audit-fix F-01)"
 human_verification:
   - test: "31-UAT test 5 manual retest — Recruit Hall shows no stale hero chrome"
     expected: "Party → tap hero → Back to Party → Recruit Hero → recruit list shows candidates + recruit header only, no prior hero detail; post-recruit toasts unchanged"
