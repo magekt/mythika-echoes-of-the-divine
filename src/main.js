@@ -8,6 +8,7 @@
   function failBoot(missing) {
     var message = '[Mythika] boot blocked; missing capability: ' + missing.join(', ');
     if (window.console) console.error(message);
+    if (typeof Input !== 'undefined') Input._ready = true;
     var status = document.getElementById('status-bar');
     if (status) {
       status.textContent = 'Mythika could not start. Please reload this page.';
@@ -111,6 +112,7 @@
     // gInit (canvas, input, audio, rAF loop) lives in game.js.
     if (typeof gInit === 'function') gInit();
     if (bootProbe) console.log('[Mythika] boot-phase gInit=' + (performance.now() - bootStarted).toFixed(1) + 'ms');
+    Input._ready = true;
     if (window.console && G.state) console.log('[Mythika] booted scene=' + G.state.scene);
     // Belt-and-braces: the CSS boot splash is normally removed by the first
     // rendered frame; never let it cover the game if rendering stalls.

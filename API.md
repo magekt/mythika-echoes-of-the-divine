@@ -13,12 +13,12 @@ The `G` object holds all game state and engine configuration.
 |----------|------|-------------|
 | `G.canvas` | HTMLCanvasElement | The main game canvas |
 | `G.ctx` | CanvasRenderingContext2D | The 2D rendering context |
-| `G.W` | number | Canvas width (320px) |
-| `G.H` | number | Canvas height (480px) |
+| `G.W` | number | Canvas width (400px) |
+| `G.H` | number | Canvas height (720px) |
 | `G.state` | object | Current save state (party, inventory, gold, etc.) |
 | `G.scenes` | object | Registered scene registry |
-| `G.scene` | string | Current active scene name |
-| `G.running` | boolean | Whether the game loop is active |
+| `G.currentScene` | object | Current active scene object |
+| `G.state.scene` | string | Current active scene name |
 
 ### State Object (`G.state`)
 
@@ -45,7 +45,7 @@ The `G` object holds all game state and engine configuration.
 G.createDefaultState();
 
 // Switch to a named scene with optional data payload
-G.scene = 'ashram';  // Direct assignment
+gScene('ashram');  // Via scene manager (or Fade.toScene for a faded transition)
 ```
 
 ---
@@ -82,20 +82,22 @@ R.radius.l   // 10 - Large cards
 ### Drawing Methods
 
 ```javascript
-// Fill the canvas with background color
-R.clear();
+// Clear the canvas (no R.clear — use the context directly)
+G.ctx.clearRect(0, 0, G.W, G.H);
 
 // Draw a rounded rectangle
-R.roundRect(x, y, w, h, r, fill, stroke);
+R.roundRect(ctx, x, y, w, h, r, color);
 
 // Draw text with optional alignment
-R.text(str, x, y, color, font, align);
+R.text(ctx, str, x, y, color, font, align);
 
-// Draw a progress bar
-R.bar(x, y, w, h, pct, color, bgColor);
+// Progress bars are UI components, not renderer methods
+const bar = UI.ProgressBar(x, y, w, h, color, bgColor);
+bar.setProgress(value, max);
 
-// Draw an icon (from the icon atlas)
-R.icon(id, x, y, size, color);
+// No R.icon atlas — use R.drawHero/drawEnemy for portraits
+R.drawHero(ctx, name, x, y, size);
+R.drawEnemy(ctx, name, x, y, size, showLabel);
 ```
 
 ---
@@ -123,10 +125,11 @@ registerScene('myScene', myScene);
 
 ### Scene Transitions
 
-Scene transitions happen via direct assignment:
+Scene transitions go through the scene manager:
 
 ```javascript
-G.scene = 'combatScene';
+gScene('combatScene');  // Immediate or default-veil transition
+Fade.toScene('combatScene');  // Explicit faded transition
 ```
 
 The engine handles calling `leave()` on the current scene and `enter()` on the new scene.
@@ -141,13 +144,13 @@ Scene transition fade effects.
 
 ```javascript
 // Start a fade to black, then switch scene
-Fade.to('combatScene');
+Fade.toScene('combatScene', enterOptions);
 
-// Start a fade from black (reveal)
-Fade.from();
+// The reveal runs automatically when the pending scene swaps
+// (Fade.target resets to 0); there is no Fade.from call
 
-// Check if currently fading
-Fade.active();  // Returns boolean
+// A transition is queued while Fade.pendingScene !== null
+// (progress visible via Fade.alpha / Fade.target)
 ```
 
 ---
@@ -209,7 +212,8 @@ Audio.sfxOn = true/false;
 Audio.musicVolume(0.7);
 
 // Play a music track
-Audio.playMusic('battle');  // Tracks: 'title', 'ashram', 'battle'
+Audio.playMusic('combat_aryavarta');  // Tracks: 'title', 'ashram', 'combat_aryavarta', 'combat_dandaka', 'combat_meru', 'combat_patala', 'combat_svarga', 'fishing'
+// Ambient drones: Audio.playAmbient(id) with 'title', 'ashram', 'combat_dark', 'combat_boss'
 
 // Stop music
 Audio.stopMusic();
@@ -217,8 +221,8 @@ Audio.stopMusic();
 // Sound effects
 Audio.click();     // UI click
 Audio.levelUp();   // Level up fanfare
-Audio.slash();     // Attack sound
-Audio.block();     // Block/defend sound
+Audio.attack();    // Attack sound
+Audio.shield();    // Block/defend sound
 ```
 
 ### Browser Unlock
@@ -262,16 +266,18 @@ Combat.startBattle(heroes, enemies);
 // Build turn order based on agility
 Combat.buildTurnOrder();
 
-// Execute a player turn
-Combat.playerTurn(action, target);
-// action: 'attack' | 'skill' | 'defend' | 'item'
-// target: enemy object
+// Execute an attack (physical or magical based on skill)
+Combat.performAttack(attacker, defender, skill, damageMultiplier);
+// skill: skill object (or null for basic attack); damageMultiplier: optional number
 
-// Execute enemy AI turn
-Combat.enemyTurn(enemy);
+// Run enemy AI for one enemy (picks intent/ability and resolves it)
+Combat.enemyAI(enemy);
 
-// Calculate damage
-Combat.calculateDamage(attacker, defender, skill);
+// Calculate physical damage
+Combat.calcDamage(attacker, defender, skill, isCrit);
+
+// Calculate magical damage
+Combat.calcMagicDamage(attacker, defender, skill);
 
 // Apply ailment
 Combat.applyAilment(target, ailmentId, duration);
@@ -283,7 +289,7 @@ Combat.checkBattleEnd();  // Returns 'won' | 'lost' | null
 ### Ailment Types
 
 ```javascript
-Combat.AILAMENT_EFFECTS = {
+Combat.AILMENT_EFFECTS = {
   rakta: { name: 'Bleed', dmgPerTurn: 5, duration: 3 },
   vajra: { name: 'Stun', duration: 1 },
   agni: { name: 'Burn', dmgPerTurn: 8, duration: 3 },
@@ -480,8 +486,11 @@ Economy.spendDivineFragments(amount);
 Economy.addItem(itemObject);
 // itemObject: { name, type, qty?, ...otherProps }
 
-// Remove an item
-Economy.removeItem(itemName, qty);
+// Remove an item by inventory index
+Economy.removeItem(index);
+
+// Remove by item name and quantity
+Economy.removeItemByName(itemName, qty);
 
 // Check if player has an item
 Economy.hasItem(itemName);  // Returns boolean
@@ -541,14 +550,17 @@ btn.render(ctx);     // Draw
 ### MagneticBtn (Spring-physics button)
 
 ```javascript
-const btn = UI.MagneticBtn(x, y, w, h, 'Text', onClick, color);
+const btn = UI.MagneticBtn(x, y, w, h, 'Text', opts);
+// opts: { variant: 'primary'|'secondary'|'ghost', trailingIcon, leadingIcon }
+// onClick assigned as a property: btn.onClick = function(data) { ... }
 // Uses spring physics: stiffness=120, damping=22
 ```
 
 ### Progress Bar
 
 ```javascript
-const bar = UI.ProgressBar(x, y, w, h, value, max, color, bgColor);
+const bar = UI.ProgressBar(x, y, w, h, color, bgColor);
+bar.setProgress(value, max);
 bar.render(ctx);
 ```
 
@@ -562,24 +574,25 @@ panel.render(ctx);
 ### Card
 
 ```javascript
-const card = UI.Card(x, y, w, h, { title: 'Title', body: 'Content' });
+const card = UI.Card(x, y, w, h, { title: 'Title', subtitle: 'Sub', stats: [] });
 card.render(ctx);
 ```
 
 ### Modal
 
 ```javascript
-const modal = UI.Modal(title, content, buttons);
-modal.show();
-modal.hide();
+const modal = UI.Modal.show({ title: 'Title', body: 'Content', buttons: [{ label: 'OK', primary: true }], onResult: (r) => {} });
+UI.Modal.dismiss(result);  // Close the active modal, fires onResult
+UI.Modal.clearAll();  // Close/discard all queued modals (also called on scene transitions)
 ```
 
 ### Tab Bar
 
 ```javascript
-const tabs = UI.TabBar(x, y, w, ['Tab1', 'Tab2', 'Tab3'], activeIndex);
+const tabs = UI.TabBar(x, y, w, h, { onChange: (index) => {} });
+tabs.setTabs(['Tab1', 'Tab2', 'Tab3']);
+tabs.handleInput();  // Tap handling (re-tapping the active tab is a blocked no-op)
 tabs.render(ctx);
-tabs.onClick(index);  // Handle tab change
 ```
 
 ---

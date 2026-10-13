@@ -9,6 +9,7 @@
 - ✅ **v5.0 Layout Fixes & Early-Game Pacing** — Phases 30-35 (shipped 2026-10-10)
 - ✅ **v6.0 Ship Polish, Art & Audio, Onboarding** — Phases 36-41 (shipped 2026-10-11)
 - ✅ **v7.0 Adaptive Viewport** — Phase 42 (shipped 2026-10-13)
+- ✅ **v8.0 Performance & Loading Architecture** — Phases 43-44 (Phase 44 shipped 2026-10-13)
 
 ## Completed Milestones
 
@@ -554,6 +555,13 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 42. Adaptive Fill Viewport | v7.0 | 3/3 | Complete    | 2026-10-13 |
 
+## Progress (v8.0)
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 43. Loading Overlay and Progress Reporting | v8.0 | 0/1 | Planned |           |
+| 44. Input Guarding | v8.0 | 1/1 | Complete | 2026-10-13 |
+
 ## Coverage (v7.0)
 
 | Requirement | Assigned Phase | Milestone |
@@ -562,11 +570,27 @@ Plans:
 
 **v7.0 Coverage:** 1/1 requirements mapped exactly once; no orphans or duplicates.
 
+## Coverage (v8.0)
+
+| Requirement | Assigned Phase | Milestone |
+|-------------|----------------|-----------|
+| INPUT-01 — No user input processed during boot | Phase 44 | v8.0 |
+| INPUT-05 — Input._ready checked at UI consumer side | Phase 44 | v8.0 |
+
+**v8.0 Coverage:** 2/2 requirements mapped exactly once; no orphans or duplicates.
+
 ## Dependency Graph (v7.0)
 
 ```
 Phase 42 (Adaptive Fill Viewport) — standalone, no dependencies
 ```
 
+## Dependency Graph (v8.0)
+
+```
+Phase 43 (Loading Overlay and Progress Reporting) — standalone, no dependencies
+Phase 44 (Input Guarding) — standalone, no dependencies
+```
+
 ---
-*Roadmap reorganized 2026-10-10 at v5.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md. v6.0 section appended 2026-10-10.*
+*Roadmap reorganized 2026-10-10 at v5.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md. v6.0 section appended 2026-10-10. v8.0 section added 2026-10-13.*

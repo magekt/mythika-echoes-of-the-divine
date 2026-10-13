@@ -1,0 +1,70 @@
+{
+  "project_type": {
+    "primary_type": "open-source-library",
+    "signals": {
+      "has_package_json": false,
+      "has_api_routes": false,
+      "has_cli_bin": false,
+      "is_open_source": true,
+      "has_deploy_config": true,
+      "is_monorepo": false,
+      "has_tests": true
+    },
+    "conditional_docs": ["DEPLOYMENT"]
+  },
+  "doc_queue": [
+    {"type": "readme", "canonical": true},
+    {"type": "architecture", "canonical": true},
+    {"type": "getting_started", "canonical": true},
+    {"type": "development", "canonical": true},
+    {"type": "testing", "canonical": true},
+    {"type": "configuration", "canonical": true},
+    {"type": "deployment", "canonical": true, "conditional": true}
+  ],
+  "existing_docs": [
+    {"path": "README.md", "has_gsd_marker": true},
+    {"path": "ARCHITECTURE.md", "has_gsd_marker": true},
+    {"path": "docs/GETTING-STARTED.md", "has_gsd_marker": true},
+    {"path": "docs/DEVELOPMENT.md", "has_gsd_marker": true},
+    {"path": "docs/TESTING.md", "has_gsd_marker": true},
+    {"path": "docs/CONFIGURATION.md", "has_gsd_marker": true},
+    {"path": "CONTRIBUTING.md", "has_gsd_marker": true},
+    {"path": "API.md", "has_gsd_marker": false},
+    {"path": "BUILD_STATUS.md", "has_gsd_marker": false},
+    {"path": "CHANGELOG.md", "has_gsd_marker": false},
+    {"path": "CULTIVATION_SCENE_DESIGN.md", "has_gsd_marker": false},
+    {"path": "INSTALL.md", "has_gsd_marker": false},
+    {"path": "MYTHIKA_WIREFRAME_PLAN.md", "has_gsd_marker": false},
+    {"path": "PARTY_DETAIL_ACTIONS_DESIGN.md", "has_gsd_marker": false},
+    {"path": "PUNARJANMA_SCENE_DESIGN.md", "has_gsd_marker": false},
+    {"path": "QUICKSTART.md", "has_gsd_marker": false},
+    {"path": "STYLE_GUIDE.md", "has_gsd_marker": false},
+    {"path": "TRAVEL_MAP_DESIGN.md", "has_gsd_marker": false},
+    {"path": "TROUBLESHOOTING.md", "has_gsd_marker": false}
+  ],
+  "canonical_queue": [
+    {"type": "readme", "resolved_path": "README.md", "mode": "update", "preservation_mode": null, "wave": 1, "status": "verified"},
+    {"type": "architecture", "resolved_path": "ARCHITECTURE.md", "mode": "update", "preservation_mode": null, "wave": 1, "status": "verified"},
+    {"type": "configuration", "resolved_path": "docs/CONFIGURATION.md", "mode": "update", "preservation_mode": null, "wave": 1, "status": "verified"},
+    {"type": "getting_started", "resolved_path": "docs/GETTING-STARTED.md", "mode": "update", "preservation_mode": null, "wave": 2, "status": "verified"},
+    {"type": "development", "resolved_path": "docs/DEVELOPMENT.md", "mode": "update", "preservation_mode": null, "wave": 2, "status": "verified"},
+    {"type": "testing", "resolved_path": "docs/TESTING.md", "mode": "update", "preservation_mode": null, "wave": 2, "status": "verified"},
+    {"type": "deployment", "resolved_path": "docs/DEPLOYMENT.md", "mode": "create", "preservation_mode": null, "wave": 2, "status": "completed"}
+  ],
+  "review_queue": [
+    {"path": "API.md", "type": "hand-written", "status": "verified"},
+    {"path": "BUILD_STATUS.md", "type": "hand-written", "status": "verified"},
+    {"path": "CHANGELOG.md", "type": "hand-written", "status": "verified"},
+    {"path": "CULTIVATION_SCENE_DESIGN.md", "type": "hand-written", "status": "verified"},
+    {"path": "INSTALL.md", "type": "hand-written", "status": "verified"},
+    {"path": "MYTHIKA_WIREFRAME_PLAN.md", "type": "hand-written", "status": "verified"},
+    {"path": "PARTY_DETAIL_ACTIONS_DESIGN.md", "type": "hand-written", "status": "verified"},
+    {"path": "PUNARJANMA_SCENE_DESIGN.md", "type": "hand-written", "status": "verified"},
+    {"path": "QUICKSTART.md", "type": "hand-written", "status": "verified"},
+    {"path": "STYLE_GUIDE.md", "type": "hand-written", "status": "verified"},
+    {"path": "TRAVEL_MAP_DESIGN.md", "type": "hand-written", "status": "verified"},
+    {"path": "TROUBLESHOOTING.md", "type": "hand-written", "status": "verified"}
+  ],
+  "gap_queue": [],
+  "created_at": "2026-10-13T14:55:00.000Z"
+}

@@ -5,7 +5,7 @@
 
 ## Game Overview
 
-Build a party of heroes, explore mythic regions, fight turn-based battles, cultivate spiritual power, and make persistent choices in narrative encounters. The game runs directly in the browser, scales from phones to desktop screens, and can be installed as a portrait-oriented progressive web app.
+Build a party of heroes, explore mythic regions, fight turn-based battles, cultivate spiritual power, and make persistent choices in narrative encounters. The game runs directly in the browser, fills phone screens edge-to-edge in portrait and landscape through an adaptive logical viewport (desktop keeps the classic centered card), and can be installed as a portrait-oriented progressive web app.
 
 ### Highlights
 
@@ -18,7 +18,17 @@ Build a party of heroes, explore mythic regions, fight turn-based battles, culti
 - Authoritative access checks for journeys, rebirth, forging, recruitment, tournaments, and trials
 - Optional Firebase Authentication and Firestore cloud saves
 - Local `localStorage` saves and service-worker-backed offline play
-- Responsive combat layout for full parties and reduced-motion support
+- Adaptive viewport with responsive combat layout for full parties and reduced-motion support
+
+### Adaptive viewport
+
+Phone viewports use an adaptive logical size computed in `src/engine/viewport.js` (`computeViewportDims`) and applied by `fitGame()` in `src/engine/game.js`:
+
+- **Phone portrait** — logical width 400px, height follows the real aspect (`H = round(400 × vh/vw)`, clamped 400–1000). A 390×844 phone renders at 400×866.
+- **Phone landscape** — logical height 400px, width follows the real aspect (`W = round(400 × vw/vh)`, clamped 400–1000). An 844×390 phone renders at 866×400.
+- **Desktop** (viewport at least 600px wide and 500px tall) — keeps the legacy centered 400×720 card, scale capped at 1.
+
+Refits are safe-area aware, triggered by `resize`, `orientationchange`, and `visualViewport` events, with per-refit DPR backing (capped at 3) so text never goes blurry after rotation or resize. Scenes anchor to `G.H` with landscape responsive rects. In landscape on a short viewport the game shows a one-time nudge to rotate upright for the best experience.
 
 ## Tech Stack
 
@@ -85,7 +95,6 @@ For a detailed repository map, see [`codemap.md`](codemap.md).
 - Equipped accessory magic and active spirit beast levels improve cultivation and prana generation.
 - Quest completion can reduce forge upgrade costs.
 - Fishing, exploration, forging, and narrative choices advance their corresponding quest objectives.
-- Tournament victories add a veteran badge to the Travel Map.
 - Fish-and-herb recipes connect gathering with alchemy.
 - Consumables can heal heroes or cleanse combat ailments.
 - Encounter rewards use the canonical economy, progression, cultivation, quest, and achievement APIs.
@@ -99,7 +108,13 @@ Run the game from a local server while editing files; changes are consumed direc
 python3 -m http.server 3000
 ```
 
-Verify boot behavior across desktop, phone, and phone-landscape profiles:
+Run the Node test suite:
+
+```bash
+node --test tests/*.test.js
+```
+
+Verify boot behavior across the responsive matrix (390×844, 844×390, 400×720, 540×900, 720×400, 1024×768, 1440×900):
 
 ```bash
 python3 tools/verify_matrix.py --budget 6000
@@ -139,7 +154,7 @@ Offline play does not require Firebase. To enable account-based cloud saves:
 - `FIREBASE_APP_ID`
 - `FIREBASE_MEASUREMENT_ID` (optional)
 
-The GitHub Pages workflow verifies the game on desktop, phone, and landscape profiles before publishing the static repository root.
+The GitHub Pages workflow verifies the game across the responsive matrix (390×844, 844×390, 400×720, 540×900, 720×400, 1024×768, 1440×900) before publishing the static repository root.
 
 ## Project Structure
 
@@ -159,6 +174,8 @@ The GitHub Pages workflow verifies the game on desktop, phone, and landscape pro
 └── tools/                  # Boot verification and diagnostic utilities
 ```
 
+See CONTRIBUTING.md for guidelines.
+
 ## License
 
-No license file or package license declaration is currently present in the repository.
+Released under the MIT License — see [LICENSE](LICENSE).

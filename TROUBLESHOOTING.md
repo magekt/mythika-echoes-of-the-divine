@@ -24,7 +24,7 @@ The boot path depends on `index.html` loading scripts in order, followed by `src
 
 - The canvas remains on the loading screen.
 - The screen is painted, but buttons do nothing.
-- The console contains `[Mythika] engine missing, aborting boot` or `[Mythika] no scenes registered, aborting boot`.
+- The console contains `[Mythika] boot blocked; missing capability: ...` or `[Mythika] no scenes registered, aborting boot`.
 - One or more scripts return `404`, `503`, or `net::ERR_FAILED` in the Network panel.
 
 ### Fixes
@@ -165,7 +165,7 @@ On successful authentication, `Auth.loadAfterAuth()` loads cloud state and gives
 
 ## The installed PWA is stale or offline mode is incomplete
 
-The service worker uses cache `mythika-v9`. The app shell is network-first, while other same-origin assets are cache-first and cached at runtime. A first offline visit cannot retrieve assets that were never successfully cached.
+The service worker uses cache `mythika-v11`. The app shell is network-first, while other same-origin assets are cache-first and cached at runtime. A first offline visit cannot retrieve assets that were never successfully cached.
 
 ### Fixes
 

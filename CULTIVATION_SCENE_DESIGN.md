@@ -150,15 +150,15 @@ Premium editorial luxury design for the Cultivation Scene in Mythika game, follo
 ## 8. Implementation Notes
 
 ### Component Imports
-```tsx
-import { HeroMoment } from '@/components/HeroMoment';
-import { PremiumShell } from '@/components/PremiumShell';
-import { MagneticBtn } from '@/components/MagneticBtn';
-import { ProgressBar } from '@/components/ProgressBar';
+```js
+// Vanilla-JS globals loaded via classic <script> tags (see index.html order):
+// Scene.HeroMoment — src/engine/scene-helpers.js
+// UI.PremiumShell, UI.MagneticBtn — src/ui/button.js
+// UI.ProgressBar — src/ui/progressBar.js
 ```
 
 ### State Management
-- Cultivation data from `useCultivation()` hook
+- Cultivation data from the `CultivationSystem` global (`src/systems/cultivation_sys.js`)
 - Breakthrough readiness computed from realm progress
 - Prana gathering rate updates via WebSocket/interval
 

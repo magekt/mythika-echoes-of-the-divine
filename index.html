@@ -9,9 +9,68 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#e8a030">
     <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link rel="stylesheet" href="styles/game.css">
 </head>
 <body>
+<script>
+  // Loading overlay progress tracker. Classic script tags execute in parse
+  // order, so group markers (inline scripts between groups) increment the
+  // counter after each group's scripts have loaded and run. The overlay
+  // DOM is updated directly via property changes — no event listeners needed.
+  window.__mythikaLoadTracker = (function() {
+    var TOTAL = 104; // 16 engine + 21 data + 26 systems + 13 ui + 27 scenes + 1 boot
+    var GROUPS = [
+      { name: 'engine',  cumDone: 16 },
+      { name: 'data',    cumDone: 37 },
+      { name: 'systems', cumDone: 63 },
+      { name: 'ui',      cumDone: 76 },
+      { name: 'scenes',  cumDone: 103 },
+      { name: 'boot',    cumDone: 104 }
+    ];
+    var currentGroup = 0;
+    var barEl = null;
+    var labelEl = null;
+
+    function ensureDom() {
+      if (barEl) return;
+      var container = document.getElementById('game-container');
+      if (!container) return;
+      barEl = container.querySelector('.load-progress-bar');
+      labelEl = container.querySelector('.load-progress-label');
+    }
+
+    function updateOverlay() {
+      ensureDom();
+      if (!barEl) return;
+      var group = GROUPS[currentGroup];
+      if (!group) return;
+      var pct = Math.round((group.cumDone / TOTAL) * 100);
+      barEl.style.width = pct + '%';
+      if (labelEl) {
+        var stage = currentGroup < GROUPS.length - 1
+          ? 'Loading ' + GROUPS[currentGroup + 1].name
+          : 'Booting game';
+        labelEl.textContent = pct + '%  ' + stage;
+      }
+    }
+
+    function markError() {
+      ensureDom();
+      var container = document.getElementById('game-container');
+      if (container) container.classList.add('load-error');
+    }
+
+    updateOverlay();
+    return {
+      step: function(groupIdx) {
+        currentGroup = groupIdx || 0;
+        updateOverlay();
+      },
+      markError: markError
+    };
+  })();
+</script>
 <script>
   // Classic script tags below execute before the Firebase module resolves.
   // Keep the opt-in probe available during that gap as well as afterwards.
@@ -43,6 +102,129 @@
     }));
   };
 </script>
+<div id="game-container" class="loading">
+  <canvas id="game-canvas"></canvas>
+  <div class="load-progress"><div class="load-progress-bar"></div></div>
+  <div class="load-progress-label">Loading engine 0%</div>
+  <div id="status-bar"></div>
+</div>
+
+<script src="src/engine/firebase-config.js"></script>
+<script src="src/engine/auth.js"></script>
+<script>__mythikaProbeGroup('engine','start')</script>
+<script src="src/engine/viewport.js"></script>
+<script src="src/engine/game.js"></script>
+<script src="src/engine/lifecycle.js"></script>
+<script src="src/engine/scene.js"></script>
+<script src="src/engine/navigation.js"></script>
+<script src="src/engine/navigation_routes.js"></script>
+<script src="src/engine/diagnostics.js"></script>
+<script src="src/engine/scene-helpers.js"></script>
+<script src="src/engine/deprecation.js"></script>
+<script src="src/engine/input.js"></script>
+<script src="src/engine/audio.js"></script>
+<script src="src/engine/renderer.js"></script>
+<script src="src/engine/backgrounds.js"></script>
+<script>__mythikaProbeGroup('engine','end'); __mythikaProbeGroup('data','start'); __mythikaLoadTracker.step(1)</script>
+<script src="src/data/heroes.js"></script>
+<script src="src/data/enemies.js"></script>
+<script src="src/data/zones.js"></script>
+<script src="src/data/map_layout.js"></script>
+<script src="src/data/landmarks.js"></script>
+<script src="src/data/perks.js"></script>
+<script src="src/data/auras.js"></script>
+<script src="src/data/items.js"></script>
+<script src="src/data/classes.js"></script>
+<script src="src/data/cultivation.js"></script>
+<script src="src/data/alchemy_recipes.js"></script>
+<script src="src/data/spirit_beasts.js"></script>
+<script src="src/data/quests.js"></script>
+<script src="src/data/achievements.js"></script>
+<script src="src/data/journeys.js"></script>
+<script src="src/data/encounters.js"></script>
+<script src="src/data/zone_variants.js"></script>
+<script src="src/data/bonds.js"></script>
+<script src="src/data/narrative_echoes.js"></script>
+<script src="src/data/world_events.js"></script>
+<script>__mythikaProbeGroup('data','end'); __mythikaProbeGroup('systems','start'); __mythikaLoadTracker.step(2)</script>
+<script src="src/systems/economy.js"></script>
+<script src="src/systems/zone_rewards.js"></script>
+<script src="src/systems/hints.js"></script>
+<script src="src/systems/progression.js"></script>
+<script src="src/systems/combat.js"></script>
+<script src="src/systems/duel.js"></script>
+<script src="src/systems/cultivation_sys.js"></script>
+<script src="src/systems/alchemy.js"></script>
+<script src="src/systems/world_state.js"></script>
+<script src="src/systems/narrative_echoes.js"></script>
+<script src="src/systems/world_events.js"></script>
+<script src="src/data/influence_rules.js"></script>
+<script src="src/systems/influence.js"></script>
+<script src="src/systems/landmarks.js"></script>
+<script src="src/systems/bond.js"></script>
+<script src="src/systems/save.js"></script>
+<script src="src/systems/farm.js"></script>
+<script src="src/systems/quest.js"></script>
+<script src="src/systems/achievements.js"></script>
+<script src="src/systems/journey.js"></script>
+<script src="src/systems/tour.js"></script>
+<script src="src/systems/gloss.js"></script>
+<script src="src/systems/zoneArt.js"></script>
+<script src="src/systems/enemyPortraits.js"></script>
+<script src="src/systems/combatFx.js"></script>
+<script src="src/systems/encounter.js"></script>
+<script src="src/systems/living_zones.js"></script>
+<script>__mythikaProbeGroup('systems','end'); __mythikaProbeGroup('ui','start'); __mythikaLoadTracker.step(3)</script>
+<script src="src/ui/button.js"></script>
+<script src="src/ui/panel.js"></script>
+<script src="src/ui/progressBar.js"></script>
+<script src="src/ui/text.js"></script>
+<script src="src/ui/list.js"></script>
+<script src="src/ui/tabbar.js"></script>
+<script src="src/ui/modal.js"></script>
+<script src="src/ui/card.js"></script>
+<script src="src/ui/heroSurface.js"></script>
+<script src="src/ui/feedback.js"></script>
+<script>__mythikaProbeGroup('ui','end'); __mythikaProbeGroup('scenes','start'); __mythikaLoadTracker.step(4)</script>
+<script src="src/scenes/title.js"></script>
+<script src="src/scenes/characterCreate.js"></script>
+<script src="src/scenes/ashram.js"></script>
+<script src="src/scenes/map_helpers.js"></script>
+<script src="src/scenes/travelMap.js"></script>
+<script src="src/scenes/zoneExploration.js"></script>
+<script src="src/scenes/combatScene.js"></script>
+<script src="src/scenes/party.js"></script>
+<script src="src/scenes/cultivationScene.js"></script>
+<script src="src/scenes/alchemyScene.js"></script>
+<script src="src/scenes/punarjanma.js"></script>
+<script src="src/scenes/spiritBeast.js"></script>
+<script src="src/scenes/forge.js"></script>
+<script src="src/scenes/tournament.js"></script>
+<script src="src/scenes/trials.js"></script>
+<script src="src/scenes/bazaar.js"></script>
+<script src="src/scenes/farm.js"></script>
+<script src="src/scenes/fishing.js"></script>
+<script src="src/scenes/settings.js"></script>
+<script src="src/scenes/questLog.js"></script>
+<script src="src/scenes/equipment.js"></script>
+<script src="src/scenes/achievementsScene.js"></script>
+<script src="src/scenes/debug.js"></script>
+<script src="src/scenes/welcome.js"></script>
+<script src="src/scenes/journeyScene.js"></script>
+<script src="src/scenes/encounterScene.js"></script>
+<script src="src/scenes/authScene.js"></script>
+<script>__mythikaProbeGroup('scenes','end'); __mythikaProbeGroup('boot','start'); __mythikaLoadTracker.step(5)</script>
+<script src="src/main.js"></script>
+<script>__mythikaProbeGroup('boot','end'); __mythikaLoadTracker.step(6)</script>
+<script>
+  // PERF-04: total boot duration, start-to-finish, when ?probe is active.
+  if (/[?&]probe(?:&|$)/.test(location.search) && window.performance) {
+    var navEntry = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+    var started = navEntry ? navEntry.startTime : 0;
+    console.log('[Mythika] boot-total=' + (performance.now() - started).toFixed(1) + 'ms');
+  }
+</script>
+<script>__mythikaProbeScriptResources();</script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, RecaptchaVerifier, signInWithPhoneNumber, signOut as firebaseSignOut, PhoneAuthProvider, signInWithCredential } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
@@ -96,119 +278,5 @@
     window.firebaseReady = false;
   }
 </script>
-
-<div id="game-container" class="loading">
-  <canvas id="game-canvas"></canvas>
-  <div id="status-bar"></div>
-</div>
-
-<script src="src/engine/firebase-config.js"></script>
-<script src="src/engine/auth.js"></script>
-<script>__mythikaProbeGroup('engine','start')</script>
-<script src="src/engine/viewport.js"></script>
-<script src="src/engine/game.js"></script>
-<script src="src/engine/lifecycle.js"></script>
-<script src="src/engine/scene.js"></script>
-<script src="src/engine/navigation.js"></script>
-<script src="src/engine/navigation_routes.js"></script>
-<script src="src/engine/diagnostics.js"></script>
-<script src="src/engine/scene-helpers.js"></script>
-<script src="src/engine/deprecation.js"></script>
-<script src="src/engine/input.js"></script>
-<script src="src/engine/audio.js"></script>
-<script src="src/engine/renderer.js"></script>
-<script src="src/engine/backgrounds.js"></script>
-<script>__mythikaProbeGroup('engine','end'); __mythikaProbeGroup('data','start')</script>
-<script src="src/data/heroes.js"></script>
-<script src="src/data/enemies.js"></script>
-<script src="src/data/zones.js"></script>
-<script src="src/data/map_layout.js"></script>
-<script src="src/data/landmarks.js"></script>
-<script src="src/data/perks.js"></script>
-<script src="src/data/auras.js"></script>
-<script src="src/data/items.js"></script>
-<script src="src/data/classes.js"></script>
-<script src="src/data/cultivation.js"></script>
-<script src="src/data/alchemy_recipes.js"></script>
-<script src="src/data/spirit_beasts.js"></script>
-<script src="src/data/quests.js"></script>
-<script src="src/data/achievements.js"></script>
-<script src="src/data/journeys.js"></script>
-<script src="src/data/encounters.js"></script>
-<script src="src/data/zone_variants.js"></script>
-<script src="src/data/bonds.js"></script>
-<script src="src/data/narrative_echoes.js"></script>
-<script src="src/data/world_events.js"></script>
-<script>__mythikaProbeGroup('data','end'); __mythikaProbeGroup('systems','start')</script>
-<script src="src/systems/economy.js"></script>
-<script src="src/systems/zone_rewards.js"></script>
-<script src="src/systems/hints.js"></script>
-<script src="src/systems/progression.js"></script>
-<script src="src/systems/combat.js"></script>
-<script src="src/systems/duel.js"></script>
-<script src="src/systems/cultivation_sys.js"></script>
-<script src="src/systems/alchemy.js"></script>
-<script src="src/systems/world_state.js"></script>
-<script src="src/systems/narrative_echoes.js"></script>
-<script src="src/systems/world_events.js"></script>
-<script src="src/data/influence_rules.js"></script>
-<script src="src/systems/influence.js"></script>
-<script src="src/systems/landmarks.js"></script>
-<script src="src/systems/bond.js"></script>
-<script src="src/systems/save.js"></script>
-<script src="src/systems/farm.js"></script>
-<script src="src/systems/quest.js"></script>
-<script src="src/systems/achievements.js"></script>
-<script src="src/systems/journey.js"></script>
-<script src="src/systems/tour.js"></script>
-<script src="src/systems/gloss.js"></script>
-<script src="src/systems/zoneArt.js"></script>
-<script src="src/systems/enemyPortraits.js"></script>
-<script src="src/systems/combatFx.js"></script>
-<script src="src/systems/encounter.js"></script>
-<script src="src/systems/living_zones.js"></script>
-<script>__mythikaProbeGroup('systems','end'); __mythikaProbeGroup('ui','start')</script>
-<script src="src/ui/button.js"></script>
-<script src="src/ui/panel.js"></script>
-<script src="src/ui/progressBar.js"></script>
-<script src="src/ui/text.js"></script>
-<script src="src/ui/list.js"></script>
-<script src="src/ui/tabbar.js"></script>
-<script src="src/ui/modal.js"></script>
-<script src="src/ui/card.js"></script>
-<script src="src/ui/heroSurface.js"></script>
-<script src="src/ui/feedback.js"></script>
-<script>__mythikaProbeGroup('ui','end'); __mythikaProbeGroup('scenes','start')</script>
-<script src="src/scenes/title.js"></script>
-<script src="src/scenes/characterCreate.js"></script>
-<script src="src/scenes/ashram.js"></script>
-<script src="src/scenes/map_helpers.js"></script>
-<script src="src/scenes/travelMap.js"></script>
-<script src="src/scenes/zoneExploration.js"></script>
-<script src="src/scenes/combatScene.js"></script>
-<script src="src/scenes/party.js"></script>
-<script src="src/scenes/cultivationScene.js"></script>
-<script src="src/scenes/alchemyScene.js"></script>
-<script src="src/scenes/punarjanma.js"></script>
-<script src="src/scenes/spiritBeast.js"></script>
-<script src="src/scenes/forge.js"></script>
-<script src="src/scenes/tournament.js"></script>
-<script src="src/scenes/trials.js"></script>
-<script src="src/scenes/bazaar.js"></script>
-<script src="src/scenes/farm.js"></script>
-<script src="src/scenes/fishing.js"></script>
-<script src="src/scenes/settings.js"></script>
-<script src="src/scenes/questLog.js"></script>
-<script src="src/scenes/equipment.js"></script>
-<script src="src/scenes/achievementsScene.js"></script>
-<script src="src/scenes/debug.js"></script>
-<script src="src/scenes/welcome.js"></script>
-<script src="src/scenes/journeyScene.js"></script>
-<script src="src/scenes/encounterScene.js"></script>
-<script src="src/scenes/authScene.js"></script>
-<script>__mythikaProbeGroup('scenes','end'); __mythikaProbeGroup('boot','start')</script>
-<script src="src/main.js"></script>
-<script>__mythikaProbeGroup('boot','end')</script>
-<script>__mythikaProbeScriptResources();</script>
 </body>
 </html>

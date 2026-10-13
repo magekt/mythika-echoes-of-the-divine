@@ -17,20 +17,16 @@ No build step, no dependencies to install — the game runs directly in the brow
 - **Continue** — Load existing save (appears if you've played before)
 
 ### 2. Choose Your Path
-Select a class that defines your starting bonuses:
-- **Warrior** — Combat-focused, higher damage
-- **Sage** — Spirit-focused, faster cultivation
-- **Rogue** — Speed-focused, higher criticals
+Select a spiritual path that defines your starting bonuses:
+- **Kshatriya** — Path of the Warrior: physical damage, high HP (STR+5, HP+20)
+- **Rishi** — Path of the Sage: magic damage, high MP (MAG+5, MP+20)
+- **Yogi** — Path of the Mystic: hybrid, balanced stats (STR+3, MAG+3)
 
-### 3. Name Your Hero
-Enter your character name and allocate 10 stat points across:
-- **Strength** — Physical damage
-- **Agility** — Speed and dodge
-- **Spirit** — Cultivation speed
-- **Vitality** — Health pool
+### 3. Choose Your Hero
+Pick your hero — each card shows HP, MP, STR, AGI, MAG, and DEF.
 
-### 4. Select Starting Elite
-Choose your first elite hero to lead your party.
+### 4. Choose Your Elite Class
+Pick an Elite Class for your path (e.g. Kshatriya: Knight, Assassin, Gladiator, Warlord; Rishi: Dark Wizard, Light Wizard, Elementalist, Mystic; Yogi: Battle Wizard, Paladin, Guardian, Sage), or skip and choose later.
 
 ## Your First 5 Minutes
 
@@ -45,8 +41,8 @@ After character creation, you arrive at your **Ashram** — the central hub for 
 
 ### Enter Combat
 1. Tap **Map** from the Ashram
-2. Select **Dandaka Forest** (first zone)
-3. Choose **Explore** to enter turn-based combat
+2. Select **Aryavarta Grasslands** (first zone)
+3. Choose **Enter Zone** to enter turn-based combat
 
 ### Combat Basics
 - **Tap a skill** to attack the selected enemy
@@ -71,13 +67,13 @@ Fight battles → Gain XP → Level heroes → Break through cultivation realms 
 
 ### Idle Progression
 The game continues while you're away:
-- Heroes gain experience
-- Resources accumulate
-- Cultivation advances
+- Cultivation accrues
+- Prana accumulates
+- Farm herbs grow and can be harvested
 
 ## Save System
 
-- **Auto-saves** every 60 seconds during gameplay
+- **Auto-saves** every 30 seconds during gameplay
 - **Manual save** available in Settings
 - **Offline progress** calculated on return
 - **Cloud saves** available via Firebase Auth (optional)
@@ -93,15 +89,15 @@ Benefits: offline play, faster loading, no browser UI.
 
 ## Tips for New Players
 
-1. **Start with Dandaka Forest** — lowest difficulty, good for learning combat
-2. **Allocate starting points evenly** — balanced stats help early progression
+1. **Start with Aryavarta Grasslands** — lowest difficulty, good for learning combat
+2. **Pick an Elite Class that matches your playstyle** — bonuses apply at creation
 3. **Check the Party screen after each level** — new abilities unlock automatically
 4. **Sell unused equipment** at the Bazaar for gold
 5. **Return to the Ashram** to save before closing the browser
 
 ## Need Help?
 
-- Check the in-game **Hints** system (tap the lightbulb icon)
+- Check the in-game **Hints** system (one-time onboarding toasts)
 - Review `codemap.md` for system mechanics
 - Enable **Debug Mode** via `?debug` URL parameter for detailed logs
 

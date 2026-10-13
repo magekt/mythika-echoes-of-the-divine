@@ -1,0 +1,8 @@
+{
+  "doc_path": "docs/CONFIGURATION.md",
+  "claims_checked": 22,
+  "claims_passed": 22,
+  "claims_failed": 0,
+  "failures": [],
+  "verify_markers": 5
+}

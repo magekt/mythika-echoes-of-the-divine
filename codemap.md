@@ -16,7 +16,7 @@ A mobile-first, offline-capable idle/cultivation RPG with turn-based combat, bui
 | `src/engine/` | Core game engine — rendering primitives, game loop, scene management, input, audio, global state | [View Map](src/engine/codemap.md) |
 | `src/data/` | Static game data — heroes, enemies, zones, realms, perks, auras, classes, items, journeys, quests, achievements, alchemy | [View Map](src/data/codemap.md) |
 | `src/systems/` | Game logic systems — combat, progression, cultivation, save, zone rewards, journey, alchemy, economy, achievements, quests, duel | [View Map](src/systems/codemap.md) |
-| `src/scenes/` | 30 scene implementations — each a self-contained screen with enter/update/render/leave lifecycle | [View Map](src/scenes/codemap.md) |
+| `src/scenes/` | 27 scene files (26 scene modules + map_helpers.js helper) — each a self-contained screen with enter/update/render/leave lifecycle | [View Map](src/scenes/codemap.md) |
 | `src/ui/` | Reusable UI components — buttons, panels, lists, modals, progress bars, tab bars, text, cards | [View Map](src/ui/codemap.md) |
 
 ## Architecture Overview
@@ -42,7 +42,7 @@ AlchemySystem → Pill crafting
 Economy    → Currency transactions
 AchievementSystem → Achievement tracking
 QuestSystem → Quest state machine
-DuelSystem → Tournament PvP combat
+Duel       → Tournament PvP combat
 ```
 
 ### Data Flow (Simplified)
@@ -111,7 +111,7 @@ gScene('name', fade?) → Fade.toScene() [async by default] OR explicit immediat
 11. **No module system** — Script tag loading order fragile
 12. **No centralized state** — Direct `G.state` mutations everywhere
 13. **Scene cleanup inconsistent** — `leave()` often missing or incomplete
-14. **No TypeScript** — No compile-time safety for 63 files
+14. **No TypeScript** — No compile-time safety for 104 files under src/
 
 ## Verification Plan (Evidence Paths)
 
@@ -129,7 +129,7 @@ gScene('name', fade?) → Fade.toScene() [async by default] OR explicit immediat
 
 ### Phase 1: Critical Memory Leaks (Week 1)
 - [ ] Bound all particle arrays with circular buffers
-- [ ] Implement `Scene.leave()` cleanup for all 30 scenes
+- [ ] Implement `Scene.leave()` cleanup for all 26 scenes
 - [ ] Add `Audio.cleanup()` + `pagehide` listener
 - [ ] Remove event listeners on cleanup
 - [ ] Clear intervals on scene leave

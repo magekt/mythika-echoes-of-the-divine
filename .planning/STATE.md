@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.0
-milestone_name: Adaptive Viewport
-status: Awaiting next milestone
-stopped_at: Phase 42 UI-SPEC approved
-last_updated: "2026-10-13T07:19:38.018Z"
-last_activity: 2026-10-13 — Milestone v7.0 completed and archived
+milestone: v8.0
+milestone_name: Performance & Loading Architecture
+status: "v8.0 — Phase 44 complete"
+stopped_at: Phase 44 planned and executed
+last_updated: "2026-10-13T18:35:00.000Z"
+last_activity: 2026-10-13
 progress:
-  total_phases: 1
+  total_phases: 3
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_plans: 7
+  completed_plans: 1
+  percent: 14
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-12)
 
 ## Current Position
 
-Phase: Milestone v7.0 complete
+Phase: Phase 43 — Loading Overlay and Progress Reporting (drafted)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-10-13 — Milestone v7.0 completed and archived
+Status: v8.0 planning complete — Phase 43 ready for planning
+Last activity: 2026-10-13
 
 ## Performance Metrics
 
