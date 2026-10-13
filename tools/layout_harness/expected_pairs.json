@@ -33,7 +33,7 @@
     },
     "clip": 6,
     "fillText": 42,
-    "localScripts": 99,
+    "localScripts": 100,
     "translate": 21
   },
   "expectedViolations": [

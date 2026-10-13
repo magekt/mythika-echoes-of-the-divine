@@ -242,15 +242,63 @@ const G = {
   ui: {}
 };
 
+function readSafeInsets() {
+  var zero = { t: 0, r: 0, b: 0, l: 0 };
+  try {
+    if (typeof document === 'undefined' || typeof window === 'undefined') return zero;
+    if (!document.body || !window.getComputedStyle) return zero;
+    var probe = window._safeAreaProbe || null;
+    if (!probe) {
+      probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;top:0;left:0;visibility:hidden;pointer-events:none;'
+        + 'padding-top:env(safe-area-inset-top);padding-right:env(safe-area-inset-right);'
+        + 'padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);';
+      document.body.appendChild(probe);
+      window._safeAreaProbe = probe;
+    }
+    var cs = window.getComputedStyle(probe);
+    var px = function (v) { var n = parseFloat(v); return (isFinite(n) && n > 0) ? n : 0; };
+    return { t: px(cs.paddingTop), r: px(cs.paddingRight), b: px(cs.paddingBottom), l: px(cs.paddingLeft) };
+  } catch (e) { return zero; }
+}
+
 function fitGame() {
   const el = document.getElementById('game-container');
   if (!el) return;
-  // Clamp so a zero-sized viewport (hidden iframe) can never scale the game to nothing.
-  const vw = Math.max(1, window.innerWidth || G.W), vh = Math.max(1, window.innerHeight || G.H);
-  const scale = Math.max(0.2, Math.min(vw / 404, vh / 724, 1));
+  // Real visual size: visualViewport excludes collapsing browser chrome;
+  // fall back to innerWidth/innerHeight where it is unavailable.
+  // Clamp so a zero-sized viewport (hidden iframe) can never collapse the game.
+  var vv = (typeof window !== 'undefined' && window.visualViewport) ? window.visualViewport : null;
+  var vw = Math.max(1, (vv && vv.width) || window.innerWidth || G.W);
+  var vh = Math.max(1, (vv && vv.height) || window.innerHeight || G.H);
+  var dims = computeViewportDims(vw, vh, (typeof window !== 'undefined' && window.devicePixelRatio) || 1, readSafeInsets());
+  var phone = (dims.mode !== 'desktop');
+  G.W = dims.W;
+  G.H = dims.H;
   G.viewportProfile = vw > vh ? 'landscape' : (vw >= 800 ? 'wide-desktop' : (vw >= 500 ? 'large-portrait' : 'portrait'));
-  el.style.transform = 'scale(' + scale + ')';
-  el.style.transformOrigin = 'center center';
+  if (phone) {
+    // Fill modes: the container IS the viewport; canvas fills it via CSS.
+    el.style.width = vw + 'px';
+    el.style.height = vh + 'px';
+    el.classList.add('fill');
+    el.style.transform = 'none';
+  } else {
+    // Legacy desktop card: centered 400x720, scale capped at 1.
+    el.style.width = '400px';
+    el.style.height = '720px';
+    el.classList.remove('fill');
+    const scale = Math.max(0.2, Math.min(vw / 404, vh / 724, 1));
+    el.style.transform = 'scale(' + String(scale) + ')';
+    el.style.transformOrigin = 'center center';
+  }
+  // Per-refit DPR backing so text never goes stale-blurry after rotation/
+  // resize. Guarded: skip the expensive canvas realloc when nothing changed.
+  var last = G._lastFit || null;
+  if (G.canvas && (!last || last.W !== dims.W || last.H !== dims.H || last.dpr !== dims.dpr)) {
+    G.ctx = initDprBacking(G.canvas, dims.W, dims.H, dims.dpr);
+    G.dpr = dims.dpr;
+    G._lastFit = { W: dims.W, H: dims.H, dpr: dims.dpr };
+  }
   // Landscape phones get a squeezed viewport; nudge the player upright (once).
   if (typeof Hints !== 'undefined' && window.innerHeight < 500 && window.innerWidth > window.innerHeight) {
     Hints.show('rotate', 'Rotate your device upright for the best experience.');
@@ -260,14 +308,8 @@ if (typeof window !== 'undefined') window.fitGame = fitGame;
 
 function gInit() {  G.canvas = document.getElementById('game-canvas');
   fitGame();
-  // Back the canvas at device resolution so text/edges stay crisp on phones
-  // (DPR 2-3), while ALL game code keeps using 400x720 logical coordinates.
-  const dpr = Math.min(window.devicePixelRatio || 1, 3);
-  G.canvas.width = G.W * dpr;
-  G.canvas.height = G.H * dpr;
-  G.ctx = G.canvas.getContext('2d');
-  G.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  G.dpr = dpr;
+  // Canvas backing flows through fitGame → initDprBacking (per-refit DPR),
+  // while ALL game code keeps using logical G.W/G.H coordinates.
   initSceneManager();
   initInput();
   initAudio();
@@ -530,14 +572,33 @@ function gScene(name, fade, enterOptions) {
 
 // Boot ownership lives in main.js bootGame(): it fires immediately on script
 // parse and re-enters via this load safety-net (idempotent via G._booted).
-G._resizeHandler = fitGame;
-G._orientationHandler = fitGame;
+// Refit is trailing-edge debounced: resize/orientation/visualViewport bursts
+// schedule one fitGame 100ms after the last event (G._refitT), and fitGame
+// itself skips the canvas realloc when W/H/dpr are unchanged — event bursts
+// can never realloc the canvas per-event (T-42-01).
+G._refitT = null;
+function scheduleRefit() {
+  if (G._refitT) clearTimeout(G._refitT);
+  G._refitT = setTimeout(function () { G._refitT = null; fitGame(); }, 100);
+}
+// Stored by reference so cleanup removes exactly what was added.
+G._resizeHandler = scheduleRefit;
+G._orientationHandler = scheduleRefit;
 window.addEventListener('resize', G._resizeHandler);
 window.addEventListener('orientationchange', G._orientationHandler);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', G._resizeHandler);
+  window.visualViewport.addEventListener('scroll', G._orientationHandler);
+}
 
 G.cleanupEventListeners = function() {
   window.removeEventListener('resize', G._resizeHandler);
   window.removeEventListener('orientationchange', G._orientationHandler);
+  if (window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', G._resizeHandler);
+    window.visualViewport.removeEventListener('scroll', G._orientationHandler);
+  }
+  if (G._refitT) { clearTimeout(G._refitT); G._refitT = null; }
   G._resizeHandler = null;
   G._orientationHandler = null;
 };
