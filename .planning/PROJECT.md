@@ -22,17 +22,13 @@ Validated requirements: AFF-01 through AFF-06, BST-01 through BST-04, ZON-01, ZO
 
 Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot, event walkthrough, and mobile FPS/dense-map/reduced-motion walkthroughs — plus the v3.0 10-combination full-loop journey matrix (all rows pending) — plus v4.0 feature walkthroughs (affinity meter, bond scenes, combat log/Toast, duo button, feed/train taps, aura lines, variant tease, gift picker).
 
-## Current Milestone: v7.0 Adaptive Viewport
+## Shipped Milestone v7.0 — Adaptive Viewport
 
-**Goal:** The whole game fills any phone screen edge-to-edge with nothing cut, so mobile play feels clean.
+**Goal (achieved):** The whole game fills any phone screen edge-to-edge with nothing cut, so mobile play feels clean.
 
-**Target features:**
-- Safe-area-aware viewport sizing (notch/browser-chrome aware)
-- Refit on visualViewport/resize/orientation with DPR backing re-init
-- Background extension with HUD anchors for taller/shorter viewports
-- Verified at 390x844 and 844x390 plus the responsive set
+**Delivered:** Safe-area-aware viewport sizing, visualViewport/DPR refit, background extension with HUD anchors, 7-size matrix contract green (Phase 42, LAY-08 validated 2026-10-13).
 
-**Source:** LAY-08 requirement captured in the 2026-10-12 explore session (`.planning/notes/mobile-viewport-fitting.md`); phases continue at 42.
+**Date:** 2026-10-13
 
 ## Shipped Milestone v3.0 — Screen & Gameplay Revamp
 
@@ -197,4 +193,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-13 — Phase 42 complete (LAY-08 validated)*
+*Last updated: 2026-10-13 — v7.0 Adaptive Viewport shipped*

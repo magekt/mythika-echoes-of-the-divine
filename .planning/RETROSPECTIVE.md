@@ -101,6 +101,33 @@
 
 ---
 
+## Milestone: v7.0 — Adaptive Viewport
+
+**Shipped:** 2026-10-13
+**Phases:** 1 | **Plans:** 3
+
+### What Was Built
+Adaptive logical viewport (400×866 portrait / 866×400 landscape, 400×720 desktop card); safe-area-aware fitGame with visualViewport refit + per-refit DPR backing; G.H-anchored scenes with landscape responsive rects; 7-size matrix contract; UI tier contract (42-UI-SPEC.md 6/6).
+
+### What Worked
+Single-requirement milestone stayed tight (explore → milestone → discuss → plan → UI-spec → execute → audit → close in two days); locked arithmetic rule caught plan/expectation drift early (865→866); inline fallbacks covered missing subagents without losing gates.
+
+### What Was Inefficient
+Discuss-phase ran long on one area (12 questions on Odd-aspect margins past vision-level exhaustion); UI-SPEC was written after planning instead of before (bypassed gate, recovered after); audit-open native handler only recognizes bare SUMMARY.md (renamed quick SUMMARY to satisfy it).
+
+### Patterns Established
+Adaptive logical dims over CSS-scale fill (scale-to-fill proven impossible for mismatched aspects); safe-area subtracted once; harness-fidelity analysis for headless viewport clamping.
+
+### Key Lessons
+Record human approvals in VERIFICATION/UAT promptly — stale `human_needed`/`failed` statuses lingered 3 days after the recorded pass and needed an audit-fix sync.
+
+### Cost Observations
+- Model mix: unknown (not tracked this milestone).
+- Sessions: 1 day (2026-10-12 → 2026-10-13).
+- Notable: full Node suite (~2s) + invariants kept verification cheap; browser matrix ran headless clean.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution

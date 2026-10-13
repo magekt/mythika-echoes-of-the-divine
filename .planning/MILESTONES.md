@@ -1,5 +1,17 @@
 # Milestones
 
+## v7.0 Adaptive Viewport (Shipped: 2026-10-13)
+
+**Phases completed:** 1 phases, 3 plans, 9 tasks
+
+**Key accomplishments:**
+
+- Adaptive logical viewport (400×866 portrait / 866×400 landscape fill, 400×720 desktop card) with safe-area-aware fitGame, visualViewport refit triggers, and per-refit DPR backing
+- Tournament controls anchored to live G.H, Scene.responsive() returns locked landscape rects (header 56 / primary G.H-80 / back G.H-34) with portrait byte-identical, plus source-contract proof that backgrounds stretch-fill live dims and scroll/cull regions derive from G.H
+- 7-size responsive contract green, full suite 474 pass / 0 fail, browser boot 3/3 clean, layout sweep analyzed with harness-fidelity gap accepted, human visual approval recorded.
+
+---
+
 ## v1.0 — Core Systems Foundation
 
 **Status:** ✅ SHIPPED 2026-09-15  

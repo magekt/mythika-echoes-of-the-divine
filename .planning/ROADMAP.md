@@ -8,7 +8,7 @@
 - ✅ **v4.0 Deep Companions & Living Zones** — Phases 21-29 (shipped 2026-10-09)
 - ✅ **v5.0 Layout Fixes & Early-Game Pacing** — Phases 30-35 (shipped 2026-10-10)
 - ✅ **v6.0 Ship Polish, Art & Audio, Onboarding** — Phases 36-41 (shipped 2026-10-11)
-- ◆ **v7.0 Adaptive Viewport** — Phase 42 (in progress)
+- ✅ **v7.0 Adaptive Viewport** — Phase 42 (shipped 2026-10-13)
 
 ## Completed Milestones
 
@@ -44,7 +44,7 @@ Accepted residual browser evidence (same precedent as v2.0/v3.0): Phase 21 headl
 
 ## Phases
 
-**Phase Numbering:** Milestone 1 completed Phases 1–5; Milestone 2 continued at Phase 6; Milestone 3 continued at Phase 13; Milestone v4.0 completed Phases 21–29. Milestone v5.0 completed Phases 30–35; Milestone v6.0 completed Phases 36–41. Milestone v7.0 starts at Phase 42.
+**Phase Numbering:** Milestone 1 completed Phases 1–5; Milestone 2 continued at Phase 6; Milestone 3 continued at Phase 13; Milestone v4.0 completed Phases 21–29. Milestone v5.0 completed Phases 30–35; Milestone v6.0 completed Phases 36–41. Milestone v7.0 completed Phase 42. Next milestone continues at Phase 43.
 
 ## v4.0 — Deep Companions & Living Zones ✅ SHIPPED (2026-10-09)
 
@@ -520,7 +520,7 @@ Phase 36 (Ship Readiness)
 
 Art and audio tracks are independent after Phase 36; they can be executed in parallel or interleaved.
 
-## v7.0 — Adaptive Viewport (in progress)
+## v7.0 — Adaptive Viewport ✅ SHIPPED (2026-10-13)
 
 **Goal:** The whole game fills any phone screen edge-to-edge with nothing cut, so mobile play feels clean.
 
