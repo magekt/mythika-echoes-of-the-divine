@@ -30,6 +30,8 @@ Thank you for helping improve Mythika. Contributions should preserve the game's 
 
 Before changing code, read [AGENTS.md](AGENTS.md), the repository [codemap](codemap.md), and the `codemap.md` inside any source directory you plan to modify. See the [README development section](README.md#development) for runtime diagnostics and verification commands.
 
+New contributors should also read [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md) for prerequisites and first-run instructions, [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for local development setup, [docs/TESTING.md](docs/TESTING.md) for the test workflow, and [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for configuration surfaces.
+
 Firebase is optional for offline development. Contributors working on cloud saves should copy `src/engine/firebase-config.template.js` to the gitignored `src/engine/firebase-config.js` and use their own development project credentials. Never commit credentials or the generated config file.
 
 ## Coding Standards
@@ -50,7 +52,14 @@ No automated linter or formatter is configured. Match the style of the surroundi
 
 ## Testing Changes
 
-Run the headless boot matrix before submitting a pull request:
+Run the Node test suite and the source-invariant check before submitting a pull request:
+
+```bash
+node --test tests/*.test.js
+tools/check_ui_invariants.sh
+```
+
+Then run the headless boot matrix:
 
 ```bash
 python3 tools/verify_matrix.py --budget 6000

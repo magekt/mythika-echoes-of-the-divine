@@ -49,7 +49,7 @@
         │
         ▼
   ┌─────────────────┐
-  │  MORTAL         │  (Levels 1-9)
+  │  MORTAL         │  (Levels 1-9)  <!-- SUPERSEDED: shipped as Manushya in src/data/cultivation.js (REALMS: Manushya/Sadhaka/Yogi/Siddha/Mukta/Paramukta); plan name aspirational, intent unchanged -->
   │  3 sub-stages   │
   └────────┬────────┘
            │ Breakthrough (Tribulation Boss #1)
@@ -177,7 +177,7 @@
 **Total base playtime:** 28-37 hours. +Completionist: 45+ hours.
 
 **Post-launch zones** (free updates):
-- 4. Kshira Sagar (Ocean World) — 6 months post-launch
+- 4. Kshira Sagar (Ocean World) — 6 months post-launch  <!-- SUPERSEDED: never built; shipped zones in src/data/zones.js are aryavarta, dandaka, meru, patala, svarga, tapobhumi; plan aspiration, intent unchanged -->
 - 5. Patala (Underworld) — 9 months post-launch
 - 6. Swarga (Celestial Realm) — 12 months post-launch
 
@@ -192,7 +192,7 @@
 **Post-launch heroes:**
 - Hanuman (post-launch update 1)
 - Draupadi (post-launch update 2)
-- Nakula & Sahadeva (post-launch update 3)
+- Nakula & Sahadeva (post-launch update 3)  <!-- SUPERSEDED: never built; shipped heroes in src/data/heroes.js are arjuna, bhima, karna, draupadi, hanuman; plan aspiration, intent unchanged -->
 
 ### Party Composition Rules
 
@@ -619,7 +619,7 @@ Gem Socketing ──► Stat bonuses (Navaratna gems from fishing/Bazaar)
 │─────────────────────────────│
 │                             │
 │  ┌─────────────────────┐   │
-│  │  🦅 Garuda          │   │
+│  │  🦅 Garuda          │   │  <!-- SUPERSEDED: never built; shipped roster in src/data/spirit_beasts.js is wolf, serpent, owl, bear, fox, dragon, phoenix, turtle, tiger, kitsune (no Garuda/Nandi); plan mockup, intent unchanged -->
 │  │  Level: 5           │   │
 │  │  Passive: +10%      │   │
 │  │  exploration speed   │   │
@@ -629,7 +629,7 @@ Gem Socketing ──► Stat bonuses (Navaratna gems from fishing/Bazaar)
 │  └─────────────────────┘   │
 │                             │
 │  ┌─────────────────────┐   │
-│  │  🐂 Nandi           │   │
+│  │  🐂 Nandi           │   │  <!-- SUPERSEDED: never built; shipped roster in src/data/spirit_beasts.js is wolf, serpent, owl, bear, fox, dragon, phoenix, turtle, tiger, kitsune (no Garuda/Nandi); plan mockup, intent unchanged -->
 │  │  Level: 3           │   │
 │  │  Passive: +8% DEF   │   │
 │  │  Active: Stampede    │   │
@@ -753,7 +753,7 @@ Gem Socketing ──► Stat bonuses (Navaratna gems from fishing/Bazaar)
 ## 12. FILE STRUCTURE
 
 ```
-Mythika/
+Mythika/  <!-- SUPERSEDED: never built; repo root is the static site (index.html + src/data/*.js); no Mythika/ or Assets/ dirs, no *.json data files -->
 ├── Assets/
 │   ├── PixelArt/
 │   │   ├── Heroes/           # 48x48 sprites (Arjuna, Bhima, Karna)
@@ -777,7 +777,7 @@ Mythika/
 │   │   ├── UI/               # All screen controllers, menus
 │   │   └── Data/             # Save/load, JSON parsing, localization
 │   ├── Data/
-│   │   ├── heroes.json       # 3 hero definitions
+│   │   ├── heroes.json       # 3 hero definitions  <!-- SUPERSEDED: no *.json files; shipped as src/data/heroes.js with 5 heroes (arjuna, bhima, karna, draupadi, hanuman) -->
 │   │   ├── enemies.json      # ~30 monster definitions
 │   │   ├── zones.json        # 3 zone configurations
 │   │   ├── perks.json        # Rebirth perk tree
@@ -787,8 +787,8 @@ Mythika/
 │   │   ├── cultivation.json  # Realm progression data
 │   │   ├── alchemy.json      # Pill recipes
 │   │   ├── spirit_beasts.json# 3 beast definitions
-│   │   └── strings_en.json   # English text (localization-ready)
-│   │   └── strings_hi.json   # Hindi text
+│   │   └── strings_en.json   # English text (localization-ready)  <!-- SUPERSEDED: no localization files in repo; plan aspiration, intent unchanged -->
+│   │   └── strings_hi.json   # Hindi text  <!-- SUPERSEDED: no localization files in repo; plan aspiration, intent unchanged -->
 │   └── Scenes/
 │       ├── TitleScene
 │       ├── CharacterCreateScene

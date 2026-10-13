@@ -125,7 +125,7 @@ plus the post-combat options bug report. Verified per-commit with the boot/fps h
   five zones with per-wave scaling, escalating mutators (W10 regen, W15 enrage, W20 thorns),
   milestone equipment chests every 5 waves, gold/karma/XP rewards, respite heals,
   persistent best-wave tracking (badged on the Ashram card), and two dedicated achievements
-- **Shared Duel engine** (`systems/duel.js`): one round-based 1v1 module powers both
+- **Shared Duel engine** (`src/systems/duel.js`): one round-based 1v1 module powers both
   Tournament and Endless Trials
 - **Combat polish**: death-burst animations (expanding ring + sparks) for fallen
   enemies and heroes
