@@ -57,13 +57,6 @@ test('getLongPressPos returns null when !Input._ready', () => {
   assert.strictEqual(Input.getLongPressPos(), null);
 });
 
-test('clear() resets _lastTapAt to -Infinity', () => {
-  const Input = loadInput();
-  Input._lastTapAt = performance.now();
-  Input.clear();
-  assert.equal(Input._lastTapAt, -Infinity);
-});
-
 test('getSwipe returns actual swipe value when Input._ready is true', () => {
   const ctx = vm.createContext({ 
     console, 

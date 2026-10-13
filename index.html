@@ -45,12 +45,11 @@
       if (!barEl) return;
       var group = GROUPS[currentGroup];
       if (!group) return;
-      var doneGroup = GROUPS[currentGroup - 1];
-      var pct = Math.round(((doneGroup ? doneGroup.cumDone : 0) / TOTAL) * 100);
+      var pct = Math.round((group.cumDone / TOTAL) * 100);
       barEl.style.width = pct + '%';
       if (labelEl) {
         var stage = currentGroup < GROUPS.length - 1
-          ? 'Loading ' + group.name
+          ? 'Loading ' + GROUPS[currentGroup + 1].name
           : 'Booting game';
         labelEl.textContent = pct + '%  ' + stage;
       }
@@ -62,11 +61,6 @@
       if (container) container.classList.add('error');
     }
 
-    // Belt-and-braces: if any SCRIPT tag fails to load, surface it.
-    window.addEventListener('error', function(e) {
-      if (e.target && e.target.tagName === 'SCRIPT') __mythikaLoadTracker.markError();
-    }, true);
-
     updateOverlay();
     return {
       step: function(groupIdx) {
@@ -76,6 +70,11 @@
       markError: markError
     };
   })();
+  // A failed <script src> fires a window-level error event (target=script tag)
+  // — call markError so the overlay shows the error state instead of spinning.
+  window.addEventListener('error', function(e) {
+    if (e.target && e.target.tagName === 'SCRIPT') __mythikaLoadTracker.markError();
+  }, true);
 </script>
 <script>
   // Classic script tags below execute before the Firebase module resolves.

@@ -121,9 +121,9 @@ function initInput() {
   c.addEventListener('wheel', e => {
     Input._scrollDelta = (Input._scrollDelta || 0) + e.deltaY;
   });
-document.addEventListener('keydown', e => { if (Input._ready) Input.keys[e.key] = true; });
 
-  document.addEventListener('keyup', e => { if (Input._ready) Input.keys[e.key] = false; });
+  document.addEventListener('keydown', e => { Input.keys[e.key] = true; });
+  document.addEventListener('keyup', e => { Input.keys[e.key] = false; });
 }
 
 Input.peekTap = function() {
@@ -191,5 +191,4 @@ Input.clear = function() {
   Input._lastSwipe = null;
   Input._longPressActive = false;
   Input._scrollDelta = 0;
-  Input._lastTapAt = -Infinity;
 };

@@ -73,16 +73,6 @@ body {
   color: transparent;
 }
 #status-bar { display: none; }
-#status-bar[role="alert"] {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 8px 12px;
-  background: #15152a;
-  color: #c83030;
-  font: 11px 'Courier New', monospace;
-  text-align: center;
-  z-index: 10;
-}
 /* Boot splash: covers the empty canvas until the first rendered frame
    (removed by gLoop via frameCount). Pure CSS, zero JS cost. */
 #game-container.loading::after {
