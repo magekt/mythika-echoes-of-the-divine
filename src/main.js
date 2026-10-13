@@ -8,7 +8,6 @@
   function failBoot(missing) {
     var message = '[Mythika] boot blocked; missing capability: ' + missing.join(', ');
     if (window.console) console.error(message);
-    if (typeof Input !== 'undefined') Input._ready = true;
     var status = document.getElementById('status-bar');
     if (status) {
       status.textContent = 'Mythika could not start. Please reload this page.';
