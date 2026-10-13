@@ -1,0 +1,26 @@
+{
+  "_meta": { "updated_at": "2026-10-09T11:19:28Z", "source": "index.html script order + AGENTS.md contracts" },
+  "script_order": [
+    "0: firebase module bridge (window.firebase* globals) + firebase-config.js + auth.js",
+    "1 engine: game.js(G/Notify/Fade/loop) > lifecycle.js > scene.js > navigation.js > navigation_routes.js > diagnostics.js > scene-helpers.js > deprecation.js > input.js > audio.js > renderer.js > backgrounds.js",
+    "2 data (declarative, no logic): heroes, enemies, zones, map_layout, landmarks, perks, auras, items, classes, cultivation, alchemy_recipes, spirit_beasts, quests, achievements, journeys, encounters, zone_variants, bonds, narrative_echoes, world_events",
+    "3 systems (authoritative rules, mutate G.state): economy > zone_rewards > hints > progression > combat > duel > cultivation_sys > alchemy > world_state > narrative_echoes > world_events > influence_rules(data) > influence > landmarks > bond > save > farm > quest > achievements > journey > encounter > living_zones",
+    "4 ui (presentation-only factories): button > panel > progressBar > text > list > tabbar > modal > card > heroSurface > feedback",
+    "5 scenes (screens, enter/update/render/leave): title > characterCreate > ashram > map_helpers > travelMap > zoneExploration > combatScene > party > cultivationScene > alchemyScene > punarjanma > spiritBeast > forge > tournament > trials > bazaar > farm > fishing > settings > questLog > equipment > achievementsScene > debug > welcome > journeyScene > encounterScene > authScene",
+    "6 boot: src/main.js (registerScene table, boot guards, gInit)"
+  ],
+  "key_edges": {
+    "scenes->Navigation": "all transitions via Navigation.go (legacy gScene wrapper compat)",
+    "scenes->Lifecycle/Scene.create": "auto-wrap enter/update/render/leave guards",
+    "systems->G.state": "sole mutation path; scenes/data/ui never mutate directly",
+    "systems->SaveSystem": "all persistence + migrate/normalize funnel through save.js",
+    "rewards->Economy": "loot/gold via Economy/ZoneRewardSystem only (no backdoors)",
+    "quests/achievements/events->canonical": "QuestSystem/AchievementSystem/WorldEvents single owners, exactly-once",
+    "combat buffs->Combat clones": "bond/beast bonuses clone stats, never mutate base",
+    "ui->R": "tokens only (colors/fonts/radius/reducedMotion), no raw colors",
+    "feedback->game loop": "UI.Feedback queues drained globally in gLoop",
+    "diagnostics->Settings": "collectors gated by debug toggle, local only",
+    "auth->optional": "Firebase ready event -> Auth.init; offline boot never blocked"
+  },
+  "invariants": ["script order is a runtime contract", "save.js owns migrations", "no parallel state stores", "no new zone IDs (v4 rule)"]
+}

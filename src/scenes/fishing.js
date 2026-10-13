@@ -23,7 +23,7 @@ const fishingScene = Scene.create({
   },
 
   enter: function() {
-    Audio.playMusic('fishing');
+    Audio.playAmbient('title');
     this.data.state = 'idle';
     this.data.fishCaught = G.state.fishCaught || 0;
     this.data.streak = G.state.fishingStreak || 0;
@@ -35,7 +35,7 @@ const fishingScene = Scene.create({
   leave: function() {
     this._heroMoment = null;
     this.data.buttons = [];
-    Audio.stopMusic();
+    Audio.stopAmbient();
   },
 
   buildButtons: function() {

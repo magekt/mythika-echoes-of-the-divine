@@ -1,0 +1,26 @@
+{
+  "source_path": "/Users/admin/Documents/Deepankar Project/dragonSword_EXPMinima/MYTHIKA_WIREFRAME_PLAN.md",
+  "type": "PRD",
+  "confidence": "medium",
+  "manifest_override": false,
+  "title": "MYTHIKA: ECHOES OF THE DIVINE — Wireframe Plan",
+  "summary": "Defines the product vision, gameplay systems, scope, progression, screens, economy, and implementation-oriented plan for the Mythika mobile game.",
+  "scope": [
+    "Mythika mobile game",
+    "turn-based combat",
+    "cultivation progression",
+    "offline progression",
+    "heroes and party management",
+    "zones and exploration",
+    "alchemy",
+    "equipment and forge",
+    "economy and currencies",
+    "onboarding",
+    "save system",
+    "wireframes"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": "Product scope, feature lists, progression goals, onboarding, and screen wireframes strongly indicate PRD content, but implementation details such as file structure, save mechanics, and data schemas introduce SPEC-like signals; PRD selected by dominant product-facing intent."
+}

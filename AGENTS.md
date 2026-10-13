@@ -1,110 +1,36 @@
-# AGENTS.md
+# Agent Instructions
 
-## Repository Map
+## Setup and Verification
 
-A full codemap is available at `codemap.md` in the project root.
+- There is no `package.json`, dependency install, build step, or bundler. The repository root is the deployable static site.
+- Run the game through a local HTTP server: `python3 -m http.server 3000`.
+- Run one test file with `node --test tests/world_state.test.js`; run related files with an explicit glob such as `node --test tests/travel_map_*.test.js`. Do not use `node --test tests/` because this Node setup treats the directory form as a module path.
+- Run the full Node suite with `node --test tests/*.test.js`, then run `tools/check_ui_invariants.sh` for all-source syntax and UI/script-loading invariants.
+- Run the real browser boot matrix with `python3 tools/verify_matrix.py --budget 6000`; it requires Chrome, Chromium, or Edge, and `MYTHIKA_CHROME` selects a specific binary.
+- Use `node --check path/to/changed-file.js` and `git diff --check` for focused validation.
+- Browser diagnostics are opt-in: append `?probe` for FPS/script timing and `&selftest` for the input-chain self-test. Clear or unregister the service worker before validating changed scripts.
 
-Before working on any task, read `codemap.md` to understand:
-- Project architecture and entry points
-- Directory responsibilities and design patterns
-- Data flow and integration points between modules
+## Runtime Contracts
 
-For deep work on a specific folder, also read that folder's `codemap.md`.
+- `index.html` is the synchronous, dependency-ordered entrypoint. Script order and classic globals are runtime contracts; do not casually add `defer`, `async`, modules, or reorder files.
+- `src/main.js` registers scenes and starts boot; `src/engine/game.js` owns `G`, the rAF loop, `gScene`, `Fade`, error recovery, and global timing.
+- This is an immediate-mode Canvas 2D game using logical coordinates around 400x720 with DPR-aware scaling. Scenes implement `enter`, `update`, `render`, and `leave`.
+- Preserve the intentional global API (`G`, `R`, `UI`, `Scene`, `Input`, `Audio`, `Notify`, `Fade`, `Combat`, `Progression`, `SaveSystem`, and related systems) unless every consumer is migrated.
+- `src/data/` is declarative gameplay data; `src/systems/` owns authoritative rules and mutates `G.state`; `src/scenes/` owns screens; `src/ui/` owns reusable immediate-mode components.
+- Save persistence, migrations, and legacy normalization belong in `src/systems/save.js`, not in scenes or individual systems.
+- UI factories return render/update/click/contains objects. Use `R.colors`, `R.fonts`, and `R.radius`; avoid raw component colors and ad-hoc hit testing.
+- Use `R.reducedMotion()` for new animation and route scene changes through `gScene`/`Fade`.
 
----
+## Data and Integration Constraints
 
-## Project Overview
+- Local `localStorage` play is the default. Firebase authentication and cloud saves are optional and must not block offline play.
+- Preserve unrelated save state when adding defaults or fields; do not overwrite existing inventory, party, or world branches during hydration.
+- Route rewards, influence, quests, achievements, and events through their canonical systems and preserve exactly-once behavior where existing APIs provide it.
+- `src/engine/firebase-config.js` is ignored and must never be committed. Configure it from `src/engine/firebase-config.template.js` or the repository’s secret-generation workflow.
+- Service-worker changes require fresh-worker/browser verification, not only Node tests.
 
-**Mythika: Echoes of the Divine** — Mobile-first idle/cultivation RPG with turn-based combat.
+## Change Scope
 
-**Stack**: Vanilla JS (ES6+), HTML5 Canvas 2D, Web Audio API, localStorage, PWA (Service Worker)
-
-**Entry Points**:
-- `index.html` — 63 script tags in dependency order
-- `src/main.js` — Boot sequence, scene registration
-- `src/engine/game.js` — Global state (`G`), game loop, scene manager
-
-**Key Globals**: `G`, `R`, `UI`, `Scene`, `Input`, `Audio`, `Notify`, `Fade`, `Combat`, `Progression`, `CultivationSystem`, `SaveSystem`, `JourneySystem`, `AlchemySystem`, `Economy`, `AchievementSystem`, `QuestSystem`, `DuelSystem`
-
----
-
-## Directory Structure
-
-```
-Mythika/
-├── index.html              # Entry point, script loading order
-├── manifest.json           # PWA manifest
-├── sw.js                   # Service worker
-├── styles/game.css         # Container scaling CSS
-├── src/
-│   ├── main.js             # Boot, scene registration
-│   ├── engine/             # Core engine (game loop, renderer, input, audio, scene mgmt)
-│   ├── data/               # 14 static data files (heroes, enemies, zones, realms, etc.)
-│   ├── systems/            # 10 game logic systems (combat, progression, cultivation, save, etc.)
-│   ├── scenes/             # 30 scene implementations
-│   └── ui/                 # 7 reusable UI component modules
-└── .slim/
-    ├── codemap.json        # File hashes for change detection
-    └── deepwork/           # Architecture audit & implementation plan
-```
-
----
-
-## Development Workflow
-
-### Running the Game
-Open `index.html` in a browser (or serve via `npx serve Mythika`). No build step required.
-
-### Making Changes
-1. Read relevant `codemap.md` for the directory you're modifying
-2. Follow the verification plan in `.slim/deepwork/architecture-audit.md`
-3. Update codemaps after modifications
-4. Test in browser — check console for errors
-
-### Performance Testing
-Add `?probe` to URL for FPS logging. Add `?probe&selftest` for input chain self-test.
-
-### Reduce Motion Testing
-Enable "Reduce Motion" in OS settings, or set `G.state.reduceMotion = true` in console.
-
----
-
-## Key Systems Reference
-
-| System | File | Purpose |
-|--------|------|---------|
-| Game Loop | `src/engine/game.js` | rAF loop, error recovery, adaptive reduce motion |
-| Renderer | `src/engine/renderer.js` | All drawing primitives, effects, projectiles |
-| Scene Manager | `src/engine/scene.js` + `scene-helpers.js` | Scene factory, transitions, scroll/clipping |
-| Input | `src/engine/input.js` | Touch/mouse/keyboard, tap queue, swipe, scroll |
-| Audio | `src/engine/audio.js` | Procedural synthesis, music tracks, SFX |
-| Combat | `src/systems/combat.js` | Turn-based, damage calc, AI, ailments, combos |
-| Progression | `src/systems/progression.js` | XP, levels, challenge scaling, difficulty |
-| Cultivation | `src/systems/cultivation_sys.js` | Realms, breakthrough, idle tick |
-| Save | `src/systems/save.js` | localStorage, migration, offline progress |
-| Journey | `src/systems/journey.js` | Narrative choices, aura unlocks |
-
----
-
-## Coding Conventions
-
-- **Immediate-mode Canvas**: Every frame rebuilds from scratch — no retained scene graph
-- **Global State**: `G.state` mutated directly — no Redux/Flux
-- **Factory Functions**: `UI.ComponentName(x, y, ...)` returns `{ render, update, onClick, contains }`
-- **Spring Physics**: `stiffness=120, damping=22` for MagneticBtn
-- **Reduced Motion**: Check `R.reducedMotion()` before any animation
-- **Color Tokens**: Use `R.colors.*` semantic tokens, never raw hex in components
-- **Radius Scale**: `R.radius.xs=3, s=5, m=8, l=10` — Shape Consistency Lock
-
----
-
-## Testing Checklist
-
-- [ ] Scene transitions work (Fade in/out)
-- [ ] Buttons respond to tap/click (MagneticBtn spring)
-- [ ] Scroll works (touch drag, wheel)
-- [ ] Save/load persists state correctly
-- [ ] Offline progress calculates on load
-- [ ] Reduce motion disables animations
-- [ ] No console errors during 5min play
-- [ ] Memory stable over 30min (no leaks)
+- Read `codemap.md` and the relevant nested `src/*/codemap.md` before architecture or subsystem changes.
+- When changing responsive UI, exercise portrait and landscape browser sizes, including 400x720, 540x900, 720x400, 1024x768, and 1440x900.
+- When changing a scene, verify the actual transition and lifecycle, not only scene registration: boot, navigation, map/exploration, combat, party/equipment, save/reload, and settings are the main journey checkpoints.

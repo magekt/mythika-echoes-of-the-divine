@@ -2,14 +2,79 @@ const Audio = {
   enabled: true,
   musicOn: true,
   sfxOn: true,
+  mute: false,
   _ctx: null,
   _musicNodes: [],
   _musicInterval: null,
   _currentTrack: null,
   _pendingTrack: null,
+  _ambientNodes: [],
+  _ambientInterval: null,
+  _ambientChordIndex: 0,
+  _delayNode: null,
+  _delayFeedback: null,
+  _delayDryGain: null,
+  _delayWetGain: null,
+  AMBIENT_IDS: ['title', 'ashram', 'combat_dark', 'combat_boss'],
   musicVolume: function(v) {
     if (this._musicGain) this._musicGain.gain.value = (v || 0.7) * 0.04;
   }
+};
+
+// Load persisted audio preferences on boot
+Audio.loadPrefs = function() {
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('mythika_audio') : null;
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (p.mute !== undefined) Audio.mute = !!p.mute;
+      if (p.musicOn !== undefined) Audio.musicOn = !!p.musicOn;
+      if (p.sfxOn !== undefined) Audio.sfxOn = !!p.sfxOn;
+    }
+  } catch(e) {}
+};
+
+Audio.savePrefs = function() {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem('mythika_audio', JSON.stringify({
+      mute: Audio.mute,
+      musicOn: Audio.musicOn,
+      sfxOn: Audio.sfxOn
+    }));
+  } catch(e) {}
+};
+
+// Master mute — silences everything regardless of individual toggles
+Audio.toggleMute = function() {
+  Audio.mute = !Audio.mute;
+  if (Audio.mute) {
+    Audio.musicOn = false;
+    Audio.sfxOn = false;
+    Audio.stopAll();
+  } else {
+    Audio.musicOn = true;
+    Audio.sfxOn = true;
+  }
+  Audio.savePrefs();
+};
+
+Audio.toggleMusic = function() {
+  if (Audio.mute) return;
+  Audio.musicOn = !Audio.musicOn;
+  Audio.savePrefs();
+  if (!Audio.musicOn) Audio.stopAll();
+  else {
+    const id = Audio._currentTrack || 'title';
+    if (Audio.AMBIENT_IDS.indexOf(id) !== -1) Audio.playAmbient(id);
+    else Audio.playMusic(id);
+  }
+};
+
+Audio.toggleSFX = function() {
+  if (Audio.mute) return;
+  Audio.sfxOn = !Audio.sfxOn;
+  Audio.savePrefs();
 };
 
 function initAudio() {
@@ -44,7 +109,9 @@ Audio.unlock = function() {
       if (Audio._pendingTrack && Audio._ctx.state === 'running') {
         const trackId = Audio._pendingTrack;
         Audio._pendingTrack = null;
-        Audio.playMusic(trackId);
+        const ambientIds = Audio.AMBIENT_IDS;
+        if (ambientIds.indexOf(trackId) !== -1) Audio.playAmbient(trackId);
+        else Audio.playMusic(trackId);
       }
     };
     if (Audio._ctx.state === 'suspended') {
@@ -65,6 +132,7 @@ Audio.ready = function() {
 
 Audio.beep = function(freq, duration, type) {
   if (!Audio.sfxOn || !Audio.ready()) return;
+  if (R.reducedMotion && R.reducedMotion()) return;
   try {
     const osc = Audio._ctx.createOscillator();
     const gain = Audio._ctx.createGain();
@@ -169,9 +237,9 @@ Audio.TRACKS = {
 };
 
 Audio.playMusic = function(trackId) {
-  this.stopMusic();
-  if (!this.musicOn) return;
-  if (!this.ready()) {
+   this.stopAll();
+   if (!this.musicOn || this.mute) return;
+   if (!this.ready()) {
     // Locked (pre-gesture): remember the request; Audio.unlock() starts it.
     this._pendingTrack = trackId;
     return;
@@ -215,8 +283,167 @@ Audio.stopMusic = function() {
   this._currentTrack = null;
 };
 
-Audio.cleanup = function() {
+// ── Ambient drone + delay-wash system (Phase 41 — AUD-01/02/03) ──────────
+
+Audio.playAmbient = function(trackId) {
+  this.stopAll();
+  if (!this.musicOn || this.mute) return;
+  if (!this.ready()) {
+    this._pendingTrack = trackId;
+    return;
+  }
+  const ctx = this._ctx;
+  const ambientDefs = {
+    title: {
+      chords: [
+        [261.63, 311.13, 392.00, 523.25],
+        [293.66, 349.23, 440.00, 587.33],
+        [246.94, 293.66, 392.00, 493.88],
+        [329.63, 392.00, 493.88, 659.25]
+      ],
+      chordMs: 6000,
+      cutoff: 600,
+      feedback: 0.65,
+      detuneCents: 6
+    },
+    ashram: {
+      chords: [
+        [293.66, 349.23, 440.00, 587.33],
+        [349.23, 415.30, 493.88, 659.25],
+        [392.00, 440.00, 523.25, 659.25],
+        [329.63, 392.00, 493.88, 659.25]
+      ],
+      chordMs: 7000,
+      cutoff: 800,
+      feedback: 0.60,
+      detuneCents: 5
+    },
+    combat_dark: {
+      chords: [
+        [110.00, 130.81, 146.83, 185.00],
+        [130.81, 155.56, 185.00, 220.00],
+        [146.83, 164.81, 185.00, 233.08],
+        [110.00, 138.59, 174.61, 207.65]
+      ],
+      chordMs: 4000,
+      cutoff: 400,
+      feedback: 0.70,
+      detuneCents: 12
+    },
+    combat_boss: {
+      chords: [
+        [82.41, 98.00, 110.00, 130.81],
+        [98.00, 116.54, 130.81, 155.56],
+        [110.00, 130.81, 146.83, 174.61],
+        [87.31, 103.83, 116.54, 138.59]
+      ],
+      chordMs: 3500,
+      cutoff: 350,
+      feedback: 0.75,
+      detuneCents: 14
+    }
+  };
+  const def = ambientDefs[trackId];
+  if (!def) return;
+  this._currentTrack = trackId;
+  this._ambientChordIndex = 0;
+
+  const masterGain = ctx.createGain();
+  masterGain.gain.value = 0.5;
+  masterGain.connect(this._musicGain);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = def.cutoff;
+  filter.Q.value = 1.2;
+  filter.connect(masterGain);
+
+  const delay = ctx.createDelay(2.0);
+  delay.delayTime.value = 0.7;
+  const feedback = ctx.createGain();
+  feedback.gain.value = def.feedback;
+  const delayDry = ctx.createGain();
+  delayDry.gain.value = 0.4;
+  const delayWet = ctx.createGain();
+  delayWet.gain.value = 0.35;
+  delay.connect(feedback);
+  feedback.connect(delay);
+  delayDry.connect(delay);
+  delayWet.connect(delay);
+  filter.connect(delayDry);
+  delay.connect(masterGain);
+  filter.connect(delayWet);
+
+  this._delayNode = delay;
+  this._delayFeedback = feedback;
+  this._delayDryGain = delayDry;
+  this._delayWetGain = delayWet;
+
+  const chordLayer = [];
+  const startChord = def.chords[0];
+  for (let i = 0; i < startChord.length; i++) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = startChord[i];
+    osc.detune.value = (Math.random() * 2 - 1) * def.detuneCents;
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.035, ctx.currentTime + 2.0);
+    osc.connect(gain);
+    gain.connect(filter);
+    osc.start();
+    chordLayer.push({ osc, gain, freq: startChord[i] });
+  }
+  this._ambientNodes = [masterGain, filter, delay, feedback, delayDry, delayWet];
+  this._ambientChordOscs = chordLayer;
+
+  this._ambientInterval = setInterval(function() {
+    if (!Audio.ready() || !Audio.musicOn || Audio.mute) return;
+    Audio._ambientChordIndex = (Audio._ambientChordIndex + 1) % def.chords.length;
+    const nextChord = def.chords[Audio._ambientChordIndex];
+    const oscs = Audio._ambientChordOscs;
+    for (let i = 0; i < oscs.length; i++) {
+      const osc = oscs[i];
+      const target = nextChord[i];
+      if (osc.freq !== target) {
+        osc.osc.frequency.linearRampToValueAtTime(target, ctx.currentTime + 3.0);
+        osc.freq = target;
+      }
+    }
+  }, def.chordMs);
+};
+
+Audio.stopAmbient = function() {
+  if (this._ambientInterval) {
+    clearInterval(this._ambientInterval);
+    this._ambientInterval = null;
+  }
+  const oscs = this._ambientChordOscs || [];
+  const c = this._ctx;
+  for (const o of oscs) {
+    try {
+      o.gain.gain.linearRampToValueAtTime(0, c.currentTime + 1.0);
+      setTimeout(function() { try { o.osc.stop(); } catch(e) {} }, 1100);
+    } catch(e) {}
+  }
+  this._ambientChordOscs = null;
+  for (const n of this._ambientNodes) {
+    try { n.disconnect(); } catch(e) {}
+  }
+  this._ambientNodes = [];
+  this._delayNode = null;
+  this._delayFeedback = null;
+  this._delayDryGain = null;
+  this._delayWetGain = null;
+};
+
+Audio.stopAll = function() {
   this.stopMusic();
+  this.stopAmbient();
+};
+
+Audio.cleanup = function() {
+  this.stopAll();
   this._pendingTrack = null;
   if (this._ctx && this._ctx.state !== 'closed') {
     this._ctx.suspend().catch(function() {});
@@ -227,3 +454,62 @@ Audio.cleanup = function() {
 document.addEventListener('pagehide', function() {
   Audio.cleanup();
 });
+
+// ── UI SFX (Phase 40 — AUD-04) ────────────────────────────────────────────
+
+ Audio.toast = function() {
+   if (!Audio.ready() || !Audio.sfxOn || Audio.mute) return;
+   if (R.reducedMotion && R.reducedMotion()) return;
+  try {
+    const ctx = Audio._ctx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(600, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.06);
+    gain.gain.setValueAtTime(0.03, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.06);
+  } catch(e) {}
+};
+
+ Audio.modalOpen = function() {
+   if (!Audio.ready() || !Audio.sfxOn || Audio.mute) return;
+   if (R.reducedMotion && R.reducedMotion()) return;
+  try {
+    const ctx = Audio._ctx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.04, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.08);
+  } catch(e) {}
+};
+
+ Audio.btnTap = function() {
+   if (!Audio.ready() || !Audio.sfxOn || Audio.mute) return;
+   if (R.reducedMotion && R.reducedMotion()) return;
+  try {
+    const ctx = Audio._ctx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(300, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.04);
+    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.04);
+  } catch(e) {}
+};

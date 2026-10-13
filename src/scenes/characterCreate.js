@@ -163,6 +163,16 @@ const characterCreateScene = Scene.create({
         if (sb.mp) bonusParts.push('MP+' + sb.mp);
         const bonusStr = bonusParts.join(' ');
         R.text(ctx, bonusStr, bx + 18, by + 60, R.colors.blueLight, R.fonts.sm);
+        const seen = G.state.glossSeen || {};
+        const shownGlosses = [];
+        if (!seen.__step0GlossesShown) {
+          for (const label of ['HP','STR','MAG','MP']) {
+            const g = GlossSystem.gloss(label);
+            if (g) { R.text(ctx, g, bx + 18, by + 72, R.colors.textDim, R.fonts.xs); shownGlosses.push(label); }
+          }
+          G.state.glossSeen = G.state.glossSeen || {};
+          G.state.glossSeen.__step0GlossesShown = true;
+        }
       };
       btn.onClick = function() {
         characterCreateScene.data.selectedClass = this._id;
@@ -359,6 +369,20 @@ const characterCreateScene = Scene.create({
     G.state.player = hero;
     G.state.gold = 50;
     G.state.inventory = [];
+    // Every new hero starts with one deterministic, universally compatible
+    // piece of gear so Equipment can be verified before the first encounter.
+    G.state.inventory.push({
+      id: 'starter_leather',
+      templateId: 'leather',
+      name: 'Leather Armor',
+      type: 'armor',
+      rarity: 'common',
+      rarityName: 'Common',
+      rarityColor: RARITY.common.color,
+      def: 3,
+      cost: 30,
+      starter: true
+    });
     Economy.addItem({ name: 'HP Potion', type: 'consumable', heal: 30, cost: 15, desc: 'Restores 30 HP' });
     Economy.addItem({ name: 'HP Potion', type: 'consumable', heal: 30, cost: 15, desc: 'Restores 30 HP' });
     G.state.ashramLevel = 1;

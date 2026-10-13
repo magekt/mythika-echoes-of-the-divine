@@ -20,7 +20,8 @@ const equipmentScene = Scene.create({
     tab: 'inventory',
     scrollY: 0,
     contentHeight: 0,
-    staticDraws: []
+    staticDraws: [],
+    _bgAlpha: 0
   },
 
   enter: function() {
@@ -29,6 +30,8 @@ const equipmentScene = Scene.create({
     this.data.selectedHero = G.state.player;
     this.data.selectedItem = null;
     this.data.tab = 'inventory';
+    this.data._bgAlpha = 0;
+    R.Backgrounds.registerSlot('ashram');
     this.buildUI();
   },
 
@@ -55,6 +58,8 @@ const equipmentScene = Scene.create({
     this.data.staticDraws = [];
     const SD = this.data.staticDraws;
     let y = this.getContentTop();
+    SD.push({ render: function(ctx) { UI.HeroSurface.renderDetail(ctx, 14, y, G.W - 28, 78, equipmentScene.data.selectedHero, 'equipment'); } });
+    y += 86;
 
     // --- Tabs: equal rhythm, with explicit 44px action targets ---
     const tabH = 48;
@@ -233,45 +238,30 @@ const equipmentScene = Scene.create({
     const hero = this.data.selectedHero;
     if (!item || !hero) return;
 
-    const slot = item.type === 'weapon' ? 'weaponEquipped' : item.type === 'armor' ? 'armorEquipped' : 'accessoryEquipped';
-    const oldItem = hero[slot];
-    
-    // Swap only real inventory items back into the bag; legacy string slots are discarded.
-    if (oldItem && typeof oldItem === 'object') {
-      const idx = G.state.inventory.indexOf(oldItem);
-      if (idx >= 0) G.state.inventory.splice(idx, 1);
-      G.state.inventory.push(oldItem);
+    const result = EquipmentSystem.equip(hero, item);
+    if (!result.ok) {
+      const message = result.reason === 'incompatible-weapon'
+        ? hero.name + ' cannot use ' + item.name + '!'
+        : 'Cannot equip ' + item.name + '.';
+      Notify.show(message, 2, R.colors.red);
+      if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast(message, { color: R.colors.danger, icon: '🔒' });
+      Audio.error();
+      return;
     }
 
-    const invIdx = G.state.inventory.indexOf(item);
-    if (invIdx >= 0) G.state.inventory.splice(invIdx, 1);
-    hero[slot] = item;
-
     Notify.show('Equipped ' + item.name, 2, getLootColor(item.rarity));
+    if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Equipped ' + item.name + '!', { color: R.colors.success, icon: '✓' });
     this.buildUI();
   },
 
   unequipItem: function(slotType) {
     const hero = this.data.selectedHero;
     if (!hero) return;
+    const result = EquipmentSystem.unequip(hero, slotType);
+    if (!result.ok) return;
     
-    const slot = slotType + 'Equipped';
-    const item = hero[slot];
-    if (!item) return;
-
-    hero[slot] = null;
-
-    // Legacy saves may hold plain strings in gear slots — discard instead of re-inventorying.
-    if (typeof item === 'string') {
-      Notify.show('Removed legacy gear', 2, R.colors.textDim);
-      this.buildUI();
-      return;
-    }
-
-    if (!G.state.inventory) G.state.inventory = [];
-    G.state.inventory.push(item);
-    
-    Notify.show('Unequipped ' + item.name, 2, R.colors.textPrimary);
+    Notify.show('Unequipped ' + result.item.name, 2, R.colors.textPrimary);
+    if (typeof UI !== 'undefined' && UI.Feedback) UI.Feedback.Toast('Unequipped ' + result.item.name + '.', { color: R.colors.textPrimary, icon: '✓' });
     this.buildUI();
   },
 
@@ -282,6 +272,16 @@ const equipmentScene = Scene.create({
   },
 
   render: function(ctx) {
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    R.Backgrounds.renderBackground(ctx, 'ashram', bgAlpha);
+
+    // Render equipment moment in equipped tab
+    if (this.data.tab === 'equipped' && this.data.selectedHero) {
+      R.Backgrounds.renderCharacterMoment(ctx, 'hero:' + this.data.selectedHero.id, G.W - 140, 150, 120, 180, bgAlpha * 0.15);
+    }
+
     Scene.drawHeader(ctx, 104);
     R.textCenter(ctx, 'Equipment', G.W / 2, 24, R.colors.accent, R.fonts.lg);
     if (this.data.selectedHero) {

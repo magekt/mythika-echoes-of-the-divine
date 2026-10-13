@@ -85,8 +85,9 @@
 
 **Key Exports**:
 - `SaveSystem.save()` — deep clone `G.state` → JSON → localStorage (30s auto-save)
-- `SaveSystem.load()` — parse → `Object.assign(G.state, data.state)` → migrate → offline progress calc
-- `SaveSystem.migrate()` — heals legacy inventory/gear, sanitizes numerics
+- `SaveSystem.hydrate(state)` — overlays validated saved data on a fresh default state, then migrates it
+- `SaveSystem.load()` — parse → hydrate → offline progress calc
+- `SaveSystem.migrate()` — heals legacy inventory/gear, removes retired gear caches, sanitizes numerics, and normalizes canonical world state
 - `SaveSystem.exportFile()` / `importFile()` — manual backup/restore
 - `SaveSystem.startAutoSave()` / `stopAutoSave()` — 30s interval
 - `SaveSystem.getSaveInfo()` — metadata for UI
@@ -97,9 +98,9 @@
 - Prana gain = elapsed × pranaPerSec
 - Farm plots: fast-forward through automatic harvest/replant cycles
 
-**Dependencies**: `CultivationSystem`, `HERB_GROWTH`, `Notify`, `R.applyFontScale`
+**Dependencies**: `CultivationSystem`, `WorldState`, `HERB_GROWTH`, `Notify`, `R.applyFontScale`
 
-**State Mutations**: `G.state.*` (full replace on load), `G.state.cultivationBase`, `G.state.prana`, `G.state.farmPlots`
+**State Mutations**: `G.state.*` (fresh-baseline hydration on load), `G.state.cultivationBase`, `G.state.prana`, `G.state.farmPlots`
 
 ### Zone Reward System (`zone_rewards.js`)
 **Responsibility**: Save-backed, idempotent percentage and one-time completion rewards for zone exploration.
@@ -110,12 +111,17 @@
 - `ZoneRewardSystem.commitPendingProgress()` — commits pending progress and crossed percentage rewards
 - `ZoneRewardSystem.completeZone(zoneId)` — commits remaining progress and the one-time completion bundle
 
-**Dependencies**: `ZONES`, `Economy`, `G`
+**Dependencies**: `ZONES`, `Economy`, `Influence`, `G`
 
-**State Mutations**: `G.state.zoneProgress`, `G.state.zoneRewardLedger`, current party stats and completion currencies
+**State Mutations**: `G.state.zoneProgress`, `G.state.zoneRewardLedger`, `G.state.world.regions`, current party stats and completion currencies
+
+### Encounter System (`encounter.js`)
+**Responsibility**: Resolves narrative choices, canonical rewards, story flags, quest tracking, and exactly-once regional influence actions keyed by encounter and choice index.
+
+**Dependencies**: `ENCOUNTERS`, reward systems, `QuestSystem`, `Influence`
 
 ### Journey System (`journey.js` — ~200 lines)
-**Responsibility**: Narrative journeys with choices, aura unlocks, progress tracking.
+**Responsibility**: Narrative journeys with choices, aura unlocks, progress tracking, and rule-driven regional influence on completion.
 
 **Key Exports**:
 - `JourneySystem.start(journeyId)` — initializes journey state
@@ -123,7 +129,7 @@
 - `JourneySystem.getProgress(journeyId)` — completion percentage
 - `JourneySystem.trackRealm(realmId)` — realm-based journey triggers
 
-**Dependencies**: `JOURNEYS` data, `QuestSystem`, `Notify`, `Audio`, `Progression`
+**Dependencies**: `JOURNEYS` data, `QuestSystem`, `Notify`, `Audio`, `Progression`, `INFLUENCE_RULES`, `Influence`
 
 **State Mutations**: `G.state.journeys.progress`, `G.state.auras`, `G.state.equippedAuras`
 

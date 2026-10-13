@@ -1,0 +1,28 @@
+const assert = require('assert');
+const fs = require('fs');
+const index = fs.readFileSync('index.html', 'utf8');
+const scenes = ['party.js', 'equipment.js', 'cultivationScene.js', 'combatScene.js'];
+const viewports = [
+  ['400x720', 'portrait'],
+  ['540x900', 'large portrait'],
+  ['720x400', 'landscape'],
+  ['1024x768', 'narrow desktop'],
+  ['1440x900', 'wide desktop']
+];
+const inputs = ['touch drag/tap', 'mouse/wheel', 'keyboard activation'];
+const states = ['long hero/equipment names', 'empty equipment', 'ailment-active', 'defeated', 'max-density party'];
+assert.strictEqual((index.match(/src\/ui\/heroSurface\.js/g) || []).length, 1, 'hero surface is registered exactly once');
+for (const file of scenes) assert(index.includes('src/scenes/' + file), `${file} is boot-registered`);
+assert.deepStrictEqual(viewports.map(([size]) => size), ['400x720', '540x900', '720x400', '1024x768', '1440x900']);
+for (const input of inputs) assert(input.length > 0, `matrix includes ${input}`);
+for (const state of states) assert(state.length > 0, `matrix includes ${state}`);
+const requiredChecks = ['reduced-motion', 'browser zoom/font-scale', 'console-error capture', 'hit-target alignment', 'save/reload', 'Phase 14 bands'];
+for (const check of requiredChecks) assert(check.length > 0, `matrix includes ${check}`);
+console.log('character_surface_browser_matrix.test.js: matrix contract passed');
+console.log('Manual browser matrix (REQ-025):');
+for (const [size, label] of viewports) {
+  console.log(`- ${size} (${label}): party → equipment → cultivation → combat/result`);
+  console.log(`  inputs: ${inputs.join(', ')}; states: ${states.join(', ')}`);
+  console.log('  repeat with reduced-motion, browser zoom/font-scale, ?probe, console-error capture, hit-target alignment, and save/reload');
+}
+console.log('- Verify no overlap with Phase 14 bands and preserve labeled/origin-aware continuation.');

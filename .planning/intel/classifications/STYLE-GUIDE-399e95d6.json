@@ -1,0 +1,26 @@
+{
+  "source_path": "/Users/admin/Documents/Deepankar Project/dragonSword_EXPMinima/STYLE_GUIDE.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Mythika Code Style Guide",
+  "summary": "Documents coding, architecture, rendering, accessibility, and testing conventions for the Mythika browser game.",
+  "scope": [
+    "vanilla JavaScript",
+    "HTML5 Canvas",
+    "script loading",
+    "global state",
+    "scenes",
+    "UI components",
+    "rendering",
+    "accessibility",
+    "data definitions",
+    "error handling",
+    "HTML",
+    "CSS"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

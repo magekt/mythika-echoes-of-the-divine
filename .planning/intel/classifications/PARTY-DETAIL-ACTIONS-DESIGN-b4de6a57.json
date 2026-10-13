@@ -1,0 +1,13 @@
+{
+  "source_path": "/Users/admin/Documents/Deepankar Project/dragonSword_EXPMinima/PARTY_DETAIL_ACTIONS_DESIGN.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Party Detail Actions — UI Design Specification",
+  "summary": "Defines the mobile-first party hero detail layout, visual tokens, interaction states, accessibility constraints, and restrained motion behavior.",
+  "scope": ["Party hero detail view", "actions panel", "hero summary", "equipment actions", "item use", "scrolling", "UI.Button", "design tokens"],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": "Classified as SPEC because the document explicitly identifies itself as a UI Design Specification and defines implementation-level layout, token, state, interaction, accessibility, and motion constraints."
+}

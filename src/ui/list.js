@@ -11,12 +11,22 @@ UI.ScrollList = function(x, y, w, h, opts) {
     selectedIndex: -1,
     onClick: o.onClick || null,
     onRenderItem: o.onRenderItem || null,
+    getItemHeight: o.getItemHeight || null,
     headerHeight: o.headerHeight || 0,
     bottomPadding: o.bottomPadding || 20,
+    itemHeights: [],
 
     setItems: function(items) {
       this.items = items;
-      this.contentHeight = items.length * (this.itemHeight + this.itemGap) + this.padding * 2 + this.bottomPadding;
+      // Compute per-item heights if getItemHeight is provided
+      if (this.getItemHeight) {
+        this.itemHeights = items.map((item, i) => this.getItemHeight(item, i));
+        this.contentHeight = this.itemHeights.reduce((sum, h) => sum + h, 0) + 
+                             items.length * this.itemGap + this.padding * 2 + this.bottomPadding;
+      } else {
+        this.itemHeights = items.map(() => this.itemHeight);
+        this.contentHeight = items.length * (this.itemHeight + this.itemGap) + this.padding * 2 + this.bottomPadding;
+      }
       if (this.selectedIndex >= items.length) this.selectedIndex = -1;
       // Timestamp drives the 90ms rebuild crossfade (tab switches, refresh).
       this._builtAt = performance.now();
@@ -28,7 +38,7 @@ UI.ScrollList = function(x, y, w, h, opts) {
       let yPos = this.y + this.padding - this.scrollY;
       for (let i = 0; i < this.items.length; i++) {
         const itemY = yPos;
-        const itemH = this.itemHeight;
+        const itemH = this.itemHeights[i] || this.itemHeight;
         if (tap.x >= this.x && tap.x <= this.x + this.w &&
             tap.y >= itemY && tap.y <= itemY + itemH &&
             tap.y >= this.y && tap.y <= this.y + this.h) {
@@ -45,7 +55,7 @@ UI.ScrollList = function(x, y, w, h, opts) {
           }
           return true;
         }
-        yPos += this.itemHeight + this.itemGap;
+        yPos += itemH + this.itemGap;
       }
       return false;
     },
@@ -74,7 +84,7 @@ UI.ScrollList = function(x, y, w, h, opts) {
       for (let i = 0; i < this.items.length; i++) {
         const item = this.items[i];
         const itemY = yPos;
-        const itemH = this.itemHeight;
+        const itemH = this.itemHeights[i] || this.itemHeight;
 
         if (itemY + itemH >= this.y && itemY <= endY) {
           const selected = i === this.selectedIndex;

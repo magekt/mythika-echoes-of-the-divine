@@ -1,0 +1,43 @@
+{
+  "_meta": { "updated_at": "2026-10-09T11:19:16Z", "source": "engine/systems/ui/data globals" },
+  "engine": {
+    "G": "global state (G.state, G.scenes, G.W/H, gScene/gInit/gLoop in game.js)",
+    "R": "renderer tokens (R.colors/fonts/radius/roundRect/textCenter, R.Backgrounds, R.reducedMotion)",
+    "Scene": "Scene.create lifecycle auto-wrap; registerScene registry",
+    "Navigation": "canonical routes (Navigation.go) + legacy gScene wrapper; navigation_routes.js",
+    "Lifecycle": "scene enter/update/render/leave guards, leak prevention",
+    "Diagnostics": "opt-in bounded collectors behind Settings debug toggle",
+    "Input": "touch-first unified input chain (&selftest)",
+    "Audio": "Web Audio SFX (Audio.levelUp etc)",
+    "Notify": "toast queue (show/wrap/update/render, max 3) + achievement banners",
+    "Fade": "scene transition fades via gScene/Fade",
+    "Auth": "optional Firebase auth bridge (auth.js, window.firebase* globals)"
+  },
+  "systems": {
+    "SaveSystem": "persistence/migrate/normalize; owns defaults, legacy healing (affinity/linger/combo/gifts/beastBond)",
+    "Progression": "XP/levels/cultivation gating, calcHeroStats",
+    "Combat": "turn math, clones-only for bond buffs; Duel = PvP variant",
+    "Economy": "currency ownership; generateLoot; ZoneRewardSystem zone payouts",
+    "QuestSystem": "getAllQuests, chains, persistent flags",
+    "AchievementSystem": "unlocks via Notify.achievement",
+    "JourneySystem/JourneyAccess": "journeys, getAvailableJourneys",
+    "EncounterSystem/EncounterTrigger": "encounterAvailable, exactly-once ledger",
+    "WorldState": "persistent world truth (influence/landmarks/echoes/events inputs)",
+    "Influence/INFLUENCE_RULES": "faction influence from influence_rules.js data",
+    "Landmarks/LandmarkDefs": "landmark refs within zones",
+    "NarrativeEchoes": "environmental storytelling from encounter flags",
+    "WorldEvents": "local deterministic timed events",
+    "LivingZones": "companion-gated variants (bondReq), no new zone IDs",
+    "BondSystem": "single-authority affinity/arcs/combat bonuses/combos/gifts",
+    "BeastBond": "hearts, feed/train care, potency/passive, evolution assist (canEvolve/evolveBeast)",
+    "AlchemySystem/CultivationSystem/FarmSystem": "recipes/rates/herbs gameplay loops",
+    "Hints": "locked/blocked guidance"
+  },
+  "ui": {
+    "UI": "factory namespace: Button/Panel/ProgressBar/Text/List/TabBar/Modal/Card/HeroSurface/Feedback",
+    "contract": "factories return render/update/click/contains; use R tokens, no ad-hoc hit testing",
+    "UI.HeroSurface": "read-only hero view-model incl. affinity meter/tiers",
+    "UI.Feedback": "toast/hint/badge/blocker library, mutation-free, drained in game loop"
+  },
+  "data": ["HEROES/HERO_IDS/HERO_GIFTS", "ENEMIES/ENEMY_ABILITIES/ENEMY_PATTERNS", "ZONES/ZONE_ENEMIES/ZONE_VARIANTS", "MAP_LAYOUT/LANDMARKS/ZONE_LANDMARKS", "PERKS/AURAS/ITEMS/EQUIPMENT_POOL", "CLASSES/CULTIVATION_RATES/ALCHEMY_RECIPES/HERB_GROWTH", "SPIRIT_BEASTS/BEAST_EVOLUTIONS", "QUESTS/QUEST_CHAINS/ACHIEVEMENTS/JOURNEYS/ENCOUNTERS", "BONDS/NARRATIVE_ECHOES/WORLD_EVENTS/REALMS"]
+}

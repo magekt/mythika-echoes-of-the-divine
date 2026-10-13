@@ -43,12 +43,13 @@ UI.Card = function(x, y, w, h, opts) {
 
     render: function(ctx) {
       if (!this.visible) return;
-      R.roundRect(ctx, this.x, this.y, this.w, this.h, 6, this.highlighted ? this.highlightColor : this.color);
+      const r = 8;
+      R.roundRect(ctx, this.x, this.y, this.w, this.h, r, this.highlighted ? this.highlightColor : this.color);
       if (this.borderColor && !this.highlighted) {
         ctx.strokeStyle = this.borderColor;
         ctx.lineWidth = 1;
         ctx.beginPath();
-        const r = 6, x = this.x, y = this.y, w = this.w, h = this.h;
+        const x = this.x, y = this.y, w = this.w, h = this.h;
         ctx.moveTo(x + r, y);
         ctx.lineTo(x + w - r, y);
         ctx.quadraticCurveTo(x + w, y, x + w, y + r);
@@ -60,6 +61,8 @@ UI.Card = function(x, y, w, h, opts) {
         ctx.quadraticCurveTo(x, y, x + r, y);
         ctx.closePath();
         ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.04)';
+        ctx.fillRect(this.x + 4, this.y + 2, this.w - 8, 1);
       }
       if (this.title) {
         R.textCenter(ctx, this.title, this.x + this.w / 2, this.y + 16, R.colors.orange, R.fonts.md);

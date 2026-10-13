@@ -151,6 +151,12 @@ ZoneRewardSystem._commitTo = function(zoneId, targetProgress) {
   if (progress >= 100 && !ledger.completionClaimed) {
     const appliedCompletion = this._applyReward(this._getReward(zoneId, 'completion'));
     ledger.completionClaimed = true;
+    if (typeof Influence !== 'undefined' && Influence.applyAction) {
+      const inf = Influence.applyAction('zone_complete', zoneId, zoneId);
+      if (inf.changed && inf.to.control && inf.to.control !== inf.from.control) {
+        Notify.show(zoneId.charAt(0).toUpperCase() + zoneId.slice(1) + ' control shifted to ' + inf.to.control.charAt(0).toUpperCase() + inf.to.control.slice(1) + '!', 4, R.colors.gold);
+      }
+    }
     result.completionReward = appliedCompletion;
     result.changed = true;
     result.messages.push('Zone complete!');

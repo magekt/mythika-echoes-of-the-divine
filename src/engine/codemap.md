@@ -48,7 +48,7 @@ Gating: click sounds throttled to 45ms, music only when musicOn=true
 
 | Module | Exports | Consumers |
 |--------|---------|-----------|
-| `game.js` | `G`, `Notify`, `Fade`, `fitGame`, `gInit`, `gLoop`, `gScene`, `safeEnter`, `drawBackground` | All scenes, systems, main.js |
+| `game.js` | `G`, `G.createDefaultState`, `Notify`, `Fade`, `fitGame`, `gInit`, `gLoop`, `gScene`, `safeEnter`, `drawBackground` | All scenes, systems, main.js |
 | `scene.js` | `Scene.create`, `registerScene`, `initSceneManager` | main.js (registration), scenes (inheritance) |
 | `scene-helpers.js` | `Scene.drawStatic`, `Scene.scrollInput`, `Scene.drawScrollbar`, `Scene.gearLabel`, `Scene.cullButtons`, `Scene.drawHeader`, `Scene.clipContent`, `Scene.backButton`, `Scene.HeroMoment`, `Scene.ScrollReveal`, `Scene.FluidNav`, `Scene.EmptyState` | All scenes |
 | `renderer.js` | `R` (colors, fonts, radius, primitives, effects, projectiles, clickFx, zone backgrounds) | All scenes, systems, UI |

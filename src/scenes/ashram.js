@@ -5,14 +5,18 @@ const ashramScene = Scene.create({
     infoText: '',
     popup: null,
     scrollY: 0,
-    contentHeight: 0
+    contentHeight: 0,
+    _bgAlpha: 0
   },
 
   enter: function(options) {
+    this.data.layout = Scene.responsive();
     Hints.show('welcome', 'Welcome to your Ashram. Tap Travel to begin your journey.');
     if ((G.state.gold || 0) >= 100) Hints.show('bazaar', 'You have coin to spend — the Bazaar buys and sells gear.');
-    Audio.playMusic('ashram');
+    Audio.playAmbient('ashram');
     this.data.popup = null;
+    this.data._bgAlpha = 0;
+    R.Backgrounds.registerSlot('ashram');
     this.buildMenu(!!(options && options.restoreScroll));
     SaveSystem.startAutoSave();
   },
@@ -74,9 +78,7 @@ const ashramScene = Scene.create({
         if (this._text === 'Map') {
           for (const [id, zone] of Object.entries(ZONES)) {
             const pct = G.state.zoneProgress[id] || 0;
-            const reqProgress = !zone.reqZone || (G.state.zoneProgress[zone.reqZone] || 0) >= 100;
-            const reqLevel = (G.state.party || []).some(h => h.level >= (zone.reqLevel || 1));
-            if (pct < 100 && reqProgress && reqLevel) badge++;
+            if (pct < 100 && ZoneAccess.status(id).allowed) badge++;
           }
         } else if (this._text === 'Party') {
           const hero = G.state.player;
@@ -139,13 +141,18 @@ const ashramScene = Scene.create({
       },
       {
         label: 'UTILITY', color: R.colors.textDim,
-        items: [
-          { text: 'Rest', scene: '', icon: '\u266B' },
-          { text: 'Trials', scene: 'trials', icon: '\u2666', badge: G.state.trialBest || null },
-          { text: 'Rebirth', scene: 'punarjanma', icon: '\u21BB' },
-          { text: 'Settings', scene: 'settings', icon: '\u2630' },
-          { text: 'Debug', scene: 'debug', icon: '\u25A0' }
-        ]
+        items: (function() {
+          var items = [
+            { text: 'Rest', scene: '', icon: '\u266B' },
+            { text: 'Trials', scene: 'trials', icon: '\u2666', badge: G.state.trialBest || null },
+            { text: 'Rebirth', scene: 'punarjanma', icon: '\u21BB' },
+            { text: 'Settings', scene: 'settings', icon: '\u2630' }
+          ];
+          if (/[?&]debug(?:&|$)/.test(window.location.search)) {
+            items.push({ text: 'Debug', scene: 'debug', icon: '\u25A0' });
+          }
+          return items;
+        })()
       }
     ];
 
@@ -286,6 +293,14 @@ const ashramScene = Scene.create({
   render: function(ctx) {
     const realm = REALMS.find(r => r.id === G.state.realm) || REALMS[0];
 
+    // Render background first (behind everything)
+    const bgAlpha = this.data._bgAlpha < 1 ? Math.min(1, this.data._bgAlpha + (G.dt || 0.016) * 2) : 1;
+    this.data._bgAlpha = bgAlpha;
+    R.Backgrounds.renderBackground(ctx, 'ashram', bgAlpha);
+
+    // Render character moment (architecture silhouette in top gutter)
+    R.Backgrounds.renderCharacterMoment(ctx, 'ashram', 20, 100, 80, 120, bgAlpha * 0.3);
+
     // Render noise/grain overlay for editorial luxury feel
     R.renderNoise(ctx);
 
@@ -335,6 +350,28 @@ const ashramScene = Scene.create({
       const zoneName = ZONES[G.state.currentZone] ? ZONES[G.state.currentZone].name : G.state.currentZone;
       const zonePct = G.state.zoneProgress[G.state.currentZone] || 0;
       R.textCenter(ctx, 'Zone: ' + zoneName + ' (' + zonePct + '%)', G.W / 2, 236, R.colors.textDim, R.fonts.sm);
+    }
+
+    if (G.state.journeys && G.state.journeys.active) {
+      const aj = JOURNEYS[G.state.journeys.active];
+      if (aj && !JourneySystem.isCompleted(G.state.journeys.active)) {
+        R.roundRect(ctx, G.W/2 - 100, 248, 200, 28, 8, 'rgba(200,160,48,0.08)');
+        ctx.strokeStyle = R.colors.gold;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        const rj = 8, xj = G.W/2 - 100, yj = 248, wj = 200, hj = 28;
+        ctx.moveTo(xj + rj, yj); ctx.lineTo(xj + wj - rj, yj);
+        ctx.quadraticCurveTo(xj + wj, yj, xj + wj, yj + rj);
+        ctx.lineTo(xj + wj, yj + hj - rj);
+        ctx.quadraticCurveTo(xj + wj, yj + hj, xj + wj - rj, yj + hj);
+        ctx.lineTo(xj + rj, yj + hj);
+        ctx.quadraticCurveTo(xj, yj + hj, xj, yj + hj - rj);
+        ctx.lineTo(xj, yj + rj);
+        ctx.quadraticCurveTo(xj, yj, xj + rj, yj);
+        ctx.closePath(); ctx.stroke();
+        R.textCenter(ctx, aj.icon + ' ' + aj.name, G.W/2, 258, R.colors.gold, R.fonts.sm);
+        R.textCenter(ctx, 'Journey — tap to continue', G.W/2, 270, R.colors.textDim, R.fonts.xs);
+      }
     }
 
     const top = this.getContentTop();

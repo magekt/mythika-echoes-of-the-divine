@@ -8,6 +8,7 @@ const settingsScene = Scene.create({
   },
 
   enter: function() {
+    this.data.layout = Scene.responsive();
     this.data.scrollY = 0;
     this.buildButtons();
   },
@@ -50,15 +51,35 @@ const settingsScene = Scene.create({
     y += secHh + 8;
 
     // --- Audio Section ---
-    // SFX toggle button - primary action, 38px minimum height
+    // Mute master toggle
+    const muteBtn = UI.Button(20, y, G.W - 40, 38, 'Mute: ' + (Audio.mute ? 'ON' : 'OFF'));
+    muteBtn.onClick = function() {
+      if (Audio.btnTap) Audio.btnTap();
+      Audio.toggleMute();
+      settingsScene.buildButtons();
+    };
+    this.data.buttons.push(muteBtn);
+    y += 44;
+
+    // SFX toggle button
     const sfxBtn = UI.Button(20, y, G.W - 40, 38, 'SFX: ' + (Audio.sfxOn ? 'ON' : 'OFF'));
-    sfxBtn.onClick = function() { Audio.sfxOn = !Audio.sfxOn; settingsScene.buildButtons(); };
+    sfxBtn.enabled = !Audio.mute;
+    sfxBtn.onClick = function() {
+      if (Audio.btnTap) Audio.btnTap();
+      Audio.toggleSFX();
+      settingsScene.buildButtons();
+    };
     this.data.buttons.push(sfxBtn);
     y += 44;
 
     // Music toggle button
     const musicBtn = UI.Button(20, y, G.W - 40, 38, 'Music: ' + (Audio.musicOn ? 'ON' : 'OFF'));
-    musicBtn.onClick = function() { Audio.musicOn = !Audio.musicOn; settingsScene.buildButtons(); };
+    musicBtn.enabled = !Audio.mute;
+    musicBtn.onClick = function() {
+      if (Audio.btnTap) Audio.btnTap();
+      Audio.toggleMusic();
+      settingsScene.buildButtons();
+    };
     this.data.buttons.push(musicBtn);
     y += 44;
 
@@ -173,6 +194,19 @@ const settingsScene = Scene.create({
       });
     };
     this.data.buttons.push(deleteBtn);
+    y += 44;
+
+    // --- Advanced Section ---
+    // Debug Diagnostics toggle (disabled by default; opt-in local collectors)
+    const dbgBtn = UI.Button(20, y, G.W - 40, 38, 'Debug Diagnostics: ' + (G.state.debugMode ? 'ON' : 'OFF'));
+    dbgBtn.onClick = function() {
+      const next = !G.state.debugMode;
+      G.state.debugMode = next;
+      if (typeof Diagnostics !== 'undefined' && Diagnostics.toggle) Diagnostics.toggle(next);
+      Notify.show('Diagnostics ' + (next ? 'on' : 'off'), 2);
+      settingsScene.buildButtons();
+    };
+    this.data.buttons.push(dbgBtn);
     y += 44;
 
     // --- Updates Section ---

@@ -2,9 +2,14 @@ const Notify = {
   queue: [],
   achievements: [],
   show: function(msg, duration, color) {
+    if (typeof Audio !== 'undefined' && Audio.toast) Audio.toast();
     if (this.queue.length >= 3) this.queue.shift();
-    this.queue.push({ msg: msg || '', timer: duration || 2, color: color || R.colors.gold, age: 0 });
+    this.queue.push({ msg: msg || '', timer: duration || 2, color: color || R.colors.gold, age: 0, scene: (typeof G !== 'undefined' && G.state && G.state.scene) || null });
   },
+  // Scene-scoped clearing (LAY-05): drops every regular toast so the previous
+  // scene's messages never render over the new scene. Achievement banners live
+  // in `achievements`, never in `queue`, and are deliberately untouched here.
+  clearScene: function() { this.queue = []; },
   achievement: function(name, desc, icon) {
     this.achievements.push({ name, desc, icon, timer: 3.5, phase: 'in' });
     Audio.levelUp();
@@ -57,8 +62,11 @@ const Notify = {
     }
   },
   render: function(ctx) {
+    if (typeof window !== 'undefined' && window.__layoutHarness) window.__layoutHarness.overlay = true;
+    try {
     const reduceMotion = !!G.state.reduceMotion;
-    let ty = 470;
+    const toastLaneTop = Scene.toastLane().y;
+    let ty = toastLaneTop - 50; // start above lane with margin
     const count = Math.min(this.queue.length, 3);
     for (let i = 0; i < count; i++) {
       const n = this.queue[i];
@@ -113,6 +121,7 @@ const Notify = {
       R.textCenter(ctx, a.desc, G.W / 2, y + 52, R.colors.textDim, R.fonts.sm);
       ctx.globalAlpha = 1;
     }
+    } finally { if (typeof window !== 'undefined' && window.__layoutHarness) window.__layoutHarness.overlay = false; }
   },
   clear: function() { this.queue = []; this.achievements = []; }
 };
@@ -124,15 +133,21 @@ const Fade = {
   pendingScene: null,
   update: function(dt) {
     if (this.alpha !== this.target) {
-      const dir = this.target > this.alpha ? 1 : -1;
-      this.alpha += dir * this.speed * dt;
-      if ((dir > 0 && this.alpha >= this.target) || (dir < 0 && this.alpha <= this.target)) {
+      const rm = R.reducedMotion && R.reducedMotion();
+      if (rm) {
+        this.alpha = this.target;
+      } else {
+        const dir = this.target > this.alpha ? 1 : -1;
+        this.alpha += dir * this.speed * dt;
+      }
+      if (this.alpha === this.target) {
         this.alpha = this.target;
         if (this.pendingScene) {
           const pending = this.pendingScene;
           const name = typeof pending === 'string' ? pending : pending.name;
           const enterOptions = typeof pending === 'string' ? undefined : pending.enterOptions;
           this.pendingScene = null;
+          clearSceneToasts();
           Input.clear();
           UI.Modal.clearAll();
           if (G.currentScene && G.currentScene.leave) G.currentScene.leave();
@@ -164,17 +179,17 @@ const Fade = {
   }
 };
 
-const G = {
-  W: 400, H: 720,
-  SCROLL_SPEED: 0.5,
-  CONTENT_TOP: 116,
-  canvas: null, ctx: null,
-  state: {
+// Welcome gift for every player (tune down later via this constant).
+// `var` keeps it visible on globalThis for save.js and tests.
+var WELCOME_GOLD = 9999;
+
+function createDefaultGameState() {
+  return {
     scene: 'title',
     player: null,
     party: [],
     inventory: [],
-    gold: 0,
+    gold: WELCOME_GOLD,
     karma: 0,
     divineFragments: 0,
     prana: 0,
@@ -195,8 +210,29 @@ const G = {
     zoneRewardLedger: {},
     tournamentWins: 0,
     totalPlayTime: 0,
-    flags: {}
-  },
+    debugMode: false,
+    flags: {},
+    encounters: {},
+    affinity: {},
+    beastBond: { xp: {}, feed: { day: 0, counts: {} }, train: { day: 0, counts: {} }, trainCd: {} },
+    world: {
+      regions: {},
+      landmarks: { discovered: {}, notified: {} },
+      influence: {},
+      narrativeEchoes: {},
+      events: { active: {}, resolved: {} },
+      transitions: {}
+    }
+  };
+}
+
+const G = {
+  W: 400, H: 720,
+  SCROLL_SPEED: 0.5,
+  CONTENT_TOP: 116,
+  canvas: null, ctx: null,
+  state: createDefaultGameState(),
+  createDefaultState: createDefaultGameState,
   frameCount: 0,
   dt: 0,
   lastTime: 0,
@@ -206,31 +242,79 @@ const G = {
   ui: {}
 };
 
+function readSafeInsets() {
+  var zero = { t: 0, r: 0, b: 0, l: 0 };
+  try {
+    if (typeof document === 'undefined' || typeof window === 'undefined') return zero;
+    if (!document.body || !window.getComputedStyle) return zero;
+    var probe = window._safeAreaProbe || null;
+    if (!probe) {
+      probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;top:0;left:0;visibility:hidden;pointer-events:none;'
+        + 'padding-top:env(safe-area-inset-top);padding-right:env(safe-area-inset-right);'
+        + 'padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);';
+      document.body.appendChild(probe);
+      window._safeAreaProbe = probe;
+    }
+    var cs = window.getComputedStyle(probe);
+    var px = function (v) { var n = parseFloat(v); return (isFinite(n) && n > 0) ? n : 0; };
+    return { t: px(cs.paddingTop), r: px(cs.paddingRight), b: px(cs.paddingBottom), l: px(cs.paddingLeft) };
+  } catch (e) { return zero; }
+}
+
 function fitGame() {
   const el = document.getElementById('game-container');
   if (!el) return;
-  // Clamp so a zero-sized viewport (hidden iframe) can never scale the game to nothing.
-  const scale = Math.max(0.2, Math.min(window.innerWidth / 404, window.innerHeight / 724, 1));
-  el.style.transform = 'scale(' + scale + ')';
-  el.style.transformOrigin = 'center center';
+  // Real visual size: visualViewport excludes collapsing browser chrome;
+  // fall back to innerWidth/innerHeight where it is unavailable.
+  // Clamp so a zero-sized viewport (hidden iframe) can never collapse the game.
+  var vv = (typeof window !== 'undefined' && window.visualViewport) ? window.visualViewport : null;
+  var vw = Math.max(1, (vv && vv.width) || window.innerWidth || G.W);
+  var vh = Math.max(1, (vv && vv.height) || window.innerHeight || G.H);
+  var dims = computeViewportDims(vw, vh, (typeof window !== 'undefined' && window.devicePixelRatio) || 1, readSafeInsets());
+  var phone = (dims.mode !== 'desktop');
+  G.W = dims.W;
+  G.H = dims.H;
+  G.viewportProfile = vw > vh ? 'landscape' : (vw >= 800 ? 'wide-desktop' : (vw >= 500 ? 'large-portrait' : 'portrait'));
+  if (phone) {
+    // Fill modes: the container IS the viewport; canvas fills it via CSS.
+    el.style.width = vw + 'px';
+    el.style.height = vh + 'px';
+    el.classList.add('fill');
+    el.style.transform = 'none';
+  } else {
+    // Legacy desktop card: centered 400x720, scale capped at 1.
+    el.style.width = '400px';
+    el.style.height = '720px';
+    el.classList.remove('fill');
+    const scale = Math.max(0.2, Math.min(vw / 404, vh / 724, 1));
+    el.style.transform = 'scale(' + String(scale) + ')';
+    el.style.transformOrigin = 'center center';
+  }
+  // Per-refit DPR backing so text never goes stale-blurry after rotation/
+  // resize. Guarded: skip the expensive canvas realloc when nothing changed.
+  var last = G._lastFit || null;
+  if (G.canvas && (!last || last.W !== dims.W || last.H !== dims.H || last.dpr !== dims.dpr)) {
+    G.ctx = initDprBacking(G.canvas, dims.W, dims.H, dims.dpr);
+    G.dpr = dims.dpr;
+    G._lastFit = { W: dims.W, H: dims.H, dpr: dims.dpr };
+  }
   // Landscape phones get a squeezed viewport; nudge the player upright (once).
   if (typeof Hints !== 'undefined' && window.innerHeight < 500 && window.innerWidth > window.innerHeight) {
     Hints.show('rotate', 'Rotate your device upright for the best experience.');
   }
 }
+if (typeof window !== 'undefined') window.fitGame = fitGame;
 
 function gInit() {  G.canvas = document.getElementById('game-canvas');
-  // Back the canvas at device resolution so text/edges stay crisp on phones
-  // (DPR 2-3), while ALL game code keeps using 400x720 logical coordinates.
-  const dpr = Math.min(window.devicePixelRatio || 1, 3);
-  G.canvas.width = G.W * dpr;
-  G.canvas.height = G.H * dpr;
-  G.ctx = G.canvas.getContext('2d');
-  G.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  G.dpr = dpr;
+  fitGame();
+  // Canvas backing flows through fitGame → initDprBacking (per-refit DPR),
+  // while ALL game code keeps using logical G.W/G.H coordinates.
   initSceneManager();
   initInput();
   initAudio();
+  if (typeof Audio !== 'undefined' && Audio.loadPrefs) Audio.loadPrefs();
+  if (typeof ZoneArt !== 'undefined') ZoneArt.registerAll();
   G.lastTime = performance.now();
   // Perf probe: only active when loaded with ?probe (harness --fps mode).
   G._probe = /[?&]probe/.test(location.search);
@@ -306,6 +390,13 @@ function gInit() {  G.canvas = document.getElementById('game-canvas');
     }, 900);
   }
   gLoop(performance.now());
+  // ?probe&map: boot directly into the travel map for map-specific FPS measurement
+  if (G._probe && /[?&]map/.test(location.search)) {
+    setTimeout(function() {
+      SaveSystem.load();
+      gScene('travelMap');
+    }, 100);
+  }
   // Boot beacon: lets the verification harness (and devtools) confirm the
   // loop actually started on this device/DPR.
   console.log('[Mythika] booted dpr=' + G.dpr);
@@ -339,6 +430,7 @@ function gLoopFrame(time) {
   G.frameCount++;
   G.state.totalPlayTime += G.dt;
   Notify.update(G.dt);
+  if (typeof UI !== 'undefined' && UI.Feedback && UI.Feedback.updateToasts) UI.Feedback.updateToasts(G.dt);
   R.updateEffects(G.dt);
   R.updateProjectiles(G.dt);
   R.updateLevelUp(G.dt);
@@ -354,6 +446,7 @@ function gLoopFrame(time) {
   Fade.update(G.dt);
   if (UI.Modal.active) UI.updateButtons(UI.Modal.active._buttonList, G.dt);
   if (typeof FarmSystem !== 'undefined' && FarmSystem.tick) FarmSystem.tick(G.dt);
+  if (typeof WorldEvents !== 'undefined' && WorldEvents.tick) WorldEvents.tick(G.dt);
   if (G.currentScene && G.currentScene.update) G.currentScene.update(G.dt);
   G.ctx.clearRect(0, 0, G.W, G.H);
   G.ctx.save();
@@ -375,6 +468,7 @@ function gLoopFrame(time) {
   }
   Fade.render(G.ctx);
   Notify.render(G.ctx);
+  if (typeof UI !== 'undefined' && UI.Feedback && UI.Feedback.renderToasts) UI.Feedback.renderToasts(G.ctx);
   // First frame is on screen: dissolve the CSS boot splash (150ms), then
   // drop the class entirely.
   if (G.frameCount === 1) {
@@ -441,11 +535,32 @@ function safeEnter(scene, enterOptions) {
   }
 }
 
+// Single choke point for scene-scoped toast lifetime (LAY-05): drops stale
+// toasts from BOTH toast systems on every transition. Achievement banners
+// survive by design (Notify.clearScene never touches Notify.achievements;
+// Feedback has no achievement concept). Clearing is idempotent, so the
+// immediate path (swap here) and the deferred path (swap in Fade.update)
+// each observe exactly-once clearing per transition even though both sites
+// call this helper — the second clear of an already-empty queue is a no-op.
+// Note: navigation.js calls Fade.toScene directly, bypassing gScene, which
+// is why the Fade.update swap site must also clear.
+function clearSceneToasts() {
+  if (typeof Notify !== 'undefined' && Notify.clearScene) Notify.clearScene();
+  try {
+    if (typeof UI !== 'undefined' && UI.Feedback && UI.Feedback.clearSceneToasts) UI.Feedback.clearSceneToasts();
+  } catch (e) {}
+}
+
 function gScene(name, fade, enterOptions) {
-  if (!G.scenes[name]) return;
+  // Clear stale toasts first so the redirect notice below (a transition
+  // message describing the new scene) is the only toast that survives.
+  clearSceneToasts();
+  if (!G.scenes[name]) { if (typeof Notify !== 'undefined') Notify.show('Destination unavailable — returning to Ashram.', 2, R.colors.red); name = G.scenes.ashram ? 'ashram' : 'title'; }
   Input.clear();
   UI.Modal.clearAll();
-  if (fade && G.currentScene) {
+  // Navigation gets the shared transition veil by default; explicit false is
+  // retained for debug/bootstrap flows that need an immediate scene swap.
+  if (fade !== false && G.currentScene) {
     Fade.toScene(name, enterOptions);
   } else {
     if (G.currentScene && G.currentScene.leave) G.currentScene.leave();
@@ -457,14 +572,33 @@ function gScene(name, fade, enterOptions) {
 
 // Boot ownership lives in main.js bootGame(): it fires immediately on script
 // parse and re-enters via this load safety-net (idempotent via G._booted).
-G._resizeHandler = fitGame;
-G._orientationHandler = fitGame;
+// Refit is trailing-edge debounced: resize/orientation/visualViewport bursts
+// schedule one fitGame 100ms after the last event (G._refitT), and fitGame
+// itself skips the canvas realloc when W/H/dpr are unchanged — event bursts
+// can never realloc the canvas per-event (T-42-01).
+G._refitT = null;
+function scheduleRefit() {
+  if (G._refitT) clearTimeout(G._refitT);
+  G._refitT = setTimeout(function () { G._refitT = null; fitGame(); }, 100);
+}
+// Stored by reference so cleanup removes exactly what was added.
+G._resizeHandler = scheduleRefit;
+G._orientationHandler = scheduleRefit;
 window.addEventListener('resize', G._resizeHandler);
 window.addEventListener('orientationchange', G._orientationHandler);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', G._resizeHandler);
+  window.visualViewport.addEventListener('scroll', G._orientationHandler);
+}
 
 G.cleanupEventListeners = function() {
   window.removeEventListener('resize', G._resizeHandler);
   window.removeEventListener('orientationchange', G._orientationHandler);
+  if (window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', G._resizeHandler);
+    window.visualViewport.removeEventListener('scroll', G._orientationHandler);
+  }
+  if (G._refitT) { clearTimeout(G._refitT); G._refitT = null; }
   G._resizeHandler = null;
   G._orientationHandler = null;
 };

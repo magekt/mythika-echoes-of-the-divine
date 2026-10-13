@@ -77,7 +77,7 @@ function getBeastBonus(beast) {
     def: beast.def + l,
     mag: beast.mag + l
   };
-  
+
   if (beast.evolutionForm) {
     const evo = BEAST_EVOLUTIONS[beast.id];
     if (evo) {
@@ -91,8 +91,39 @@ function getBeastBonus(beast) {
       }
     }
   }
-  
+
+  // Phase 27 beast power: universal heart-2 flat stat boost (BST-02).
+  // Guarded read; absent BeastBond (or any throw) = current output verbatim.
+  try {
+    if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.statBoostFor === 'function' && beast.id) {
+      const boost = BeastBond.statBoostFor(beast.id);
+      if (boost && typeof boost === 'object') {
+        for (const key of ['hp', 'str', 'agi', 'def', 'mag']) {
+          const n = Number(boost[key]);
+          if (Number.isFinite(n) && n !== 0) bonus[key] += n;
+        }
+      }
+    }
+  } catch (e) {}
+
   return bonus;
+}
+
+// Phase 27 evolution assist (BST-03): a heart-3 bond halves the evolution
+// level requirement (floored, min 1; 10->5, 25->12). Materials/paths
+// unchanged — this path carries no material cost. Base data untouched;
+// absent BeastBond (or any throw) = base levels.
+function requiredLevelFor(beastId, stageIdx) {
+  const stages = (beastId && BEAST_EVOLUTIONS) ? BEAST_EVOLUTIONS[beastId] : null;
+  const base = (stages && stages[stageIdx] && Number.isFinite(Number(stages[stageIdx].level)))
+    ? Number(stages[stageIdx].level) : Infinity;
+  try {
+    if (typeof BeastBond !== 'undefined' && BeastBond && typeof BeastBond.get === 'function' && typeof beastId === 'string') {
+      const bond = BeastBond.get(beastId);
+      if (bond && bond.heart >= 3 && Number.isFinite(base)) return Math.max(1, Math.floor(base / 2));
+    }
+  } catch (e) {}
+  return base;
 }
 
 function getBeastEvolution(beastId, currentLevel) {
@@ -100,8 +131,10 @@ function getBeastEvolution(beastId, currentLevel) {
   if (!evolutions) return null;
   const beast = (typeof G !== 'undefined' && G.state && G.state.spiritBeasts) ? G.state.spiritBeasts.find(b => b.id === beastId) : null;
   const stage = beast ? (beast.evolutionStage || 0) : 0;
-  if (stage < evolutions.length && currentLevel >= evolutions[stage].level) return evolutions[stage];
-  for (const evo of evolutions) if (currentLevel >= evo.level) return evo;
+  if (stage < evolutions.length && currentLevel >= requiredLevelFor(beastId, stage)) return evolutions[stage];
+  for (let i = 0; i < evolutions.length; i++) {
+    if (currentLevel >= requiredLevelFor(beastId, i)) return evolutions[i];
+  }
   return null;
 }
 
@@ -111,7 +144,7 @@ function canEvolve(beast) {
   if (!evolutions) return false;
   const stage = beast.evolutionStage || 0;
   if (stage >= evolutions.length) return false;
-  return beast.level >= evolutions[stage].level;
+  return beast.level >= requiredLevelFor(beast.id, stage);
 }
 
 function evolveBeast(beast) {
@@ -119,7 +152,7 @@ function evolveBeast(beast) {
   const evolutions = BEAST_EVOLUTIONS[beast.id];
   const stage = beast.evolutionStage || 0;
   const evo = evolutions[stage];
-  if (!evo || beast.level < evo.level) return null;
+  if (!evo || beast.level < requiredLevelFor(beast.id, stage)) return null;
   beast.evolutionStage = stage + 1;
   beast.evolutionForm = evo.form;
   beast.name = evo.name;

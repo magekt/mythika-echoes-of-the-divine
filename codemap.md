@@ -4,7 +4,7 @@
 A mobile-first, offline-capable idle/cultivation RPG with turn-based combat, built in vanilla JavaScript (ES6+) targeting HTML5 Canvas. 25-30 hours base playtime, 40+ hours completionist. Premium $7.99 + optional cosmetic DLC.
 
 ## System Entry Points
-- `index.html` — Script loading order (72 scripts), PWA manifest, service worker
+- `index.html` — Script loading order, single modular Firebase bridge, PWA manifest, service worker
 - `src/main.js` — Boot sequence, scene registration, `bootGame()` idempotent entry
 - `src/engine/game.js` — Global state (`G`), game loop (`gLoop`), scene manager (`gScene`), `Notify`, `Fade`
 - `package.json` — (Not present — no build step, direct script loading)
@@ -30,7 +30,7 @@ Scene      → Scene factory + helpers (HeroMoment, FluidNav, ScrollReveal)
 Input      → Touch/mouse/keyboard handling, tap queue, swipe, scroll
 Audio      → Web Audio API wrapper (procedural synthesis)
 Notify     → Toast/achievement queue with animations
-Fade       → Scene transition fade (asymmetric 150ms/250ms)
+Fade       → Scene transition fade (asymmetric 150ms/250ms, default for navigation)
 Combat     → Turn-based combat engine
 Progression → XP, leveling, challenge scaling, difficulty
 CultivationSystem → Realm progression, breakthrough, idle tick
@@ -47,19 +47,19 @@ DuelSystem → Tournament PvP combat
 
 ### Data Flow (Simplified)
 ```
-index.html loads 72 scripts in dependency order
+index.html loads scripts in dependency order
     ↓
 main.js: bootGame() → gInit() → gLoop()
     ↓
 gLoopFrame(dt):
   1. Update: Notify, R.effects, R.projectiles, R.clickFx, Enlightenment, Fade, FarmSystem.tick, Scene.update
   2. Render: clearRect → drawBackground → Scene.render → R.projectiles → R.effects → R.clickFx → R.levelUp → R.enlightenmentAura → Fade → Notify
-  3. Perf: FPS probe, Adaptive Reduce Motion (auto-enable after 2× sub-30fps)
+  3. Perf: FPS probe, bounded script-group probe timings, Adaptive Reduce Motion (auto-enable after 2× sub-30fps)
 ```
 
 ### Scene Lifecycle
 ```
-gScene('name', fade?) → Fade.toScene() [async] OR immediate
+gScene('name', fade?) → Fade.toScene() [async by default] OR explicit immediate swap when fade=false
     → currentScene.leave() → currentScene = scenes[name] → safeEnter()
     → scene.enter() builds UI (buttons, HeroMoment, shells)
     → scene.update(dt) handles input, tick, scroll

@@ -1,0 +1,13 @@
+{
+  "source_path": "/Users/admin/Documents/Deepankar Project/dragonSword_EXPMinima/PUNARJANMA_SCENE_DESIGN.md",
+  "type": "SPEC",
+  "confidence": "medium",
+  "manifest_override": false,
+  "title": "Punarjanma — Rebirth Decision Surface",
+  "summary": "Defines the mobile-first rebirth decision screen hierarchy, visual tokens, eligibility states, confirmation behavior, and motion constraints.",
+  "scope": ["rebirth decision screen", "Punya Karma", "party progression", "PremiumShell panels", "confirmation dialog", "shared button component", "reduced-motion handling"],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": "Classified as SPEC because the document defines implementation-facing UI structure, design tokens, component behavior, and motion constraints; it also contains product-facing goals, creating mild PRD ambiguity."
+}

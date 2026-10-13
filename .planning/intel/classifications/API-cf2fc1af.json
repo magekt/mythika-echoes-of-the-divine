@@ -1,0 +1,33 @@
+{
+  "source_path": "/Users/admin/Documents/Deepankar Project/dragonSword_EXPMinima/API.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "API Reference",
+  "summary": "Defines the stable global API contracts for the game's state, rendering, scene, gameplay, persistence, and UI systems.",
+  "scope": [
+    "global state",
+    "renderer",
+    "scene manager",
+    "fade system",
+    "input system",
+    "audio system",
+    "notification system",
+    "combat system",
+    "progression system",
+    "cultivation system",
+    "save system",
+    "journey system",
+    "quest system",
+    "economy system",
+    "duel system",
+    "UI components",
+    "data constants"
+  ],
+  "cross_refs": [
+    "src/data/*.js"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

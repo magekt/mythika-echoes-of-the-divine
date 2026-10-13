@@ -1,0 +1,28 @@
+{
+  "_meta": { "updated_at": "2026-10-09T11:19:08Z", "source": "AGENTS.md + index.html + repo layout" },
+  "runtime": {
+    "language": "vanilla ES6 (classic scripts, no modules/bundler)",
+    "rendering": "immediate-mode HTML5 Canvas 2D, logical ~400x720, DPR-aware scaling",
+    "audio": "Web Audio API (src/engine/audio.js)",
+    "persistence": "localStorage first; Firebase auth/cloud-save optional, must not block offline",
+    "pwa": "manifest.json + sw.js installable offline fallback; firebase-config.js git-ignored"
+  },
+  "entrypoint": {
+    "file": "index.html",
+    "contract": "synchronous dependency-ordered classic script tags; no defer/async/modules/reorder",
+    "groups": ["engine", "data", "systems", "ui", "scenes", "boot(src/main.js)"],
+    "boot": "src/main.js registers scenes, guards missing globals, gInit starts rAF loop"
+  },
+  "test_verify": {
+    "serve": "python3 -m http.server 3000",
+    "one_test": "node --test tests/world_state.test.js",
+    "glob_tests": "node --test tests/travel_map_*.test.js",
+    "full_suite": "node --test tests/*.test.js",
+    "invariants": "tools/check_ui_invariants.sh",
+    "browser_matrix": "python3 tools/verify_matrix.py --budget 6000",
+    "chrome_override": "MYTHIKA_CHROME=<binary> python3 tools/verify_matrix.py",
+    "focused": "node --check <file> && git diff --check",
+    "diagnostics": "?probe (FPS/script timing), &selftest (input chain), Settings debug toggle"
+  },
+  "constraints": ["no framework/bundler/backend", "preserve global API + script order", "touch-first, R.reducedMotion(), R.colors/fonts/radius"]
+}

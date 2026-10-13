@@ -58,6 +58,19 @@ buildList: function() {
     const activeChains = chains.filter(c => c.available && !c.chainProgress.completed);
     const completedChains = chains.filter(c => c.chainProgress.completed && !c.chainProgress.claimed);
 
+    if (activeChains.length === 0 && completedChains.length === 0) {
+      // Explanatory empty-state panel: tell the player what populates this screen.
+      SD.push({ render: function(ctx) {
+        R.roundRect(ctx, 14, y, G.W - 28, 76, 8, R.colors.panel);
+        ctx.strokeStyle = R.colors.borderHairline;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(14.5, y + 0.5, G.W - 28 - 1, 76 - 1);
+        R.textCenter(ctx, 'No active quests', G.W / 2, y + 30, R.colors.gold, R.fonts.md);
+        R.textCenter(ctx, 'Talk to NPCs in the village to find quests.', G.W / 2, y + 52, R.colors.textSecondary, R.fonts.sm);
+      }});
+      y += 86;
+    }
+
     if (activeChains.length > 0) {
       txt('QUEST CHAINS', 18, y + 2, R.colors.orange, R.fonts.sm);
       y += 18;
