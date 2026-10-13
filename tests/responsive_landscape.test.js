@@ -1,5 +1,6 @@
 const { describe, it, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const path = require('node:path');
 
 // Locked 42-01 geometry: landscape 866x400, portrait 400x866 (round() rule).
@@ -55,5 +56,39 @@ describe('Scene.responsive landscape rects (plan 42-02)', () => {
     assert.equal(r.primary.y, 774, 'portrait primary.y = G.H-92');
     assert.deepEqual(r.back, { x: 40, y: 826, w: 320, h: 32 });
     assert.equal(r.back.y, 826, 'portrait back.y = G.H-40');
+  });
+});
+
+describe('fill correctness source contracts (plan 42-02 task 3)', () => {
+  // Contract pins: drawImage(entry.authored, 0, 0, G.W, G.H) stretch-fill,
+  // getContentHeight() scroll regions, landscape band > 200 at H=400.
+  const read = (p) => fs.readFileSync(path.join(__dirname, '..', p), 'utf8');
+
+  it('backgrounds stretch-fill live dims for authored and fallback art', () => {
+    const src = read('src/engine/backgrounds.js');
+    assert.match(src, /drawImage\(entry\.authored, 0, 0, G\.W, G\.H\)/);
+    assert.match(src, /drawImage\(entry\.fallback, 0, 0, G\.W, G\.H\)/);
+  });
+
+  it('ashram nav and content height anchor to the real viewport bottom', () => {
+    const src = read('src/scenes/ashram.js');
+    assert.match(src, /G\.H - this\.navBarHeight/);
+    assert.match(src, /G\.H - this\.getContentTop\(\) - this\.navBarHeight/);
+  });
+
+  it('cull/clip derive scroll regions from live content height', () => {
+    const src = read('src/engine/scene-helpers.js');
+    assert.match(src, /cullButtons = function\(buttons, scrollY, viewportH\)/);
+    assert.match(src, /scene\.getContentHeight\(\)/);
+  });
+
+  it('landscape content band stays usable at short H=400', () => {
+    const ashram = read('src/scenes/ashram.js');
+    const navBarHeight = Number(/navBarHeight:\s*(\d+)/.exec(ashram)[1]);
+    assert.ok(navBarHeight <= 66, `navBarHeight ${navBarHeight} fits short viewports`);
+    const contentTop = 134; // zoneExploration getContentTop
+    const H = 400; // locked landscape height
+    const band = H - contentTop - navBarHeight;
+    assert.ok(band > 200, `landscape band ${band} (> 200) keeps content tappable`);
   });
 });
