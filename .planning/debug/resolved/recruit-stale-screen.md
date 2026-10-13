@@ -1,8 +1,9 @@
 ---
-status: investigating
+status: resolved
+resolution: "Root cause fixed by Phase 31 gap-closure 31-03 (explicit recruit render branch + clear stale selection, party.js:869, regression-tested). Human retest F-07 stays open separately — see STATE.md Deferred Items."
 trigger: "when I click recruit, new hero, the toast still has previous screen of the initially selected hero visible."
 created: 2026-10-10T00:00:00Z
-updated: 2026-10-10T00:00:00Z
+updated: 2026-10-13T00:00:00Z
 ---
 
 ## Current Focus

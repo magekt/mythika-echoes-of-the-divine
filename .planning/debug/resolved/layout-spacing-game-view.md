@@ -1,8 +1,9 @@
 ---
-status: investigating
+status: resolved
+resolution: "Superseded — vague Sep-20 symptom overtaken by v5.0 systematic layout overhaul (Phases 30-35, 12 filed todos, shipped 2026-10-10). No concrete defect ever isolated; no live action."
 trigger: "The Screens work as intended but the UI is not clean. Add better Console logs. Game view gives issues. Layout or spacing."
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-10-13
 ---
 
 # Debug Session: layout-spacing-game-view

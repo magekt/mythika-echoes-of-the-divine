@@ -1,5 +1,6 @@
 ---
-status: diagnosed
+status: resolved
+resolution: "Diagnosed cause addressed by subsequent milestones — v2.0 world-state continuity (69/69 tests) plus the save-migration healing chain extended through v4.0 SAV-01. Stale-worker/legacy-hydration path covered; no live action."
 trigger: "Diagnose the Phase 6 UAT failure using the GSD debugging workflow and scientific method. Problem: In `.planning/phases/06-world-state-continuity/06-UAT.md`, Test 1 \"Legacy Save Continuity\" expected a… [CCR retrieve hash=fe003f122bc2d237ad1e4dfe chars=1787]"
 created: 2026-09-16T00:00:00Z
 updated: 2026-09-16T00:12:00Z
