@@ -10,7 +10,8 @@
     "plan_check": true,
     "verifier": true,
     "nyquist_validation": true,
-    "auto_advance": true
+    "auto_advance": true,
+    "_auto_chain_active": false
   },
   "research_instructions": "Before each plan, review the existing codebase, established patterns, reusable modules, lore-sensitive design, technical risks, error feedback, and debugging loops.",
   "intel": {

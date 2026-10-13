@@ -528,7 +528,7 @@ Art and audio tracks are independent after Phase 36; they can be executed in par
 
 ## Phases (v7.0)
 
-- [ ] **Phase 42: Adaptive Fill Viewport** - Safe-area-aware sizing, visualViewport/DPR refit, background extension + HUD anchors (LAY-08)
+- [x] **Phase 42: Adaptive Fill Viewport** - Safe-area-aware sizing, visualViewport/DPR refit, background extension + HUD anchors (LAY-08) (completed 2026-10-13)
 
 ## Phase Details (v7.0)
 
@@ -544,15 +544,15 @@ Art and audio tracks are independent after Phase 36; they can be executed in par
 **Plans**: 3 plans (estimated)
 
 Plans:
-- [ ] 42-01-PLAN.md — Fitting core: safe-area-aware `fitGame`, `visualViewport` refit triggers, container `box-sizing`/origin fix, per-refit DPR backing
-- [ ] 42-02-PLAN.md — Fill: background extension, HUD top/bottom anchors, `Scene.responsive` landscape values, scroll/cull height consistency
-- [ ] 42-03-PLAN.md — Verification across the responsive set (390x844, 844x390, 400x720, 540x900, 720x400, 1024x768, 1440x900)
+- [x] 42-01-PLAN.md — Fitting core: safe-area-aware `fitGame`, `visualViewport` refit triggers, container `box-sizing`/origin fix, per-refit DPR backing
+- [x] 42-02-PLAN.md — Fill: background extension, HUD top/bottom anchors, `Scene.responsive` landscape values, scroll/cull height consistency
+- [x] 42-03-PLAN.md — Verification across the responsive set (390x844, 844x390, 400x720, 540x900, 720x400, 1024x768, 1440x900)
 
 ## Progress (v7.0)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 42. Adaptive Fill Viewport | v7.0 | 0/3 | Not started | — |
+| 42. Adaptive Fill Viewport | v7.0 | 3/3 | Complete    | 2026-10-13 |
 
 ## Coverage (v7.0)
 
