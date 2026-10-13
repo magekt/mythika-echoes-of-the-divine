@@ -90,6 +90,10 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 - ✓ ART-01 through ART-04 — Zone backdrops, enemy portraits, element combat FX, UI card radius/tint polish (Phases 38–39)
 - ✓ AUD-01 through AUD-05 — Title + Ashram ambient loops, combat SFX, UI SFX, Settings audio toggle (Phases 40–41)
 
+### Validated — v7.0
+
+- ✓ LAY-08 — Adaptive fill viewport: adaptive logical dims (400×866 portrait, 866×400 landscape, 400×720 desktop card), visualViewport/DPR refit, G.H-anchored scenes with landscape responsive rects, 7-size matrix contract green (Phase 42)
+
 ### Shipped Milestone v4.0 — Deep Companions & Living Zones
 
 **Goal (achieved):** Make familiar zones play differently through companion bonds, without new geography.
@@ -193,4 +197,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-12 — v7.0 Adaptive Viewport started*
+*Last updated: 2026-10-13 — Phase 42 complete (LAY-08 validated)*
