@@ -55,8 +55,8 @@ const tournamentScene = Scene.create({
   },
 
   getContentTop: function() { return 74; },
-  // Reserve the bottom 54px band for the fixed Ashram exit. G.H is the logical
-  // 720px canvas height, so this remains at y=666 and never scrolls away.
+  // Reserve the bottom 54px band for the fixed Ashram exit. Anchored to live
+  // G.H (adaptive stage, plan 42), so the control never scrolls away.
   getContentHeight: function() { return G.H - this.getContentTop() - 58; },
 
   buildExitButton: function() {
@@ -289,7 +289,8 @@ const tournamentScene = Scene.create({
     Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
     if (this.data.exitButton) {
       // Re-anchor in logical canvas coordinates after the clipped content is
-      // restored. G.H is 720, so y=666 leaves the 48px control inside the canvas.
+      // restored. Anchored to live G.H (adaptive stage, plan 42), keeping the
+      // 48px control inside the canvas on any viewport height.
       this.data.exitButton.y = G.H - 54;
       this.data.exitButton.h = 48;
       this.data.exitButton.render(ctx);
