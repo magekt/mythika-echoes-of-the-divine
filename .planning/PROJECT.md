@@ -85,7 +85,6 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 - ✓ LAY-05 — Toast lifecycle: scene-tagged toasts cleared on transition (achievement banners exempt), regression test + documented 3/system cap, Ashram R.Backgrounds binding fix, Recruit Hall explicit render branch (Phase 31)
 
 ### Validated — v6.0
-
 - ✓ SHP-01 through SHP-04 — Ship readiness: LICENSE + SPDX, Firebase 404 gated to ?probe, debug scene gated behind ?debug, clean console on first load (Phase 36)
 - ✓ ONB-01 through ONB-03 — Onboarding polish: guided first-battle walkthrough, character-creation stat glosses, journey quest surfaced in Ashram HUD (Phase 37)
 - ✓ ART-01 through ART-04 — Zone backdrops, enemy portraits, element combat FX, UI card radius/tint polish (Phases 38–39)
