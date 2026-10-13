@@ -1,4 +1,5 @@
 const Input = {
+  _ready: false,
   touches: [],
   clicks: [],
   keys: {},
@@ -126,12 +127,14 @@ function initInput() {
 }
 
 Input.peekTap = function() {
+  if (!Input._ready) return null;
   if (Input.clicks.length > 0) return Input.clicks[0];
   if (Input.touches.length > 0) return Input.touches[0];
   return null;
 };
 
 Input.getTap = function() {
+  if (!Input._ready) return null;
   if (Input.clicks.length > 0) return Input.clicks.shift();
   if (Input.touches.length > 0) return Input.touches.shift();
   return null;

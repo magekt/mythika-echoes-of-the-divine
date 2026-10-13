@@ -469,9 +469,9 @@ function gLoopFrame(time) {
   Fade.render(G.ctx);
   Notify.render(G.ctx);
   if (typeof UI !== 'undefined' && UI.Feedback && UI.Feedback.renderToasts) UI.Feedback.renderToasts(G.ctx);
-  // First frame is on screen: dissolve the CSS boot splash (150ms), then
-  // drop the class entirely.
-  if (G.frameCount === 1) {
+  // First frame is on screen AND input is ready: dissolve the CSS boot splash
+  // (150ms), then drop the class entirely.
+  if (G.frameCount === 1 && Input._ready) {
     const el = document.getElementById('game-container');
     if (el && el.classList.contains('loading')) {
       el.classList.add('out');

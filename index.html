@@ -13,6 +13,59 @@
 </head>
 <body>
 <script>
+  // Loading overlay progress tracker. Classic script tags block parsing, so
+  // the tracker must be a tiny inline script BEFORE the first <script src>.
+  // It watches document for new script tags to compute live progress.
+  window.__mythikaLoadTracker = (function() {
+    var container = document.getElementById('game-container');
+    var label = document.getElementById('load-label');
+    var barEl = document.getElementById('load-bar');
+
+    // Group boundaries by script src prefix; update as each script loads.
+    var GROUPS = [
+      { name: 'engine',  total: 16,  done: 0 },
+      { name: 'data',    total: 21,  done: 0 },
+      { name: 'systems', total: 26,  done: 0 },
+      { name: 'ui',      total: 13,  done: 0 },
+      { name: 'scenes',  total: 27,  done: 0 },
+      { name: 'boot',    total: 1,   done: 0 }
+    ];
+    var TOTAL = GROUPS.reduce(function(s, g) { return s + g.total; }, 0);
+    var DONE = 0;
+
+    function updateOverlay() {
+      if (!container) return;
+      var pct = Math.round((DONE / TOTAL) * 100);
+      if (barEl) barEl.style.width = pct + '%';
+      if (label) {
+        var g = GROUPS.filter(function(gr) { return gr.done < gr.total; })[0];
+        var stage = g ? 'Loading ' + g.name : 'Booting game';
+        label.textContent = stage + ' ' + pct + '%';
+      }
+    }
+
+    // Assign a group index to each script tag in order.
+    var scripts = document.querySelectorAll('script[src]');
+    var groupIdx = 0;
+    for (var i = 0; i < scripts.length; i++) {
+      (function(grp, tag) {
+        tag.addEventListener('load', function() {
+          grp.done++; DONE++; updateOverlay();
+        });
+        tag.addEventListener('error', function() {
+          grp.done++; DONE++; updateOverlay();
+          container.classList.add('load-error');
+        });
+      })(GROUPS[Math.min(groupIdx, GROUPS.length - 1)], scripts[i]);
+      // Advance to next group when we hit its boundary
+      if (groupIdx < GROUPS.length - 1 && GROUPS[groupIdx].done >= GROUPS[groupIdx].total) groupIdx++;
+    }
+
+    updateOverlay();
+    return { container: container };
+  })();
+</script>
+<script>
   // Classic script tags below execute before the Firebase module resolves.
   // Keep the opt-in probe available during that gap as well as afterwards.
   window.__mythikaProbeGroup = window.__mythikaProbeGroup || function(name, phase) {
@@ -99,6 +152,8 @@
 
 <div id="game-container" class="loading">
   <canvas id="game-canvas"></canvas>
+  <div class="load-progress"><div class="load-progress-bar"></div></div>
+  <div class="load-progress-label">Loading engine 0%</div>
   <div id="status-bar"></div>
 </div>
 
