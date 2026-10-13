@@ -30,6 +30,14 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 
 **Date:** 2026-10-13
 
+## Shipped Milestone v8.0 — Performance & Loading Architecture
+
+**Goal:** Ensure all critical JavaScript is fully loaded and executed before user interaction to eliminate network race conditions, while providing transparent loading progress and optimizing startup performance.
+
+**Delivered (planned):** Script preloading & execution control, loader UI with real-time progress feedback, input guarding until core initialization, bundle minification + code-splitting, lazy-loading of optional dependencies (Firebase SDKs), preload/preconnect hints, and startup time profiling.
+
+**Date:** To be shipped
+
 ## Shipped Milestone v3.0 — Screen & Gameplay Revamp
 
 **Goal (achieved):** Make the complete player journey cohesive and effective across every screen, with clean responsive UI and stronger internal architecture.
