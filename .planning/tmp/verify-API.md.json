@@ -1,0 +1,21 @@
+{
+  "doc_path": "API.md",
+  "claims_checked": 30,
+  "claims_passed": 28,
+  "claims_failed": 2,
+  "failures": [
+    {
+      "line": 215,
+      "claim": "Audio.playMusic track list: 'title', 'ashram', 'combat_aryavarta', 'combat_dandaka', 'combat_meru', 'combat_patala', 'combat_svarga', 'fishing'",
+      "expected": "track IDs from code",
+      "actual": "Code has AMBIENT_IDS: ['title', 'ashram', 'combat_dark', 'combat_boss']; playMusic accepts any trackId but no definitive track list defined"
+    },
+    {
+      "line": 292,
+      "claim": "Combat.AILMENT_EFFECTS missing color property on each ailment",
+      "expected": "Each ailment should have color property per combat.js:13-21",
+      "actual": "API.md omits color property from ailment definitions"
+    }
+  ],
+  "verify_markers": 0
+}
