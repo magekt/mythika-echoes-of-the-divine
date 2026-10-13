@@ -32,9 +32,17 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 
 ## Shipped Milestone v8.0 — Performance & Loading Architecture
 
-**Goal:** Ensure all critical JavaScript is fully loaded and executed before user interaction to eliminate network race conditions, while providing transparent loading progress and optimizing startup performance.
+**Goal (achieved):** Ensure all critical JavaScript is fully loaded and executed before user interaction to eliminate network race conditions, while providing transparent loading progress and optimizing startup performance.
 
-**Delivered (planned):** Script preloading & execution control, loader UI with real-time progress feedback, input guarding until core initialization, bundle minification + code-splitting, lazy-loading of optional dependencies (Firebase SDKs), preload/preconnect hints, and startup time profiling.
+**Delivered:** Live loading-overlay progress (Phases 43–44), input guarding on all `Input` accessors, Firebase module relocation, gstatic preconnect, `?probe` boot-total profiling; code review closed 2 critical + 3 warning defects. Shipped 2026-10-13 via PR #3.
+
+**Date:** 2026-10-13
+
+## Milestone v9.0 — Premium UI/UX Foundations
+
+**Goal:** Lift the shared immediate-mode Canvas UI from functional-baseline to premium (Awwwards-tier): nested double-bezel containers, spring-physics press feedback, eased/cascaded entrance reveals, and a reusable renderer primitive layer — without changing gameplay rules or breaking the 400×720 Canvas contract.
+
+**Context:** A premium UI/UX audit (`45-UI-AUDIT.md`) identified P0 gaps: renderer lacks `strokeRoundRect`/`doubleBezel`/`easePremium`/`spring` primitives and null-safe `reducedMotion`; buttons snap with no press scale; panels/modals are single-layer flat; scene reveals are near-instant (`duration:0.12`) with `setTimeout` delays and per-frame CTA allocations.
 
 **Date:** To be shipped
 
