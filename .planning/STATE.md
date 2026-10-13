@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Adaptive Viewport
-status: Awaiting next milestone
+status: "v7.0 shipped — PR #2"
 stopped_at: Phase 42 UI-SPEC approved
-last_updated: "2026-10-13T07:19:38.018Z"
-last_activity: 2026-10-13 — Milestone v7.0 completed and archived
+last_updated: "2026-10-13T07:48:13.499Z"
+last_activity: 2026-10-13
 progress:
   total_phases: 1
   completed_phases: 1
@@ -27,8 +27,8 @@ See: `.planning/PROJECT.md` (updated 2026-10-12)
 
 Phase: Milestone v7.0 complete
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-10-13 — Milestone v7.0 completed and archived
+Status: v7.0 shipped — PR #2
+Last activity: 2026-10-13
 
 ## Performance Metrics
 
