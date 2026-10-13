@@ -13,56 +13,61 @@
 </head>
 <body>
 <script>
-  // Loading overlay progress tracker. Classic script tags block parsing, so
-  // the tracker must be a tiny inline script BEFORE the first <script src>.
-  // It watches document for new script tags to compute live progress.
+  // Loading overlay progress tracker. Classic script tags execute in parse
+  // order, so group markers (inline scripts between groups) increment the
+  // counter after each group's scripts have loaded and run. The overlay
+  // DOM is updated directly via property changes — no event listeners needed.
   window.__mythikaLoadTracker = (function() {
-    var container = document.getElementById('game-container');
-    var label = document.getElementById('load-label');
-    var barEl = document.getElementById('load-bar');
-
-    // Group boundaries by script src prefix; update as each script loads.
+    var TOTAL = 104; // 16 engine + 21 data + 26 systems + 13 ui + 27 scenes + 1 boot
     var GROUPS = [
-      { name: 'engine',  total: 16,  done: 0 },
-      { name: 'data',    total: 21,  done: 0 },
-      { name: 'systems', total: 26,  done: 0 },
-      { name: 'ui',      total: 13,  done: 0 },
-      { name: 'scenes',  total: 27,  done: 0 },
-      { name: 'boot',    total: 1,   done: 0 }
+      { name: 'engine',  cumDone: 16 },
+      { name: 'data',    cumDone: 37 },
+      { name: 'systems', cumDone: 63 },
+      { name: 'ui',      cumDone: 76 },
+      { name: 'scenes',  cumDone: 103 },
+      { name: 'boot',    cumDone: 104 }
     ];
-    var TOTAL = GROUPS.reduce(function(s, g) { return s + g.total; }, 0);
-    var DONE = 0;
+    var currentGroup = 0;
+    var barEl = null;
+    var labelEl = null;
+
+    function ensureDom() {
+      if (barEl) return;
+      var container = document.getElementById('game-container');
+      if (!container) return;
+      barEl = container.querySelector('.load-progress-bar');
+      labelEl = container.querySelector('.load-progress-label');
+    }
 
     function updateOverlay() {
-      if (!container) return;
-      var pct = Math.round((DONE / TOTAL) * 100);
-      if (barEl) barEl.style.width = pct + '%';
-      if (label) {
-        var g = GROUPS.filter(function(gr) { return gr.done < gr.total; })[0];
-        var stage = g ? 'Loading ' + g.name : 'Booting game';
-        label.textContent = stage + ' ' + pct + '%';
+      ensureDom();
+      if (!barEl) return;
+      var group = GROUPS[currentGroup];
+      if (!group) return;
+      var pct = Math.round((group.cumDone / TOTAL) * 100);
+      barEl.style.width = pct + '%';
+      if (labelEl) {
+        var stage = currentGroup < GROUPS.length - 1
+          ? 'Loading ' + GROUPS[currentGroup + 1].name
+          : 'Booting game';
+        labelEl.textContent = pct + '%  ' + stage;
       }
     }
 
-    // Assign a group index to each script tag in order.
-    var scripts = document.querySelectorAll('script[src]');
-    var groupIdx = 0;
-    for (var i = 0; i < scripts.length; i++) {
-      (function(grp, tag) {
-        tag.addEventListener('load', function() {
-          grp.done++; DONE++; updateOverlay();
-        });
-        tag.addEventListener('error', function() {
-          grp.done++; DONE++; updateOverlay();
-          container.classList.add('load-error');
-        });
-      })(GROUPS[Math.min(groupIdx, GROUPS.length - 1)], scripts[i]);
-      // Advance to next group when we hit its boundary
-      if (groupIdx < GROUPS.length - 1 && GROUPS[groupIdx].done >= GROUPS[groupIdx].total) groupIdx++;
+    function markError() {
+      ensureDom();
+      var container = document.getElementById('game-container');
+      if (container) container.classList.add('load-error');
     }
 
     updateOverlay();
-    return { container: container };
+    return {
+      step: function(groupIdx) {
+        currentGroup = groupIdx || 0;
+        updateOverlay();
+      },
+      markError: markError
+    };
   })();
 </script>
 <script>
@@ -173,7 +178,7 @@
 <script src="src/engine/audio.js"></script>
 <script src="src/engine/renderer.js"></script>
 <script src="src/engine/backgrounds.js"></script>
-<script>__mythikaProbeGroup('engine','end'); __mythikaProbeGroup('data','start')</script>
+<script>__mythikaProbeGroup('engine','end'); __mythikaProbeGroup('data','start'); __mythikaLoadTracker.step(1)</script>
 <script src="src/data/heroes.js"></script>
 <script src="src/data/enemies.js"></script>
 <script src="src/data/zones.js"></script>
@@ -194,7 +199,7 @@
 <script src="src/data/bonds.js"></script>
 <script src="src/data/narrative_echoes.js"></script>
 <script src="src/data/world_events.js"></script>
-<script>__mythikaProbeGroup('data','end'); __mythikaProbeGroup('systems','start')</script>
+<script>__mythikaProbeGroup('data','end'); __mythikaProbeGroup('systems','start'); __mythikaLoadTracker.step(2)</script>
 <script src="src/systems/economy.js"></script>
 <script src="src/systems/zone_rewards.js"></script>
 <script src="src/systems/hints.js"></script>
@@ -222,7 +227,7 @@
 <script src="src/systems/combatFx.js"></script>
 <script src="src/systems/encounter.js"></script>
 <script src="src/systems/living_zones.js"></script>
-<script>__mythikaProbeGroup('systems','end'); __mythikaProbeGroup('ui','start')</script>
+<script>__mythikaProbeGroup('systems','end'); __mythikaProbeGroup('ui','start'); __mythikaLoadTracker.step(3)</script>
 <script src="src/ui/button.js"></script>
 <script src="src/ui/panel.js"></script>
 <script src="src/ui/progressBar.js"></script>
@@ -233,7 +238,7 @@
 <script src="src/ui/card.js"></script>
 <script src="src/ui/heroSurface.js"></script>
 <script src="src/ui/feedback.js"></script>
-<script>__mythikaProbeGroup('ui','end'); __mythikaProbeGroup('scenes','start')</script>
+<script>__mythikaProbeGroup('ui','end'); __mythikaProbeGroup('scenes','start'); __mythikaLoadTracker.step(4)</script>
 <script src="src/scenes/title.js"></script>
 <script src="src/scenes/characterCreate.js"></script>
 <script src="src/scenes/ashram.js"></script>
@@ -261,9 +266,9 @@
 <script src="src/scenes/journeyScene.js"></script>
 <script src="src/scenes/encounterScene.js"></script>
 <script src="src/scenes/authScene.js"></script>
-<script>__mythikaProbeGroup('scenes','end'); __mythikaProbeGroup('boot','start')</script>
+<script>__mythikaProbeGroup('scenes','end'); __mythikaProbeGroup('boot','start'); __mythikaLoadTracker.step(5)</script>
 <script src="src/main.js"></script>
-<script>__mythikaProbeGroup('boot','end')</script>
+<script>__mythikaProbeGroup('boot','end'); __mythikaLoadTracker.step(6)</script>
 <script>__mythikaProbeScriptResources();</script>
 </body>
 </html>
