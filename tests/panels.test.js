@@ -73,6 +73,27 @@ function loadUI() {
       ctx.fillRect(0, 0, 1, 1); // inner core fill proxy
     },
     rect() {},
+    springConfigs: {
+      buttonPress: { stiffness: 300, damping: 24, target: 0.97 },
+      iconPress: { stiffness: 300, damping: 24, target: 1.05 },
+      panelEnter: { stiffness: 300, damping: 24, target: 1 },
+      modalOverlay: { stiffness: 300, damping: 24, target: 1 },
+      modalButton: { stiffness: 300, damping: 24, target: 1, delay: 40 },
+      revealStagger: { stiffness: 300, damping: 24, target: 1, delay: 40 },
+      sceneEnter: { stiffness: 300, damping: 24, target: 1, duration: 400 }
+    },
+    spring(config) {
+      config = config || {};
+      var stiffness = config.stiffness !== undefined ? config.stiffness : 170;
+      var damping = config.damping !== undefined ? config.damping : 26;
+      var target = config.target !== undefined ? config.target : 1;
+      return function(current, velocity, dt) {
+        var force = stiffness * (target - current) - damping * velocity;
+        velocity += force * dt;
+        var value = current + velocity * dt;
+        return { value: value, velocity: velocity };
+      };
+    }
   };
   global.UI.Button = function (x, y, w, h, label) {
     return { x, y, w, h, label, _modalResult: 0,
@@ -80,6 +101,7 @@ function loadUI() {
   };
   global.UI.handleButtons = function () { return false; };
 
+  require('/Users/admin/Documents/Deepankar Project/dragonSword_EXPMinima/src/ui/component.js');
   require('/Users/admin/Documents/Deepankar Project/dragonSword_EXPMinima/src/ui/panel.js');
   require('/Users/admin/Documents/Deepankar Project/dragonSword_EXPMinima/src/ui/modal.js');
 }
@@ -112,19 +134,22 @@ test('Modal._overlayProgress increases over time (non-reduced)', () => {
 
   const ctx = mockCanvas2d();
 
-  // First render sets _created = now → progress is exactly 0 at frame start.
+  // First update + render sets _created = now → progress is exactly 0 at frame start.
   now = m._created || now;
+  m._updateHook(0.016, m);
   global.UI.Modal.render(ctx);
   assert.ok(m._created > 0, '_created should be set on first render');
   assert.equal(m._overlayProgress, 0, 'progress is 0 on the frame that opens the ramp');
 
   // Next frame 100ms later: mid-ramp.
   now = m._created + 100;
+  m._updateHook(0.016, m);
   global.UI.Modal.render(ctx);
   assert.ok(m._overlayProgress > 0 && m._overlayProgress < 1, 'overlay should be mid-ramp');
 
   // 300ms > 250ms ramp window: complete.
   now = m._created + 300;
+  m._updateHook(0.016, m);
   global.UI.Modal.render(ctx);
   assert.equal(m._overlayProgress, 1, 'overlay should complete after 250ms');
   global.UI.Modal.clearAll();
@@ -136,6 +161,7 @@ test('Modal._overlayProgress is immediately 1 under reduced motion', () => {
   global.performance.now = () => now;
   const m = global.UI.Modal.show({ title: 'T', body: 'B', buttons: [{ label: 'OK', primary: true }] });
   const ctx = mockCanvas2d();
+  m._updateHook(0.016, m);
   global.UI.Modal.render(ctx);
   assert.equal(m._overlayProgress, 1, 'reduced motion → overlay instant');
   global.UI.Modal.clearAll();
@@ -151,8 +177,9 @@ test('Modal button cascade: button[0] entered before button[1]', () => {
   ] });
   const ctx = mockCanvas2d();
 
-  // Render one frame to establish _created (progress all 0 at frame start).
+  // Update + render one frame to establish _created (progress all 0 at frame start).
   now = m._created || now;
+  m._updateHook(0.016, m);
   global.UI.Modal.render(ctx);
 
   // button[0] window: starts at 250ms, ramps 400ms → complete at 650ms.
@@ -161,12 +188,14 @@ test('Modal button cascade: button[0] entered before button[1]', () => {
   // Choose t so button[0] is fully in but button[1] is not.
   // t = 650ms → button[0]=1.0, button[1]=0.925 < 1. Good.
   now = m._created + 650;
+  m._updateHook(0.016, m);
   global.UI.Modal.render(ctx);
   assert.equal(m._btnProgress[0], 1, 'button[0] fully entered');
   assert.ok(m._btnProgress[1] < 1, 'button[1] started later → still ramping');
 
   // Far enough out that the whole cascade has finished.
   now = m._created + 3000;
+  m._updateHook(0.016, m);
   global.UI.Modal.render(ctx);
   assert.equal(m._btnProgress[2], 1, 'button[2] fully entered by end of cascade');
   global.UI.Modal.clearAll();

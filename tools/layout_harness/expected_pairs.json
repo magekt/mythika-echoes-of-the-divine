@@ -34,7 +34,7 @@
     "clip": 6,
     "fillText": 42,
     "localScripts": 100,
-    "translate": 25
+    "translate": 27
   },
   "expectedViolations": [
     {

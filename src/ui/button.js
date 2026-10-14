@@ -1,6 +1,6 @@
 // Keep the shared UI namespace visible to classic scripts that resolve it via
 // globalThis as well as to later files' top-level `UI` binding.
-const UI = globalThis.UI = {};
+globalThis.UI = globalThis.UI || {};
 
 UI.updateButtons = function(buttons, dt) {
   if (!buttons) return;
@@ -43,9 +43,23 @@ UI.handleButtons = function(buttons, scrollY) {
   return false;
 };
 
+/**
+ * Base Button component using UI.Component + mixins.
+ * Spring-scaled press feedback (0.97x) with zero per-frame allocation.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @param {string} text
+ * @param {string} [color]
+ * @param {string} [hoverColor]
+ * @param {string} [textColor]
+ * @returns {object}
+ */
 UI.Button = function(x, y, w, h, text, color, hoverColor, textColor) {
-  return {
-    x, y, w, h, text,
+  const btn = UI.Component(x, y, w, h, {
+    text: text || '',
     color: color || R.colors.btn,
     hoverColor: hoverColor || R.colors.btnHover,
     textColor: textColor || R.colors.white,
@@ -53,104 +67,105 @@ UI.Button = function(x, y, w, h, text, color, hoverColor, textColor) {
     visible: true,
     _hovered: false,
     _pressed: false,
-    // Phase 47 (BTN-01/04): press-scale spring state. Allocated ONCE at
-    // construction and mutated per frame — no per-frame object allocation.
+    _pressTimer: 0,
+    scrollY: 0,
+    // Spring state for press scale (allocated once)
     _visualScale: 1,
     _scaleVel: 0,
+    // Spring step function (recreated only when target changes)
+    _pressSpringStep: R.spring({ ...R.springConfigs.buttonPress, target: 1 }),
     onClick: null,
-    data: null,
-    scrollY: 0,
+    data: null
+  });
+  btn._pressSpringStep._target = 1;
 
-    contains: function(px, py) {
-      return px >= this.x && px <= this.x + this.w &&
-             py >= this.y && py <= this.y + this.h;
-    },
-
-    update: function(dt) {
-      if (this._pressTimer > 0) {
-        this._pressTimer -= dt;
-        if (this._pressTimer <= 0) {
-          this._pressed = false;
-          this._pressTimer = 0;
-        }
+  // Update hook: advances spring based on press/hover state
+  btn._updateHook = function(dt, b) {
+    if (b._pressTimer > 0) {
+      b._pressTimer -= dt;
+      if (b._pressTimer <= 0) {
+        b._pressed = false;
+        b._pressTimer = 0;
       }
-      this.updateScale(dt);
-    },
-
-    // Phase 47 (BTN-01/03/04): spring-scaled press feedback.
-    // No per-frame object allocation: step fn is closure-allocated,
-    // state is re-used on the button instance.
-    updateScale: function(dt) {
-      let held = false;
-      const down = Input._touchCurrent || Input._touchStart || Input._pressPos;
-      if (down && this.enabled && this.visible) {
-        held = this.contains(down.x, down.y - this.scrollY);
-      }
-      const target = (this._pressed || held) ? 0.97 : 1;
-
-      if (R.reducedMotion ? R.reducedMotion() : false) {
-        this._visualScale = target;
-        this._scaleVel = 0;
-        return;
-      }
-
-      if (!this._pressSpringStep || this._pressSpringStep._target !== target) {
-        this._pressSpringStep = R.spring({ stiffness: 300, damping: 24, target: target });
-        this._pressSpringStep._target = target;
-      }
-      const s = this._pressSpringStep(this._visualScale, this._scaleVel, dt);
-      this._visualScale = s.value;
-      this._scaleVel = s.velocity;
-    },
-
-    render: function(ctx) {
-      if (!this.visible) return;
-      // Held press-down state: mirror the live pointer position (touch OR
-      // mouse) so touch users see the same feedback hover gives desktop.
-      // Screen-space pointer y maps into build-space via this.scrollY.
-      let held = false;
-      const down = Input._touchCurrent || Input._touchStart || Input._pressPos;
-      if (down && this.enabled && this.visible) {
-        held = this.contains(down.x, down.y - this.scrollY);
-      }
-      const pressed = this._pressed || held;
-      const col = pressed ? this.hoverColor : (this._hovered ? this.hoverColor : this.color);
-      const oy = this.scrollY;
-      // Phase 47 (BTN-01): spring-scaled press transform replaces the old
-      // 1px dx/dy/dw/dh offset snap. Scale about the button center.
-      const cx = this.x + this.w / 2;
-      const cy = this.y + oy + this.h / 2;
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.scale(this._visualScale, this._visualScale);
-      ctx.translate(-cx, -cy);
-
-      R.roundRect(ctx, this.x, this.y + oy, this.w, this.h, R.radius.s, col);
-      if (this.color === R.colors.btnGold || this.color === R.colors.orange) {
-        ctx.strokeStyle = pressed ? R.colors.gold : R.colors.orangeLight;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        const r = R.radius.s, x = this.x, y = this.y + oy, w = this.w, h = this.h;
-        ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
-        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-        ctx.lineTo(x + w, y + h - r);
-        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-        ctx.lineTo(x + r, y + h);
-        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-        ctx.lineTo(x, y + r);
-        ctx.quadraticCurveTo(x, y, x + r, y);
-        ctx.closePath();
-        ctx.stroke();
-      }
-      if (!this.enabled) {
-        ctx.globalAlpha = 0.5;
-      }
-      R.textCenter(ctx, this.text, cx, this.y + oy + this.h / 2 + 4, pressed ? R.colors.white : this.textColor, R.fonts.md);
-      ctx.globalAlpha = 1;
-
-      ctx.restore();
     }
+
+    // Determine if button is being held (touch or mouse)
+    let held = false;
+    const down = Input._touchCurrent || Input._touchStart || Input._pressPos;
+    if (down && b.enabled && b.visible) {
+      held = b.contains(down.x, down.y - b.scrollY);
+    }
+    const target = (b._pressed || held) ? 0.97 : 1;
+
+    // Reduced motion: snap instantly
+    if (R.reducedMotion && R.reducedMotion()) {
+      b._visualScale = target;
+      b._scaleVel = 0;
+      return;
+    }
+
+    // Recreate step function only if target changed
+    if (b._pressSpringStep._target !== target) {
+      b._pressSpringStep = R.spring({ ...R.springConfigs.buttonPress, target: target });
+      b._pressSpringStep._target = target;
+    }
+
+    const s = b._pressSpringStep(b._visualScale, b._scaleVel, dt);
+    b._visualScale = s.value;
+    b._scaleVel = s.velocity;
   };
+
+  // Render hook: draws button with spring scale transform
+  btn._renderHook = function(ctx, b) {
+    // Held press-down state: mirror the live pointer position (touch OR
+    // mouse) so touch users see the same feedback hover gives desktop.
+    // Screen-space pointer y maps into build-space via this.scrollY.
+    let held = false;
+    const down = Input._touchCurrent || Input._touchStart || Input._pressPos;
+    if (down && b.enabled && b.visible) {
+      held = b.contains(down.x, down.y - b.scrollY);
+    }
+    const pressed = b._pressed || held;
+    const col = pressed ? b.hoverColor : (b._hovered ? b.hoverColor : b.color);
+    const oy = b.scrollY;
+    // Spring-scaled press transform: scale about the button center.
+    const cx = b.x + b.w / 2;
+    const cy = b.y + oy + b.h / 2;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(b._visualScale, b._visualScale);
+    ctx.translate(-cx, -cy);
+
+    R.roundRect(ctx, b.x, b.y + oy, b.w, b.h, R.radius.s, col);
+    if (b.color === R.colors.btnGold || b.color === R.colors.orange) {
+      ctx.strokeStyle = pressed ? R.colors.gold : R.colors.orangeLight;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      const r = R.radius.s, x = b.x, y = b.y + oy, w = b.w, h = b.h;
+      ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      ctx.stroke();
+    }
+    if (!b.enabled) {
+      ctx.globalAlpha = 0.5;
+    }
+    R.textCenter(ctx, b.text, cx, b.y + oy + b.h / 2 + 4, pressed ? R.colors.white : b.textColor, R.fonts.md);
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+  };
+
+  // Contains uses default rect check (radius-aware via mixin if needed)
+  UI.mixinContains(btn, 's');
+
+  return btn;
 };
 
 UI.BtnGold = function(x, y, w, h, text) {
@@ -172,8 +187,7 @@ UI.BtnWide = function(x, y, text) {
 // container's scale transform then keeps it aligned with the canvas.
 UI.Input = function(x, y, w, h, value, options) {
   const config = typeof options === 'boolean' ? { password: options } : (options || {});
-  const field = {
-    x, y, w, h: Math.max(44, h || 44),
+  const field = UI.Component(x, y, Math.max(44, w || 200), Math.max(44, h || 44), {
     value: value == null ? '' : String(value),
     label: config.label || '',
     placeholder: config.placeholder || '',
@@ -193,94 +207,89 @@ UI.Input = function(x, y, w, h, value, options) {
     onChange: config.onChange || null,
     onSubmit: config.onSubmit || null,
     onFocus: config.onFocus || null,
-    onBlur: config.onBlur || null,
+    onBlur: config.onBlur || null
+  });
 
-    contains: function(px, py) {
-      return px >= this.x && px <= this.x + this.w &&
-        py >= this.y && py <= this.y + this.h;
-    },
+  field._updateHook = function(dt, f) {
+    // No per-frame logic needed for input field
+  };
 
-    _syncDom: function() {
-      const el = this._dom;
-      if (!el || this._destroyed) return;
-      const container = document.getElementById('game-container');
-      if (!container) return;
-
-      const top = this.y - (this.scrollY || 0);
-      const inViewport = this.visible && this.enabled &&
-        top >= this.viewportTop && top + this.h <= this.viewportBottom;
-      el.classList.toggle('is-hidden', !inViewport);
-      el.setAttribute('aria-hidden', inViewport ? 'false' : 'true');
-      if (!inViewport) return;
-
-      el.style.left = this.x + 'px';
-      el.style.top = top + 'px';
-      el.style.width = this.w + 'px';
-      el.style.height = this.h + 'px';
-      if (el.value !== this.value && document.activeElement !== el) el.value = this.value;
-      el.disabled = !this.enabled;
-    },
-
-    render: function(ctx) {
-      if (!this.visible) {
-        this._syncDom();
-        return;
-      }
-
-      const fieldY = this.y;
-      const focused = this._focused;
-      const hasError = !!this.error;
-      R.roundRect(ctx, this.x, fieldY, this.w, this.h, R.radius.m, R.colors.surfaceElevated);
-      ctx.strokeStyle = hasError ? R.colors.danger : (focused ? R.colors.borderFocus : R.colors.borderHairline);
-      ctx.lineWidth = focused || hasError ? 2 : 1;
-      ctx.strokeRect(this.x + 0.5, fieldY + 0.5, this.w - 1, this.h - 1);
-
-      if (this.label) {
-        R.text(ctx, this.label, this.x + 14, fieldY + 15, focused ? R.colors.accent : R.colors.textSecondary, R.fonts.xs);
-      }
-      if (!this.value && !focused && this.placeholder) {
-        R.text(ctx, this.placeholder, this.x + 14, fieldY + this.h - 12, R.colors.textDim, R.fonts.md);
-      }
-      if (hasError) {
-        R.textRight(ctx, this.error, this.x + this.w - 12, fieldY + this.h - 12, R.colors.danger, R.fonts.xs);
-      }
-      this._syncDom();
-    },
-
-    update: function() {
-      this._syncDom();
-    },
-
-    focus: function() {
-      if (this._dom && this.enabled) this._dom.focus();
-    },
-
-    blur: function() {
-      if (this._dom) this._dom.blur();
-    },
-
-    setValue: function(next) {
-      this.value = next == null ? '' : String(next);
-      if (this._dom && document.activeElement !== this._dom) this._dom.value = this.value;
-    },
-
-    setError: function(message) {
-      this.error = message || '';
-      if (this._dom) this._dom.setAttribute('aria-invalid', this.error ? 'true' : 'false');
-    },
-
-    destroy: function() {
-      this._destroyed = true;
-      if (this._dom) {
-        this._dom.removeEventListener('input', this._onInput);
-        this._dom.removeEventListener('change', this._onChange);
-        this._dom.removeEventListener('focus', this._onFocus);
-        this._dom.removeEventListener('blur', this._onBlur);
-        this._dom.removeEventListener('keydown', this._onKeyDown);
-        if (this._dom.parentNode) this._dom.parentNode.removeChild(this._dom);
-      }
-      this._dom = null;
+  field._renderHook = function(ctx, f) {
+    if (!f.visible) {
+      f._syncDom();
+      return;
     }
+
+    const fieldY = f.y;
+    const focused = f._focused;
+    const hasError = !!f.error;
+    R.roundRect(ctx, f.x, fieldY, f.w, f.h, R.radius.m, R.colors.surfaceElevated);
+    ctx.strokeStyle = hasError ? R.colors.danger : (focused ? R.colors.borderFocus : R.colors.borderHairline);
+    ctx.lineWidth = focused || hasError ? 2 : 1;
+    ctx.strokeRect(f.x + 0.5, fieldY + 0.5, f.w - 1, f.h - 1);
+
+    if (f.label) {
+      R.text(ctx, f.label, f.x + 14, fieldY + 15, focused ? R.colors.accent : R.colors.textSecondary, R.fonts.xs);
+    }
+    if (!f.value && !focused && f.placeholder) {
+      R.text(ctx, f.placeholder, f.x + 14, fieldY + f.h - 12, R.colors.textDim, R.fonts.md);
+    }
+    if (hasError) {
+      R.textRight(ctx, f.error, f.x + f.w - 12, fieldY + f.h - 12, R.colors.danger, R.fonts.xs);
+    }
+    f._syncDom();
+  };
+
+  field._syncDom = function() {
+    const el = this._dom;
+    if (!el || this._destroyed) return;
+    const container = document.getElementById('game-container');
+    if (!container) return;
+
+    const top = this.y - (this.scrollY || 0);
+    const inViewport = this.visible && this.enabled &&
+      top >= this.viewportTop && top + this.h <= this.viewportBottom;
+    el.classList.toggle('is-hidden', !inViewport);
+    el.setAttribute('aria-hidden', inViewport ? 'false' : 'true');
+    if (!inViewport) return;
+
+    el.style.left = this.x + 'px';
+    el.style.top = top + 'px';
+    el.style.width = this.w + 'px';
+    el.style.height = this.h + 'px';
+    if (el.value !== this.value && document.activeElement !== el) el.value = this.value;
+    el.disabled = !this.enabled;
+  };
+
+  field.focus = function() {
+    if (this._dom && this.enabled) this._dom.focus();
+  };
+
+  field.blur = function() {
+    if (this._dom) this._dom.blur();
+  };
+
+  field.setValue = function(next) {
+    this.value = next == null ? '' : String(next);
+    if (this._dom && document.activeElement !== this._dom) this._dom.value = this.value;
+  };
+
+  field.setError = function(message) {
+    this.error = message || '';
+    if (this._dom) this._dom.setAttribute('aria-invalid', this.error ? 'true' : 'false');
+  };
+
+  field.destroy = function() {
+    this._destroyed = true;
+    if (this._dom) {
+      this._dom.removeEventListener('input', this._onInput);
+      this._dom.removeEventListener('change', this._onChange);
+      this._dom.removeEventListener('focus', this._onFocus);
+      this._dom.removeEventListener('blur', this._onBlur);
+      this._dom.removeEventListener('keydown', this._onKeyDown);
+      if (this._dom.parentNode) this._dom.parentNode.removeChild(this._dom);
+    }
+    this._dom = null;
   };
 
   if (typeof document !== 'undefined') {
@@ -326,6 +335,8 @@ UI.Input = function(x, y, w, h, value, options) {
       field._syncDom();
     }
   }
+
+  UI.mixinContains(field, 'm');
 
   return field;
 };
@@ -411,92 +422,137 @@ UI.PremiumShell = function(x, y, w, h, opts = {}) {
   };
 };
 
-// Magnetic Button with Spring Physics - Supports variants: primary, secondary, ghost
+/**
+ * Magnetic Button with Spring Physics — composed from UI.Component + mixins.
+ * Variants: 'primary', 'secondary', 'ghost'.
+ * Trailing icon always visible in nested circle; press scales icon to 1.05x.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @param {string} label
+ * @param {object} [opts={}]
+ * @returns {object}
+ */
 UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
   const variant = opts.variant || 'primary'; // 'primary', 'secondary', 'ghost'
-  const baseBtn = UI.BtnGold(x, y, w, h, label);
-  const spring = { scale: 1, _scaleVel: 0, targetScale: 1, iconX: 0, iconY: 0 };
-  const stiffness = 120, damping = 22;
-  const pressStiffness = 300, pressDamping = 24;
-  const pressStep = R.spring({ stiffness: pressStiffness, damping: pressDamping, target: 1 });
-  
-  baseBtn._trailingIcon = opts.trailingIcon || null;
-  baseBtn._leadingIcon = opts.leadingIcon || null;
-  baseBtn._variant = variant;
-  baseBtn._iconSpringX = 0;
-  baseBtn._iconSpringY = 0;
-  baseBtn._springScale = 1;
-  
-  baseBtn.update = function(dt) {
-    if (this._pressTimer > 0) {
-      this._pressTimer -= dt;
-      if (this._pressTimer <= 0) this._pressed = false;
-    }
-    // Phase 47 (BTN-01/03): press-scale spring via R.spring step.
-    const reduceMotion = R.reducedMotion ? R.reducedMotion() : false;
-    if (reduceMotion) {
-      spring.scale = spring.targetScale;
-      spring._scaleVel = 0;
-    } else {
-      const s = pressStep(spring.scale, spring._scaleVel, dt);
-      spring.scale = s.value;
-      spring._scaleVel = s.velocity;
-    }
-    this._springScale = spring.scale;
 
-    // Magnetic icon physics
-    if (this._hovered && (this._trailingIcon || this._leadingIcon) && !reduceMotion) {
-      spring.iconX += (2 - spring.iconX) * Math.min(1, dt * 8);
-      spring.iconY += (-1 - spring.iconY) * Math.min(1, dt * 8);
-    } else {
-      spring.iconX += (0 - spring.iconX) * Math.min(1, dt * 8);
-      spring.iconY += (0 - spring.iconY) * Math.min(1, dt * 8);
+  const btn = UI.Component(x, y, w, h, {
+    label: label,
+    _variant: variant,
+    _trailingIcon: opts.trailingIcon || null,
+    _leadingIcon: opts.leadingIcon || null,
+    enabled: true,
+    visible: true,
+    _hovered: false,
+    _pressed: false,
+    _pressTimer: 0,
+    scrollY: 0,
+    onClick: null,
+    data: null,
+    // Spring state for body scale (allocated once)
+    _springScale: 1,
+    _scaleVel: 0,
+    // Spring step functions (recreated only when target changes)
+    _pressSpringStep: R.spring({ ...R.springConfigs.buttonPress, target: 1 }),
+    _hoverSpringStep: R.spring({ stiffness: 120, damping: 22, target: 0 }),
+    // Icon spring state (allocated once)
+    _iconSpringX: 0,
+    _iconSpringY: 0,
+    _iconSpringVelX: 0,
+    _iconSpringVelY: 0
+  });
+  btn._pressSpringStep._target = 1;
+  btn._hoverSpringStep._target = 0;
+
+  // Update hook: advances both press and icon springs
+  btn._updateHook = function(dt, b) {
+    // Press timer
+    if (b._pressTimer > 0) {
+      b._pressTimer -= dt;
+      if (b._pressTimer <= 0) b._pressed = false;
     }
-    this._iconSpringX = spring.iconX;
-    this._iconSpringY = spring.iconY;
+
+    const reduceMotion = R.reducedMotion && R.reducedMotion();
+
+    // Press scale spring
+    const down = Input._touchCurrent || Input._touchStart || Input._pressPos;
+    const pressedOrHeld = !!(b._pressed || (down && b.enabled && b.visible && b.contains(down.x, down.y - (b.scrollY || 0))));
+    const pressTarget = pressedOrHeld ? 0.97 : 1;
+
+    if (reduceMotion) {
+      b._springScale = pressTarget;
+      b._scaleVel = 0;
+    } else {
+      if (b._pressSpringStep._target !== pressTarget) {
+        b._pressSpringStep = R.spring({ ...R.springConfigs.buttonPress, target: pressTarget });
+        b._pressSpringStep._target = pressTarget;
+      }
+      const s = b._pressSpringStep(b._springScale, b._scaleVel, dt);
+      b._springScale = s.value;
+      b._scaleVel = s.velocity;
+    }
+
+    // Magnetic icon physics (first-order lerp for icon offset, spring for press scale)
+    const ptr = Input._touchCurrent || Input._mousePos;
+    const isHovered = !reduceMotion && ptr && b.enabled && b.visible && b.contains(ptr.x, ptr.y - (b.scrollY || 0));
+    b._hovered = isHovered;
+
+    const hoverTarget = (isHovered && (b._trailingIcon || b._leadingIcon)) ? 1 : 0;
+
+    if (reduceMotion) {
+      b._iconSpringX = 0;
+      b._iconSpringY = 0;
+      b._iconSpringVelX = 0;
+      b._iconSpringVelY = 0;
+    } else {
+      // First-order lerp for icon position (not a full spring — lightweight)
+      b._iconSpringX += (isHovered ? 2 : 0 - b._iconSpringX) * Math.min(1, dt * 8);
+      b._iconSpringY += (isHovered ? -1 : 0 - b._iconSpringY) * Math.min(1, dt * 8);
+    }
   };
-  
-  const originalRender = baseBtn.render;
-  baseBtn.render = function(ctx) {
-    const reduceMotion = R.reducedMotion ? R.reducedMotion() : false;
-    const bx = this.x, by = this.y, bw = this.w, bh = this.h;
-    
+
+  // Render hook: draws variant-appropriate button with spring scale
+  btn._renderHook = function(ctx, b) {
+    const reduceMotion = R.reducedMotion && R.reducedMotion();
+    const bx = b.x, by = b.y, bw = b.w, bh = b.h;
+
     ctx.save();
-    // Scale about the button center: the back-translate must undo the full
-    // forward translate, or draws land at 2x and detach from tap hitboxes.
+    // Scale about the button center
     ctx.translate(bx + bw/2, by + bh/2);
-    ctx.scale(spring.scale, spring.scale);
+    ctx.scale(b._springScale, b._springScale);
     ctx.translate(-(bx + bw/2), -(by + bh/2));
-    
-    if (variant === 'primary') {
+
+    if (b._variant === 'primary') {
       // Primary: Gold background, white text
       R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.gold);
-      if (this._pressed || this._hovered) {
+      if (b._pressed || b._hovered) {
         ctx.strokeStyle = R.colors.goldLight;
         ctx.lineWidth = 2;
         ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
       }
-      R.textCenter(ctx, label, bx + bw / 2, by + bh/2 + 4, R.colors.white, R.fonts.md);
-    } else if (variant === 'secondary') {
+      R.textCenter(ctx, b.label, bx + bw / 2, by + bh/2 + 4, R.colors.white, R.fonts.md);
+    } else if (b._variant === 'secondary') {
       // Secondary: Surface background, gold border
-      if (this.enabled) {
+      if (b.enabled) {
         R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.surface);
         ctx.strokeStyle = R.colors.gold;
         ctx.lineWidth = 2;
         ctx.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
-        R.textCenter(ctx, label, bx + bw / 2, by + bh/2 + 4, R.colors.textPrimary, R.fonts.md);
+        R.textCenter(ctx, b.label, bx + bw / 2, by + bh/2 + 4, R.colors.textPrimary, R.fonts.md);
       } else {
         R.roundRect(ctx, bx, by, bw, bh, 8, R.colors.surface);
         ctx.strokeStyle = R.colors.borderHairline;
         ctx.lineWidth = 1;
         ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
         ctx.globalAlpha = 0.5;
-        R.textCenter(ctx, label, bx + bw / 2, by + bh/2 + 4, R.colors.textDim, R.fonts.md);
+        R.textCenter(ctx, b.label, bx + bw / 2, by + bh/2 + 4, R.colors.textDim, R.fonts.md);
         ctx.globalAlpha = 1;
       }
-    } else if (variant === 'ghost') {
+    } else if (b._variant === 'ghost') {
       // Ghost: No background, text only with hover underline
-      if (this._hovered && !reduceMotion) {
+      if (b._hovered && !reduceMotion) {
         ctx.strokeStyle = R.colors.gold;
         ctx.lineWidth = 1;
         ctx.beginPath();
@@ -504,65 +560,64 @@ UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
         ctx.lineTo(bx + bw, by + bh - 4);
         ctx.stroke();
       }
-      R.textCenter(ctx, label, bx + bw / 2, by + bh/2 + 4, this._hovered ? R.colors.gold : R.colors.textPrimary, R.fonts.md);
+      R.textCenter(ctx, b.label, bx + bw / 2, by + bh/2 + 4, b._hovered ? R.colors.gold : R.colors.textPrimary, R.fonts.md);
     }
-    
+
     ctx.restore();
-    
-      // Trailing icon (BTN-02): always visible when set; nested circle with
-      // diagonal translate + scale on press.
-      if (this._trailingIcon) {
-        const down = Input._touchCurrent || Input._touchStart || Input._pressPos;
-        const held = !!(this._pressed || (down && this.enabled && this.visible && this.contains(down.x, down.y - (this.scrollY||0))));
 
-        const ix = bx + bw - 28 + spring.iconX;
-        const iy = by + bh/2 - 12 + spring.iconY;
-        const circleD = 24;
-        const cx = ix;
-        const cy = iy;
+    // Trailing icon (BTN-02): always visible when set; nested circle with
+    // diagonal translate + scale on press.
+    if (b._trailingIcon) {
+      const down = Input._touchCurrent || Input._touchStart || Input._pressPos;
+      const held = !!(b._pressed || (down && b.enabled && b.visible && b.contains(down.x, down.y - (b.scrollY || 0))));
 
-        ctx.save();
-        ctx.translate(cx, cy);
-        // Circle inherits button body scale from outer rendering; only add
-        // icon-specific scale + diagonal translate here.
-        const iconPressScale = held ? 1.05 : 1;
-        const diag = held ? 1 : 0;
-        ctx.translate(diag, diag);
-        ctx.scale(iconPressScale, iconPressScale);
+      const ix = bx + bw - 28 + b._iconSpringX;
+      const iy = by + bh/2 - 12 + b._iconSpringY;
+      const circleD = 24;
+      const cx = ix;
+      const cy = iy;
 
-        const circleFill = variant === 'ghost' ? R.colors.surfaceGlass || R.colors.surface : R.colors.surface;
-        const iconColor = variant === 'ghost' ? R.colors.gold : R.colors.white;
-        // Circle
-        if (R.roundRect) {
-          // Use a rounded-rect for an arc-free nested enclosure.
-          R.roundRect(ctx, -circleD/2, -circleD/2, circleD, circleD, 6, circleFill);
-          ctx.strokeStyle = variant === 'ghost' ? R.colors.gold : R.colors.goldMuted;
-          ctx.lineWidth = 1;
-          ctx.strokeRect(-circleD/2 + 0.5, -circleD/2 + 0.5, circleD - 1, circleD - 1);
-        } else if (ctx.arc) {
-          ctx.beginPath();
-          ctx.arc(0,0,circleD/2,0,Math.PI*2);
-          ctx.fillStyle = circleFill;
-          ctx.fill();
-        }
+      ctx.save();
+      ctx.translate(cx, cy);
+      // Circle inherits button body scale from outer rendering; only add
+      // icon-specific scale + diagonal translate here.
+      const iconPressScale = held ? 1.05 : 1;
+      const diag = held ? 1 : 0;
+      ctx.translate(diag, diag);
+      ctx.scale(iconPressScale, iconPressScale);
 
-        // Arrow inside
-        ctx.strokeStyle = iconColor;
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
+      const circleFill = b._variant === 'ghost' ? (R.colors.surfaceGlass || R.colors.surface) : R.colors.surface;
+      const iconColor = b._variant === 'ghost' ? R.colors.gold : R.colors.white;
+      // Circle
+      if (R.roundRect) {
+        // Use a rounded-rect for an arc-free nested enclosure.
+        R.roundRect(ctx, -circleD/2, -circleD/2, circleD, circleD, 6, circleFill);
+        ctx.strokeStyle = b._variant === 'ghost' ? R.colors.gold : R.colors.goldMuted;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-circleD/2 + 0.5, -circleD/2 + 0.5, circleD - 1, circleD - 1);
+      } else if (ctx.arc) {
         ctx.beginPath();
-        ctx.moveTo(-4, 0); ctx.lineTo(4, 0);
-        ctx.moveTo(0, -4); ctx.lineTo(4, 0);
-        ctx.moveTo(0, 4); ctx.lineTo(4, 0);
-        ctx.stroke();
-        ctx.restore();
+        ctx.arc(0, 0, circleD/2, 0, Math.PI * 2);
+        ctx.fillStyle = circleFill;
+        ctx.fill();
       }
 
-    
+      // Arrow inside
+      ctx.strokeStyle = iconColor;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-4, 0); ctx.lineTo(4, 0);
+      ctx.moveTo(0, -4); ctx.lineTo(4, 0);
+      ctx.moveTo(0, 4); ctx.lineTo(4, 0);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // Leading icon for ghost variant
-    if (this._leadingIcon && this._hovered && !reduceMotion) {
-      const ix = bx + 20 + spring.iconX;
-      const iy = by + bh/2 - 12 + spring.iconY;
+    if (b._leadingIcon && b._hovered && !reduceMotion) {
+      const ix = bx + 20 + b._iconSpringX;
+      const iy = by + bh/2 - 12 + b._iconSpringY;
       ctx.save();
       ctx.translate(ix, iy);
       ctx.strokeStyle = R.colors.gold;
@@ -576,38 +631,19 @@ UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
       ctx.restore();
     }
   };
-  
-   // Magnetic hover + press targetScale (Phase 47 / BTN-01..02)
-   const originalUpdate = baseBtn.update;
-   baseBtn.update = function(dt) {
-     // Press timer lives on the original baseBtn update.
-     originalUpdate.call(this, dt);
 
-     const reduceMotion = R.reducedMotion ? R.reducedMotion() : false;
-     const down = Input._touchCurrent || Input._touchStart || Input._pressPos;
-     const ptr = Input._touchCurrent || Input._mousePos;
+  // Contains with radius awareness
+  UI.mixinContains(btn, 's');
 
-     const pressedOrHeld = !!(this._pressed || (down && this.enabled && this.visible && this.contains(down.x, down.y - (this.scrollY||0))));
+  btn.setTrailingIcon = function(iconName) { this._trailingIcon = iconName; };
+  btn.setLeadingIcon = function(iconName) { this._leadingIcon = iconName; };
 
-     if (ptr && this.enabled && this.visible && !reduceMotion) {
-       this._hovered = this.contains(ptr.x, ptr.y - (this.scrollY||0));
-     } else {
-       this._hovered = false;
-     }
-
-     // Unified target scale: 0.97 when pressed/held or hovered.
-     const target = (pressedOrHeld || this._hovered) ? 0.97 : 1;
-     spring.targetScale = target;
-   };
-  
-  baseBtn.setTrailingIcon = function(iconName) { this._trailingIcon = iconName; };
-  baseBtn.setLeadingIcon = function(iconName) { this._leadingIcon = iconName; };
-  return baseBtn;
+  return btn;
 };
 
 // Scroll Reveal Stagger
 UI.ScrollReveal = function() {
-  const reduce = R.reducedMotion ? R.reducedMotion() : false;
+  const reduce = R.reducedMotion && R.reducedMotion();
   const elements = [];
   
   return {
@@ -802,31 +838,49 @@ UI.EmptyState = function(opts) {
       ctx.ellipse(cx, cy - 35, 6, 12, -0.3, 0, Math.PI*2); ctx.fill();
     }
   };
-  
-  return {
-    render: function(ctx) {
-      const cx = G.W/2, cy = G.H/2 - 40;
-      illustrations[type]?.(ctx, cx, cy);
-      R.textCenter(ctx, title, cx, cy + 50, R.colors.gold, R.fonts.md);
-      R.textCenter(ctx, hint, cx, cy + 70, R.colors.textDim, R.fonts.sm);
-      if (ctaLabel) {
-        const btn = UI.MagneticBtn(cx - 90, cy + 100, 180, 40, ctaLabel);
-        btn.onClick = ctaAction;
-        btn.render(ctx);
-      }
-    }
+
+  // REV-04: construct the CTA ONCE at factory time. cx/cy derive from
+  // G.W/G.H (stable at init) and type is fixed, so the button instance is
+  // reusable — render() only drives update(dt) + render(ctx), no allocation.
+  const cx = G.W/2, cy = G.H/2 - 40;
+  const ctaBtn = ctaLabel ? UI.MagneticBtn(cx - 90, cy + 100, 180, 40, ctaLabel) : null;
+  if (ctaBtn) {
+    ctaBtn.onClick = ctaAction;
+  }
+
+  const emptyState = UI.Component(cx - 150, cy - 100, 300, 250, {
+    type: type,
+    title: title,
+    hint: hint,
+    ctaBtn: ctaBtn,
+    visible: true
+  });
+
+  emptyState._updateHook = function(dt, es) {
+    if (es.ctaBtn && es.ctaBtn.update) es.ctaBtn.update(dt);
   };
+
+  emptyState._renderHook = function(ctx, es) {
+    illustrations[es.type]?.(ctx, cx, cy);
+    R.textCenter(ctx, es.title, cx, cy + 50, R.colors.gold, R.fonts.md);
+    R.textCenter(ctx, es.hint, cx, cy + 70, R.colors.textDim, R.fonts.sm);
+    if (es.ctaBtn) es.ctaBtn.render(ctx);
+  };
+
+  return emptyState;
 };
 
 // Fix disabled gold button contrast (WCAG AA)
-const originalBtnRender = UI.Button.prototype.render;
-UI.Button.prototype.render = function(ctx) {
-  if (!this.enabled && this.color === R.colors.btnGold) {
-    ctx.globalAlpha = 0.6;
-    R.roundRect(ctx, this.x, this.y, this.w, this.h, 6, R.colors.btnGold);
-    R.textCenter(ctx, this.text, this.x + this.w/2, this.y + this.h/2 + 4, R.colors.textDark, R.fonts.md);
-    ctx.globalAlpha = 1;
-    return;
-  }
-  originalBtnRender.call(this, ctx);
-};
+const originalBtnRender = UI.Button.prototype && UI.Button.prototype.render;
+if (originalBtnRender) {
+  UI.Button.prototype.render = function(ctx) {
+    if (!this.enabled && this.color === R.colors.btnGold) {
+      ctx.globalAlpha = 0.6;
+      R.roundRect(ctx, this.x, this.y, this.w, this.h, 6, R.colors.btnGold);
+      R.textCenter(ctx, this.text, this.x + this.w/2, this.y + this.h/2 + 4, R.colors.textDark, R.fonts.md);
+      ctx.globalAlpha = 1;
+      return;
+    }
+    originalBtnRender.call(this, ctx);
+  };
+}

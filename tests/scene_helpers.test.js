@@ -27,6 +27,7 @@ function loadInVm(srcFiles, stubs) {
     },
     matchMedia: () => ({ matches: false }),
     performance: { now: () => 0 },
+    UI: {},
     ...stubs
   };
   vm.createContext(ctx);
@@ -77,9 +78,10 @@ const RENDERER = path.join(ROOT, 'src/engine/renderer.js');
 const SCENE = path.join(ROOT, 'src/engine/scene.js');
 const SCENE_HELPERS = path.join(ROOT, 'src/engine/scene-helpers.js');
 const BUTTON = path.join(ROOT, 'src/ui/button.js');
+const COMPONENT = path.join(ROOT, 'src/ui/component.js');
 
 function helpersCtx(stubs) {
-  return loadInVm([RENDERER, SCENE, BUTTON, SCENE_HELPERS], {
+  return loadInVm([RENDERER, SCENE, COMPONENT, BUTTON, SCENE_HELPERS], {
     Input: { _touchCurrent: null, _touchStart: null, _pressPos: null, getScrollDelta: () => 0 },
     Audio: { click() {} },
     G: { W: 400, H: 720, state: {} },

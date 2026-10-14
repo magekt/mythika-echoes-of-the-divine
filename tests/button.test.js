@@ -24,6 +24,7 @@ function loadInVm(srcFiles, stubs) {
     },
     matchMedia: () => ({ matches: false }),
     performance: { now: () => 0 },
+    UI: {},
     ...stubs
   };
   vm.createContext(ctx);
@@ -65,9 +66,10 @@ function recordingCtx() {
 
 test('UI.Button spring press scales to ~0.97 and returns to ~1', () => {
   const RENDERER_PATH = path.join(ROOT, 'src/engine/renderer.js');
+  const COMPONENT_PATH = path.join(ROOT, 'src/ui/component.js');
   const BUTTON_PATH = path.join(ROOT, 'src/ui/button.js');
 
-  const ctx = loadInVm([RENDERER_PATH, BUTTON_PATH], {
+  const ctx = loadInVm([RENDERER_PATH, COMPONENT_PATH, BUTTON_PATH], {
     Input: { _touchCurrent: null, _touchStart: null, _pressPos: null },
     Audio: { click() {} }
   });
@@ -90,9 +92,10 @@ test('UI.Button spring press scales to ~0.97 and returns to ~1', () => {
 
 test('UI.Button reduced motion snaps scale instantly (no spring)', () => {
   const RENDERER_PATH = path.join(ROOT, 'src/engine/renderer.js');
+  const COMPONENT_PATH = path.join(ROOT, 'src/ui/component.js');
   const BUTTON_PATH = path.join(ROOT, 'src/ui/button.js');
 
-  const ctx = loadInVm([RENDERER_PATH, BUTTON_PATH], {
+  const ctx = loadInVm([RENDERER_PATH, COMPONENT_PATH, BUTTON_PATH], {
     Input: { _touchCurrent: null, _touchStart: null, _pressPos: null },
     Audio: { click() {} },
     G: { state: { reduceMotion: true } }
@@ -116,10 +119,11 @@ test('UI.Button reduced motion snaps scale instantly (no spring)', () => {
 
 test('UI.MagneticBtn trailing icon draws nested circle even when not hovered', () => {
   const RENDERER_PATH = path.join(ROOT, 'src/engine/renderer.js');
+  const COMPONENT_PATH = path.join(ROOT, 'src/ui/component.js');
   const BUTTON_PATH = path.join(ROOT, 'src/ui/button.js');
 
   const drawCtx = recordingCtx();
-  const ctx = loadInVm([RENDERER_PATH, BUTTON_PATH], {
+  const ctx = loadInVm([RENDERER_PATH, COMPONENT_PATH, BUTTON_PATH], {
     Input: { _touchCurrent: null, _touchStart: null, _pressPos: null, _mousePos: null },
     Audio: { click() {} }
   });

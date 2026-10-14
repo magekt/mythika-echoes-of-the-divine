@@ -40,6 +40,11 @@ const R = {
     disabled: 'rgba(120,120,140,0.5)',
     hairline: 'rgba(255,255,255,0.08)',
     shadow: 'rgba(0,0,0,0.40)',
+    // Phase 52 semantic tokens — additive, do not remove existing keys
+    focus: 'rgba(232,160,48,0.6)',
+    success: 'rgba(76,200,48,0.9)',
+    warning: 'rgba(232,160,48,0.9)',
+    danger: 'rgba(200,48,48,0.9)',
   },
   // Corner-radius scale (Shape Consistency Lock): xs=3 chips/ticks, s=5
   // buttons/small bars, m=8 panels/headers, l=10 large cards. New UI adopts
@@ -110,6 +115,18 @@ const R = {
   }
 };
 
+R.reducedMotion.watch = function(cb) {
+  if (typeof cb !== 'function') return function() {};
+  var w = (typeof window !== 'undefined') ? window : (typeof globalThis !== 'undefined' ? globalThis : null);
+  var handler = function(e) { cb(e.matches); };
+  if (w && w.matchMedia) {
+    var mq = w.matchMedia('(prefers-reduced-motion: reduce)');
+    mq.addEventListener('change', handler);
+    return function() { mq.removeEventListener('change', handler); };
+  }
+  return function() {};
+};
+
 R.rect = function(ctx, x, y, w, h, color) {
   ctx.fillStyle = color;
   ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h));
@@ -138,6 +155,7 @@ R.roundRect = function(ctx, x, y, w, h, r, color) {
 // Rounded-rect outline (stroke only). 0.5px offset keeps 1px hairlines crisp.
 R.strokeRoundRect = function(ctx, x, y, w, h, r, color, lineWidth) {
   if (!ctx) return;
+  lineWidth = Math.max(0.5, lineWidth || 1);
   r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
   var sx = Math.round(x) + 0.5, sy = Math.round(y) + 0.5;
   ctx.beginPath();
@@ -152,7 +170,7 @@ R.strokeRoundRect = function(ctx, x, y, w, h, r, color, lineWidth) {
   ctx.quadraticCurveTo(sx, sy, sx + r, sy);
   ctx.closePath();
   ctx.strokeStyle = color;
-  ctx.lineWidth = lineWidth || 1;
+  ctx.lineWidth = lineWidth;
   ctx.stroke();
 };
 
@@ -166,17 +184,20 @@ R.doubleBezel = function(ctx, x, y, w, h, opts) {
   var coreX = x + inset, coreY = y + inset;
   var coreW = w - inset * 2, coreH = h - inset * 2;
 
-  // Outer shell: fill + hairline stroke.
+  // Outer shell: fill + hairline stroke (always drawn).
   R.roundRect(ctx, x, y, w, h, radius, opts.shellFill || R.colors.surfaceElevated);
   R.strokeRoundRect(ctx, x, y, w, h, radius, opts.shellStroke || R.colors.hairline, 1);
 
-  if (coreW > 0 && coreH > 0) {
-    // Inner core.
-    R.roundRect(ctx, coreX, coreY, coreW, coreH, coreRadius, opts.coreFill || R.colors.surface);
-    // 1px top inset highlight strip across the core's top edge.
-    var stripH = Math.min(1, coreH);
-    R.roundRect(ctx, coreX + 1, coreY, Math.max(0, coreW - 2), stripH, stripH, opts.coreHighlight || R.colors.insetHighlight);
-  }
+  // Inner core and highlight only if core has positive dimensions.
+  if (coreW <= 0 || coreH <= 0) return;
+
+  // Inner core.
+  R.roundRect(ctx, coreX, coreY, coreW, coreH, coreRadius, opts.coreFill || R.colors.surface);
+  // 1px top inset highlight strip across the core's top edge.
+  // Support both opts.insetHighlight (new) and opts.coreHighlight (legacy) for the highlight color.
+  var highlightColor = opts.insetHighlight || opts.coreHighlight || R.colors.insetHighlight;
+  var stripH = Math.min(1, coreH);
+  R.roundRect(ctx, coreX + 1, coreY, Math.max(0, coreW - 2), stripH, stripH, highlightColor);
 };
 
 // Smoothstep approximation of cubic-bezier(0.32,0.72,0,1) — pure, clamps to [0,1].
@@ -184,6 +205,21 @@ R.easePremium = function(t) {
   if (typeof t !== 'number' || Number.isNaN(t)) t = 0;
   t = Math.max(0, Math.min(1, t));
   return t * t * (3 - 2 * t);
+};
+
+// Inverse of easePremium: given progress p in [0,1], returns t in [0,1].
+// Uses binary search with ~0.001 accuracy (20 iterations).
+R.easePremiumInv = function(p) {
+  if (typeof p !== 'number' || Number.isNaN(p)) return 0;
+  p = Math.max(0, Math.min(1, p));
+  var lo = 0, hi = 1, mid;
+  for (var i = 0; i < 20; i++) {
+    mid = (lo + hi) * 0.5;
+    var val = mid * mid * (3 - 2 * mid);
+    if (val < p) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) * 0.5;
 };
 
 // Critically-damped spring factory — pure, no state.
@@ -198,6 +234,38 @@ R.spring = function(config) {
     var value = current + velocity * dt;
     return { value: value, velocity: velocity };
   };
+};
+
+// Step alias for cleaner caller code: springState = R.spring.step(springState, dt)
+// Expects springState to have { value, velocity, _springFn } where _springFn is from R.spring(config).
+// Mutates and returns the same state object for chaining.
+R.spring.step = function(springState, dt) {
+  if (!springState || typeof springState !== 'object') return { value: 0, velocity: 0 };
+  var fn = springState._springFn;
+  if (typeof fn !== 'function') return { value: springState.value || 0, velocity: springState.velocity || 0 };
+  var r = fn(springState.value, springState.velocity, dt);
+  springState.value = r.value;
+  springState.velocity = r.velocity;
+  return springState;
+};
+
+// Spring configuration registry — centralized, versioned spring parameters.
+// Replace inline R.spring({...}) with R.spring(R.springConfigs.<name>).
+R.springConfigs = {
+  buttonPress: { stiffness: 300, damping: 24, target: 0.97 },
+  iconPress: { stiffness: 300, damping: 24, target: 1.05 },
+  panelEnter: { stiffness: 300, damping: 24, target: 1 },
+  modalOverlay: { stiffness: 300, damping: 24, target: 1 },
+  modalButton: { stiffness: 300, damping: 24, target: 1, delay: 40 },
+  revealStagger: { stiffness: 300, damping: 24, target: 1, delay: 40 },
+  sceneEnter: { stiffness: 300, damping: 24, target: 1, duration: 400 }
+};
+
+// Resolve a named spring config by name. Throws if unknown.
+R.springConfig = function(name) {
+  var cfg = R.springConfigs[name];
+  if (!cfg) throw new Error('Unknown spring config: ' + name);
+  return cfg;
 };
 
 R.text = function(ctx, str, x, y, color, font, align) {
@@ -939,3 +1007,8 @@ R.drawFishingBobber = function(ctx, x, y, phase, isRare) {
   ctx.fillStyle = '#e8e0d0';
   ctx.fillRect(bobX - 1, bobY - 1, 2, 2);
 };
+
+// Node.js / test environment export
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = R;
+}

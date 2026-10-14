@@ -19,7 +19,7 @@ assert(characterCreate.includes("G.state.inventory = []"),
   'Starter inventory is initialized only while creating a new hero');
 assert(source.includes('Your inventory is quiet'),
   'Equipment renders an intentional empty-inventory state');
-assert(buttonSource.includes('const UI = globalThis.UI = {};'),
+assert(buttonSource.includes('globalThis.UI = globalThis.UI || {};'),
   'The shared UI namespace must be registered globally before HeroSurface loads');
 
 console.log('equipment_scene_regression.test.js: PASS');

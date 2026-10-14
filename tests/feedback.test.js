@@ -76,6 +76,10 @@ function createTestContext() {
   const rendererSource = fs.readFileSync(RENDERER_PATH, 'utf8');
   vm.runInContext(rendererSource + '\n;globalThis.R = R;', context, { filename: RENDERER_PATH });
 
+  // Load component for UI.Component
+  const componentSource = fs.readFileSync(path.join(ROOT, 'src/ui/component.js'), 'utf8');
+  vm.runInContext(componentSource + '\n;globalThis.UI = UI;', context, { filename: path.join(ROOT, 'src/ui/component.js') });
+
   // Load audio for Audio
   const audioSource = fs.readFileSync(AUDIO_PATH, 'utf8');
   vm.runInContext(audioSource + '\n;globalThis.Audio = Audio;', context, { filename: AUDIO_PATH });
@@ -321,6 +325,20 @@ test('UI.Feedback.BlockerTooltip - dismissible by tap-outside', () => {
   });
 
   tooltip.show(125, 115);
+
+  // Render first to compute bounds (contains() uses _computedX/Y/W/H set in render)
+  const mockCtx = { 
+    save: () => {}, restore: () => {}, translate: () => {}, scale: () => {},
+    fillStyle: '', strokeStyle: '', lineWidth: 1, globalAlpha: 1, font: '',
+    textAlign: 'left', fillText: () => {}, beginPath: () => {}, moveTo: () => {},
+    lineTo: () => {}, quadraticCurveTo: () => {}, arc: () => {}, closePath: () => {},
+    fill: () => {}, stroke: () => {}, fillRect: () => {}, strokeRect: () => {},
+    rect: () => {}, filter: 'none', setTransform: () => {}, transform: () => {},
+    globalCompositeOperation: 'source-over', shadowColor: 'transparent',
+    shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0,
+    measureText: () => ({ width: 0 })
+  };
+  tooltip.render(mockCtx);
 
   // Mock a tap far away
   const originalPeekTap = context.Input.peekTap;

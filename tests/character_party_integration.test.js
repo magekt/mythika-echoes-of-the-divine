@@ -2,6 +2,7 @@ const assert = require('assert');
 const fs = require('fs');
 const vm = require('vm');
 const read = file => fs.readFileSync('src/scenes/' + file, 'utf8');
+const component = fs.readFileSync('src/ui/component.js', 'utf8');
 const shared = fs.readFileSync('src/ui/heroSurface.js', 'utf8');
 
 assert(shared.includes('getModel'), 'shared hero selector exists');
@@ -21,7 +22,10 @@ assert(/turnState !== 'reactionWindow' && this\.data\.turnState !== 'result'/.te
 assert(/layout\.result/.test(combat), 'result geometry remains named and distinct');
 
 const context = { Progression: { xpForLevel: level => level * 100 }, calcHeroStats: hero => ({ maxHp: hero.maxHp || 100, maxMp: hero.maxMp || 40 }) };
-vm.runInNewContext(shared, { globalThis: context });
+context.global = context;
+context.globalThis = context;
+vm.runInNewContext(component, context);
+vm.runInNewContext(shared, context);
 const fresh = { id: 'fresh', name: 'Aster', role: 'Vanguard', level: 2, hp: 90, maxHp: 120, mp: 20, maxMp: 40, xp: 50, weaponEquipped: { name: 'Iron Fang' } };
 const partial = { name: 'Unknown recruit', hp: 0, level: 0 };
 const defeated = { name: 'Fallen ally', role: 'Support', hp: 0, maxHp: 80, ailmentName: 'Stunned', ailments: [{ name: 'Poisoned' }] };

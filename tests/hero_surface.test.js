@@ -2,10 +2,27 @@ const assert = require('assert');
 const fs = require('fs');
 const vm = require('vm');
 
-const source = fs.readFileSync('src/ui/heroSurface.js', 'utf8');
-const context = { UI: {}, R: {}, calcHeroStats: hero => ({ maxHp: hero.hp + 10, maxMp: hero.mp + 2, str: 7, agi: 8, mag: 9, def: 10 }), Progression: { xpForLevel: level => level * 100 }, console };
-vm.runInNewContext(source, context);
-const surface = context.UI.HeroSurface;
+const calcHeroStats = hero => ({ maxHp: hero.hp + 10, maxMp: hero.mp + 2, str: 7, agi: 8, mag: 9, def: 10 });
+const Progression = { xpForLevel: level => level * 100 };
+
+// Set required globals on globalThis for the VM context
+globalThis.calcHeroStats = calcHeroStats;
+globalThis.Progression = Progression;
+
+const rendererSource = fs.readFileSync('src/engine/renderer.js', 'utf8');
+const componentSource = fs.readFileSync('src/ui/component.js', 'utf8');
+const surfaceSource = fs.readFileSync('src/ui/heroSurface.js', 'utf8');
+
+const context = vm.createContext({ 
+  global: globalThis,
+  globalThis: globalThis,
+  R: {}, 
+  console 
+});
+vm.runInContext(rendererSource, context);
+vm.runInContext(componentSource, context);
+vm.runInContext(surfaceSource, context);
+const surface = context.globalThis.UI.HeroSurface;
 assert(surface && typeof surface.getModel === 'function', 'HeroSurface selector is exported');
 
 const hero = {
