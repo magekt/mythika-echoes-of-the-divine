@@ -53,6 +53,10 @@ UI.Button = function(x, y, w, h, text, color, hoverColor, textColor) {
     visible: true,
     _hovered: false,
     _pressed: false,
+    // Phase 47 (BTN-01/04): press-scale spring state. Allocated ONCE at
+    // construction and mutated per frame — no per-frame object allocation.
+    _visualScale: 1,
+    _scaleVel: 0,
     onClick: null,
     data: null,
     scrollY: 0,
@@ -70,6 +74,33 @@ UI.Button = function(x, y, w, h, text, color, hoverColor, textColor) {
           this._pressTimer = 0;
         }
       }
+      this.updateScale(dt);
+    },
+
+    // Phase 47 (BTN-01/03/04): spring-scaled press feedback.
+    // No per-frame object allocation: step fn is closure-allocated,
+    // state is re-used on the button instance.
+    updateScale: function(dt) {
+      let held = false;
+      const down = Input._touchCurrent || Input._touchStart || Input._pressPos;
+      if (down && this.enabled && this.visible) {
+        held = this.contains(down.x, down.y - this.scrollY);
+      }
+      const target = (this._pressed || held) ? 0.97 : 1;
+
+      if (R.reducedMotion ? R.reducedMotion() : false) {
+        this._visualScale = target;
+        this._scaleVel = 0;
+        return;
+      }
+
+      if (!this._pressSpringStep || this._pressSpringStep._target !== target) {
+        this._pressSpringStep = R.spring({ stiffness: 300, damping: 24, target: target });
+        this._pressSpringStep._target = target;
+      }
+      const s = this._pressSpringStep(this._visualScale, this._scaleVel, dt);
+      this._visualScale = s.value;
+      this._scaleVel = s.velocity;
     },
 
     render: function(ctx) {
@@ -85,16 +116,21 @@ UI.Button = function(x, y, w, h, text, color, hoverColor, textColor) {
       const pressed = this._pressed || held;
       const col = pressed ? this.hoverColor : (this._hovered ? this.hoverColor : this.color);
       const oy = this.scrollY;
-      const dx = pressed ? 1 : 0;
-      const dy = pressed ? 1 : 0;
-      const dw = pressed ? -2 : 0;
-      const dh = pressed ? -2 : 0;
-      R.roundRect(ctx, this.x + dx, this.y + oy + dy, this.w + dw, this.h + dh, R.radius.s, col);
+      // Phase 47 (BTN-01): spring-scaled press transform replaces the old
+      // 1px dx/dy/dw/dh offset snap. Scale about the button center.
+      const cx = this.x + this.w / 2;
+      const cy = this.y + oy + this.h / 2;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(this._visualScale, this._visualScale);
+      ctx.translate(-cx, -cy);
+
+      R.roundRect(ctx, this.x, this.y + oy, this.w, this.h, R.radius.s, col);
       if (this.color === R.colors.btnGold || this.color === R.colors.orange) {
         ctx.strokeStyle = pressed ? R.colors.gold : R.colors.orangeLight;
         ctx.lineWidth = 1;
         ctx.beginPath();
-        const r = R.radius.s, x = this.x + dx, y = this.y + oy + dy, w = this.w + dw, h = this.h + dh;
+        const r = R.radius.s, x = this.x, y = this.y + oy, w = this.w, h = this.h;
         ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
         ctx.quadraticCurveTo(x + w, y, x + w, y + r);
         ctx.lineTo(x + w, y + h - r);
@@ -109,8 +145,10 @@ UI.Button = function(x, y, w, h, text, color, hoverColor, textColor) {
       if (!this.enabled) {
         ctx.globalAlpha = 0.5;
       }
-      R.textCenter(ctx, this.text, this.x + dx + this.w / 2 + dw / 2, this.y + oy + dy + this.h / 2 + dh / 2 + 4, pressed ? R.colors.white : this.textColor, R.fonts.md);
+      R.textCenter(ctx, this.text, cx, this.y + oy + this.h / 2 + 4, pressed ? R.colors.white : this.textColor, R.fonts.md);
       ctx.globalAlpha = 1;
+
+      ctx.restore();
     }
   };
 };
@@ -377,8 +415,10 @@ UI.PremiumShell = function(x, y, w, h, opts = {}) {
 UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
   const variant = opts.variant || 'primary'; // 'primary', 'secondary', 'ghost'
   const baseBtn = UI.BtnGold(x, y, w, h, label);
-  const spring = { scale: 1, targetScale: 1, iconX: 0, iconY: 0 };
+  const spring = { scale: 1, _scaleVel: 0, targetScale: 1, iconX: 0, iconY: 0 };
   const stiffness = 120, damping = 22;
+  const pressStiffness = 300, pressDamping = 24;
+  const pressStep = R.spring({ stiffness: pressStiffness, damping: pressDamping, target: 1 });
   
   baseBtn._trailingIcon = opts.trailingIcon || null;
   baseBtn._leadingIcon = opts.leadingIcon || null;
@@ -392,13 +432,15 @@ UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
       this._pressTimer -= dt;
       if (this._pressTimer <= 0) this._pressed = false;
     }
-    // Spring to target — reduced motion snaps instantly
+    // Phase 47 (BTN-01/03): press-scale spring via R.spring step.
     const reduceMotion = R.reducedMotion ? R.reducedMotion() : false;
     if (reduceMotion) {
       spring.scale = spring.targetScale;
+      spring._scaleVel = 0;
     } else {
-      spring.scale += (spring.targetScale - spring.scale) * Math.min(1, dt * stiffness / damping);
-      if (Math.abs(spring.scale - spring.targetScale) < 0.001) spring.scale = spring.targetScale;
+      const s = pressStep(spring.scale, spring._scaleVel, dt);
+      spring.scale = s.value;
+      spring._scaleVel = s.velocity;
     }
     this._springScale = spring.scale;
 
@@ -467,24 +509,55 @@ UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
     
     ctx.restore();
     
-    // Trailing icon physics
-    if (this._trailingIcon && this._hovered && !reduceMotion) {
-      const ix = bx + bw - 28 + spring.iconX;
-      const iy = by + bh/2 - 12 + spring.iconY;
-      ctx.save();
-      ctx.translate(ix, iy);
-      ctx.scale(1.05, 1.05);
-      const iconColor = variant === 'ghost' ? R.colors.gold : R.colors.white;
-      ctx.strokeStyle = iconColor;
-      ctx.lineWidth = 2;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(-4, 0); ctx.lineTo(4, 0);
-      ctx.moveTo(0, -4); ctx.lineTo(4, 0);
-      ctx.moveTo(0, 4); ctx.lineTo(4, 0);
-      ctx.stroke();
-      ctx.restore();
-    }
+      // Trailing icon (BTN-02): always visible when set; nested circle with
+      // diagonal translate + scale on press.
+      if (this._trailingIcon) {
+        const down = Input._touchCurrent || Input._touchStart || Input._pressPos;
+        const held = !!(this._pressed || (down && this.enabled && this.visible && this.contains(down.x, down.y - (this.scrollY||0))));
+
+        const ix = bx + bw - 28 + spring.iconX;
+        const iy = by + bh/2 - 12 + spring.iconY;
+        const circleD = 24;
+        const cx = ix;
+        const cy = iy;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        // Circle inherits button body scale from outer rendering; only add
+        // icon-specific scale + diagonal translate here.
+        const iconPressScale = held ? 1.05 : 1;
+        const diag = held ? 1 : 0;
+        ctx.translate(diag, diag);
+        ctx.scale(iconPressScale, iconPressScale);
+
+        const circleFill = variant === 'ghost' ? R.colors.surfaceGlass || R.colors.surface : R.colors.surface;
+        const iconColor = variant === 'ghost' ? R.colors.gold : R.colors.white;
+        // Circle
+        if (R.roundRect) {
+          // Use a rounded-rect for an arc-free nested enclosure.
+          R.roundRect(ctx, -circleD/2, -circleD/2, circleD, circleD, 6, circleFill);
+          ctx.strokeStyle = variant === 'ghost' ? R.colors.gold : R.colors.goldMuted;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(-circleD/2 + 0.5, -circleD/2 + 0.5, circleD - 1, circleD - 1);
+        } else if (ctx.arc) {
+          ctx.beginPath();
+          ctx.arc(0,0,circleD/2,0,Math.PI*2);
+          ctx.fillStyle = circleFill;
+          ctx.fill();
+        }
+
+        // Arrow inside
+        ctx.strokeStyle = iconColor;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-4, 0); ctx.lineTo(4, 0);
+        ctx.moveTo(0, -4); ctx.lineTo(4, 0);
+        ctx.moveTo(0, 4); ctx.lineTo(4, 0);
+        ctx.stroke();
+        ctx.restore();
+      }
+
     
     // Leading icon for ghost variant
     if (this._leadingIcon && this._hovered && !reduceMotion) {
@@ -504,21 +577,28 @@ UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
     }
   };
   
-  // Magnetic hover detection with reduced motion support
-  const originalUpdate = baseBtn.update;
-  baseBtn.update = function(dt) {
-    originalUpdate.call(this, dt);
-    const reduceMotion = R.reducedMotion ? R.reducedMotion() : false;
-    const ptr = Input._touchCurrent || Input._mousePos;
-    if (ptr && this.enabled && this.visible && !reduceMotion) {
-      const inside = this.contains(ptr.x, ptr.y - (this.scrollY||0));
-      this._hovered = inside;
-      spring.targetScale = inside ? 0.98 : 1;
-    } else {
-      this._hovered = false;
-      spring.targetScale = 1;
-    }
-  };
+   // Magnetic hover + press targetScale (Phase 47 / BTN-01..02)
+   const originalUpdate = baseBtn.update;
+   baseBtn.update = function(dt) {
+     // Press timer lives on the original baseBtn update.
+     originalUpdate.call(this, dt);
+
+     const reduceMotion = R.reducedMotion ? R.reducedMotion() : false;
+     const down = Input._touchCurrent || Input._touchStart || Input._pressPos;
+     const ptr = Input._touchCurrent || Input._mousePos;
+
+     const pressedOrHeld = !!(this._pressed || (down && this.enabled && this.visible && this.contains(down.x, down.y - (this.scrollY||0))));
+
+     if (ptr && this.enabled && this.visible && !reduceMotion) {
+       this._hovered = this.contains(ptr.x, ptr.y - (this.scrollY||0));
+     } else {
+       this._hovered = false;
+     }
+
+     // Unified target scale: 0.97 when pressed/held or hovered.
+     const target = (pressedOrHeld || this._hovered) ? 0.97 : 1;
+     spring.targetScale = target;
+   };
   
   baseBtn.setTrailingIcon = function(iconName) { this._trailingIcon = iconName; };
   baseBtn.setLeadingIcon = function(iconName) { this._leadingIcon = iconName; };
