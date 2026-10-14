@@ -1,5 +1,19 @@
 # Milestones
 
+## v9.0 Premium UI/UX Foundations (Shipped: 2026-10-14)
+
+**Phases completed:** 4 phases, 4 plans, commits `873343b`, `ba4896e`+`bb01dac`, `081f554`, `f30a7dd`
+
+**Key accomplishments:**
+
+- Phase 46 — Renderer Primitives: `R.strokeRoundRect` (0.5px hairline crisp, null-ctx safe), `R.doubleBezel` nested enclosures (outer shell + inset core + 1px top highlight), `R.easePremium` (bezier-equivalent, clamped, pure), `R.spring` (critically-damped factory, zero state), null-safe media-aware `R.reducedMotion()`, 6 additive semantic color tokens. 9 tests.
+- Phase 47 — Button Press Physics: `UI.Button` 0.97 press scale with spring back (transform-only, state allocated once — zero per-frame allocation), `MagneticBtn` nested trailing-icon circle with diagonal translate + scale, reduced-motion snap. 3 tests; layout-harness fixture updated (`bb01dac`).
+- Phase 48 — Panels & Modals: `UI.Panel`/`UI.Modal` double-bezel shells, eased 250ms overlay-alpha ramp, 40ms button stagger cascade, media-aware reduced motion. 5 tests.
+- Phase 49 — Reveal Lifecycle: `ScrollReveal.apply` save/restore fix, new `Scene.entranceReveal` (0.4s easePremium fade-up + blur), setTimeout → elapsed-time stagger state, construct-once CTAs in HeroMoment. 8 tests.
+- 18/18 requirements verified, full suite 509 pass / 0 fail / 1 pre-existing skip, UI invariants clean, browser boot matrix 3/3 clean. Audit: [v9.0-MILESTONE-AUDIT](milestones/v9.0-MILESTONE-AUDIT.md).
+
+---
+
 ## v7.0 Adaptive Viewport (Shipped: 2026-10-13)
 
 **Phases completed:** 1 phases, 3 plans, 9 tasks
