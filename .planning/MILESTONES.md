@@ -1,5 +1,22 @@
 # Milestones
 
+## v10.0 Shared Library Foundations (Planning)
+
+**Planned:** 2026-10-14
+
+**Phases planned:** 4 phases (50–53)
+
+**Key goals:**
+- **Phase 50:** UI Component Factory Foundation — `UI.Component` base + 5 mixins (`render`, `update`, `spring`, `ease`, `contains`); refactor `UI.Button`, `UI.Panel`, `UI.Modal` to compose from base + mixins; zero per-frame allocation
+- **Phase 51:** Spring Config Registry — `R.springConfigs` registry with 12 named configs; replace 8+ inline spring configs in `button.js`, `modal.js`, `panel.js`, `scene-helpers.js`, `travelMap.js`, `cultivationScene.js`, `combatScene.js`, `fishing.js`
+- **Phase 52:** Renderer Primitive Hardening — `R.strokeRoundRect` validation, `R.doubleBezel` `insetHighlight` support, `R.easePremiumInv`, `R.spring.step` alias, `R.reducedMotion.watch`, 4 new semantic tokens; extend `tests/renderer.test.js`
+- **Phase 53:** Component Factory Migration + Test Suite — migrate `UI.List`, `UI.Feedback`, `UI.HeroSurface`, `UI.TabBar`, `UI.List`, `UI.Input`, `UI.Dialog`, `UI.EmptyState`, `Scene.HeroMoment` to `UI.Component` + mixins; create `tests/component_factory.test.js`, `tests/spring_registry.test.js`, `tests/renderer_extended.test.js`; full suite green
+
+**Target requirements:** 25 total (COMP-01..07, SPR-01..04, REND-07..12, TEST-01..04)
+**Target:** 18/18 v9.0 requirements verified → 25/25 v10.0 requirements
+
+---
+
 ## v9.0 Premium UI/UX Foundations (Shipped: 2026-10-14)
 
 **Phases completed:** 4 phases, 4 plans, commits `873343b`, `ba4896e`+`bb01dac`, `081f554`, `f30a7dd`

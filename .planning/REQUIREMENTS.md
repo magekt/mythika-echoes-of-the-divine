@@ -1,62 +1,79 @@
-# Requirements: Mythika — v9.0 Premium UI/UX Foundations
+# Requirements: Mythika — v10.0 Shared Library Foundations
 
-**Defined:** 2026-10-13
-**Milestone:** v9.0 — Premium UI/UX Foundations
-**Source:** P0 findings from `.planning/phases/045-performance-optimizations/45-UI-AUDIT.md`
+**Defined:** 2026-10-14
+**Milestone:** v10.0 — Shared Library Foundations
+**Source:** P0 findings from `.planning/phases/045-performance-optimizations/45-UI-AUDIT.md` + v9.0 retrospective
 **Core Value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
 
-## v9.0 Requirements
+## v10.0 Requirements
 
-### Renderer Primitives (Foundation Layer)
+### UI Component Factory (Foundation Layer)
 
-- [ ] **REND-01**: `R.strokeRoundRect(ctx, x, y, w, h, r, color, lineWidth)` exists and renders a hairline-stroked rounded rect (0.5px offset for crispness) with a test proving it does not crash on null ctx guards
-- [ ] **REND-02**: `R.doubleBezel(ctx, x, y, w, h, opts)` renders nested enclosures: outer shell (fill + hairline stroke, outer radius) + inner core (distinct fill, inset top highlight, concentric smaller radius) — used by panels and modals
-- [ ] **REND-03**: `R.easePremium(t)` implements the `cubic-bezier(0.32, 0.72, 0, 1)`-equivalent easing curve as a pure function on `t ∈ [0,1]`
-- [ ] **REND-04**: `R.spring(t, opts)` implements a critically-damped spring interpolation (amplitude/period overridable) as a pure function
-- [ ] **REND-05**: `R.reducedMotion()` is null-safe when called without `G.state` (returns `false` instead of throwing) so engine primitives can be tested in isolation
-- [ ] **REND-06**: Semantic token expansion in `R.colors` (overlay, inset, disabled, hairline, shadow tokens) documented and non-breaking for existing consumers
+- [ ] **COMP-01**: `UI.Component(x, y, w, h, opts)` base factory returns `{ x, y, w, h, render(ctx), update(dt), contains(px, py), onClick: null, data: null }` — base object shared by all UI components
+- [ ] **COMP-02**: `UI.mixinRender(component, drawFn)` mixin adds `render(ctx)` that calls `drawFn(ctx, component)`; used by `UI.Button`, `UI.Panel`, `UI.Modal`, `UI.List`, `UI.Feedback`, `UI.HeroSurface`, `UI.TabBar`, `UI.Input`, `UI.Dialog`, `UI.EmptyState`, `Scene.HeroMoment`
+- [ ] **COMP-03**: `UI.mixinUpdate(component)` mixin adds `update(dt)` that calls `component._updateHook?.(dt)`; used by components needing per-frame logic (buttons, panels, modals, lists, scene CTAs)
+- [ ] **COMP-04**: `UI.mixinSpring(component, config)` mixin adds `_springState` + `_springStep = R.spring(config)`; `update(dt)` advances spring and stores result in `component._springValue`
+- [ ] **COMP-05**: `UI.mixinEase(component)` mixin adds `easedValue(t)` using `R.easePremium(t)` for entrance/exit transitions
+- [ ] **COMP-06**: `UI.mixinContains(component)` mixin adds `contains(px, py)` using `R.radius` scale for hit-testing
+- [ ] **COMP-06**: All existing UI factories (`UI.Button`, `UI.Panel`, `UI.Modal`, `UI.List`, `UI.Feedback`, `UI.HeroSurface`, `UI.TabBar`, `UI.List`, `UI.Input`, `UI.Dialog`, `UI.EmptyState`, `Scene.HeroMoment`) refactored to compose from `UI.Component` + mixins instead of hand-rolled objects
+- [ ] **COMP-07**: No per-frame object allocation in any component `render()` or `update()` — all state allocated once at construction, mutated in place
 
-### Button Press Physics & CTA
+### Spring Config Registry
 
-- [ ] **BTN-01**: Buttons scale to 0.97 on press and spring back on release via `R.spring`/press-timer — not an instant snap (60fps, transform-only)
-- [ ] **BTN-02**: `MagneticBtn`'s trailing arrow icon sits inside its own nested circle that translates diagonally + scales on press (Button-in-Button), not naked text
-- [ ] **BTN-03**: Press feedback respects `R.reducedMotion()` — scale feedback disabled under reduced motion while state-color feedback remains
-- [ ] **BTN-04**: No per-frame object allocation in the button press/release path (reuses state fields on the button instance)
+- [ ] **SPR-01**: `R.springConfigs` object exists with named configs for all spring use-cases:
+  - `buttonPress: { stiffness: 300, damping: 24, target: 0.97 }` — button press scale
+  - `iconPress: { stiffness: 300, damping: 24, target: 1.05 }` — icon press scale
+  - `panelEnter: { stiffness: 300, damping: 24, target: 1 }` — panel enter animation
+  - `modalOverlay: { stiffness: 300, damping: 24, target: 1 }` — modal overlay fade
+  - `modalButton: { stiffness: 300, damping: 24, target: 1, delay: 40 }` — modal button cascade
+  - `revealStagger: { stiffness: 300, damping: 24, target: 1, delay: 40 }` — reveal stagger delay
+  - `sceneEnter: { stiffness: 300, damping: 24, target: 1, duration: 400 }` — scene entrance
+  - `iconPress: { stiffness: 300, damping: 24, target: 1.05 }` — icon press scale
+  - `panelEnter: { stiffness: 300, damping: 24, target: 1 }` — panel enter
+  - `modalOverlay: { stiffness: 300, damping: 24, target: 1 }` — modal overlay
+  - `modalButton: { stiffness: 300, damping: 24, target: 1, delay: 40 }` — modal button cascade
+  - `revealStagger: { stiffness: 300, damping: 24, target: 1, delay: 40 }` — reveal stagger
+  - `sceneEnter: { stiffness: 300, damping: 24, target: 1, duration: 400 }` — scene entrance
+- [ ] **SPR-02**: `R.springConfig(name)` returns config by name; callers use `R.spring(R.springConfigs.buttonPress)` instead of inline objects
+- [ ] **SPR-03**: All 8+ inline spring configs in `button.js` (2×), `modal.js`, `panel.js`, `scene-helpers.js` (2×), `travelMap.js` (3×), `cultivationScene.js`, `combatScene.js`, `fishing.js` replaced with `R.springConfigs.*` references
+- [ ] **SPR-04**: New spring configs can be added without modifying `R.spring` — registry is open for extension
 
-### Panels & Modals (Nested Shells)
+### Renderer Primitive Hardening
 
-- [ ] **PAN-01**: `UI.Panel` renders through `R.doubleBezel` (outer shell + inset-highlight inner core) with the existing R.radius scale, replacing flat fill/stroke
-- [ ] **PAN-02**: `UI.Modal` panel uses the double-bezel shell; overlay backdrop alpha interpolates (not instant)
-- [ ] **PAN-03**: Modal buttons enter with a 40ms stagger cascade during the modal enter animation
-- [ ] **PAN-04**: Modal/panel reduced-motion support is media-aware: `prefers-reduced-motion: reduce` OR `G.state.reduceMotion` both disable motion, not just the state flag
+- [ ] **REND-07**: `R.strokeRoundRect` — add `lineWidth` parameter validation (clamp to ≥0.5), add `R.strokeRoundRect` to renderer test suite
+- [ ] **REND-08**: `R.doubleBezel` — add `opts.insetHighlight` support for custom inner highlight color; add null-check for `coreW/coreH ≤ 0`
+- [ ] **REND-09**: `R.easePremium` — add `R.easePremiumInv(t)` inverse function for progress-to-time mapping
+- [ ] **REND-10**: `R.spring` — add `R.spring.step(springState, dt)` alias for cleaner caller code
+- [ ] **REND-11**: `R.reducedMotion()` — add `R.reducedMotion.watch(cb)` for reactive listeners (opt-in)
+- [ ] **REND-12**: Semantic tokens — add `focus`, `success`, `warning`, `danger` tokens to `R.colors` for consistent state colors
 
-### Reveal Lifecycle (Scene Entrances)
+### Test Coverage Requirements
 
-- [ ] **REV-01**: `ScrollReveal.apply()` renders revealed children correctly (fix save/restore order bug — restore must happen AFTER rendering, not before)
-- [ ] **REV-02**: Scene entrance reveals use `R.easePremium` over ≥0.35s (replacing 0.12s near-instant), fading up with blur-to-sharp where reduced motion allows
-- [ ] **REV-03**: Stagger delays between reveal items use elapsed-time state (30–50ms cadence), not `setTimeout`
-- [ ] **REV-04**: `HeroMoment`/`EmptyState` CTAs are constructed once (scene enter or first use) and updated per frame, not allocated per frame
+- [ ] **TEST-01**: `tests/component_factory.test.js` — verifies `UI.Component` + mixins produce objects with correct shape, no per-frame allocation
+- [ ] **TEST-02**: `tests/spring_registry.test.js` — verifies `R.springConfigs` all resolve, `R.spring(R.springConfigs.*)` produces working step functions
+- [ ] **TEST-03**: `tests/renderer_extended.test.js` — covers REND-07..12
+- [ ] **TEST-04**: All new tests pass `node --test tests/*.test.js` (target: ≥520 pass, 0 fail)
 
-### Out of Scope for v9.0
+### Out of Scope for v10.0
 
 | Item | Reason |
 |------|--------|
-| List row stagger/press states (P1) | Deferred to v9.x follow-up; rows rebuild-fade as one block today, acceptable |
-| Feedback toast lane rework (P1) | Deferred; toasts functional, entrance exists |
-| Boot/error CSS polish (P1) | Deferred; CSS error state now wired (CR-01/CR-02 fixed) |
-| Full gameplay/design overhaul | Out of scope — this milestone is shared-UI foundations only |
-| Tailwind/DOM migration | Never — immediate-mode Canvas is the runtime contract |
+| Full Tailwind/DOM migration | Never — immediate-mode Canvas is the runtime contract |
+| Scene lifecycle overhaul (enter/leave/update/render) | Scene-specific logic varies too much; defer to v11 |
+| Full Tailwind/DOM migration | Never — immediate-mode Canvas is the runtime contract |
+| Gameplay/system overhaul | Out of scope — this milestone is shared-UI foundations only |
+| Build step / bundler | Never — zero-build is a core constraint |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REND-01..06 | Phase 46 | Pending |
-| BTN-01..04 | Phase 47 | Pending |
-| PAN-01..04 | Phase 48 | Pending |
-| REV-01..04 | Phase 49 | Pending |
+| COMP-01..07 | Phase 50 | Pending |
+| SPR-01..04 | Phase 51 | Pending |
+| REND-07..12 | Phase 52 | Pending |
+| TEST-01..04 | Phase 53 | Pending |
 
 **Coverage:**
-- v9.0 requirements: 18 total
-- Mapped to phases: 18
+- v10.0 requirements: 25 total
+- Mapped to phases: 25
 - Unmapped: 0

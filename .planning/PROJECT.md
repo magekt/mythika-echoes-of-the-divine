@@ -40,11 +40,23 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 
 ## Milestone v9.0 — Premium UI/UX Foundations
 
-**Goal:** Lift the shared immediate-mode Canvas UI from functional-baseline to premium (Awwwards-tier): nested double-bezel containers, spring-physics press feedback, eased/cascaded entrance reveals, and a reusable renderer primitive layer — without changing gameplay rules or breaking the 400×720 Canvas contract.
+**Goal (achieved):** Lift the shared immediate-mode Canvas UI from functional-baseline to premium (Awwwards-tier): nested double-bezel containers, spring-physics press feedback, eased/cascaded entrance reveals, and a reusable renderer primitive layer — without changing gameplay rules or breaking the 400×720 Canvas contract.
 
 **Context:** A premium UI/UX audit (`45-UI-AUDIT.md`) identified P0 gaps: renderer lacks `strokeRoundRect`/`doubleBezel`/`easePremium`/`spring` primitives and null-safe `reducedMotion`; buttons snap with no press scale; panels/modals are single-layer flat; scene reveals are near-instant (`duration:0.12`) with `setTimeout` delays and per-frame CTA allocations.
 
+**Date:** 2026-10-14
+
+## Milestone v10.0 — Shared Library Foundations
+
+**Goal:** Extract and harden the shared UI/renderer foundations established in v9.0 into reusable, testable libraries — a UI component factory (`UI.Component` base + mixins), a centralized spring config registry (`R.springConfigs`), and hardened renderer primitives — so that v11+ features build on solid, reusable foundations instead of re-inventing primitives per feature.
+
+**Context:** v9.0 established premium UI primitives (`R.doubleBezel`, `R.spring`, `R.easePremium`, `R.reducedMotion`, `R.doubleBezel`, semantic tokens) and premium UI patterns (spring-driven button press, nested CTA icons, double-bezel panels/modals, eased entrances). v10 extracts these into reusable, testable libraries so v11+ features compose rather than recreate.
+
+**Active requirements direction:** Deliver a `UI.Component` base factory + mixins (`render`, `update`, `contains`, `spring`, `easePremium`), a centralized `R.springConfigs` registry replacing 8+ inline spring configs, and hardened `R` primitives with full test coverage. All without changing gameplay rules, breaking the 400×720 Canvas contract, or introducing a build step.
+
 **Date:** To be shipped
+
+## Milestone v9.0 — Premium UI/UX Foundations
 
 ## Shipped Milestone v3.0 — Screen & Gameplay Revamp
 
