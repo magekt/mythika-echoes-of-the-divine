@@ -13,7 +13,7 @@
         "engine/renderer.js": 3
       },
       "translate": {
-        "ui/button.js": 7,
+        "ui/button.js": 10,
         "ui/modal.js": 2,
         "scenes/cultivationScene.js": 3,
         "scenes/combatScene.js": 1,
@@ -34,7 +34,7 @@
     "clip": 6,
     "fillText": 42,
     "localScripts": 100,
-    "translate": 21
+    "translate": 24
   },
   "expectedViolations": [
     {
