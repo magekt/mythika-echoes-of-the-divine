@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [10.0.0] - 2026-10-14
+### Added
+- UI Component Factory Foundation (Phase 50): `UI.Component` base factory + 5 mixins (`render`, `update`, `spring`, `ease`, `contains`); refactored `UI.Button`, `UI.Panel`, `UI.Modal` to compose from base + mixins
+- Spring Config Registry (Phase 51): `R.springConfigs` registry with 12 named spring configurations; `R.springConfig(name)` accessor; replaced 8+ inline spring configs
+- Renderer Primitive Hardening (Phase 52): `R.strokeRoundRect` validation, `R.doubleBezel` `insetHighlight` support, `R.easePremiumInv`, `R.spring.step` alias, `R.reducedMotion.watch`, 4 new semantic tokens (`focus`, `success`, `warning`, `danger`)
+- Component Factory Migration + Test Suite (Phase 53): migrated 9 UI components (`Button`, `Panel`, `Modal`, `List`, `Feedback`, `HeroSurface`, `TabBar`, `Input`, `Dialog`, `EmptyState`) to `UI.Component` + mixins; added 3 test files (`component_factory.test.js`, `spring_registry.test.js`, `renderer_extended.test.js`)
+- Shared library foundations enabling consistent component architecture, spring physics, and renderer primitives
+
+### Fixed
+- Critical: Missing `component.js` in script loading order (caused UI component factory to be undefined)
+- Critical: Dead UI components (`currency-badge.js`, `map-card.js`, `wordmark.js`) - never loaded or used
+- Critical: Duplicate color tokens in `R.colors` (hex values silently overwritten by rgba values)
+- Critical: Spring step function allocating new object every frame (zero-per-frame allocation violation)
+- Critical: `R.doubleBezel` calls creating object literals every render frame
+- Critical: Redundant `R.reducedMotion()` checks in hot paths
+- Critical: Unused `_hoverSpringStep` allocation in `UI.MagneticBtn`
+
+### Changed
+- Updated loading progress tracker in `index.html`: added `component.js`, increased TOTAL from 104 to 105, updated group counts
+- Updated service worker (`sw.js`): added `src/ui/component.js` to precache list
+- Updated test fixtures (`tools/layout_harness/expected_pairs.json`): adjusted script counts
+- `src/engine/renderer.js`: removed duplicate hex color definitions, kept Phase 52 rgba semantic tokens
+
+### Testing
+- All tests pass: 579 pass / 0 fail / 1 skipped
+- UI invariants check: all checks passed
+- Browser matrix verification: 3/3 profiles clean (desktop, phone, phone-land)
+
+
 ### Added
 - Encounter system with mythological narrative encounters by `d722f6b`
   - `ENCOUNTERS` data registry with prerequisite and pool helpers by `5cbba94`
