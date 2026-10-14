@@ -33,6 +33,13 @@ const R = {
     warning: '#e8a030',
     danger: '#c83030',
     info: '#3080c8',
+    // Phase 46 semantic tokens — additive, do not remove existing keys
+    overlay: 'rgba(0,0,0,0.6)',
+    insetHighlight: 'rgba(255,255,255,0.10)',
+    insetShade: 'rgba(0,0,0,0.30)',
+    disabled: 'rgba(120,120,140,0.5)',
+    hairline: 'rgba(255,255,255,0.08)',
+    shadow: 'rgba(0,0,0,0.40)',
   },
   // Corner-radius scale (Shape Consistency Lock): xs=3 chips/ticks, s=5
   // buttons/small bars, m=8 panels/headers, l=10 large cards. New UI adopts
@@ -86,9 +93,20 @@ const R = {
     ctx.restore();
   },
 
-  // Global reduced motion check
+  // Global reduced motion check — null-safe: works with or without G/window.
   reducedMotion: function() {
-    return !!G.state.reduceMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var stateReduced = false;
+    try {
+      if (typeof G !== 'undefined' && G && G.state && G.state.reduceMotion) stateReduced = true;
+    } catch (e) { /* G or G.state may be undefined in Node tests */ }
+    var mediaReduced = false;
+    try {
+      var w = (typeof window !== 'undefined') ? window : (typeof globalThis !== 'undefined' ? globalThis : null);
+      if (w && typeof w.matchMedia === 'function') {
+        mediaReduced = w.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      }
+    } catch (e) { /* matchMedia unavailable */ }
+    return stateReduced || mediaReduced;
   }
 };
 
@@ -113,6 +131,73 @@ R.roundRect = function(ctx, x, y, w, h, r, color) {
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
   ctx.fill();
+};
+
+// Phase 46 — renderer primitives foundation.
+
+// Rounded-rect outline (stroke only). 0.5px offset keeps 1px hairlines crisp.
+R.strokeRoundRect = function(ctx, x, y, w, h, r, color, lineWidth) {
+  if (!ctx) return;
+  r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+  var sx = Math.round(x) + 0.5, sy = Math.round(y) + 0.5;
+  ctx.beginPath();
+  ctx.moveTo(sx + r, sy);
+  ctx.lineTo(sx + w - r, sy);
+  ctx.quadraticCurveTo(sx + w, sy, sx + w, sy + r);
+  ctx.lineTo(sx + w, sy + h - r);
+  ctx.quadraticCurveTo(sx + w, sy + h, sx + w - r, sy + h);
+  ctx.lineTo(sx + r, sy + h);
+  ctx.quadraticCurveTo(sx, sy + h, sx, sy + h - r);
+  ctx.lineTo(sx, sy + r);
+  ctx.quadraticCurveTo(sx, sy, sx + r, sy);
+  ctx.closePath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth || 1;
+  ctx.stroke();
+};
+
+// Nested enclosures ("Doppelrand"): outer shell + inset core with top highlight.
+R.doubleBezel = function(ctx, x, y, w, h, opts) {
+  if (!ctx) return;
+  opts = opts || {};
+  var radius = opts.radius || R.radius.l;
+  var inset = (opts.inset === undefined || opts.inset === null) ? 6 : opts.inset;
+  var coreRadius = Math.max(0, radius - inset);
+  var coreX = x + inset, coreY = y + inset;
+  var coreW = w - inset * 2, coreH = h - inset * 2;
+
+  // Outer shell: fill + hairline stroke.
+  R.roundRect(ctx, x, y, w, h, radius, opts.shellFill || R.colors.surfaceElevated);
+  R.strokeRoundRect(ctx, x, y, w, h, radius, opts.shellStroke || R.colors.hairline, 1);
+
+  if (coreW > 0 && coreH > 0) {
+    // Inner core.
+    R.roundRect(ctx, coreX, coreY, coreW, coreH, coreRadius, opts.coreFill || R.colors.surface);
+    // 1px top inset highlight strip across the core's top edge.
+    var stripH = Math.min(1, coreH);
+    R.roundRect(ctx, coreX + 1, coreY, Math.max(0, coreW - 2), stripH, stripH, opts.coreHighlight || R.colors.insetHighlight);
+  }
+};
+
+// Smoothstep approximation of cubic-bezier(0.32,0.72,0,1) — pure, clamps to [0,1].
+R.easePremium = function(t) {
+  if (typeof t !== 'number' || Number.isNaN(t)) t = 0;
+  t = Math.max(0, Math.min(1, t));
+  return t * t * (3 - 2 * t);
+};
+
+// Critically-damped spring factory — pure, no state.
+R.spring = function(config) {
+  config = config || {};
+  var stiffness = config.stiffness !== undefined ? config.stiffness : 170;
+  var damping = config.damping !== undefined ? config.damping : 26;
+  var target = config.target !== undefined ? config.target : 1;
+  return function(current, velocity, dt) {
+    var force = stiffness * (target - current) - damping * velocity;
+    velocity += force * dt;
+    var value = current + velocity * dt;
+    return { value: value, velocity: velocity };
+  };
 };
 
 R.text = function(ctx, str, x, y, color, font, align) {
