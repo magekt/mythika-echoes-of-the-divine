@@ -29,9 +29,6 @@ const R = {
     textPrimary: '#e8e0d0',
     textSecondary: '#98a0b8',
     textMuted: '#6a7088',
-    success: '#30c830',
-    warning: '#e8a030',
-    danger: '#c83030',
     info: '#3080c8',
     // Phase 46 semantic tokens — additive, do not remove existing keys
     overlay: 'rgba(0,0,0,0.6)',

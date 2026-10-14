@@ -70,6 +70,7 @@ const ASSETS = [
   'src/systems/enemyPortraits.js',
   'src/systems/zone_rewards.js',
   'src/scenes/encounterScene.js',
+  'src/ui/component.js',
   'src/ui/button.js',
   'src/ui/panel.js',
   'src/ui/progressBar.js',

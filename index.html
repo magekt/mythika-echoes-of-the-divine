@@ -19,14 +19,14 @@
   // counter after each group's scripts have loaded and run. The overlay
   // DOM is updated directly via property changes — no event listeners needed.
   window.__mythikaLoadTracker = (function() {
-    var TOTAL = 104; // 16 engine + 21 data + 26 systems + 13 ui + 27 scenes + 1 boot
+    var TOTAL = 105; // 16 engine + 21 data + 26 systems + 14 ui + 27 scenes + 1 boot
     var GROUPS = [
       { name: 'engine',  cumDone: 16 },
       { name: 'data',    cumDone: 37 },
       { name: 'systems', cumDone: 63 },
-      { name: 'ui',      cumDone: 76 },
-      { name: 'scenes',  cumDone: 103 },
-      { name: 'boot',    cumDone: 104 }
+      { name: 'ui',      cumDone: 77 },
+      { name: 'scenes',  cumDone: 104 },
+      { name: 'boot',    cumDone: 105 }
     ];
     var currentGroup = 0;
     var barEl = null;
@@ -180,6 +180,7 @@
 <script src="src/systems/encounter.js"></script>
 <script src="src/systems/living_zones.js"></script>
 <script>__mythikaProbeGroup('systems','end'); __mythikaProbeGroup('ui','start'); __mythikaLoadTracker.step(3)</script>
+<script src="src/ui/component.js"></script>
 <script src="src/ui/button.js"></script>
 <script src="src/ui/panel.js"></script>
 <script src="src/ui/progressBar.js"></script>
