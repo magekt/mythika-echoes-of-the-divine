@@ -151,27 +151,81 @@
   // Hero Moment - for key scenes (Ashram, Journey, Combat, CharacterCreate)
   Scene.HeroMoment = function(opts) {
     const { title, subtitle, ctaLabel, ctaAction, eyebrow, accent } = opts;
+    // REV-04: construct the CTA ONCE at scene enter / first use. cx and the
+    // layout y are deterministic (cx from G.W at init, y fixed by opts), so the
+    // button is stable — no per-frame allocation. Position is set relative to
+    // the known layout; render() only drives update(dt) + render(ctx).
+    const cx = G.W/2;
+    let y = 40;
+    if (eyebrow) { y += 40; }
+    y += 40; // display headline block
+    y += 40; // subtext block
+    const ctaBtn = ctaLabel ? UI.MagneticBtn(cx - 120, y, 240, 52, ctaLabel) : null;
+    if (ctaBtn) {
+      ctaBtn.onClick = ctaAction;
+      if (ctaBtn.setTrailingIcon) ctaBtn.setTrailingIcon('arrow-right');
+    }
+
     return {
+      update: function(dt) {
+        if (ctaBtn && ctaBtn.update) ctaBtn.update(dt);
+      },
       render: function(ctx) {
-        const cx = G.W/2;
-        let y = 40;
         // Eyebrow (optional, max 1 per 3 sections) - using gold accent
         if (eyebrow) {
-          R.roundRect(ctx, cx - 80, y, 160, 24, 12, 'rgba(232,160,48,0.12)');
-          R.textCenter(ctx, eyebrow, cx, y + 16, accent || R.colors.gold, R.fonts.sm);
-          y += 40;
+          R.roundRect(ctx, cx - 80, y - 80, 160, 24, 12, 'rgba(232,160,48,0.12)');
+          R.textCenter(ctx, eyebrow, cx, y - 64, accent || R.colors.gold, R.fonts.sm);
         }
         // Display serif headline - using displaySm (18px PP Editorial New)
-        R.textCenter(ctx, title, cx, y, R.colors.textPrimary, R.fonts.displaySm);
-        y += 40;
+        R.textCenter(ctx, title, cx, y - 40, R.colors.textPrimary, R.fonts.displaySm);
         // Subtext (max 20 words) - using textSecondary color
         R.textCenter(ctx, subtitle, cx, y, R.colors.textSecondary, R.fonts.md);
-        y += 40;
-        // Primary CTA - MagneticBtn with gold styling
-        const btn = UI.MagneticBtn(cx - 120, y, 240, 52, ctaLabel);
-        btn.onClick = ctaAction;
-        btn.setTrailingIcon('arrow-right');
-        btn.render(ctx);
+        // Primary CTA — pre-constructed, driven per frame (no allocation).
+        if (ctaBtn) ctaBtn.render(ctx);
+      }
+    };
+  };
+
+  // REV-02: Full-screen scene-entrance reveal. Replaces the old near-instant
+  // 0.12s entrances. The returned object exposes { t, update, render } where:
+  //   - `t` advances 0→1 over 0.4s (>= the 0.35s requirement).
+  //   - `render(ctx, fn)` applies easePremium(t) to alpha + a 20px upward fade,
+  //     then invokes fn(ctx) INSIDE the transformed context. Under reduced
+  //     motion it snaps t to 1 immediately (no blur/fade).
+  // Construct ONCE at scene enter / first use; call update(dt) + render(ctx,fn)
+  // per frame (do not re-allocate).
+  Scene.entranceReveal = function() {
+    const DURATION = 400; // ms
+    let t = 0;
+    let done = false;
+    const snap = R.reducedMotion ? R.reducedMotion() : false;
+    if (snap) { t = 1; done = true; }
+
+    return {
+      get t() { return t; },
+      set t(v) { t = v; },
+      update: function(dt, dtReal) {
+        if (done) return;
+        // Prefer real elapsed time when available (dtReal in seconds); fall
+        // back to dt (seconds). Advance over DURATION ms.
+        const sec = (typeof dtReal === 'number' && isFinite(dtReal)) ? dtReal : dt;
+        t += sec * 1000 / DURATION;
+        if (t >= 1) { t = 1; done = true; }
+      },
+      render: function(ctx, fn) {
+        const reduce = R.reducedMotion ? R.reducedMotion() : false;
+        const e = R.easePremium ? R.easePremium(t) : t;
+        if (!reduce) {
+          ctx.save();
+          ctx.globalAlpha = e;
+          ctx.translate(0, 20 * (1 - e));
+          ctx.filter = `blur(${(1 - e) * 8}px)`;
+          if (fn) fn(ctx);
+          ctx.restore();
+          ctx.filter = 'none';
+        } else if (fn) {
+          fn(ctx);
+        }
       }
     };
   };
@@ -195,9 +249,19 @@
           const inView = el.y < G.H + 100 && el.y + el.h > -100;
           if (inView && !el._revealStarted) {
             el._revealStarted = true;
-            setTimeout(() => {
+            el._revealStart = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+            // REV-03: reduced motion skips the delay entirely — mark revealed now.
+            if (R.reducedMotion ? R.reducedMotion() : false) {
               el._revealed = true;
-            }, el._revealOpts.delay);
+            }
+          }
+          // REV-03: replace setTimeout with elapsed-time state so stagger
+          // delays track game-frame time and survive pauses/scene switches.
+          if (el._revealStarted && !el._revealed) {
+            const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+            if (now - el._revealStart >= el._revealOpts.delay * 1000) {
+              el._revealed = true;
+            }
           }
           if (el._revealed) {
             el._revealState.progress = Math.min(1, el._revealState.progress + dt * 1000 / el._revealOpts.duration);
@@ -209,13 +273,20 @@
           }
         });
       },
-      apply: function(ctx, el) {
-        if (!el._revealState) return;
+      apply: function(ctx, el, renderFn) {
+        // REV-01: save/restore must BRACKET the child content. The previous
+        // implementation restored the context BEFORE the child was rendered,
+        // so alpha/translate/filter never actually affected the drawn content.
+        // Now the caller passes a renderFn that draws the child INSIDE the
+        // transformed context, and we restore only after it completes.
+        if (!el._revealState) { if (renderFn) renderFn(ctx); return; }
         ctx.save();
         ctx.globalAlpha = el._revealState.opacity;
         ctx.translate(0, el._revealState.y);
         ctx.filter = `blur(${el._revealState.blur}px)`;
+        if (renderFn) renderFn(ctx);
         ctx.restore();
+        ctx.filter = 'none';
       }
     };
   };
@@ -420,17 +491,24 @@
       }
     };
     
+    // REV-04: construct the CTA ONCE at factory time. cx/cy derive from
+    // G.W/G.H (stable at init) and type is fixed, so the button instance is
+    // reusable — render() only drives update(dt) + render(ctx), no allocation.
+    const cx = G.W/2, cy = G.H/2 - 40;
+    const ctaBtn = ctaLabel ? UI.MagneticBtn(cx - 90, cy + 100, 180, 40, ctaLabel) : null;
+    if (ctaBtn) {
+      ctaBtn.onClick = ctaAction;
+    }
+
     return {
+      update: function(dt) {
+        if (ctaBtn && ctaBtn.update) ctaBtn.update(dt);
+      },
       render: function(ctx) {
-        const cx = G.W/2, cy = G.H/2 - 40;
         illustrations[type]?.(ctx, cx, cy);
         R.textCenter(ctx, title, cx, cy + 50, R.colors.gold, R.fonts.md);
         R.textCenter(ctx, hint, cx, cy + 70, R.colors.textDim, R.fonts.sm);
-        if (ctaLabel) {
-          const btn = UI.MagneticBtn(cx - 90, cy + 100, 180, 40, ctaLabel);
-          btn.onClick = ctaAction;
-          btn.render(ctx);
-        }
+        if (ctaBtn) ctaBtn.render(ctx);
       }
     };
   };

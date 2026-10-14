@@ -20,7 +20,7 @@
         "scenes/ashram.js": 1,
         "engine/game.js": 1,
         "engine/renderer.js": 2,
-        "engine/scene-helpers.js": 4
+        "engine/scene-helpers.js": 5
       },
       "clip": {
         "ui/list.js": 1,
@@ -34,7 +34,7 @@
     "clip": 6,
     "fillText": 42,
     "localScripts": 100,
-    "translate": 24
+    "translate": 25
   },
   "expectedViolations": [
     {
