@@ -34,6 +34,9 @@ UI.Modal.show = function(opts) {
     h: opts.h || 200,
     buttonHeight: opts.buttonHeight || 32,
     visible: true,
+    _created: 0,
+    _overlayProgress: 0,
+    _btnProgress: [],
     _buttonList: [],
     _buildButtons: function() {
       this._buttonList = [];
@@ -90,41 +93,38 @@ UI.Modal.handleInput = function() {
 // ghost both route through here.
 UI.Modal._paint = function(ctx, m) {
   ctx.save();
-  ctx.globalAlpha = m._alpha !== undefined ? m._alpha : 1;
-  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  // Phase 48 — PAN-02: overlay backdrop alpha interpolates (not instant).
+  const overlayAlpha = m._overlayProgress !== undefined ? m._overlayProgress : 1;
+  ctx.globalAlpha = (m._alpha !== undefined ? m._alpha : 1) * R.easePremium(overlayAlpha);
+  ctx.fillStyle = R.colors.overlay;
   ctx.fillRect(0, 0, G.W, G.H);
   const cx = m.x + m.w / 2, cy = m.y + m.h / 2;
   const s = m._scale || 1;
   ctx.translate(cx, cy);
   ctx.scale(s, s);
   ctx.translate(-cx, -cy);
-  R.roundRect(ctx, m.x, m.y, m.w, m.h, R.radius.m, R.colors.panel);
-  ctx.strokeStyle = R.colors.orange;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  const r = R.radius.m, x = m.x, y = m.y, w = m.w, h = m.h;
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-  ctx.stroke();
-  R.textCenter(ctx, m.title, x + w / 2, y + 28, R.colors.orange, R.fonts.md);
+  // Phase 48 — nested-shell panel (Doppelrand) via R.doubleBezel.
+  R.doubleBezel(ctx, m.x, m.y, m.w, m.h, {
+    shellFill: m.color || R.colors.panel,
+    shellStroke: m.borderColor || R.colors.hairline,
+    radius: R.radius.l,
+  });
+  R.textCenter(ctx, m.title, m.x + m.w / 2, m.y + 28, R.colors.orange, R.fonts.md);
   if (m.body) {
-    R.textCenter(ctx, m.body, x + w / 2, y + 56, R.colors.text, R.fonts.sm);
+    R.textCenter(ctx, m.body, m.x + m.w / 2, m.y + 56, R.colors.text, R.fonts.sm);
   }
-  let ly = y + 56;
+  let ly = m.y + 56;
   for (const line of m.lines) {
     ly += 18;
-    R.textCenter(ctx, line, x + w / 2, ly, R.colors.textDim, R.fonts.sm);
+    R.textCenter(ctx, line, m.x + m.w / 2, ly, R.colors.textDim, R.fonts.sm);
   }
-  for (const b of m._buttonList) {
+  // Phase 48 — PAN-03: 40ms stagger cascade for buttons.
+  for (let i = 0; i < m._buttonList.length; i++) {
+    const b = m._buttonList[i];
+    const bp = m._btnProgress ? m._btnProgress[i] : 1;
+    ctx.globalAlpha = R.easePremium(bp);
     b.render(ctx);
+    ctx.globalAlpha = 1;
   }
   ctx.restore();
 };
@@ -132,25 +132,47 @@ UI.Modal._paint = function(ctx, m) {
 UI.Modal.render = function(ctx) {
   if (typeof window !== 'undefined' && window.__layoutHarness) window.__layoutHarness.overlay = true;
   try {
+  // Phase 48 — PAN-04: reduced-motion is media-aware (checks G.state.reduceMotion
+  // AND prefers-reduced-motion).
+  const reduceMotion = R.reducedMotion();
+
   // Ghost: the just-dismissed dialog dissolves over 100ms (visual only —
   // its result callback already fired and it takes no input).
   const g = UI.Modal._ghost;
   if (g) {
-    const t = (performance.now() - g._closedAt) / 100;
-    if (G.state.reduceMotion || t >= 1) {
+    const t = Math.max(0, Math.min(1, (performance.now() - g._closedAt) / 100));
+    if (reduceMotion || t >= 1) {
       UI.Modal._ghost = null;
     } else {
-      g._alpha = 1 - t;
+      g._alpha = R.easePremium(1 - t);
       g._scale = 1;
       UI.Modal._paint(ctx, g);
     }
   }
   const m = UI.Modal.active;
   if (!m || !m.visible) return;
+
+  // Phase 48 — drive enter progress on first render (no external update hook).
+  if (!m._created) m._created = performance.now();
+
+  if (reduceMotion) {
+    m._overlayProgress = 1;
+    for (let i = 0; i < m.buttons.length; i++) m._btnProgress[i] = 1;
+  } else {
+    m._overlayProgress = Math.min(1, (performance.now() - m._created) / 250);
+  }
+
+  // Phase 48 — PAN-03: 40ms stagger cascade (button[0] at 0, button[1] at 40ms…).
+  const btnDelayMs = 40;
+  for (let i = 0; i < m.buttons.length; i++) {
+    const startDelayMs = 250 + i * btnDelayMs;
+    m._btnProgress[i] = Math.max(0, Math.min(1, (performance.now() - m._created - startDelayMs) / 400));
+  }
+
   // Enter: fade + scale 0.96->1 over 120ms (easeOutCubic) so dialogs arrive,
-  // not flash. Skipped under Reduce Motion.
+  // not flash. Skipped under reduced motion.
   let e = 1;
-  if (!G.state.reduceMotion && m._openedAt) {
+  if (!reduceMotion && m._openedAt) {
     const t = Math.min(1, (performance.now() - m._openedAt) / 120);
     e = 1 - Math.pow(1 - t, 3);
   }

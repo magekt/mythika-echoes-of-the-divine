@@ -4,6 +4,7 @@ UI.Panel = function(x, y, w, h, color, borderColor) {
     color: color || R.colors.panel,
     borderColor: borderColor || R.colors.panelLight,
     visible: true,
+    enterProgress: 0,
     children: [],
     title: null,
     closeBtn: null,
@@ -30,31 +31,31 @@ UI.Panel = function(x, y, w, h, color, borderColor) {
       return UI.handleButtons(all);
     },
 
+    update: function(dt) {
+      if (R.reducedMotion()) {
+        this.enterProgress = 1;
+        return;
+      }
+      this.enterProgress = Math.min(1, this.enterProgress + (dt || 0) / 0.25);
+    },
+
     render: function(ctx) {
       if (!this.visible) return;
-      R.roundRect(ctx, this.x, this.y, this.w, this.h, 6, this.color);
-      if (this.borderColor) {
-        ctx.strokeStyle = this.borderColor;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        const r = 6, x = this.x, y = this.y, w = this.w, h = this.h;
-        ctx.moveTo(x + r, y);
-        ctx.lineTo(x + w - r, y);
-        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-        ctx.lineTo(x + w, y + h - r);
-        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-        ctx.lineTo(x + r, y + h);
-        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-        ctx.lineTo(x, y + r);
-        ctx.quadraticCurveTo(x, y, x + r, y);
-        ctx.closePath();
-        ctx.stroke();
-      }
+      // Phase 48 — outer shell + inset-highlight inner core (Doppelrand).
+      const alpha = R.easePremium(this.enterProgress);
+      ctx.globalAlpha = alpha;
+      R.doubleBezel(ctx, this.x, this.y, this.w, this.h, {
+        shellFill: this.color || R.colors.surfaceElevated,
+        shellStroke: this.borderColor || R.colors.hairline,
+        radius: R.radius.m,
+      });
       if (this.title) {
         R.textCenter(ctx, this.title.text, this.x + this.w / 2, this.y + 16, this.title.color, R.fonts.lg);
       }
-      for (const c of this.children) {
-        if (c.render) c.render(ctx);
+      ctx.globalAlpha = 1;
+      // Children manage their own alpha (buttons), so render at full opacity.
+      for (const child of this.children) {
+        if (child.render) child.render(ctx);
       }
       if (this.closeBtn) this.closeBtn.render(ctx);
     },

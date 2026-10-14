@@ -7,7 +7,7 @@
 
 - [x] **Phase 46: Renderer Primitives Foundation** - New `R` primitives (strokeRoundRect, doubleBezel, easePremium, spring, null-safe reducedMotion, semantic tokens) exist and are unit-tested without touching scene code.
 - [x] **Phase 47: Button Press Physics & CTA** - Buttons and MagneticBtn feel physical: 0.97 press scale with spring back, nested CTA icon affordance, reduced-motion respect, zero per-frame allocation.
-- [ ] **Phase 48: Panels & Modals Nested Shells** - `UI.Panel`/`UI.Modal` render nested double-bezel shells; modal overlay alpha and button cascade animate with media-aware reduced motion.
+- [x] **Phase 48: Panels & Modals Nested Shells** - `UI.Panel`/`UI.Modal` render nested double-bezel shells; modal overlay alpha and button cascade animate with media-aware reduced motion.
 - [ ] **Phase 49: Reveal Lifecycle & Scene Entrances** - `ScrollReveal` restore-order bug fixed; scene entrances use `easePremium` over ≥0.35s; stagger delays use elapsed-time state; CTA components construct once, update per frame.
 
 ## Phase Details
