@@ -1,245 +1,162 @@
-<!-- refreshed: 2026-10-08 -->
 # Architecture
 
-**Analysis Date:** 2026-10-08
+**Analysis Date:** 2026-10-15
 
 ## System Overview
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                        index.html                            │
-│  (synchronous script load order → global namespace)          │
-├──────────────────┬──────────────────┬───────────────────────┤
-│  Firebase SDK    │  Engine Core     │  Game Data (src/data/)│
-│  (ES Module)     │  (src/engine/)   │  20 declarative files │
-└────────┬─────────┴────────┬─────────┴──────────┬────────────┘
-         │                  │                     │
-         ▼                  ▼                     ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Systems Layer (src/systems/)                                │
-│  Authoritative rules, mutate G.state, no rendering           │
-├─────────────────────────────────────────────────────────────┤
-│  UI Layer (src/ui/)                                          │
-│  Immediate-mode components (button, panel, list, modal...)  │
-├─────────────────────────────────────────────────────────────┤
-│  Scenes Layer (src/scenes/)                                  │
-│  26 screens implementing enter/update/render/leave           │
-└─────────────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Persistence                                                 │
-│  localStorage (primary) → Firestore (optional cloud sync)    │
-└─────────────────────────────────────────────────────────────┘
+Immediate-mode Canvas 2D game driven by a single global game state (`G`) and a scene manager (`G.scenes` + `G.currentScene`). Rendering is frame-based (rAF loop) and UI is drawn directly to the canvas.
+
+```
+[Entrypoint + boot] -> [Game loop + state] -> [Active Scene] -> [Render/UI + input handling]
+                                     \-> [Systems] update/mutate `G.state`
+                                     \-> [Fade/Navigation] manage scene transitions
+                                     \-> [Data] declarative gameplay content used by systems/scenes
 ```
 
 ## Component Responsibilities
 
 | Component | Responsibility | File |
-|-----------|----------------|------|
-| `G` | Global game object: canvas, ctx, state, scenes, systems, loop timing | `src/engine/game.js:212-226` |
-| `R` | Renderer helpers: shapes, text, effects, projectiles, click FX | `src/engine/renderer.js` |
-| `Scene` | Base scene contract (enter/update/render/leave) | `src/engine/scene.js` |
-| `gScene` / `Fade` | Scene transitions with fade veil | `src/engine/game.js:120-170, 475-489` |
-| `Input` | Touch/click/keyboard normalization, tap queue | `src/engine/input.js` |
-| `Audio` | Web Audio API wrapper, sound pooling | `src/engine/audio.js` |
-| `Notify` | Toast queue + achievement banners | `src/engine/game.js:1-118` |
-| `SaveSystem` | LocalStorage + Firestore sync, migration, import/export | `src/systems/save.js` |
-| `Auth` | Firebase Auth wrapper, cloud save bridge | `src/engine/auth.js` |
-| `Combat` | Turn-based combat logic, damage calc, status effects | `src/systems/combat.js` |
-| `Progression` | XP, realm advancement, rebirth (punarjanma) | `src/systems/progression.js` |
-| `WorldState` | World map, landmarks, influence, narrative echoes | `src/systems/world_state.js` |
+|---|---|---|
+| `G` | Global state container + boot/runtime flags | `src/engine/game.js` |
+| `gInit` / rAF loop | Canvas sizing, input/audio init, per-frame update/render | `src/engine/game.js` |
+| `gScene` | Transition helper (delegates to `Fade` + scene enter/leave) | `src/engine/game.js` and `src/engine/navigation.js` / `src/engine/lifecycle.js` (as applicable) |
+| `Scene` | Scene factory + lifecycle hooks wrapper | `src/engine/scene.js` |
+| `Fade` | Scene transition alpha tween + pending scene swap | `src/engine/game.js` |
+| Scenes | Screen logic: `enter/update/render/leave`, input + UI composition | `src/scenes/*.js` (e.g. `src/scenes/ashram.js`) |
+| Systems | Rule engines that compute/advance gameplay and mutate `G.state` | `src/systems/*.js` |
+| UI primitives | Immediate-mode widgets drawn to canvas and updated from state | `src/ui/*.js` |
+| Data definitions | Declarative tables used by systems (heroes, quests, encounters, etc.) | `src/data/*.js` |
 
 ## Pattern Overview
 
-**Overall:** Immediate-mode Canvas 2D game with global namespace architecture
+**Overall:** Scene-based immediate-mode canvas app.
 
-**Key Characteristics:**
-- **No modules/imports for game code** — all scripts load synchronously via classic `<script>` tags in `index.html` (lines 112-199), populating global namespace
-- **Single global game object `G`** — holds canvas, context, state, scene registry, frame timing
-- **Declarative data** — `src/data/*.js` are pure data objects (enemies, zones, items, quests...)
-- **Authoritative systems** — `src/systems/*.js` own game rules, mutate `G.state` directly
-- **Scenes as screens** — each scene implements `enter`, `update(dt)`, `render(ctx)`, `leave`
-- **Immediate-mode UI** — `src/ui/*.js` return `{ render, update, click, contains }` objects, no retained tree
-- **Deterministic boot** — `main.js` IIFE runs synchronously after scripts load, validates globals, registers scenes, starts loop
+**Key characteristics:**
+- Canvas 2D immediate rendering per frame (no DOM UI for gameplay screens)
+- Scene lifecycle contract: `enter(options)`, `update(dt)`, `render(ctx)`, `leave()`
+- Global API surfaces scene/system interaction: `G`, `R`, `UI`, `Scene`, `Input`, `Audio`, `Notify`, `Fade`, `Combat`, `Progression`, `SaveSystem`
+- Central transition: `Fade.toScene(name, enterOptions)` swaps scenes safely
 
 ## Layers
 
-**Entry Point (`index.html`):**
-- Purpose: Synchronous script orchestration, Firebase SDK bootstrap, canvas mount
-- Location: `index.html` (root)
-- Contains: Module script for Firebase, then 85+ classic script tags in dependency order
-- Depends on: Firebase CDN, all local scripts
-- Used by: Browser
-
-**Engine Core (`src/engine/`):**
-- Purpose: Runtime infrastructure — loop, rendering, input, audio, scenes, transitions
+### Engine runtime (`src/engine/*`)
+- Purpose: own loop, transitions, global surfaces, input/audio/render orchestration.
 - Location: `src/engine/`
-- Contains: `game.js` (loop, G, Fade, Notify), `renderer.js`, `input.js`, `audio.js`, `scene.js`, `scene-helpers.js`, `auth.js`, `firebase-config.js`
-- Depends on: Browser APIs (Canvas, Web Audio, localStorage, Service Worker)
-- Used by: All systems, scenes, UI
+- Depends on: canvas element + scripts loaded in `index.html` order.
+- Used by: scenes and systems.
 
-**Data Layer (`src/data/`):**
-- Purpose: Declarative gameplay content (read-only at runtime)
-- Location: `src/data/`
-- Contains: 20 files — `heroes.js`, `enemies.js`, `zones.js`, `items.js`, `quests.js`, `classes.js`, `perks.js`, `auras.js`, `spirit_beasts.js`, `cultivation.js`, `alchemy_recipes.js`, `journeys.js`, `landmarks.js`, `map_layout.js`, `encounters.js`, `narrative_echoes.js`, `world_events.js`, `influence_rules.js`, `achievements.js`, `quests.js`
-- Depends on: Nothing (pure data)
-- Used by: Systems, scenes for content lookup
-
-**Systems Layer (`src/systems/`):**
-- Purpose: Authoritative game rules, state mutation, persistence
-- Location: `src/systems/`
-- Contains: 18 files — `combat.js`, `progression.js`, `save.js`, `world_state.js`, `quest.js`, `encounter.js`, `journey.js`, `farm.js`, `alchemy.js`, `cultivation_sys.js`, `influence.js`, `landmarks.js`, `zone_rewards.js`, `economy.js`, `duel.js`, `achievements.js`, `hints.js`, `narrative_echoes.js`, `world_events.js`
-- Depends on: `G`, `R`, `Scene` (for data access), `src/data/*`
-- Used by: Scenes, `SaveSystem`, game loop (tick functions)
-
-**UI Layer (`src/ui/`):**
-- Purpose: Reusable immediate-mode components
-- Location: `src/ui/`
-- Contains: `button.js`, `panel.js`, `progressBar.js`, `text.js`, `list.js`, `tabbar.js`, `modal.js`, `card.js`, `heroSurface.js`
-- Pattern: Factory returns `{ render(ctx, data), update(dt, data), click(x,y,data), contains(x,y,data) }`
-- Uses: `R.colors`, `R.fonts`, `R.radius`, `R.reducedMotion()`
-- Depends on: `R`, `G` (for DPR, viewport)
-- Used by: Scenes
-
-**Scenes Layer (`src/scenes/`):**
-- Purpose: Screens — each owns a full-screen interaction
+### Scene layer (`src/scenes/*`)
+- Purpose: compose UI and drive user interaction; call into navigation/systems.
 - Location: `src/scenes/`
-- Contains: 26 files — `title.js`, `characterCreate.js`, `ashram.js`, `travelMap.js`, `zoneExploration.js`, `combatScene.js`, `party.js`, `cultivationScene.js`, `alchemyScene.js`, `punarjanma.js`, `spiritBeast.js`, `questLog.js`, `forge.js`, `tournament.js`, `trials.js`, `bazaar.js`, `farm.js`, `fishing.js`, `settings.js`, `achievementsScene.js`, `equipment.js`, `welcome.js`, `debug.js`, `journeyScene.js`, `encounterScene.js`, `authScene.js`
-- Contract: `enter(opts?)`, `update(dt)`, `render(ctx)`, `leave()`
-- Depends on: `G`, `R`, `UI`, `Input`, `Audio`, `Fade`, `Notify`, Systems, Data
-- Used by: `gScene()` transition, `main.js` registration
+- Depends on: engine globals (`G`, `R`, `UI`, `Scene`, `Input`, `Fade`, `Notify`) and shared scene helpers.
+- Used by: navigation/boot when changing `G.currentScene`.
+
+### Systems layer (`src/systems/*`)
+- Purpose: authoritative gameplay rules; mutates `G.state` (e.g. world progression, quests, combat state, persistence).
+- Location: `src/systems/`
+- Depends on: declarative data (`src/data/*`) and/or helper globals.
+- Used by: scenes and sometimes other systems.
+
+### UI layer (`src/ui/*`)
+- Purpose: reusable immediate-mode widgets and drawing helpers used by scenes.
+- Location: `src/ui/`
+- Depends on: renderer globals (`R`) and canvas context.
+- Used by: scenes.
+
+### Data layer (`src/data/*`)
+- Purpose: declarative content tables (maps, zones, quests, items, encounters, etc.).
+- Location: `src/data/`
+- Depends on: none; loaded for global consumption.
+- Used by: systems and some scenes.
 
 ## Data Flow
 
-### Primary Request Path (Game Loop)
+### Primary request/update path (per frame)
+1. rAF loop calls engine update (in `src/engine/game.js`) using `G.currentScene`.
+2. Scene `update(dt)` handles `Input` state and may call system functions that mutate `G.state`.
+3. Scene `render(ctx)` draws the current screen using `UI` components and renderer helpers (`R`).
+4. Engine applies overlays: `Notify.render(ctx)` and optionally `Fade.render(ctx)`.
 
-1. **rAF tick** → `gLoop(time)` (`game.js:344`) schedules next frame, wraps in try/catch watchdog
-2. **Frame delta** → `gLoopFrame(time)` (`game.js:366`) computes `G.dt` (clamped 50ms)
-3. **Global updates** → `Notify.update`, `R.updateEffects`, `R.updateProjectiles`, `R.updateClickFx`, `FarmSystem.tick`, `WorldEvents.tick`
-4. **Scene update** → `G.currentScene.update(G.dt)` (`game.js:388`)
-5. **Clear + transform** → `ctx.clearRect`, `ctx.translate(shakeX, shakeY)`
-6. **Background** → `drawBackground()` (zone-aware gradient)
-7. **Scene render** → `G.currentScene.render(G.ctx)` (`game.js:393`)
-8. **Overlay layers** → Projectiles, effects, click FX, level-up, enlightenment aura, Fade veil, Notify toasts
-9. **Probe/perf** → FPS logging, adaptive reduce-motion check
-10. **Loop** → back to step 1
+### State transitions
+- Scenes navigate by calling `Scene.navigate(target, opts)` (or via navigation helpers).
+- `Scene.navigate` uses `gScene(known, fade, enterOptions)`.
+- `Fade.toScene(name, enterOptions)` sets `Fade.pendingScene` and animates alpha.
+- When alpha reaches target, engine swaps:
+  - `G.currentScene = G.scenes[name]`
+  - `G.state.scene = name`
+  - calls prior scene `leave()` then new scene `enter(options)`
+  - clears interaction state via `Input.clear()` and `UI.Modal.clearAll()`.
 
-### Scene Transition
-
-1. Call `gScene('sceneName', fade?, enterOptions?)` (`game.js:475`)
-2. If `fade !== false` and current scene exists: `Fade.toScene()` sets target alpha=1, speed=6.7
-3. `Fade.update(dt)` drives alpha → 1 over ~150ms
-4. At alpha=1: `currentScene.leave()`, swap `G.currentScene`, `G.state.scene = name`, `safeEnter(newScene)`
-5. `Fade.target = 0`, speed=4 → reveal over ~250ms
-6. If `fade === false`: immediate swap, no veil
-
-### Save / Load
-
-**Save:** `SaveSystem.save()` → JSON.stringify `G.state` → `localStorage.setItem('mythika_save')` → optional `Auth.saveToCloud()`
-**Load:** `SaveSystem.load()` → parse localStorage → `hydrate()` merges into fresh default state → `migrate()` heals legacy fields → `FarmSystem.tick(elapsed)`, `WorldEvents.tick(elapsed)` → offline cultivation/prana gain
-
-### Cloud Sync
-
-1. User signs in → `Auth.init()` → `onAuthStateChanged` → `Auth.loadAfterAuth()`
-2. `Auth.loadFromCloud()` → `getDoc(game_saves/{uid})` → `Object.assign(G.state, cloudData)` → `SaveSystem.migrate()`
-3. Auto-save (`SaveSystem.startAutoSave`) → `Auth.saveToCloud(G.state)` → `setDoc(game_saves/{uid})`
-
-**State Management:**
-- Single source of truth: `G.state` (plain object, created by `createDefaultGameState()`)
-- All mutations direct: `G.state.gold += 100`, `G.state.party.push(hero)`
-- Systems mutate during `update(dt)` or event handlers
-- Scenes read `G.state` in `render` and `update`
-- No Redux, no Context, no signals — plain object + disciplined ownership
+### Persistence / hydration path
+- `SaveSystem.save()` snapshots `G.state` into `localStorage`.
+- `SaveSystem.hydrate(state)` creates defaults (`G.createDefaultState()`) then merges/hydrates persisted keys and runs `SaveSystem.migrate()`.
 
 ## Key Abstractions
 
-**Scene:**
-- Purpose: Screen lifecycle contract
-- Examples: `titleScene`, `combatScene`, `travelMapScene` (in `src/scenes/`)
-- Pattern: Object with `enter`, `update`, `render`, `leave`; registered via `registerScene(name, sceneObj)` in `scene-helpers.js`
+### Scene objects (`Scene.create`)
+- Purpose: standardize scene lifecycle and data holder (`scene.data`).
+- Examples:
+  - `src/engine/scene.js`
+  - `src/scenes/ashram.js`
 
-**UI Component Factory:**
-- Purpose: Reusable immediate-mode widget
-- Examples: `UI.Button`, `UI.Panel`, `UI.List`, `UI.Modal` (in `src/ui/`)
-- Pattern: `function createButton(cfg) { return { render, update, click, contains } }`
+### Global state (`G.state`)
+- Purpose: single source of truth for gameplay and UI-driving state.
+- Primary definition: `createDefaultGameState()` in `src/engine/game.js`.
 
-**System:**
-- Purpose: Domain logic namespace
-- Examples: `Combat`, `Progression`, `SaveSystem`, `WorldState`
-- Pattern: Object with pure functions + `tick(dt)` for loop-driven work; mutates `G.state`
+### Navigation registry (`Navigation`)
+- Purpose: route IDs map to scene names plus context/command schemas.
+- Files: `src/engine/navigation.js`, `src/engine/navigation_routes.js`.
 
-**Render Helper (`R`):**
-- Purpose: Drawing primitives + effects
-- Examples: `R.roundRect`, `R.textCenter`, `R.zoneBgColor`, `R.updateEffects`, `R.renderProjectiles`
-- Pattern: Static methods on `R` object (defined in `renderer.js`)
+### World/System APIs
+- Purpose: rule engines like `QuestSystem`, `JourneySystem`, `Combat`.
+- Examples:
+  - `src/systems/quest.js` (`QuestSystem.init`, `getQuests`, `getAvailableQuests`)
+  - `src/systems/journey.js` (`JourneySystem.getProgress`, `enter` access checks)
+  - `src/systems/save.js` (`SaveSystem.save/hydrate/migrate`)
 
-## Entry Points
+## Dependency Relationships (major modules)
 
-**`index.html` (line 1):**
-- Location: Repository root
-- Triggers: Browser navigation
-- Responsibilities: Load Firebase SDK (module), inject config, load 85 scripts in order, mount canvas, start boot probe
-
-**`src/main.js` (IIFE):**
-- Location: `src/main.js:1`
-- Triggers: Script execution (last script before boot probe)
-- Responsibilities: Validate globals, register 26 scenes resiliently, start `bootGame()` immediately + `window.load` fallback, init Auth if Firebase ready, call `gInit()`
-
-**`gInit()` (`game.js:244`):**
-- Location: `src/engine/game.js:244`
-- Triggers: `bootGame()` in `main.js:109`
-- Responsibilities: Canvas setup (DPR scaling), `fitGame()`, init Input/Audio/SceneManager, start `gLoop()`
+- `src/main.js`
+  - Depends on scenes being loaded (`titleScene`, `ashramScene`, etc.).
+  - Registers scene objects into `G.scenes` via `registerScene`.
+- `src/engine/game.js`
+  - Owns `G` runtime surfaces; depends on renderer (`src/engine/renderer.js`), `Scene` (`src/engine/scene.js`), `Input` (`src/engine/input.js`), and `UI`/`Audio` globals.
+  - Provides `Fade` scene switching used by scene navigation.
+- `src/engine/navigation.js` + `src/engine/navigation_routes.js`
+  - Depends on scene names/route contracts.
+  - Used by scenes (or via legacy scene navigation) to enforce explicit context/command contracts.
+- `src/scenes/*.js`
+  - Depend on `Scene.create`, engine global APIs (`G`, `R`, `Input`, `UI`, `Fade`, `Notify`).
+  - Call systems (`QuestSystem`, `Combat`, `SaveSystem`, etc.) to mutate `G.state`.
+- `src/systems/*.js`
+  - Depend on declarative tables from `src/data/*.js`.
+  - Mutate `G.state`.
+- `src/ui/*.js`
+  - Depend on renderer helpers (`R`) for consistent drawing and on `UI` container module.
+  - Export immediate-mode component builders used by scenes.
+- `src/data/*.js`
+  - Pure data globals consumed by systems.
 
 ## Architectural Constraints
 
-- **Threading:** Single-threaded event loop (main thread only). No Web Workers. All work in `requestAnimationFrame` callback.
-- **Global state:** `G` (game.js:212), `R` (renderer.js), `UI` (ui/*.js), `Scene` (scene.js), `Input` (input.js), `Audio` (audio.js), `Notify` (game.js:1), `Fade` (game.js:120), `Combat` (combat.js), `Progression` (progression.js), `SaveSystem` (save.js), `Auth` (auth.js), `WorldState` (world_state.js), `FarmSystem` (farm.js), `WorldEvents` (world_events.js), `ZoneRewardSystem` (zone_rewards.js), `EquipmentSystem` (equipment.js scene), `Hints` (hints.js) — all classic script globals.
-- **Circular imports:** Not applicable (no ES modules for game code). Script load order in `index.html` enforces dependency DAG.
-- **Script order is a runtime contract:** Engine → Data → Systems → UI → Scenes → Main. Changing order breaks globals.
-- **No `defer`/`async`/`type="module"` on game scripts** — synchronous execution required for global registration.
-- **DPR-aware canvas:** Logical 400×720, backing store scaled by `devicePixelRatio` (capped at 3). All game code uses logical coordinates.
-- **Reduced motion:** `R.reducedMotion()` reads `G.state.reduceMotion` (user setting + auto-detected). All animations respect it.
-
-## Anti-Patterns
-
-### Direct DOM Manipulation in Scenes
-
-**What happens:** Scenes occasionally create/remove DOM elements (e.g., auth input overlays in `authScene.js`)
-**Why it's wrong:** Breaks immediate-mode paradigm; DOM elements persist across scene transitions unless explicitly cleaned in `leave()`
-**Do this instead:** Use `UI.Modal` or `UI.Panel` for overlays; if native input required, create in `enter`, destroy in `leave` (see `authScene.js` cleanup)
-
-### Mutating Data Layer Objects
-
-**What happens:** Code pushes to arrays in `src/data/*.js` (e.g., `G.state.quests.push(data.quests[0])`)
-**Why it's wrong:** Data files are shared singletons; mutation leaks across saves/sessions
-**Do this instead:** Always copy: `const quest = { ...data.quests[0], id: generateId() }` — see `QuestSystem.acceptQuest` (`quest.js`)
-
-### Skipping `SafeEnter` Guard
-
-**What happens:** Direct `scene.enter()` call without try/catch
-**Why it's wrong:** A throwing `enter()` leaves scene half-built — no buttons, dead screen
-**Do this instead:** Always use `gScene()` (which calls `safeEnter`) or call `safeEnter(scene)` directly (`game.js:464`)
+- **Threading:** single-threaded JS; rAF loop drives updates/renders.
+- **Global state:** module-level globals used intentionally (e.g. `G`, `R`, `UI`, `Scene`, `Input`, `Fade`, `Notify`).
+- **Circular imports:** Not applicable via ES modules; scripts share globals and rely on `index.html` synchronous load order.
+- **Script order dependency:** engine must load before scenes; data before systems/scenes depending on usage.
 
 ## Error Handling
 
-**Strategy:** Watchdog + graceful degradation
-
-**Patterns:**
-- **Game loop watchdog** (`game.js:349-363`): `requestAnimationFrame` scheduled first, then frame in try/catch. Errors logged, toast shown (first 2 + every 25th), loop continues.
-- **Scene enter guard** (`safeEnter`, `game.js:464`): Try/catch around `scene.enter()`, toast on failure, scene stays active.
-- **Scene registration resilience** (`main.js:64-71`): `try/catch` per scene; missing/broken scene logs warning, boot continues.
-- **Save/Load resilience** (`save.js:8-23, 87-122`): Try/catch with `console.warn`, return boolean success, never throw.
-- **Firebase optional** (`auth.js:9-14`): `init` guards all methods; if not initialized, return `{ error: 'Auth not initialized' }`.
+- Boot guards exist in `src/main.js`:
+  - missing required surfaces prevent boot via `failBoot()`.
+  - scene registration uses `try/catch` per scene.
+- Scene enter is wrapped so `enter()` exceptions don’t prevent boot.
 
 ## Cross-Cutting Concerns
 
-**Logging:** `console.log`/`warn`/`error` with `[Mythika]` prefix. Probe mode adds timing logs.
-
-**Validation:** `SaveSystem.migrate()` (save.js:39-85) heals save data on every load — type checks, array filters, numeric clamping, default restoration.
-
-**Authentication:** Firebase Auth via `Auth` singleton. Gate cloud operations behind `if (Auth.user && window.firebaseAuth && window.firebaseDb)`. Offline play fully functional.
+- Logging: `console.error/warn` used during boot + scene enter failures.
+- Validation: `main.js` validates required globals once before boot loop.
+- Scene scoping: `Notify.clearScene()` supports dropping regular toasts on scene changes (keeps achievement banners separate).
 
 ---
 
-*Architecture analysis: 2026-10-08*
+*Architecture analysis: 2026-10-15*

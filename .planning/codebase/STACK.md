@@ -1,79 +1,68 @@
 # Technology Stack
 
-**Analysis Date:** 2026-10-08
+**Analysis Date:** 2026-10-15
 
 ## Languages
 
 **Primary:**
-- JavaScript (ES2020+) - All game logic, scenes, systems, and UI components
-- HTML5 - Entry point (index.html) and PWA manifest
-- CSS3 - Styling with modern features (CSS variables, env(), dvh, media queries)
+- JavaScript (ES2020+; classic scripts + one `<script type="module">`) — `index.html`, `src/**`
+- HTML5 — `index.html`, PWA manifest wiring via `manifest.json`
+- CSS3 — `styles/game.css`
 
 **Secondary:**
-- None — no TypeScript, no build-time compilation
+- None detected (no TypeScript)
 
 ## Runtime
 
 **Environment:**
-- Browser (Canvas 2D API) — single-threaded event loop via `requestAnimationFrame`
-- No Node.js runtime for the game itself; Node used only for test runner (`node --test`)
+- Browser runtime using Canvas 2D with `requestAnimationFrame` (game loop)
+- Classic global API surface (`G`, `R`, `UI`, `Scene`, `Input`, `Fade`, etc.)
 
 **Package Manager:**
-- None — no `package.json`, no `node_modules`, no lockfile
-- All dependencies loaded via CDN (Firebase SDK) or bundled as static files
+- None (no `package.json`, no lockfile). Static files loaded directly.
 
 ## Frameworks
 
 **Core:**
-- None — vanilla JavaScript with immediate-mode Canvas 2D rendering
-- Custom scene management (`gScene`, `Fade`), global game object `G`, and render helpers `R`
+- None (vanilla JavaScript)
+- Custom scene/systems framework in `src/engine/*`, `src/scenes/*`, `src/systems/*`, `src/ui/*`
 
 **Testing:**
-- Node.js built-in test runner (`node --test`) — runs `tests/*.test.js`
-- Custom shell script `tools/check_ui_invariants.sh` for syntax + UI/script-loading invariants
+- Node.js built-in test runner: `node --test` for `tests/*.test.js`
 
 **Build/Dev:**
-- No bundler, no transpiler, no dev server
-- Local HTTP server for testing: `python3 -m http.server 3000`
-- Service Worker (`sw.js`) for offline caching (PWA)
+- No bundler/dev server
+- Local server for testing: `python3 -m http.server 3000`
+- Service worker / PWA: `sw.js`, `manifest.json`
 
 ## Key Dependencies
 
-**Critical (via CDN):**
-- Firebase JS SDK 12.18.0 (modular)
-  - `firebase-app.js` — initialization
-  - `firebase-auth.js` — Email/password, Google, Phone auth
-  - `firebase-firestore.js` — Cloud save sync (optional)
-- Loaded in a `<script type="module">` block in `index.html:45-104`
-- Exposed globally for classic scripts (e.g., `window.firebaseAuth`, `window.firebaseDb`)
+**Critical (optional, via CDN in `index.html`):**
+- Firebase JS SDK 12.18.0 (Auth + Firestore)
 
 **Infrastructure:**
-- Service Worker (`sw.js`) — cache-first for assets, network-first for `index.html`
-- PWA Manifest (`manifest.json`) — installable, portrait orientation
+- Service Worker caching: `sw.js` (cache-first)
+- Web APIs: localStorage, Service Worker, Canvas 2D
 
 ## Configuration
 
-**Environment:**
-- Firebase config injected via `src/engine/firebase-config.js` (gitignored)
-- Template at `src/engine/firebase-config.template.js`
-- No `.env` files; config is a global `window.FIREBASE_CONFIG` object
+**Environment (client-side only):**
+- Firebase config injected by `<script src="src/engine/firebase-config.js">` in `index.html`
+- Firebase initialization uses `window.FIREBASE_CONFIG` → `initializeApp(window.FIREBASE_CONFIG)`
 
-**Build:**
-- No build step — repository root is the deployable static site
-- Deploy by pushing to Firebase Hosting (or any static host)
+**Build config files:**
+- None detected for bundling/transpilation (static deploy)
 
 ## Platform Requirements
 
 **Development:**
-- Modern browser with ES2020 support, Canvas 2D, Service Worker, localStorage
-- Python 3 for local HTTP server
-- Node.js 18+ for test runner
+- Modern browser with ES2020+, Service Worker, Canvas 2D, localStorage
+- Python 3 (local server) + Node (tests)
 
 **Production:**
-- Static hosting (Firebase Hosting, Netlify, Vercel, GitHub Pages, etc.)
-- HTTPS required for Service Worker + PWA + Firebase Auth
-- Firebase project for optional cloud saves (Blaze plan not required)
+- HTTPS required for Service Worker + Firebase Auth
+- Static hosting (Firebase Hosting or any static host)
 
 ---
 
-*Stack analysis: 2026-10-08*
+*Stack analysis: 2026-10-15*
