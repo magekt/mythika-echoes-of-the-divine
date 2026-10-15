@@ -9,7 +9,8 @@
 - ✅ **v5.0 Layout Fixes & Early-Game Pacing** — Phases 30-35 (shipped 2026-10-10)
 - ✅ **v6.0 Ship Polish, Art & Audio, Onboarding** — Phases 36-41 (shipped 2026-10-11)
 - ✅ **v7.0 Adaptive Viewport** — Phase 42 (shipped 2026-10-13)
-- ✅ **v8.0 Performance & Loading Architecture** — Phases 43-44 (Phase 44 shipped 2026-10-13)
+- ✅ **v9.0 Premium UI/UX Foundations** — Phases 46-49 (shipped 2026-10-14)
+- ✅ **v10.0 Shared Library Foundations** — Phases 50-53 (shipped 2026-10-14)
 
 ## Completed Milestones
 
@@ -593,4 +594,17 @@ Phase 44 (Input Guarding) — standalone, no dependencies
 ```
 
 ---
-*Roadmap reorganized 2026-10-10 at v5.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md. v6.0 section appended 2026-10-10. v8.0 section added 2026-10-13.*
+
+## v10.0 — Shared Library Foundations ✅ SHIPPED (2026-10-14)
+
+**Goal (achieved):** Established shared UI component factory with mixins, spring config registry, renderer primitive hardening, and migrated all components to the new foundation.
+
+*Full details: [v10.0-ROADMAP.md](milestones/v10.0-ROADMAP.md)*
+
+- [x] **Phase 50:** UI Component Factory Foundation (1/1 plan)
+- [x] **Phase 51:** Spring Config Registry (1/1 plan)
+- [x] **Phase 52:** Renderer Primitive Hardening (1/1 plan)
+- [x] **Phase 53:** Component Factory Migration (1/1 plan)
+
+---
+*Roadmap reorganized 2026-10-10 at v5.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md. v6.0 section appended 2026-10-10. v8.0 section added 2026-10-13. v10.0 archived 2026-10-15.*

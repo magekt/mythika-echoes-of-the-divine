@@ -46,15 +46,13 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 
 **Date:** 2026-10-14
 
-## Milestone v10.0 — Shared Library Foundations
+## Shipped Milestone v10.0 — Shared Library Foundations
 
-**Goal:** Extract and harden the shared UI/renderer foundations established in v9.0 into reusable, testable libraries — a UI component factory (`UI.Component` base + mixins), a centralized spring config registry (`R.springConfigs`), and hardened renderer primitives — so that v11+ features build on solid, reusable foundations instead of re-inventing primitives per feature.
+**Goal (achieved):** Extracted and hardened the shared UI/renderer foundations into reusable, testable libraries — a UI component factory (`UI.Component` base + 5 mixins), a centralized spring config registry (`R.springConfigs`), and hardened renderer primitives — so that v11+ features build on solid, reusable foundations instead of re-inventing primitives per feature.
 
-**Context:** v9.0 established premium UI primitives (`R.doubleBezel`, `R.spring`, `R.easePremium`, `R.reducedMotion`, `R.doubleBezel`, semantic tokens) and premium UI patterns (spring-driven button press, nested CTA icons, double-bezel panels/modals, eased entrances). v10 extracts these into reusable, testable libraries so v11+ features compose rather than recreate.
+**Delivered:** `UI.Component` factory with `mixinRender`, `mixinUpdate`, `mixinSpring`, `mixinEase`, `mixinContains`; all UI components migrated to the factory pattern; `R.springConfigs` registry with 7 named configs; `R.strokeRoundRect` validation, `R.doubleBezel` insetHighlight, `R.easePremiumInv`, `R.spring.step` alias, `R.reducedMotion.watch`, 4 semantic color tokens; 579 tests pass, 0 fail. Shipped 2026-10-14.
 
-**Active requirements direction:** Deliver a `UI.Component` base factory + mixins (`render`, `update`, `contains`, `spring`, `easePremium`), a centralized `R.springConfigs` registry replacing 8+ inline spring configs, and hardened `R` primitives with full test coverage. All without changing gameplay rules, breaking the 400×720 Canvas contract, or introducing a build step.
-
-**Date:** To be shipped
+**Date:** 2026-10-14
 
 ## Milestone v9.0 — Premium UI/UX Foundations
 

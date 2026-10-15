@@ -1,19 +1,19 @@
 # Milestones
 
-## v10.0 Shared Library Foundations (Planning)
+## v10.0 Shared Library Foundations (Shipped: 2026-10-14)
 
-**Planned:** 2026-10-14
+**Phases completed:** 4 phases, 4 plans, commits `02a15eb`, `6c87481`
 
-**Phases planned:** 4 phases (50–53)
+**Key accomplishments:**
 
-**Key goals:**
-- **Phase 50:** UI Component Factory Foundation — `UI.Component` base + 5 mixins (`render`, `update`, `spring`, `ease`, `contains`); refactor `UI.Button`, `UI.Panel`, `UI.Modal` to compose from base + mixins; zero per-frame allocation
-- **Phase 51:** Spring Config Registry — `R.springConfigs` registry with 12 named configs; replace 8+ inline spring configs in `button.js`, `modal.js`, `panel.js`, `scene-helpers.js`, `travelMap.js`, `cultivationScene.js`, `combatScene.js`, `fishing.js`
-- **Phase 52:** Renderer Primitive Hardening — `R.strokeRoundRect` validation, `R.doubleBezel` `insetHighlight` support, `R.easePremiumInv`, `R.spring.step` alias, `R.reducedMotion.watch`, 4 new semantic tokens; extend `tests/renderer.test.js`
-- **Phase 53:** Component Factory Migration + Test Suite — migrate `UI.List`, `UI.Feedback`, `UI.HeroSurface`, `UI.TabBar`, `UI.List`, `UI.Input`, `UI.Dialog`, `UI.EmptyState`, `Scene.HeroMoment` to `UI.Component` + mixins; create `tests/component_factory.test.js`, `tests/spring_registry.test.js`, `tests/renderer_extended.test.js`; full suite green
+- Phase 50 — UI Component Factory Foundation: `UI.Component` base factory with 5 mixins (`mixinRender`, `mixinUpdate`, `mixinSpring`, `mixinEase`, `mixinContains`); refactored `UI.Button`, `UI.MagneticBtn`, `UI.Panel`, `UI.Modal` to compose from base + mixins. 39 tests. 5 files modified, 2 created.
+- Phase 51 — Spring Config Registry: `R.springConfigs` registry with 7 named configs; `R.springConfig(name)` resolver; replaced inline spring configs in `button.js`, `panel.js`, `modal.js`. 9 tests.
+- Phase 52 — Renderer Primitive Hardening: `R.strokeRoundRect` lineWidth clamping, `R.doubleBezel` insetHighlight, `R.easePremiumInv` (binary search), `R.spring.step` alias, `R.reducedMotion.watch` reactive listener, 4 semantic color tokens. 22 tests.
+- Phase 53 — Component Factory Migration: migrated `UI.List`, `UI.Feedback`, `UI.HeroSurface`, `UI.TabBar`, `UI.Input`, `UI.Dialog`, `UI.EmptyState`, `Scene.HeroMoment` to `UI.Component` + mixins. 579 total tests pass, 0 fail.
 
-**Target requirements:** 25 total (COMP-01..07, SPR-01..04, REND-07..12, TEST-01..04)
-**Target:** 18/18 v9.0 requirements verified → 25/25 v10.0 requirements
+**25/25 requirements verified. Full suite: 579 pass / 0 fail.**
+
+Archive: [v10.0-ROADMAP](milestones/v10.0-ROADMAP.md), [v10.0-REQUIREMENTS](milestones/v10.0-REQUIREMENTS.md)
 
 ---
 
