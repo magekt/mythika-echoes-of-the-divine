@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Combat Damage Floater — Variant C: Rich (spring bounce + fade + element burst)</title>
+<style>
+body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+.canvas-wrap { width: 400px; height: 720px; position: relative; background: #0f0f1a; border-radius: 8px; overflow: hidden; }
+.label { position: absolute; top: 12px; left: 12px; color: #888; font: 12px monospace; }
+.floater {
+  position: absolute;
+  display: flex; align-items: center; gap: 6px;
+  font: 800 20px system-ui;
+  pointer-events: none;
+  background: rgba(0,0,0,0.6);
+  padding: 6px 12px; border-radius: 14px;
+  backdrop-filter: blur(4px);
+}
+.floater .icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 0 8px currentColor; }
+.floater.fire { color: #ef4444; }
+.floater.fire .icon { background: #ef4444; color: #fff; }
+.floater.water { color: #3b82f6; }
+.floater.water .icon { background: #3b82f6; color: #fff; }
+.floater.wind { color: #10b981; }
+.floater.wind .icon { background: #10b981; color: #fff; }
+.floater.earth { color: #a78bfa; }
+.floater.earth .icon { background: #a78bfa; color: #fff; }
+.floater.crit { font-size: 28px; border: 2px solid #ffd700; box-shadow: 0 0 12px #ffd700; }
+.floater.heal { color: #4ade80; }
+.floater.heal .icon { background: #4ade80; color: #000; }
+.burst { position: absolute; width: 4px; height: 4px; border-radius: 50%; pointer-events: none; }
+#demo { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 8px 16px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="canvas-wrap">
+  <span class="label">Variant C: Spring Bounce + Element Burst Particles</span>
+  <div id="demo"></div>
+  <button class="btn" onclick="spawnFloater()">Spawn Floater</button>
+</div>
+<script>
+const elements = [
+  { key: 'fire', icon: '🔥', color: '#ef4444' },
+  { key: 'water', icon: '💧', color: '#3b82f6' },
+  { key: 'wind', icon: '🌀', color: '#10b981' },
+  { key: 'earth', icon: '⛰', color: '#a78bfa' },
+];
+
+function spring(value, target, velocity, dt, stiffness, damping) {
+  const force = stiffness * (target - value) - damping * velocity;
+  velocity += force * dt;
+  value += velocity * dt;
+  return { value, velocity };
+}
+
+function spawnFloater() {
+  const e = elements[Math.floor(Math.random() * elements.length)];
+  const isCrit = Math.random() > 0.8;
+  const isHeal = !isCrit && Math.random() > 0.7;
+  const el = document.createElement('div');
+  el.className = 'floater ' + (isHeal ? 'heal' : e.key) + (isCrit ? ' crit' : '');
+  const icon = document.createElement('span');
+  icon.className = 'icon';
+  icon.textContent = isHeal ? '✚' : e.icon;
+  const val = document.createElement('span');
+  val.textContent = isHeal ? '+37' : (isCrit ? '142!' : '-28');
+  el.append(icon, val);
+
+  const startX = 120 + Math.random() * 140;
+  const startY = 260 + Math.random() * 120;
+  el.style.left = startX + 'px';
+  el.style.top = startY + 'px';
+  el.style.opacity = '0';
+  el.style.transform = 'scale(0.5)';
+  document.getElementById('demo').appendChild(el);
+
+  let v = 0, y = 0, opacity = 0, scale = 0.5, t = 0;
+  function tick() {
+    t += 1/60;
+    const targetY = -80;
+    const s = spring(y, targetY, v, 1/60, 0.08, 0.82);
+    y = s.value; v = s.velocity;
+    const p = t / 1.2;
+    if (p < 0.15) scale = 0.5 + (p/0.15) * 0.5;
+    else if (p < 0.4) scale = 1.0;
+    else scale = Math.max(0.8, 1.0 - (p - 0.4) * 0.5);
+    opacity = p < 0.1 ? p * 10 : Math.max(0, 1 - (p - 0.4) * 1.8);
+    el.style.top = (startY + y) + 'px';
+    el.style.opacity = String(opacity);
+    el.style.transform = `scale(${scale})`;
+    if (p < 1.2) requestAnimationFrame(tick);
+    else el.remove();
+  }
+  requestAnimationFrame(tick);
+
+  for (let i = 0; i < 6; i++) {
+    const p = document.createElement('div');
+    p.className = 'burst';
+    p.style.background = e.color;
+    p.style.left = (startX + 10 + Math.random() * 20) + 'px';
+    p.style.top = (startY + 10 + Math.random() * 20) + 'px';
+    document.getElementById('demo').appendChild(p);
+    const ang = (i / 6) * Math.PI * 2 + Math.random();
+    const dist = 30 + Math.random() * 40;
+    p.style.transition = 'all 0.6s ease-out';
+    requestAnimationFrame(() => {
+      p.style.transform = `translate(${Math.cos(ang)*dist}px, ${Math.sin(ang)*dist}px)`;
+      p.style.opacity = '0';
+    });
+    setTimeout(() => p.remove(), 700);
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Combat Damage Floater — Variant A: Minimal</title>
+<style>
+body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+.canvas-wrap { width: 400px; height: 720px; position: relative; background: #0f0f1a; border-radius: 8px; overflow: hidden; }
+label { position: absolute; top: 12px; left: 12px; color: #888; font: 12px monospace; }
+.floater { position: absolute; font: 700 18px system-ui; pointer-events: none; }
+.floater.text { color: #f0f0f0; }
+.floater.crit { color: #ffd700; font-size: 24px; }
+.floater.heal { color: #4ade80; }
+#demo { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 8px 16px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="canvas-wrap">
+  <label>Variant A: Text-Only Damage Floaters (no icons, no springs)</label>
+  <div id="demo"></div>
+  <button class="btn" onclick="spawnFloater()">Spawn Floater</button>
+</div>
+<script>
+let i = 0;
+function spawnFloater() {
+  const el = document.createElement('div');
+  el.className = 'floater ' + (Math.random() > 0.7 ? 'crit' : Math.random() > 0.5 ? 'heal' : 'text');
+  el.textContent = el.classList.contains('crit') ? '142!' : el.classList.contains('heal') ? '+37' : '-28';
+  el.style.left = (140 + Math.random() * 120) + 'px';
+  el.style.top = (280 + Math.random() * 100) + 'px';
+  document.getElementById('demo').appendChild(el);
+  el.style.transition = 'all 0.8s ease-out';
+  requestAnimationFrame(() => {
+    el.style.transform = 'translateY(-60px)';
+    el.style.opacity = '0';
+  });
+  setTimeout(() => el.remove(), 900);
+}
+</script>
+</body>
+</html>

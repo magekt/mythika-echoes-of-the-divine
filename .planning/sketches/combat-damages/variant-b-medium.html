@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Combat Damage Floater — Variant B: Medium (text + element icon)</title>
+<style>
+body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+.canvas-wrap { width: 400px; height: 720px; position: relative; background: #0f0f1a; border-radius: 8px; overflow: hidden; }
+.label { position: absolute; top: 12px; left: 12px; color: #888; font: 12px monospace; }
+.floater {
+  position: absolute;
+  display: flex; align-items: center; gap: 6px;
+  font: 700 18px system-ui;
+  pointer-events: none;
+  background: rgba(0,0,0,0.5);
+  padding: 4px 10px; border-radius: 12px;
+}
+.floater .icon { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.floater.fire .icon { background: #ef4444; }
+.floater.water .icon { background: #3b82f6; }
+.floater.wind .icon { background: #10b981; }
+.floater.earth .icon { background: #a78bfa; }
+.floater.crit { font-size: 24px; border: 2px solid #ffd700; }
+.floater.heal { color: #4ade80; }
+#demo { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 8px 16px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="canvas-wrap">
+  <span class="label">Variant B: Text + Element Icon Chip</span>
+  <div id="demo"></div>
+  <button class="btn" onclick="spawnFloater()">Spawn Floater</button>
+</div>
+<script>
+const elements = [
+  { key: 'fire', icon: '🔥' },
+  { key: 'water', icon: '💧' },
+  { key: 'wind', icon: '🌀' },
+  { key: 'earth', icon: '⛰' },
+];
+function spawnFloater() {
+  const el = document.createElement('div');
+  const e = elements[Math.floor(Math.random() * elements.length)];
+  const isCrit = Math.random() > 0.8;
+  const isHeal = Math.random() > 0.7;
+  el.className = 'floater ' + e.key + (isCrit ? ' crit' : '') + (isHeal ? ' heal' : '');
+  const icon = document.createElement('span');
+  icon.className = 'icon';
+  icon.textContent = isHeal ? '✚' : e.icon;
+  const val = document.createElement('span');
+  val.textContent = isHeal ? '+37' : (isCrit ? '142!' : '-28');
+  el.append(icon, val);
+  el.style.left = (120 + Math.random() * 140) + 'px';
+  el.style.top = (260 + Math.random() * 120) + 'px';
+  document.getElementById('demo').appendChild(el);
+  el.style.transition = 'all 1s ease-out';
+  requestAnimationFrame(() => {
+    el.style.transform = 'translateY(-70px) scale(1.1)';
+    el.style.opacity = '0';
+  });
+  setTimeout(() => el.remove(), 1100);
+}
+</script>
+</body>
+</html>
