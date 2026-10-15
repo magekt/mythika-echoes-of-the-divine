@@ -5,10 +5,10 @@
 
 ## Phases
 
-- [ ] **Phase 50: UI Component Factory Foundation** — `UI.Component` base + `mixinRender`/`mixinUpdate`/`mixinSpring`/`mixinEase`/`mixinContains`; refactor `UI.Button`, `UI.Panel`, `UI.Modal` to compose from base + mixins
-- [ ] **Phase 51: Spring Config Registry** — `R.springConfigs` registry with 12 named configs; replace 8+ inline spring configs in `button.js`, `modal.js`, `panel.js`, `scene-helpers.js`, `travelMap.js`, `cultivationScene.js`, `combatScene.js`, `fishing.js`
-- [ ] **Phase 52: Renderer Primitive Hardening** — `R.strokeRoundRect` validation, `R.doubleBezel` `insetHighlight` support, `R.easePremiumInv`, `R.spring.step` alias, `R.reducedMotion.watch`, 4 new semantic tokens; extend `tests/renderer.test.js`
-- [ ] **Phase 53: Component Factory Migration + Test Suite** — migrate `UI.Button`, `UI.Panel`, `UI.Modal`, `UI.List`, `UI.Feedback`, `UI.HeroSurface`, `UI.TabBar`, `UI.List`, `UI.Input`, `UI.Dialog`, `UI.EmptyState`, `Scene.HeroMoment` to `UI.Component` + mixins; add `tests/component_factory.test.js` + `tests/spring_registry.test.js` + `tests/renderer_extended.test.js`; full suite green
+- [x] **Phase 50: UI Component Factory Foundation** — `UI.Component` base + `mixinRender`/`mixinUpdate`/`mixinSpring`/`mixinEase`/`mixinContains`; refactor `UI.Button`, `UI.Panel`, `UI.Modal` to compose from base + mixins
+- [x] **Phase 51: Spring Config Registry** — `R.springConfigs` registry with 12 named configs; replace 8+ inline spring configs in `button.js`, `modal.js`, `panel.js`, `scene-helpers.js`, `travelMap.js`, `cultivationScene.js`, `combatScene.js`, `fishing.js`
+- [x] **Phase 52: Renderer Primitive Hardening** — `R.strokeRoundRect` validation, `R.doubleBezel` `insetHighlight` support, `R.easePremiumInv`, `R.spring.step` alias, `R.reducedMotion.watch`, 4 new semantic tokens; extend `tests/renderer.test.js`
+- [x] **Phase 53: Component Factory Migration + Test Suite** — migrate `UI.Button`, `UI.Panel`, `UI.Modal`, `UI.List`, `UI.Feedback`, `UI.HeroSurface`, `UI.TabBar`, `UI.List`, `UI.Input`, `UI.Dialog`, `UI.EmptyState`, `Scene.HeroMoment` to `UI.Component` + mixins; add `tests/component_factory.test.js` + `tests/spring_registry.test.js` + `tests/renderer_extended.test.js`; full suite green
 
 ## Phase Details
 
