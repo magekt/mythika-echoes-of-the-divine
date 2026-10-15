@@ -560,7 +560,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 43. Loading Overlay and Progress Reporting | v8.0 | 0/1 | Planned |           |
+| 43. Loading Overlay and Progress Reporting | v8.0 | 1/1 | Complete | 2026-10-13 |
 | 44. Input Guarding | v8.0 | 1/1 | Complete | 2026-10-13 |
 
 ## Coverage (v7.0)

@@ -1,9 +1,9 @@
 # Roadmap: Mythika v8.0 — Performance & Loading Architecture
 
 ## Phases
-- [ ] **Phase 43: Loading Overlay and Progress Reporting** - Users see a loading overlay with live progress and stage updates during boot, which dismisses when the game is ready.
-- [ ] **Phase 44: Input Guarding** - No user input is processed while the loading overlay is active or during boot until the game is ready.
-- [ ] **Phase 45: Performance Optimizations** - Game loads faster via Brotli compression, Firebase preconnect, non-blocking Firebase script, and retains startup profiling via ?probe.
+- [x] **Phase 43: Loading Overlay and Progress Reporting** - Users see a loading overlay with live progress and stage updates during boot, which dismisses when the game is ready.
+- [x] **Phase 44: Input Guarding** - No user input is processed while the loading overlay is active or during boot until the game is ready.
+- [x] **Phase 45: Performance Optimizations** - Game loads faster via Brotli compression, Firebase preconnect, non-blocking Firebase script, and retains startup profiling via ?probe.
 
 ## Phase Details
 
@@ -45,6 +45,6 @@
 ## Progress Table
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 43: Loading Overlay and Progress Reporting | 0/3 | Not started | - |
-| 44: Input Guarding | 0/2 | Not started | - |
-| 45: Performance Optimizations | 0/2 | Not started | - |
+| 43: Loading Overlay and Progress Reporting | 1/1 | Complete | 2026-10-13 |
+| 44: Input Guarding | 1/1 | Complete | 2026-10-13 |
+| 45: Performance Optimizations | 1/1 | Complete | 2026-10-13 |
