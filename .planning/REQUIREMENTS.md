@@ -1,0 +1,52 @@
+# Requirements: Mythika — v11.0 Combat Damage FX
+
+**Defined:** 2026-10-15
+**Milestone:** v11.0 — Combat Damage FX
+**Source:** Winning sketch `.planning/sketches/combat-damages/variant-c-rich.html` + CONCERNS.md zero-allocation constraint
+**Core Value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
+
+## Goal
+
+Upgrade combat damage feedback from the flat `R.damageNumber` (text-only circular buffer) to a spring-driven, element-aware damage floater system — consistent with the v10.0 `UI.Component` + mixin foundation and the project's zero-per-frame-allocation constraint.
+
+## v11.0 Requirements
+
+### Damage Floater Foundation
+
+- [ ] **DMG-01**: `R.damageFloaters` buffer gains `element` + `crit` + pre-allocated `spring` state per floater; `R.damageNumber(ctx, x, y, value, color, opts)` extended with `opts.element` and `opts.crit` without breaking existing call sites
+- [ ] **DMG-02**: Floater render applies spring-driven vertical offset + scale-in/out (using `R.springConfigs` from Phase 51) with zero per-frame object allocation — spring state allocated once at spawn, mutated in place
+- [ ] **DMG-03**: Element-aware visual treatment: fire/water/wind/earth tint + icon chip matching `R.colors` element tokens; heal type shows `+` prefix in green
+- [ ] **DMG-04**: Crit floaters render larger (scaled up) with a gold emphasis ring, distinguishing from normal hits at a glance
+- [ ] **DMG-05**: `R.reducedMotion()` path — floaters render without spring bounce (instant appear + fade only) when reduced motion is on, preserving accessibility
+
+### Element Burst Particles
+
+- [ ] **DMG-06**: On hit, spawn a small element-colored particle burst (6 particles radial) from impact point; particle state pre-allocated per burst, mutated in place
+- [ ] **DMG-07**: Particle burst respects `R.reducedMotion()` — suppressed entirely when reduced motion is active
+
+### Combat Integration
+
+- [ ] **DMG-08**: `combatScene.js` hit sites (target hit, enemy hit, counter) pass `element` + `isCrit` + impact coords to the upgraded `R.damageNumber`; no new global allocation in hot paths
+- [ ] **DMG-09**: `damageFlash` screen shake preserved and gated behind reduced-motion; existing log band + `UI.Feedback.Toast` flow unchanged
+- [ ] **DMG-10**: New floater + burst behavior covered by a dedicated test file (`tests/damage_fx.test.js`); full suite green
+
+### Out of Scope for v11.0
+
+| Item | Reason |
+|------|--------|
+| New element types beyond fire/water/wind/earth | Element set is fixed by existing `R.colors` tokens |
+| Per-element VFX shader effects | Immediate-mode Canvas 2D only — no WebGL |
+| Combo / kill-streak FX beyond crit emphasis | Deferred — combo already in play layer; this milestone is damage-feedback visuals only |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| DMG-01..05 | Phase 54 | Planned |
+| DMG-06..07 | Phase 55 | Planned |
+| DMG-08..10 | Phase 56 | Planned |
+
+**Coverage:** 10 requirements, 3 phases, no orphans.
+
+---
+*Defined 2026-10-15 for v11.0*

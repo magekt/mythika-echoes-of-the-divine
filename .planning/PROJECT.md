@@ -46,6 +46,14 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 
 **Date:** 2026-10-14
 
+## Milestone v11.0 — Combat Damage FX
+
+**Goal:** Upgrade combat damage feedback from the flat `R.damageNumber` text buffer to a spring-driven, element-aware damage floater system — consistent with the v10.0 `UI.Component` + mixin foundation and the project's zero-per-frame-allocation constraint.
+
+**Direction:** Damage floaters gain element tint/icon, crit emphasis, and spring bounce (Phases 54); a pre-allocated element particle burst on hit (Phase 55); full combat-scene integration + tests (Phase 56). All FX respect `R.reducedMotion()`. Built on Phase 50/51/52 foundations. No new element types, no WebGL, no gameplay-rule changes.
+
+**Date:** In progress — started 2026-10-15
+
 ## Shipped Milestone v10.0 — Shared Library Foundations
 
 **Goal (achieved):** Extracted and hardened the shared UI/renderer foundations into reusable, testable libraries — a UI component factory (`UI.Component` base + 5 mixins), a centralized spring config registry (`R.springConfigs`), and hardened renderer primitives — so that v11+ features build on solid, reusable foundations instead of re-inventing primitives per feature.
