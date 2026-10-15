@@ -595,6 +595,24 @@ Phase 44 (Input Guarding) — standalone, no dependencies
 
 ---
 
+## v8.0 — Performance & Loading Architecture ✅ SHIPPED (2026-10-13)
+
+*Full details: [ROADMAP-v8.md](ROADMAP-v8.md)*
+
+- [x] **Phase 43:** Loading Overlay and Progress Reporting (1/1 plan)
+- [x] **Phase 44:** Input Guarding (1/1 plan)
+
+## v9.0 — Premium UI/UX Foundations ✅ SHIPPED (2026-10-14)
+
+*Full details: [milestones/v9.0-ROADMAP.md](milestones/v9.0-ROADMAP.md)*
+
+- [x] **Phase 46:** Renderer Primitives Foundation (1/1 plan)
+- [x] **Phase 47:** Button Press Physics (1/1 plan)
+- [x] **Phase 48:** Panel Modal Nested Shells (1/1 plan)
+- [x] **Phase 49:** Reveal Lifecycle (1/1 plan)
+
+---
+
 ## v10.0 — Shared Library Foundations ✅ SHIPPED (2026-10-14)
 
 **Goal (achieved):** Established shared UI component factory with mixins, spring config registry, renderer primitive hardening, and migrated all components to the new foundation.
@@ -605,6 +623,16 @@ Phase 44 (Input Guarding) — standalone, no dependencies
 - [x] **Phase 51:** Spring Config Registry (1/1 plan)
 - [x] **Phase 52:** Renderer Primitive Hardening (1/1 plan)
 - [x] **Phase 53:** Component Factory Migration (1/1 plan)
+
+---
+
+## Milestone Phase Index
+
+Phases tracked in milestone-specific roadmap files (not duplicated in this file):
+
+- v8.0 (Phases 43-45): [ROADMAP-v8.md](ROADMAP-v8.md)
+- v9.0 (Phases 46-49): [milestones/v9.0-ROADMAP.md](milestones/v9.0-ROADMAP.md)
+- v10.0 (Phases 50-53): [milestones/v10.0-ROADMAP.md](milestones/v10.0-ROADMAP.md)
 
 ---
 *Roadmap reorganized 2026-10-10 at v5.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md. v6.0 section appended 2026-10-10. v8.0 section added 2026-10-13. v10.0 archived 2026-10-15.*
