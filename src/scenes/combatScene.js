@@ -1026,6 +1026,7 @@ const combatScene = Scene.create({
   update: function(dt) {
     if (this.data.damageFlash > 0) this.data.damageFlash -= dt;
     if (typeof CombatFX !== 'undefined') CombatFX.update(dt);
+    if (typeof R !== 'undefined' && R.updateElementBursts) R.updateElementBursts(dt);
     // Victory ticker: count gold/XP up over ~0.5s (feedback, not motion —
     // runs under Reduce Motion too).
     const rw = this.data.rewards;
@@ -1305,5 +1306,6 @@ const combatScene = Scene.create({
 
     Audio.musicVolume(Combat.battleOver ? 1.0 : 0.7);
     if (typeof CombatFX !== 'undefined') CombatFX.render(ctx);
+    if (typeof R !== 'undefined' && R.renderElementBursts) R.renderElementBursts(ctx);
   }
 });

@@ -42,6 +42,15 @@ const R = {
     success: 'rgba(76,200,48,0.9)',
     warning: 'rgba(232,160,48,0.9)',
     danger: 'rgba(200,48,48,0.9)',
+    // Phase 55: element color tokens for burst + floater tint
+    elements: {
+      fire:      { primary: '#ff6020', secondary: '#ff9040' },
+      ice:       { primary: '#a0e0ff', secondary: '#d0f0ff' },
+      lightning: { primary: '#c0c0ff', secondary: '#ffffff' },
+      dark:      { primary: '#8040ff', secondary: '#402060' },
+      holy:      { primary: '#e8e0d0', secondary: '#f0c060' },
+      default:   { primary: '#e8a030', secondary: '#f0c060' }
+    }
   },
   // Corner-radius scale (Shape Consistency Lock): xs=3 chips/ticks, s=5
   // buttons/small bars, m=8 panels/headers, l=10 large cards. New UI adopts
@@ -557,6 +566,69 @@ R.renderEffects = function(ctx) {
     ctx.fillRect(0, 0, G.W, G.H);
     ctx.globalAlpha = 1;
   }
+};
+
+// ── Phase 55: Element burst particles ─────────────────────────────────
+// Pre-allocated circular buffer. No per-frame object allocation.
+// crit bursts spawn 10 particles, normal bursts spawn 6.
+R.elementBurstSlots = new Array(60);
+R.elementBurstCount = 0;
+R.elementBurstWriteIdx = 0;
+
+R.elementBurst = function(x, y, element, crit) {
+  if (G.state.reduceMotion) return;
+  var el = R.colors.elements[element] || R.colors.elements.default;
+  var count = crit ? 10 : 6;
+  for (var i = 0; i < count; i++) {
+    var wIdx = R.elementBurstWriteIdx;
+    var angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+    var speed = crit ? 60 : 40;
+    var life = crit ? 0.5 : 0.35;
+    var size = crit ? 4 : 2.5;
+    var color = i % 2 ? el.secondary : el.primary;
+    var slot = R.elementBurstSlots[wIdx];
+    if (slot) {
+      slot.x = x; slot.y = y;
+      slot.vx = Math.cos(angle) * speed;
+      slot.vy = Math.sin(angle) * speed;
+      slot.life = life; slot.maxLife = life;
+      slot.size = size; slot.color = color;
+      slot.active = true;
+    } else {
+      R.elementBurstSlots[wIdx] = {
+        x: x, y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: life, maxLife: life,
+        size: size, color: color,
+        active: true
+      };
+    }
+    R.elementBurstWriteIdx = (wIdx + 1) % 60;
+    if (R.elementBurstCount < 60) R.elementBurstCount++;
+  }
+};
+
+R.updateElementBursts = function(dt) {
+  for (var i = 0; i < 60; i++) {
+    var p = R.elementBurstSlots[i];
+    if (!p || !p.active) continue;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.life -= dt;
+    if (p.life <= 0) p.active = false;
+  }
+};
+
+R.renderElementBursts = function(ctx) {
+  var sx = R.shakeX, sy = R.shakeY;
+  for (var i = 0; i < 60; i++) {
+    var p = R.elementBurstSlots[i];
+    if (!p || !p.active) continue;
+    ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+    R.rect(ctx, p.x + sx - p.size / 2, p.y + sy - p.size / 2, p.size, p.size, p.color);
+  }
+  ctx.globalAlpha = 1;
 };
 
 // ── Click-outcome micro-FX ────────────────────────────────────────────

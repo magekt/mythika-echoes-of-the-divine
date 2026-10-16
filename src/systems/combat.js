@@ -554,7 +554,7 @@ Combat.performAttack = function(attacker, defender, skill, damageMultiplier) {
 
   if (typeof CombatFX !== 'undefined') {
     const el = (skill && skill.element) || attacker.element || 'dark';
-    CombatFX.spawn(el, G.W / 2, G.H / 2);
+    CombatFX.spawn(el, G.W / 2, G.H / 2, isCrit);
   }
 
   this.checkCombo(attacker);
