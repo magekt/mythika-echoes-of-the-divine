@@ -591,9 +591,11 @@ const combatScene = Scene.create({
       const targetIdx = this.data.heroes.findIndex(h => h.id === target.id);
       R.fireProjectile(370 - enemyIdx * 70, 50, targetIdx * 70 + 30, 50, R.colors.red, 200, 'spear');
       const reactionFxRunId = this.data.runId;
+      const reactionElement = enemy.ailment === 'agni' ? 'fire' : enemy.ailment === 'shila' ? 'ice' : enemy.ailment === 'vayu' ? 'lightning' : enemy.ailment === 'vajra' ? 'lightning' : 'dark';
       setTimeout(function() {
         if (G.currentScene === combatScene && combatScene.data.runId === reactionFxRunId) {
           R.damageNumber(G.ctx, targetIdx * 70 + 30, 30, result.dmg, R.colors.red);
+          if (typeof R.elementBurst === 'function') R.elementBurst(targetIdx * 70 + 30, 30, reactionElement, result.isCrit || false);
         }
       }, 200);
       if (target.hp <= 0) this.deathBurstAt(target, true);
@@ -660,9 +662,11 @@ const combatScene = Scene.create({
     const projType = weaponType === 'bow' ? 'arrow' : weaponType === 'spear' ? 'spear' : 'mace';
     R.fireProjectile(heroX, heroY, enemyX, enemyY, result.isCrit ? R.colors.goldLight : R.colors.gold, 250, projType);
     const playerFxRunId = this.data.runId;
+    const playerElement = hero.ailment === 'agni' ? 'fire' : hero.ailment === 'shila' ? 'ice' : hero.ailment === 'vayu' ? 'lightning' : hero.ailment === 'vajra' ? 'lightning' : 'dark';
     setTimeout(function() {
       if (G.currentScene === combatScene && combatScene.data.runId === playerFxRunId) {
         R.damageNumber(G.ctx, enemyX, enemyY - 20, result.dmg, result.isCrit ? R.colors.gold : R.colors.red);
+        if (typeof R.elementBurst === 'function') R.elementBurst(enemyX, enemyY - 20, playerElement, result.isCrit);
       }
     }, 200);
     if (target.hp <= 0) this.deathBurstAt(target, false);
