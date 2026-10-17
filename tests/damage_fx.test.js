@@ -119,10 +119,10 @@ describe('R.damageNumber — floater integration', () => {
     assert.strictEqual(item.y, 50);
   });
 
-  test('damageNumber defaults to red when color is null', () => {
-    R.damageNumber(ctx, 10, 10, 7, null);
+  test('damageNumber defaults to element primary when color is null', () => {
+    R.damageNumber(ctx, 10, 10, 7, null, { element: 'fire' });
     const item = R.damageNumbers.buffer[0];
-    assert.strictEqual(item.color, R.colors.red, 'null color should default to red');
+    assert.strictEqual(item.color, R.colors.elements.fire.primary, 'null color should default to element primary');
   });
 });
 

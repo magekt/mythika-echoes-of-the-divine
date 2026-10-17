@@ -594,7 +594,7 @@ const combatScene = Scene.create({
       const reactionElement = enemy.ailment === 'agni' ? 'fire' : enemy.ailment === 'shila' ? 'ice' : enemy.ailment === 'vayu' ? 'lightning' : enemy.ailment === 'vajra' ? 'lightning' : 'dark';
       setTimeout(function() {
         if (G.currentScene === combatScene && combatScene.data.runId === reactionFxRunId) {
-          R.damageNumber(G.ctx, targetIdx * 70 + 30, 30, result.dmg, R.colors.red);
+          R.damageNumber(G.ctx, targetIdx * 70 + 30, 30, result.dmg, R.colors.red, { element: reactionElement, crit: result.isCrit || false });
           if (typeof R.elementBurst === 'function') R.elementBurst(targetIdx * 70 + 30, 30, reactionElement, result.isCrit || false);
         }
       }, 200);
@@ -665,7 +665,7 @@ const combatScene = Scene.create({
     const playerElement = hero.ailment === 'agni' ? 'fire' : hero.ailment === 'shila' ? 'ice' : hero.ailment === 'vayu' ? 'lightning' : hero.ailment === 'vajra' ? 'lightning' : 'dark';
     setTimeout(function() {
       if (G.currentScene === combatScene && combatScene.data.runId === playerFxRunId) {
-        R.damageNumber(G.ctx, enemyX, enemyY - 20, result.dmg, result.isCrit ? R.colors.gold : R.colors.red);
+        R.damageNumber(G.ctx, enemyX, enemyY - 20, result.dmg, result.isCrit ? R.colors.gold : R.colors.red, { element: playerElement, crit: result.isCrit });
         if (typeof R.elementBurst === 'function') R.elementBurst(enemyX, enemyY - 20, playerElement, result.isCrit);
       }
     }, 200);

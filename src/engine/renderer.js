@@ -486,11 +486,50 @@ R.shakeX = 0;
 R.shakeY = 0;
 R.shakeTimer = 0;
 
-R.damageNumber = function(ctx, x, y, value, color) {
+// ── Phase 54: spring-driven, element-aware damage floaters ─────────────
+// Pre-allocated circular buffer with spring state attached to each floater.
+// Spring state is allocated once at spawn (DMG-01/02) and stepped in place
+// during update — zero per-frame object allocation.
+//
+//  R.damageNumber(ctx, x, y, value, color, opts?)
+//  opts = { element: 'fire'|'ice'|'lightning'|'dark'|'holy'|'default',
+//           crit:    boolean,
+//           heal:    boolean }
+//
+//  DMG-03: element tint + icon chip from R.colors.elements tokens
+//  DMG-04: crit renders larger (scale-in boost) with gold emphasis ring
+//  DMG-05: reducedMotion → no spring bounce (instant appear + fade only)
+
+var FLOATER_SPRING = R.spring({ stiffness: 180, damping: 18, target: 1 });
+
+R.damageNumber = function(ctx, x, y, value, color, opts) {
+  var o = opts || {};
+  var element = o.element || 'default';
+  var isCrit  = !!o.crit;
+  var isHeal  = !!o.heal;
+  var el      = R.colors.elements[element] || R.colors.elements.default;
+
+  // Pre-allocate spring state once; springFn stored on the floater object
+  // so updateEffects can step it in place without re-creating it.
+  var springState = { value: 0, velocity: 0, _springFn: FLOATER_SPRING };
+
   R.damageNumbers.add({
-    x: x, y: y, value: value,
-    color: color || R.colors.red,
-    vy: -40, life: 1, maxLife: 1
+    x: x,
+    y: y,
+    value: value,
+    color: color || el.primary,
+    elPrimary: el.primary,
+    elSecondary: el.secondary,
+    element: element,
+    crit: isCrit,
+    heal: isHeal,
+    vy: -40,
+    life: isCrit ? 1.4 : 1,
+    maxLife: isCrit ? 1.4 : 1,
+    // Spring scale: 0 → 1 (crit overshoots slightly via target tuning)
+    scale: 0,
+    _spring: springState,
+    _reduced: G.state.reduceMotion
   });
 };
 
@@ -512,8 +551,16 @@ R.deathBurst = function(x, y, color) {
 };
 
 R.updateEffects = function(dt) {
-  // Damage numbers - filter out expired
+  // Damage numbers — advance spring + filter out expired (DMG-01/02/05)
   R.damageNumbers.filterInPlace(d => {
+    if (!d._reduced) {
+      // Normal path: spring-driven scale-in, vertical float
+      R.spring.step(d._spring, dt);
+      d.scale = d._spring.value;
+    } else {
+      // DMG-05: reduced-motion — no bounce, instant appear + fade
+      d.scale = 1;
+    }
     d.y += d.vy * dt;
     d.life -= dt;
     return d.life > 0;
@@ -536,11 +583,52 @@ R.updateEffects = function(dt) {
 
 R.renderEffects = function(ctx) {
   R.damageNumbers.forEach(d => {
-    const alpha = Math.max(0, d.life / d.maxLife);
+    var alpha = Math.max(0, d.life / d.maxLife);
+    var scale = d.scale !== undefined ? d.scale : 1;
+    var isCrit = !!d.crit;
+    var isHeal = !!d.heal;
+    var elPrimary = d.elPrimary || d.color || R.colors.red;
+    var elSecondary = d.elSecondary || R.colors.red;
+    var dispX = d.x + R.shakeX;
+    var dispY = d.y + R.shakeY;
+
     ctx.globalAlpha = alpha;
-    R.textCenter(ctx, d.value.toString(), d.x + R.shakeX, d.y + R.shakeY, d.color, R.fonts.lg);
+
+    // DMG-03: element icon chip — small rounded rect left of the number
+    if (d.element && d.element !== 'default') {
+      var chipW = 8, chipH = 8;
+      var chipX = dispX - (isCrit ? 22 : 16) - chipW / 2;
+      var chipY = dispY - chipH / 2;
+      ctx.fillStyle = elSecondary;
+      ctx.beginPath();
+      ctx.arc(chipX, chipY, chipW / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = elPrimary;
+      ctx.beginPath();
+      ctx.arc(chipX, chipY, chipW / 2 - 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // DMG-04: crit — gold emphasis ring around the number
+    if (isCrit) {
+      ctx.strokeStyle = R.colors.gold;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(dispX, dispY, 14 * scale, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // DMG-03/04: element tint + scale-driven size; heal shows + prefix in green
+    var fontBase = isCrit ? '20px "Geist", -apple-system, BlinkMacSystemFont, sans-serif' : R.fonts.lg;
+    ctx.font = fontBase;
+    ctx.textAlign = 'center';
+    var label = isHeal ? '+' + d.value : d.value.toString();
+    var textColor = isHeal ? R.colors.green : elPrimary;
+    ctx.fillStyle = textColor;
+    ctx.fillText(label, dispX, dispY + R.shakeY * 0);
+    ctx.textAlign = 'left';
   });
-  
+
   R.deathBursts.forEach(b => {
     const t = 1 - b.life / b.maxLife;
     const alpha = b.life / b.maxLife;
