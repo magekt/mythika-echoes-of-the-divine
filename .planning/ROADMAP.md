@@ -633,7 +633,7 @@ Phase 44 (Input Guarding) — standalone, no dependencies
 
 - [x] **Phase 54:** Damage Floater Foundation (1/1 plan)
 - [x] **Phase 55:** Element Burst Particles (1/1 plan)
-- [ ] **Phase 56:** Combat Integration + Tests (0/1 plan)
+- [x] **Phase 56:** Combat Integration + Tests (1/1 plan)
 
 ---
 

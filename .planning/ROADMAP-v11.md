@@ -6,8 +6,8 @@
 ## Phases
 
 - [x] **Phase 54: Damage Floater Foundation** — extend `R.damageFloaters` + `R.damageNumber` with element/crit + pre-allocated spring state; spring-driven render via `R.springConfigs`; element tint/icon; reduced-motion path
-- [ ] **Phase 55: Element Burst Particles** — pre-allocated radial particle burst on hit, element-colored; reduced-motion suppressed
-- [ ] **Phase 56: Combat Integration + Tests** — wire `combatScene.js` hit sites to upgraded `R.damageNumber`; preserve `damageFlash` + Toast flow; `tests/damage_fx.test.js`; full suite green
+- [x] **Phase 55: Element Burst Particles** — pre-allocated radial particle burst on hit, element-colored; reduced-motion suppressed
+- [x] **Phase 56: Combat Integration + Tests** — wire `combatScene.js` hit sites to upgraded `R.damageNumber`; preserve `damageFlash` + Toast flow; `tests/damage_fx.test.js`; full suite green
 
 ## Phase Details
 
@@ -43,9 +43,9 @@
 
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
-| 54. Damage Floater Foundation | v11.0 | 0/1 | Not started | - |
-| 55. Element Burst Particles | v11.0 | 0/1 | Not started | - |
-| 56. Combat Integration + Tests | v11.0 | 0/1 | Not started | - |
+| 54. Damage Floater Foundation | v11.0 | 1/1 | Complete | 2026-10-15 |
+| 55. Element Burst Particles | v11.0 | 1/1 | Complete | 2026-10-16 |
+| 56. Combat Integration + Tests | v11.0 | 1/1 | Complete | 2026-10-16 |
 
 ## Coverage
 
