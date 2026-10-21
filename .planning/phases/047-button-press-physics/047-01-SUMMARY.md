@@ -115,6 +115,16 @@ None - no external service configuration required.
 - Button press physics foundation complete; UI.Button and UI.MagneticBtn ready for use in CTAs and navigation
 - No blockers for next phase
 
+## Self-Check: PASSED
+
+All created files exist and all commits are reachable:
+
+- `src/ui/button.js` — FOUND
+- `tests/button.test.js` — FOUND
+- `.planning/phases/047-button-press-physics/047-01-SUMMARY.md` — FOUND
+- Commit `e910183` (task 1: button press spring physics + MagneticBtn trailing icon) — FOUND
+- Commit `64e61e1` (docs: complete 047-01 plan + SUMMARY.md) — FOUND
+
 ---
 *Phase: 047-button-press-physics*
 *Completed: 2026-10-21*
