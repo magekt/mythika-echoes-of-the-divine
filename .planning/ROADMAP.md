@@ -563,7 +563,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 43. Loading Overlay and Progress Reporting | v8.0 | 1/1 | Complete | 2026-10-13 |
 | 44. Input Guarding | v8.0 | 1/1 | Complete | 2026-10-13 |
-| 45. Performance Optimizations | v8.0 | 1/1 | Complete | 2026-10-13 |
+| 45. Performance Optimizations | v8.0 | 1/1 | Complete   | 2026-10-21 |
 
 ## Coverage (v7.0)
 
