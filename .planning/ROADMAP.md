@@ -563,6 +563,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 43. Loading Overlay and Progress Reporting | v8.0 | 1/1 | Complete | 2026-10-13 |
 | 44. Input Guarding | v8.0 | 1/1 | Complete | 2026-10-13 |
+| 45. Performance Optimizations | v8.0 | 1/1 | Complete | 2026-10-13 |
 
 ## Coverage (v7.0)
 
@@ -578,8 +579,12 @@ Plans:
 |-------------|----------------|-----------|
 | INPUT-01 — No user input processed during boot | Phase 44 | v8.0 |
 | INPUT-05 — Input._ready checked at UI consumer side | Phase 44 | v8.0 |
+| PERF-01 — Brotli compression (hosting-layer) | Phase 45 | v8.0 |
+| PERF-02 — Preconnect to Firebase CDN | Phase 45 | v8.0 |
+| PERF-03 — Firebase module at end of body | Phase 45 | v8.0 |
+| PERF-04 — ?probe boot duration + per-group timings | Phase 45 | v8.0 |
 
-**v8.0 Coverage:** 2/2 requirements mapped exactly once; no orphans or duplicates.
+**v8.0 Coverage:** 6/6 requirements mapped exactly once; no orphans or duplicates.
 
 ## Dependency Graph (v7.0)
 
