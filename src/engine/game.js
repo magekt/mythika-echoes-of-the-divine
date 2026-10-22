@@ -475,6 +475,9 @@ function gLoopFrame(time) {
   Fade.render(G.ctx);
   Notify.render(G.ctx);
   if (typeof UI !== 'undefined' && UI.Feedback && UI.Feedback.renderToasts) UI.Feedback.renderToasts(G.ctx);
+  // HUD rendered last so it stays on top of all FX, fade, notifications and toasts,
+  // and is never displaced by screen shake (shake transform was popped before this point).
+  if (typeof UI !== 'undefined' && UI.HUD) UI.HUD().render(G.ctx);
   // First frame is on screen AND input is ready: dissolve the CSS boot splash
   // (150ms), then drop the class entirely.
   if (G.frameCount === 1 && Input._ready) {

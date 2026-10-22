@@ -1,5 +1,22 @@
 # Milestones
 
+## v12.0 Visual Polish & Combat FX (Shipped: 2026-10-22)
+
+**Phases completed:** 8 phases, 8 plans, 0 tasks
+
+**Key accomplishments:**
+
+- Phase:
+- Phase:
+- Phase:
+- Phase:
+- Phase:
+- Phase:
+- Phase:
+- Phase:
+
+---
+
 ## v10.0 Shared Library Foundations (Shipped: 2026-10-14)
 
 **Phases completed:** 4 phases, 4 plans, commits `02a15eb`, `6c87481`

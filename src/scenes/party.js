@@ -847,7 +847,6 @@ render: function(ctx) {
       const top = this.getContentTop();
       Scene.clipContent(ctx, this);
     for (const b of this.data.buttons) b.render(ctx);
-    UI.HUD().render(ctx);
     ctx.restore();
 
       Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);
@@ -875,7 +874,6 @@ render: function(ctx) {
       Scene.clipContent(ctx, this);
       for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
       Scene.drawStatic(ctx, this.data.staticDraws);
-      UI.HUD().render(ctx);
       ctx.restore();
 
       Scene.drawScrollbar(ctx, top, this.data.contentHeight, this.getContentHeight(), this.data.scrollY);

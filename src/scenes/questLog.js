@@ -389,7 +389,6 @@ buildList: function() {
     if (this.data._chainShell) this.data._chainShell.render(ctx);
 
     for (const b of this.data.buttons) b.render(ctx);
-    UI.HUD().render(ctx);
 
     ctx.restore();
 

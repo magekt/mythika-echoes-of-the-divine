@@ -311,6 +311,5 @@ const trialsScene = Scene.create({
     }
 
     for (const b of this.data.buttons) b.render(ctx);
-    UI.HUD().render(ctx);
   }
 });

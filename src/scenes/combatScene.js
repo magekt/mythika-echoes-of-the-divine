@@ -1064,7 +1064,6 @@ const combatScene = Scene.create({
     // Render enemy character moment (center-top behind intent band)
     R.Backgrounds.renderCharacterMoment(ctx, 'combat:' + this.data._enemyType, G.W / 2 - 50, 200, 100, 100, bgAlpha * 0.4);
 
-    UI.HUD().render(ctx);
     if (this.data.damageFlash > 0) {
       ctx.fillStyle = R.colors.subtleWhite;
       ctx.fillRect(0, 0, G.W, G.H);
