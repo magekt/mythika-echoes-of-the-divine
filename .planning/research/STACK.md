@@ -1,126 +1,170 @@
-# Recommended Stack: v3.0 Screen & Gameplay Revamp
+# Technology Stack — v12.0 Visual Polish & Combat FX
 
 **Project:** Mythika: Echoes of the Divine  
-**Milestone:** v3.0 Screen & Gameplay Revamp  
-**Researched:** 2026-09-20  
-**Confidence:** HIGH for browser APIs and current repository constraints; MEDIUM for asset-production choices
+**Researched:** 2026-10-22  
+**Milestone:** v12.0 — Visual Polish, Combat FX Expansion, Zone Content  
+**Mode:** Ecosystem (internal stack additions, no external libraries)
 
-## Recommendation
+---
 
-Keep the existing browser-native stack. Do **not** introduce a UI framework, game engine, bundler, or rendering library for this milestone. The shipped architecture already provides a logical 400×720 Canvas coordinate space, DPR-aware backing canvas, immediate-mode scenes, reusable UI factories, local persistence, PWA delivery, and a global reduced-motion policy. v3.0 should improve the screen composition and gameplay feedback inside those boundaries rather than create a second architecture.
+## Executive Summary
 
-Use Canvas 2D for interactive gameplay and dynamic overlays, CSS/HTML for the outer responsive shell and large static imagery, and small browser APIs for instrumentation. This split follows current Canvas guidance: static backgrounds should be placed behind the canvas with CSS or cached on an offscreen canvas, while only changing gameplay/UI layers should redraw every frame.
+v12.0 builds on the v10.0 (`R` renderer primitives + `UI.Component` factory + `R.springConfigs`) and v11.0 (`R.damageNumber` spring floaters + `R.elementBurst` 60-slot circular buffer) foundations. All v12.0 additions are **internal to the existing vanilla JS / Canvas 2D architecture** — zero external libraries, zero bundlers, zero frameworks, zero WebGL, no ES-module migration, no backend, no new element types, no new zone IDs. Everything is added to the `R` namespace in `src/engine/renderer.js` and to data files under `src/data/`, following the existing circular-buffer + zero-per-frame-allocation pattern established in v11.0.
 
-## Recommended Stack
+Firebase JavaScript SDK v12.x (12.18.0 pinned in `index.html`) is confirmed current via Context7 (`/firebase/firebase-js-sdk`, v12.0.0 is the latest major line). Firebase remains optional auth-only, gated behind `?probe`, and does not block offline play.
 
-### Core runtime
+---
 
-| Technology | Version guidance | Purpose | Recommendation |
-|---|---|---|---|
-| Vanilla JavaScript ES2022+ | Browser-native; no package pin needed | Scenes, systems, input, state, asset loading | Preserve script-tag order for v3.0. Introduce new globals only behind clearly named namespaces (for example `ScreenRevamp` or `DebugProbe`). |
-| HTML5 Canvas 2D | Current browser implementation | Combat, map, animated gameplay, hit-testing, effects | Preserve logical coordinates and centralize transforms in the engine. Use `ctx.save()/restore()` around camera, clip, alpha, and composite changes. |
-| CSS + HTML | Current browser implementation | Responsive container, static background imagery, safe-area layout, debug/status DOM | Keep the canvas as the game surface; use DOM layers only where they improve responsiveness, text input, or diagnostics. |
-| Web Audio API | Current browser implementation | Existing procedural music and SFX | Reuse `Audio`; avoid adding an audio dependency. Keep gesture unlock, page visibility handling, and reduced-motion/accessibility behavior explicit. |
-| localStorage + existing SaveSystem | Current browser implementation | Offline saves, migration, debug snapshots | Continue using canonical systems for writes. Any new revamp state must be versioned, sanitized, and included in `SaveSystem.migrate()`. |
-| Service Worker / Web App Manifest | Existing PWA implementation | Offline shell and installability | Add image assets to the precache/versioning plan; use cache-busting revisions rather than silently serving stale art. |
+## Recommended Stack Additions
 
-### Asset and background imagery
+All additions are internal code — no npm installs, no `<script>` tags beyond the existing set, no build-step changes.
 
-Use `HTMLImageElement`/`ImageBitmap` loaded by a small `AssetCache` module. Store source images at an intentional maximum display resolution, decode them once, and cache common crop/scale variants on an offscreen canvas when repeated scaling is expensive. Do not call `new Image()` or create gradients inside `render()`.
+### 1. Particle Variety Additions (renderer.js — `R` namespace)
 
-Recommended background pipeline:
+| Addition | Purpose | Reuses | Rationale |
+|----------|---------|--------|-----------|
+| `R.elementBurst` shape variants (arc, circle, line, spark) | Element-specific burst visuals per element (fire = sparks/arcs, ice = crystalline lines, lightning = jagged lines, dark = expanding rings, holy = soft circles) | `createCircularBuffer`, `R.colors.elements`, `R.reducedMotion()` | v11.0 `R.elementBurst` only spawns squares via `R.rect`. Shape variety makes element bursts visually distinct without new allocation patterns. |
+| `R.ambientParticles` per-zone emitter | Zone environmental FX (falling petals in aryavarta, dust motes in dandaka, fireflies in meru, embers in patala, light motes in svarga) | `createCircularBuffer`, `R.colors.elements`, `R.reducedMotion()` | Zone content needs living ambience. Bounded circular buffer keeps memory fixed; per-zone data drives density/color. |
+| `R.damageNumber` variants (bounce, rotate, element glyph) | Heal floaters (green, upward bounce), crit floaters (rotation + scale overshoot), element glyph chips | `R.spring`, `R.springConfigs`, `R.colors.elements` | Extends v11.0 floater system without changing its core contract. Spring registry already has named configs; new configs can be added for bounce/rotate. |
+| `R.comboParticles` | Combo milestone burst when `R.triggerComboFlash` fires | `createCircularBuffer`, `R.colors.gold` | Combo feedback currently only flashes the screen. A small gold particle burst at combo center reinforces the reward. |
 
-1. `AssetCache.load(url)` returns a shared promise and tracks `loading/ready/error`.
-2. A scene chooses a semantic background key, not a raw path.
-3. A static CSS background layer handles full-bleed atmospheric art where possible.
-4. Canvas draws only the parallax/camera crop and gameplay elements.
-5. The scene has a deterministic fallback palette/shape when an image has not loaded or fails.
+### 2. Screen Shake Utility Enhancement (renderer.js — `R` namespace)
 
-Prefer a small number of compressed WebP/AVIF backgrounds with PNG only for transparency or pixel-critical art. Provide intrinsic dimensions and avoid runtime upscale beyond the source's intended maximum. Keep cultural/environmental imagery authored and reviewed as content, not generated ad hoc in render code.
+| Addition | Purpose | Reuses | Rationale |
+|----------|---------|--------|-----------|
+| `R.screenShake` directional + decay | Existing shake is uniform random jitter with linear decay. Add: directional bias (hit direction), exponential decay falloff, per-axis (x/y) control, magnitude scaling by impact intensity | `R.shakeX`, `R.shakeY`, `R.shakeTimer`, `R.shakeIntensity` (already exist), `R.reducedMotion()` | v11.0 shake works but is basic. Combat hits from different directions should shake differently; exponential decay feels more physical than linear. |
+| `R.shakeDecay` config in `R.springConfigs` | Named shake decay profile | `R.springConfigs` registry | Centralizes shake tuning like spring configs centralize UI spring tuning. |
 
-### Responsive mobile/desktop strategy
+### 3. Combat FX Integration Expansion (combatFx.js + combatScene.js)
 
-Retain the current portrait-first logical stage, but make layout policy explicit:
+| Integration Point | Purpose | Reuses | Rationale |
+|-------------------|---------|--------|-----------|
+| Heal floaters + bursts on healing events | `R.damageNumber(..., {heal: true})` + `R.elementBurst(..., 'holy')` | `R.damageNumber`, `R.elementBurst`, `R.colors.elements.holy` | v11.0 covers damage-only. Heals, buffs, and blocks have no FX yet. |
+| Buff/debuff application FX | Small element-tinted burst at target when `Combat.applyBuff`/`applyAilment` fires | `R.elementBurst`, `Combat.applyBuff`/`applyAilment` | Makes status changes visible, not just log text. |
+| Block/parry/counter FX | Stone-hit style micro-FX (`R.clickFx` glass pattern) or small ring at defender | `R.clickFx`, `R.screenShake` (low intensity) | Reaction window outcomes (parry/guard/interrupt) currently have no visual confirmation. |
+| Death burst element-tinted | `R.deathBurst` currently uses fixed red/blue. Tint by enemy/hero element | `R.deathBurst`, `R.colors.elements` | Consistency with element-aware damage floaters (v11.0). |
+| Projectile impact burst | `R.elementBurst` at projectile target on hit | `R.fireProjectile`/`R.updateProjectiles`, `R.elementBurst` | Projectiles currently arrive with no impact visual. |
 
-- **Phone/coarse pointer:** one-column panels, 44–48 logical-pixel action controls, drag/scroll gestures, no hover-only information.
-- **Wide desktop/fine pointer:** center the game stage with a capped readable width, use additional side information only when it does not duplicate required mobile content, and support hover as an enhancement rather than a prerequisite.
-- Choose breakpoints from content pressure, not device brand or OS. The existing `G.W`, `G.H`, `G.CONTENT_TOP`, `fitGame()`, and scene metric caches should be the only sources of layout dimensions.
-- Recompute layout on resize/orientation/DPR changes, but invalidate cached geometry only when the logical viewport or selected responsive mode changes.
-- Preserve `viewport-fit=cover`; account for `env(safe-area-inset-*)` in the outer CSS shell and keep Canvas hit coordinates in logical units.
+### 4. Zone Content Data Structures (src/data/)
 
-Do not fork gameplay rules for desktop. Responsive behavior belongs in layout/affordance helpers; combat, economy, progression, and rewards remain authoritative in existing systems.
+| Addition | Purpose | Reuses | Rationale |
+|----------|---------|--------|-----------|
+| Zone landmarks (within existing zone IDs) | Discoverable points of interest inside each zone (shrines, groves, ruins) | `ZONES` table, `LivingZones`, `ZoneAccess`, `landmarks.js` | Constraint: no new zone IDs. Landmarks deepen existing zones without expanding geography. |
+| Zone background variants | Per-zone ambient particle definitions (density, color, element key) | `ZONES[zoneId].bgColor`, `R.drawZoneBackground`, `R.colors.elements` | Zone ambience needs per-zone data. No new element types — reuse existing element keys for color. |
+| Zone variant encounter FX | Bond-gated variants (`lz_*` entries) can trigger zone-appropriate burst on completion | `ZONE_VARIANTS`, `CombatFX.spawn`, `LivingZones` | Variant completion is a meaningful moment worthy of FX. |
 
-### Instrumentation and debug stack
+---
 
-Use browser-native User Timing rather than a monitoring SDK for this offline milestone:
+## What Can Be Reused from Existing Stack
 
-- `performance.mark()` / `performance.measure()` around frame update, scene render, asset decode, scene enter/leave, save/load, and combat resolution.
-- A bounded rolling probe in `Debug`/`G.debug` reporting frame time p50/p95/p99, dropped-frame count, active effects/projectiles, loaded assets, scene transitions, and save duration.
-- `console.groupCollapsed('[Mythika]', ...)` only behind the existing debug mode/query flag; avoid logging every frame in normal play.
-- `PerformanceObserver` may consume `measure` entries, but disconnect it on teardown and cap retained samples.
-- Use Chrome DevTools Performance and Memory panels for verification; treat `performance.memory` as optional/non-portable rather than a production contract.
+| Existing Asset | Location | How v12.0 Reuses It |
+|----------------|----------|---------------------|
+| `R.spring` + `R.springConfigs` registry | `src/engine/renderer.js:232-275` | Spring-driven particle motion, bounce floaters, shake decay profiles. Centralized, named, versioned. |
+| `createCircularBuffer(maxSize)` | `src/engine/renderer.js:429-481` | All particle arrays (damage numbers, element bursts, click FX, death bursts, level-up particles) use this. Zero per-frame allocation. |
+| `R.colors.elements` token map | `src/engine/renderer.js:46-53` | fire, ice, lightning, dark, holy, default — primary/secondary pairs. No new element types needed. |
+| `R.reducedMotion()` + `R.reducedMotion.watch` | `src/engine/renderer.js:108-134` | All new FX gated on reduced motion. Null-safe, works in Node tests and browsers. |
+| `R.strokeRoundRect`, `R.doubleBezel`, `R.easePremium` | `src/engine/renderer.js:162-229` | Renderer primitives for FX containers, chips, rings. |
+| `R.spring.step` | `src/engine/renderer.js:248-256` | In-place spring stepping — mutate existing state, no new objects. |
+| `Backgrounds` system | `src/engine/backgrounds.js` | Zone backdrop rendering with fallback canvas generators. Custom generators via `registerSlot`. |
+| `CombatFX` wrapper | `src/systems/combatFx.js` | `spawn`/`update`/`render` delegates to `R.elementBurst`. Already wired into combatScene update/render. |
+| `R.screenShake` (basic) | `src/engine/renderer.js:536-543` | Existing shake state (`shakeX`, `shakeY`, `shakeTimer`, `shakeIntensity`) applied via `G.ctx.translate` in `gLoopFrame`. Enhance, don't replace. |
+| `R.damageNumber` + `R.elementBurst` | `src/engine/renderer.js:505-720` | v11.0 floater + burst systems. Extend with variants, don't rewrite. |
+| Test pattern: `damage_fx.test.js` | `tests/damage_fx.test.js` | VM sandbox loads `renderer.js`, mocks `G`/`Audio`/`ZONES`/`document`/`window`. Follow for new FX tests. |
 
-Instrumentation must be observational: it must not mutate gameplay state, affect random outcomes, or retain scene/component references. Add explicit `clear()`/`leave()` cleanup for probes, observers, timers, and debug overlays.
+---
 
-## Modular implementation pattern
+## What Must NOT Be Added (Anti-Features)
 
-Preserve the current global namespace while tightening boundaries incrementally:
+Per v12.0 constraints from PROJECT.md:
 
-```text
-src/data/                 immutable screen/asset/config definitions
-src/engine/asset-cache.js shared image loading and fallback state
-src/engine/layout.js      logical viewport, responsive mode, safe-area helpers
-src/engine/debug-probe.js bounded User Timing/FPS instrumentation
-src/ui/                   immediate-mode reusable controls and panels
-src/scenes/               scene lifecycle + screen-specific composition
-src/systems/              authoritative gameplay mutation and persistence
+| Anti-Feature | Why Excluded | What to Do Instead |
+|--------------|--------------|-------------------|
+| Frontend framework (React, Vue, Svelte, etc.) | Architecture constraint: vanilla JS, global namespace, script-order dependencies, immediate-mode Canvas. | Add functions to `R` namespace and data files. |
+| Bundler (webpack, vite, esbuild, rollup) | `index.html` loads classic `<script>` tags in dependency order. No build step exists. | Keep classic scripts; add new `.js` files to `index.html` in dependency order. |
+| ES-module migration (`type="module"`, `import`/`export`) | Script-order global runtime is a contract. Only Firebase bridge uses modules (isolated). | Keep `const R = {...}`, `const CombatFX = (...)`, global `G`. |
+| Backend / cloud sync / Firebase game state | Firebase is optional auth-only, gated behind `?probe`. Local `localStorage` is the default. | All world state stays local and save-compatible via `src/systems/save.js`. |
+| WebGL / Canvas 2D replacement | Constraint: no WebGL. Immediate-mode Canvas 2D is the renderer. | Add Canvas 2D drawing calls (`arc`, `lineTo`, `quadraticCurveTo`, `rotate`, `save`/`restore`). |
+| New element types | Constraint: no new element types. Existing: fire, ice, lightning, dark, holy, default. | Reuse `R.colors.elements` keys for all new FX tinting. |
+| New zone IDs | Constraint: deepen existing zones only (aryavarta, dandaka, meru, patala, svarga, tapobhumi). | Add landmarks, variants, and ambient particles within existing zone IDs. |
+| Per-frame object allocation | v11.0 established zero-per-frame-allocation constraint for FX. | Use `createCircularBuffer` + `filterInPlace` + mutate-in-place. |
+| Parallel state stores | `SaveSystem` owns save/migration; no scene-local or system-local parallel stores. | Zone content data flows through `G.state.zoneProgress`, `G.state.flags`, `G.state.encounters`. |
+| Unbounded particle counts | Performance constraint: smooth on mid-range phones. | Fixed-size circular buffers (50 damage numbers, 60 bursts, 30 death bursts, etc.). |
+
+---
+
+## Integration Points with Existing Systems
+
+### Game Loop (`src/engine/game.js` — `gLoopFrame`)
+- `R.updateEffects(G.dt)` — add new particle update calls here (ambient particles, combo particles)
+- `R.renderEffects(G.ctx)` — add new particle render calls here (after damage numbers/bursts)
+- `G.ctx.translate(R.shakeX, R.shakeY)` — shake already applied to the whole frame; enhanced shake uses same state
+
+### Combat Scene (`src/scenes/combatScene.js`)
+- Player attack hit (line ~666-671): `R.damageNumber` + `R.elementBurst` — add heal/buff variants
+- Reaction resolution (line ~595-600): `R.damageNumber` + `R.elementBurst` — add block/parry FX
+- Beast skill `Tempest` (line 460): `R.screenShake(6, 0.3)` — enhanced directional shake
+- Death bursts (`deathBurstAt`, line 545-557): `R.deathBurst` — element-tint by entity
+- `CombatFX.update(dt)` / `CombatFX.render(ctx)` already called in update/render
+
+### Combat System (`src/systems/combat.js`)
+- `Combat.applyBuff` / `Combat.applyAilment` — hook FX spawn on status application
+- `Combat.performAttack` — hook impact burst on hit
+
+### Save System (`src/systems/save.js`)
+- Zone landmarks, variant completion flags, and zone progress all flow through `G.state.zoneProgress`, `G.state.flags`, `G.state.encounters` — no save migration needed for additive data
+- Save compatibility preserved: new fields default to `undefined`/empty, `SaveSystem.migrate` handles legacy state
+
+### Living Zones (`src/systems/living_zones.js`)
+- `LivingZones.resolveFor(zoneId)` / `teaseFor(zoneId)` — can trigger zone-appropriate ambient FX when a companion is present
+- `ZONE_VARIANTS` entries can carry an `fx` key (element type) for completion burst
+
+### Backgrounds (`src/engine/backgrounds.js`)
+- `Backgrounds.registerSlot(key, generator)` — custom per-zone ambient generators can be registered
+- Fallback canvas generators already exist per zone; ambient particles overlay on top
+
+---
+
+## Version Verification Notes
+
+| Dependency | Version in Codebase | Verified Current? | Source | Confidence |
+|------------|-------------------|-------------------|--------|------------|
+| Firebase JavaScript SDK | `12.18.0` (in `index.html` line 234-235) | YES — v12.x is the latest major line; v12.0.0 breaking changes documented | Context7 `/firebase/firebase-js-sdk` CHANGELOG | HIGH |
+| Canvas 2D API | Native browser API | N/A (web standard) | MDN / WHATWG | HIGH |
+| Web Audio API | Native browser API | N/A (web standard) | MDN / WHATWG | HIGH |
+| localStorage | Native browser API | N/A (web standard) | MDN / WHATWG | HIGH |
+| PWA (service worker + manifest) | `sw.js`, `manifest.json` | N/A (web standard) | W3C | HIGH |
+
+**No external library versions need to be added** — all v12.0 additions are internal JavaScript. The only pinned external version (Firebase 12.x) is confirmed current and is optional/auth-only, not part of the game FX stack.
+
+---
+
+## Installation
+
+No `npm install` or `package.json` changes. Add new `.js` source files under `src/engine/` or `src/data/`, then add `<script src="...">` tags to `index.html` in the correct dependency group (engine before data before systems before ui before scenes).
+
+Example ordering for new renderer additions:
+```html
+<!-- engine group: after renderer.js, before backgrounds.js -->
+<script src="src/engine/renderer.js"></script>
+<script src="src/engine/particles.js"></script>   <!-- new: particle variety -->
+<script src="src/engine/screenShake.js"></script>  <!-- new: shake enhancement (or inline in renderer.js) -->
+<script src="src/engine/backgrounds.js"></script>
 ```
 
-New scene code should follow `enter → update(dt) → render(ctx) → leave` and keep transient state in `scene.data`. Put reusable rendering primitives in `R`, reusable interaction in `UI`, and gameplay mutation in systems. A scene may request an action, but it should not directly award currency, XP, zone progress, or influence.
+Or, following the project's convention of keeping renderer primitives in `renderer.js`, additions can be appended to that file directly (no new `<script>` tag needed).
 
-For each revamped screen, separate:
-
-1. `buildLayout()` — derives rectangles from `G.W/G.H` and responsive mode.
-2. `buildComponents()` — creates buttons/panels once per layout version.
-3. `update(dt)` — input, timers, and calls to canonical systems.
-4. `render(ctx)` — pure drawing from current scene/system state.
-5. `leave()` — null component references, cancel timers, unregister observers, and clear transient effects.
-
-Use data-driven screen definitions for labels, art keys, and layout variants. Avoid a generic abstraction layer until at least two screens share the exact behavior; the existing factory style is preferable to premature classes.
-
-## Alternatives considered
-
-| Category | Recommended | Alternative | Why not for v3.0 |
-|---|---|---|---|
-| Rendering | Canvas 2D | PixiJS/Phaser | Adds dependency, asset/runtime conventions, and a second scene model; not needed for the existing scale or milestone scope. |
-| UI | Existing immediate-mode UI factories | React/Vue/DOM-first UI | Conflicts with Canvas hit-testing and script-order architecture; would require broad rewrite and duplicate state. |
-| Modules/build | Existing ordered scripts | Vite + ES modules | Valuable long-term, but bundling/lazy loading is architecture debt work, not a screen revamp prerequisite. |
-| State | `G.state` + canonical systems | Redux/Zustand/custom store | Would create parallel mutation paths and migration risk. Improve boundaries without migrating the state model in this milestone. |
-| Telemetry | User Timing + bounded debug probe | Sentry/analytics/performance SDK | Offline-first constraints, privacy surface, and no need for remote reporting during local revamp validation. |
-| Backgrounds | CSS layer/offscreen cache + Canvas crop | Redraw full-resolution art every frame | Increases bandwidth, draw cost, and mobile memory pressure. |
-
-## Guardrails for implementation
-
-- Cap DPR (the current max-3 policy is reasonable) and measure high-DPR devices separately.
-- Cache gradients, noise, text measurements, image crops, and static map/background layers; do not allocate them in hot render paths.
-- Bound particles, damage numbers, event records, and debug samples. Prefer object reuse where profiling shows GC pressure.
-- Use `requestAnimationFrame` for visual updates; do not add animation loops or `setInterval` per scene.
-- Keep touch targets at least the existing 44–48 logical-pixel convention and test touch, mouse, keyboard, landscape, narrow desktop, and reduced motion.
-- Render loading/error/fallback states for imagery so a missing asset never blocks scene entry.
-- Add a revamp-specific self-test route/query that exercises scene transitions, asset failures, resize, reduced motion, and save/load without changing normal gameplay.
+---
 
 ## Sources
 
-- MDN, Canvas performance tips (offscreen caching, layered canvases, CSS backgrounds, DPR scaling, integer coordinates, `requestAnimationFrame`): https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas — **HIGH confidence**.
-- MDN, `Window.devicePixelRatio` and responsive Canvas sizing: https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio — **HIGH confidence**.
-- MDN, `CanvasRenderingContext2D.drawImage()` and supported image sources/cropping: https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage — **HIGH confidence**.
-- MDN, `Performance.measure()` / User Timing API: https://developer.mozilla.org/en-US/docs/Web/API/Performance/measure — **HIGH confidence**.
-- web.dev, Responsive web design basics (viewport, content-driven breakpoints, pointer capabilities, safe responsive layout principles): https://web.dev/articles/responsive-web-design-basics — **MEDIUM/HIGH confidence**.
-- Repository evidence: `.planning/PROJECT.md`, `codemap.md`, and `src/{engine,scenes,systems,ui,data}/codemap.md` — **HIGH confidence for current project constraints and integration points**.
-
-## Open validation questions
-
-- Measure actual v3.0 background asset sizes and decode time on representative mid-range iOS and Android devices before selecting an art budget.
-- Confirm whether the current service worker precache list includes new image directories and whether cache versioning is reliable across installed PWA clients.
-- Profile the existing renderer before adding layered canvases; a cached single background may be sufficient and less risky than introducing multi-canvas input coordination.
-- Validate desktop layout with keyboard navigation and browser zoom, not only viewport resizing.
+- `PROJECT.md` — v12.0 milestone scope, constraints, target features
+- `src/engine/renderer.js` — `R` namespace: `R.colors.elements`, `R.damageNumber`, `R.elementBurst`, `R.screenShake`, `R.spring`, `R.springConfigs`, `createCircularBuffer`, `R.deathBurst`, `R.clickFx`, `R.projectiles`
+- `src/systems/combatFx.js` — `CombatFX` wrapper delegating to `R.elementBurst`
+- `src/scenes/combatScene.js` — combat FX wiring (damage numbers, bursts, screen shake on hits)
+- `src/data/zones.js` — `ZONES` table (6 zones, no new IDs per constraint)
+- `src/data/zone_variants.js` — `ZONE_VARIANTS` bond-gated encounter variants within existing zones
+- `src/systems/living_zones.js` — `LivingZones` companion-reactive zone resolution
+- `src/engine/backgrounds.js` — `Backgrounds` system with fallback canvas generators per zone
+- `src/engine/game.js` — `gLoopFrame` calling `R.updateEffects`/`R.renderEffects`, shake translation
+- `tests/damage_fx.test.js` — VM sandbox test pattern for renderer FX
+- Context7 `/firebase/firebase-js-sdk` — Firebase JS SDK v12.x confirmed current (v12.0.0 changelog)

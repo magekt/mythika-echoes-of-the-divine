@@ -1,173 +1,338 @@
-# Architecture Research: Screen & Gameplay Revamp v3.0
+# Architecture Research: v12.0 Visual Polish & Combat FX
 
 **Project:** Mythika: Echoes of the Divine  
-**Milestone:** v3.0 Screen & Gameplay Revamp  
-**Researched:** 2026-09-20  
-**Confidence:** MEDIUM-HIGH (based on repository codemaps and current project constraints)
+**Milestone:** v12.0 — Visual Polish & Combat FX  
+**Researched:** 2026-10-22  
+**Domain:** Vanilla JS Canvas RPG combat FX + zone content integration  
+**Confidence:** HIGH (all claims verified against source code)
 
-## Recommendation
+---
 
-Keep the immediate-mode Canvas renderer and global script loading for this milestone, but introduce **explicit seams around the globals** rather than attempting an ES-module rewrite. The safe target is a layered “kernel + ports + features” architecture:
+## Executive Summary
 
-```text
-Browser/PWA shell
-  → GameKernel (loop, diagnostics, lifecycle, input frame)
-    → SceneManager (registry, transitions, screen contracts)
-      → Screen adapters (scene-local view state and commands)
-        → UI primitives / Renderer
-    → Application services (store, commands, event log, persistence)
-      → Domain systems (Combat, Cultivation, Economy, Quests, World)
-        → Data catalogs
+Mythika v12.0 builds on v11.0 (Combat Damage FX) and v10.0 (Shared Library Foundations) to add visual polish (particle variety, screen shake), expanded combat FX integration, and new realm/zone content. The existing architecture already provides the complete foundation: `R.colors.elements` token map (fire/ice/lightning/dark/holy/default), `R.damageNumber` spring-driven floaters, `R.elementBurst` 60-slot circular particle buffer, `R.screenShake`, and combat hit sites wired to both floaters and bursts via ailment-derived element keys. No new element types, no WebGL, and no bundler are permitted — all work extends the existing vanilla-JS immediate-mode Canvas stack with circular buffers and `R.reducedMotion()` gating.
+
+The research confirms that all v12.0 features integrate through 5 existing integration points with zero architectural breaking changes. The build order follows dependency chains: renderer primitives → combat FX system → combatScene hit sites → zone content → UI verification.
+
+---
+
+## 1. Integration Points with Existing Systems
+
+### 1.1 R.damageNumber Extension (v11.0 foundation)
+
+**File:** `src/engine/renderer.js` (lines 505-534, 553-567, 584-631)
+
+**What exists:**
+- `R.damageNumber(ctx, x, y, value, color, opts)` with opts `{element, crit, heal}`
+- Pre-allocated circular buffer `R.damageNumbers` (capacity 50) via `createCircularBuffer`
+- Spring state pre-allocated per floater (`_spring` with `_springFn` from `FLOATER_SPRING`)
+- Element tint + icon chip from `R.colors.elements` tokens
+- Crit gold emphasis ring, heal green prefix, reduced-motion instant snap
+- `R.updateEffects(dt)` steps springs in place, `filterInPlace` removes expired
+- `R.renderEffects(ctx)` draws floaters with element chip, crit ring, tint
+
+**Integration surface for v12.0:**
+- Extend particle variety within the same floater entry (no new buffer, no new allocation)
+- Add new visual variants (trail, spark, ring) drawn in `R.renderEffects` using existing floater fields
+- Gate all new motion on `R.reducedMotion()` (same pattern as DMG-05)
+
+### 1.2 R.elementBurst Extension (v11.0 foundation)
+
+**File:** `src/engine/renderer.js` (lines 662-720)
+
+**What exists:**
+- `R.elementBurstSlots` array of 60, `R.elementBurstCount`, `R.elementBurstWriteIdx`
+- `R.elementBurst(x, y, element, crit)` — crit spawns 10 particles, normal spawns 6
+- Circular buffer with `active` flag reuse (no new allocation on spawn)
+- `R.updateElementBursts(dt)` — life decay, position integration
+- `R.renderElementBursts(ctx)` — square particles with shake offset
+
+**Integration surface for v12.0:**
+- Add new particle shapes/patterns within the same slot struct (extend `size`, add `shape` field)
+- Add new burst patterns (ring, cone, scatter) spawned from the same `R.elementBurst` entry point
+- Respect existing 60-slot cap — no memory growth
+
+### 1.3 R.colors.elements Token Map (v11.0 foundation)
+
+**File:** `src/engine/renderer.js` (lines 46-53)
+
+**What exists:**
+```js
+elements: {
+  fire:      { primary: '#ff6020', secondary: '#ff9040' },
+  ice:       { primary: '#a0e0ff', secondary: '#d0f0ff' },
+  lightning: { primary: '#c0c0ff', secondary: '#ffffff' },
+  dark:      { primary: '#8040ff', secondary: '#402060' },
+  holy:      { primary: '#e8e0d0', secondary: '#f0c060' },
+  default:   { primary: '#e8a030', secondary: '#f0c060' }
+}
 ```
 
-This preserves compatibility with `G`, `R`, `UI`, `Scene`, and existing systems while making new code depend on narrow facades. Deprecated behavior can then be removed behind verified seams instead of during a broad rewrite.
+**Constraint:** No new element types. All v12.0 FX must use existing 6 keys.
 
-## Current Constraints and Architectural Read
+### 1.4 combatScene.js Hit Sites (v11.0 wired)
 
-- `index.html` loads roughly 72 scripts in dependency order; there is no build step or package manifest.
-- `game.js` owns global state, the frame loop, scene transitions, fade, notifications, and background rendering.
-- Scenes are factory objects with `enter/update/render/leave`, but cleanup and UI construction are inconsistent.
-- Systems are namespace singletons that directly mutate `G.state`; several systems also call one another and engine effects directly.
-- Canvas UI is immediate-mode with retained component animation state. This is a useful boundary: rendering can remain immediate-mode while state and commands become explicit.
-- Save/load is localStorage-based and must remain backward-compatible. Backend readiness should therefore mean stable serializable state and persistence ports, not networking.
+**File:** `src/scenes/combatScene.js`
 
-## Target Component Boundaries
+**Two hit sites already wired:**
 
-| Component | Responsibility | Integration point | Must not own |
-|---|---|---|---|
-| `GameKernel` facade | Frame timing, update/render ordering, error recovery, lifecycle hooks | Wrap `gLoopFrame`, `gInit`, `gScene` | Gameplay rules or screen-specific state |
-| `SceneManager` facade | Registry, transition requests, current-screen lifecycle, transition diagnostics | Adapt `Scene.create`, `registerScene`, `gScene`, `Fade` | Save mutation, domain rules |
-| `ScreenContext` | Per-screen dependencies: renderer, input snapshot, commands, selectors, diagnostics | Inject into scene adapters while retaining legacy globals as fallback | Global singleton replacement all at once |
-| `GameStore` | Validated state access, action/command dispatch, subscription/change notifications | Initially delegates to existing systems and `G.state` | Rendering, persistence format decisions |
-| `Command bus` | Named player intents such as `navigate`, `startBattle`, `craft`, `equip` | Screen button callbacks and system entry points | Direct drawing or arbitrary state writes |
-| `Event journal` | Structured domain/UI events for diagnostics and future sync | Systems emit events after authoritative mutations | Replacing state as the source of truth |
-| `PersistencePort` | Save/load/export/import contract and versioned snapshots | Adapter around `SaveSystem` and localStorage | Network sync or remote authority |
-| `Diagnostics` | Frame timings, transition traces, command failures, invariant violations | Kernel, SceneManager, Store, PersistencePort | User-facing gameplay decisions |
-| `RenderPort` | Canvas primitives, tokens, effects, viewport/clipping helpers | Adapter around `R` | State mutation |
-| `InputPort` | Per-frame taps, pointer/keyboard state, swipe and scroll events | Adapter around `Input` | Calling system mutations directly |
+1. **Player attack** (lines 664-671): `setTimeout` at 200ms calls `R.damageNumber(G.ctx, enemyX, enemyY - 20, result.dmg, ...)` with `{element: playerElement, crit: result.isCrit}` then `R.elementBurst(enemyX, enemyY - 20, playerElement, result.isCrit)`. Element mapped from `hero.ailment` (agni→fire, shila→ice, vayu→lightning, vajra→lightning, default→dark).
 
-### Compatibility strategy
+2. **Enemy reaction counter** (lines 593-599): same pattern at target position, element from `enemy.ailment`.
 
-Expose the new facades as globals initially (`GameKernel`, `SceneManager`, `GameStore`, `Diagnostics`) and implement them as adapters over current globals. Existing scenes remain runnable. New or migrated screens use injected context. Only after all callers move off a deprecated API should that API be deleted.
+**Additional existing FX calls in combatScene:**
+- `R.screenShake(intensity, duration)` — line 460 (Tempest AoE), line 682 (crit/normal hits)
+- `R.deathBurstAt(entity, isHero)` — lines 545-557, called on enemy/hero death
+- `CombatFX.update(dt)` and `CombatFX.render(ctx)` — lines 1032, 1312-1313
 
-## Screen Interconnectivity
+**Integration surface for v12.0:**
+- Add new hit sites (e.g., signature combo impacts, beast skill hits, ally heal floaters) reusing the same damageNumber + elementBurst pattern
+- Extend `R.screenShake` with new intensity presets (subtle/strong) without changing the API
 
-Screen navigation should become intent-driven, not a collection of scene-local `gScene()` calls:
+### 1.5 zone_variants.js (v4.0 foundation)
 
-```text
-tap → InputPort snapshot → screen command
-  → Command bus validates intent
-  → domain system/store mutation (if any)
-  → event journal + notification
-  → SceneManager.request(target, params)
-  → leave old screen → enter new screen with route params
-  → selectors produce render model → Canvas render
+**File:** `src/data/zone_variants.js`
+
+**What exists:**
+- 12 companion-gated variants (`lz_` prefix) across 6 zones
+- Small zones: 1 variant, medium: 2, large: 3
+- Each variant references a `baseId` standard encounter, `bondReq` gating
+- Auto-registers into `ENCOUNTERS` at load (same pattern as bonds.js)
+- No new zone IDs — only new encounter IDs
+
+**Integration surface for v12.0:**
+- Add new `lz_` variants to existing zones (deepening, not expanding geography)
+- Each variant can trigger new combat FX on variant encounter start
+- Reuses existing `bondReq`, `baseId`, `weight`, `lvlMin/Max` schema
+
+### 1.6 Existing Zone Systems
+
+| System | File | Role | v12.0 Integration |
+|--------|------|------|-------------------|
+| MapLayout | `src/data/map_layout.js` | 6 zone entries with positions/colors/connections | Read-only zone metadata for content placement |
+| LivingZones | `src/systems/living_zones.js` | Companion-reactive zone depth, tease, resolve | Companion-gated content with bond notes |
+| Landmarks | `src/systems/landmarks.js` | Zone landmark discovery + bond notes | New landmarks within existing zones |
+| ZoneRewardSystem | `src/systems/zone_rewards.js` | Percentage + completion rewards | Progress rewards trigger combat FX on milestone |
+| WorldEvents | (via MapHelpers) | Timed zone events | Event resolution can trigger screen shake |
+| R.Backgrounds | `src/engine/backgrounds.js` | Zone/combat background slots with fallback gradients | New zone bg slot keys, authored image preload |
+
+---
+
+## 2. New Components Needed (vs Modifications to Existing)
+
+### 2.1 Modifications to Existing (No New Files)
+
+| Component | File | Change | Allocation Impact |
+|-----------|------|--------|-------------------|
+| `R.damageNumber` | `src/engine/renderer.js` | Add optional `trail`/`spark` opts fields; draw additional mini-particles in `R.renderEffects` using existing floater `x`,`y`,`life`,`scale` | Zero — reuses floater fields, no new objects |
+| `R.renderEffects` | `src/engine/renderer.js` | Draw new particle variants (trail streaks, spark bursts) within existing `forEach` loop | Zero — same iteration, extra `ctx` calls only |
+| `R.elementBurst` | `src/engine/renderer.js` | Add `shape` field to particle slot (`'square'` \| `'dot'` \| `'star'`); new pattern presets (ring, cone) called from same entry point | Zero — slot struct already allocated, `shape` is a string ref |
+| `R.updateElementBursts` | `src/engine/renderer.js` | Shape-specific movement (radial for burst, linear for trail) | Zero — same loop, branch on `shape` |
+| `R.renderElementBursts` | `src/engine/renderer.js` | Shape-specific drawing (arc for dot, line for trail, multi-rect for star) | Zero — same loop, extra `ctx` calls |
+| `R.screenShake` | `src/engine/renderer.js` | Add preset constants (`SHAKE_SUBTLE`, `SHAKE_STRONG`) or optional `preset` param | Zero — constants are scalars |
+| `combatScene.js` | `src/scenes/combatScene.js` | Add FX calls at new hit sites (signature combo impact, beast skill hit, ally heal floater) | Zero — reuses `R.damageNumber` + `R.elementBurst` |
+| `zone_variants.js` | `src/data/zone_variants.js` | Add new `lz_` variants to existing zones | Zero — data entries, no runtime objects |
+
+### 2.2 New Components Needed
+
+| Component | File | Purpose | Allocation Strategy |
+|-----------|------|---------|---------------------|
+| `R.shakePresets` | `src/engine/renderer.js` | Named shake intensity/duration presets for consistent FX | Plain object constant, zero runtime allocation |
+| `ZoneContentFX` (optional system) | `src/systems/zone_content_fx.js` | Coordinates combat FX triggers on zone milestone events (completion, landmark discovery) | Stateless namespace object, reads `G.state`, calls `R.*` |
+
+**Recommendation:** Prefer modifications over new files. The `ZoneContentFX` system is optional — zone milestone FX can be wired directly into `ZoneRewardSystem._commitTo` callbacks or `combatScene.endBattle` without a new system file. Only create `ZoneContentFX` if coordination grows beyond 2-3 call sites.
+
+---
+
+## 3. Data Flow Changes
+
+### 3.1 Existing Data Flow (unchanged)
+
+```
+Combat.performAttack()
+  → CombatFX.spawn(element, x, y, crit)
+    → R.elementBurst(x, y, element, crit)  [60-slot circular buffer]
+  → combatScene setTimeout(200ms)
+    → R.damageNumber(ctx, enemyX, enemyY-20, dmg, color, {element, crit})
+      → R.damageNumbers.add(floater)  [50-slot circular buffer]
+  → gLoopFrame: R.updateEffects(dt) → R.renderEffects(ctx)
+  → gLoopFrame: R.updateElementBursts(dt) → R.renderElementBursts(ctx)
 ```
 
-Define a small route table with canonical route IDs, optional typed-ish params, and access predicates. Examples: `ashram`, `travelMap`, `zoneExploration({zoneId})`, `combat({encounterId})`, `party({tab})`, and `settings`. Screens should navigate through `Navigation.request(route)` rather than constructing or mutating another screen’s data. Route parameters are transient; persistent progression remains in the store/save snapshot.
+### 3.2 v12.0 Data Flow (additive)
 
-Use a single shared navigation shell for back/home/world actions, but keep screen content owned by each screen. This avoids a second retained UI tree while making screen links discoverable and testable.
+```
+New hit site (e.g., signature combo impact)
+  → R.damageNumber(ctx, targetX, targetY, dmg, color, {element, crit, trail: true})
+    → R.damageNumbers.add(floater with trail field)  [same 50-slot buffer]
+  → R.elementBurst(x, y, element, crit, {pattern: 'ring'})  [same 60-slot buffer]
+    → R.elementBurstSlots[i] = {..., shape: 'ring', pattern: 'ring'}
+  → gLoopFrame: R.updateEffects(dt) [trail decay] → R.renderEffects(ctx) [trail draw]
+  → gLoopFrame: R.updateElementBursts(dt) [shape movement] → R.renderElementBursts(ctx) [shape draw]
 
-## Data Flow and Authority
-
-### Runtime flow
-
-```text
-Input events
-  → normalized frame input
-  → active screen command handlers
-  → authoritative domain system APIs
-  → validated state mutation
-  → domain/UI events
-  → selectors/view models
-  → immediate-mode Canvas render
+Zone milestone (completion/landmark)
+  → ZoneRewardSystem._commitTo or Landmarks.tryDiscover callback
+    → R.screenShake(intensity, duration)  [preset-based]
+    → R.elementBurst(centerX, centerY, element, true)  [celebration burst]
 ```
 
-### State ownership rules
+### 3.3 Data Shape Changes
 
-1. `G.state` remains the serialized state during migration, but screens must read through selectors and mutate only through commands or existing authoritative system APIs.
-2. Combat owns battle-scoped state; do not expose long-lived mutable combat arrays to screens.
-3. Economy owns currency changes; progression owns XP/level changes; zone/world systems own progress and influence; SaveSystem owns snapshot hydration/migration.
-4. Derived values (progress bars, access labels, combat summaries) are computed selectors, not duplicated into save state.
-5. Events are notifications of committed changes, never an alternate authority. Include event name, timestamp/frame, source, payload, and correlation ID.
+| Structure | Field | Type | Purpose |
+|-----------|-------|------|---------|
+| `R.damageNumbers` floater | `trail` | boolean | Draw trail streaks behind floater |
+| `R.damageNumbers` floater | `spark` | boolean | Draw spark burst at floater position |
+| `R.elementBurstSlots` particle | `shape` | string | `'square'` (default) \| `'dot'` \| `'star'` |
+| `R.elementBurstSlots` particle | `pattern` | string | `'burst'` (default) \| `'ring'` \| `'cone'` |
+| `R.shakePresets` | `subtle` / `strong` | `{intensity, duration}` | Named shake presets |
 
-### Backend-ready without backend
+**No save-state changes.** All new fields are transient renderer state (recreated each frame, never persisted). Save compatibility is preserved automatically.
 
-Create `PersistencePort` and `SyncPort` interfaces conceptually, with only a `LocalPersistenceAdapter` implemented now. Save snapshots should have a schema version, player/session metadata, deterministic timestamps where needed, and stable IDs for entities and events. A future backend can implement upload/download/conflict policy without requiring screens to know transport details. Do not add authentication, network retries, optimistic sync, or server scheduling in v3.0.
+### 3.4 Element Key Constraint
 
-## Diagnostics Seams
+No new element types. All FX use existing `R.colors.elements` keys: `fire`, `ice`, `lightning`, `dark`, `holy`, `default`. The ailment→element mapping in `combatScene.js` (lines 594, 665) is reused unchanged.
 
-Diagnostics should be a first-class dependency, not console calls scattered through scenes.
+---
 
-- **Frame seam:** frame duration, update duration, render duration, dropped-frame count, active scene.
-- **Transition seam:** requested route, source/target, fade duration, enter/leave duration, failure and recovery.
-- **Command seam:** command name, source screen, result (`accepted/rejected/error`), duration, correlation ID.
-- **Persistence seam:** save/load duration, byte size, schema version, migration path, malformed-field counts.
-- **Invariant seam:** bounded arrays, state validation, currency non-negativity, route validity, cleanup completion.
-- **Memory seam:** active scene references, timers/listeners registered by owner, effect counts, modal ownership.
+## 4. Suggested Build Order (Dependency-Aware)
 
-Use a ring buffer with a bounded size and a production-safe sampling/disable switch. The existing `debug` scene can consume this diagnostic port; normal gameplay should only show concise recoverable notifications. Diagnostics must never alter gameplay state.
+### Phase 1: Renderer Primitives (Foundation)
 
-## Deprecated Code Removal Plan
+**Goal:** Extend `R` with new particle variety and shake presets. No scene or system changes.
 
-Removal must be evidence-led and staged:
+1. **Add `R.shakePresets` constant** — `subtle` (intensity 2, duration 0.15), `strong` (intensity 8, duration 0.4)
+2. **Extend `R.elementBurst`** — add `shape` and `pattern` fields to particle slot; add ring/cone/star drawing in `R.renderElementBursts`; shape-based movement in `R.updateElementBursts`
+3. **Extend `R.damageNumber`** — accept optional `trail`/`spark` opts; store on floater entry
+4. **Extend `R.renderEffects`** — draw trail streaks and spark bursts within existing floater `forEach`, gated on `R.reducedMotion()`
+5. **Tests:** `tests/damage_burst.test.js` (extend), `tests/damage_floater.test.js` (extend)
 
-1. Inventory global call sites and classify each as engine, domain, screen, UI, or deprecated.
-2. Add adapters and deprecation warnings behind diagnostics, not unconditional noisy logs.
-3. Migrate one vertical slice (navigation shell plus `ashram → travelMap → zoneExploration`) to facades.
-4. Add contract tests for each migrated seam and browser smoke checks for legacy screens.
-5. Remove deprecated aliases only after zero runtime references and save compatibility evidence.
+**Dependency:** None. Depends only on `R.colors.elements` (already exists).
 
-Likely first removal targets are duplicate scene-local navigation helpers, direct screen-to-screen mutation, obsolete rendering helpers superseded by shared UI primitives, and unowned timers/listeners. Do not delete a global merely because it looks unused in static search; script-order and runtime callback references require browser diagnostics.
+### Phase 2: Combat FX Integration (Hit Sites)
 
-## Recommended Build Order
+**Goal:** Wire new FX into existing combat hit sites.
 
-1. **Baseline and observability** — record current frame/transition/save behavior; add bounded diagnostics and a screen-transition trace without changing gameplay.
-2. **Lifecycle safety** — standardize scene `leave`, component `destroy`, timer/listener ownership, modal cleanup, and effect bounds. This reduces risk before modularization.
-3. **Navigation seam** — introduce route definitions, `SceneManager.request`, route params, back/home behavior, and failure recovery. Migrate the core progression path first.
-4. **Store and selectors** — add read-only selectors and command wrappers over `G.state`/existing systems; keep direct mutation compatibility temporarily.
-5. **Screen context adapters** — inject `InputPort`, `RenderPort`, navigation, selectors, commands, and diagnostics into migrated screens. Start with high-connectivity screens: ashram, travel map, zone exploration, combat, party.
-6. **Domain event journal** — emit structured events from authoritative systems at commit points; use them for notifications, diagnostics, achievements/quests integration, and later sync preparation.
-7. **Persistence boundary** — put localStorage behind `PersistencePort`, preserve migration/version behavior, and make snapshot serialization selective only after equivalence tests.
-8. **Deprecation cleanup** — remove proven-unused globals/helpers and collapse duplicate code. Keep compatibility shims for untouched scenes until the final migration wave.
-9. **Backend readiness review** — validate stable IDs, schema versioning, event shape, and conflict-sensitive fields; explicitly defer transport implementation.
+1. **combatScene.js player attack hit site** — add `trail: true` on crit, optional burst pattern variation
+2. **combatScene.js enemy reaction hit site** — same treatment
+3. **combatScene.js signature combo impact** — new hit site: `R.damageNumber` + `R.elementBurst` with ring pattern at combo target
+4. **combatScene.js beast skill hits** — `Spirit Flame`, `Tempest`, `Rending Claw` get element bursts keyed to beast element
+5. **Tests:** `tests/combat_fx_integration.test.js` (new)
 
-This order prevents a navigation or rendering rewrite from hiding lifecycle leaks and makes each phase observable in the running game.
+**Dependency:** Phase 1 complete.
 
-## Anti-Patterns to Avoid
+### Phase 3: Zone Content (Data-Only)
 
-- Replacing Canvas with a DOM/framework or converting all scripts to modules during v3.0; that violates scope and multiplies regression surface.
-- Introducing a global event bus that permits arbitrary listeners and hidden mutation. Events need named contracts, ownership, and bounded retention.
-- Making selectors mutate state or making render functions call gameplay systems.
-- Creating a second state store that drifts from `G.state`; use an adapter and migrate ownership incrementally.
-- Treating route parameters as save data, or persisting transient animation/UI state.
-- Adding backend-shaped abstractions that require network behavior now. Define ports and local adapters only.
-- Keeping “temporary” compatibility paths undocumented. Every shim needs an owner, migration status, and deletion condition.
+**Goal:** Add new `lz_` variants and landmarks to existing zones without new zone IDs.
 
-## Scalability and Risk Notes
+1. **zone_variants.js** — add 2-3 new `lz_` variants across existing zones (deepening dandaka, patala, meru)
+2. **MapLayout** — no changes (read-only zone metadata; new landmarks use existing zone entries)
+3. **Landmarks** — add new landmark definitions to `LANDMARKS` data for existing zones (if landmark data file exists; otherwise add inline)
+4. **LivingZones** — no changes (existing `companionFor`, `teaseFor`, `landmarkBondNote` work with new variants)
+5. **Tests:** `tests/living_zones_variants.test.js` (extend)
 
-| Concern | v3.0 target | Future path |
-|---|---|---|
-| 30+ screens | Route table + shared lifecycle/context | Lazy loading when a build pipeline is intentionally introduced |
-| Global state | Selector/command facade over `G.state` | Slice ownership and stronger schema validation |
-| Canvas performance | Bounded effects, cached render resources, viewport culling | Dirty-region or worker strategies only if profiling justifies them |
-| Save size/GC | Versioned snapshots and selective serialization seam | Server snapshots/delta sync behind the same port |
-| Diagnostics | In-memory bounded ring buffer + debug screen | Exportable telemetry, still opt-in and privacy-safe |
-| Cross-system coupling | Commit events and authoritative command owners | Explicit domain/application service modules |
+**Dependency:** None for data. Phase 1 provides FX that variants can trigger.
 
-## Open Questions for Phase Research
+### Phase 4: Zone Milestone FX (Integration)
 
-- Which scenes are highest-connectivity by actual runtime navigation, rather than static references?
-- Can existing save migration be split into pure validation, migration, and application steps without changing legacy behavior?
-- Which deprecated effects/UI helpers are genuinely unreachable after a 30-minute transition stress run?
-- What is the minimum event schema needed by quests, achievements, notifications, and future sync without duplicating business rules?
-- Should the route table support modal routes/overlays now, or remain screen-only until modal ownership is standardized?
+**Goal:** Trigger combat FX on zone completion and landmark discovery.
 
-## Sources
+1. **ZoneRewardSystem._commitTo** — on `completionClaimed` or percentage crossed, call `R.screenShake(R.shakePresets.strong)` + `R.elementBurst(centerX, centerY, 'holy', true)`
+2. **Landmarks.tryDiscover** — on discovery, `R.screenShake(R.shakePresets.subtle)` + small `R.elementBurst`
+3. **Tests:** `tests/zone_rewards.test.js` (extend, mock `R.screenShake`/`R.elementBurst`)
 
-- `codemap.md` — repository architecture, data flow, debt, and constraints (HIGH confidence for current implementation).
-- `src/engine/codemap.md` — loop, scene transition, input, renderer, and lifecycle seams (HIGH confidence for current implementation).
-- `src/systems/codemap.md` — system ownership, mutations, dependencies, and persistence flow (HIGH confidence for current implementation).
-- `src/scenes/codemap.md` — screen contracts, navigation patterns, and cleanup risks (HIGH confidence for current implementation).
-- `src/ui/codemap.md` — immediate-mode component model, interaction contracts, and cleanup risks (HIGH confidence for current implementation).
-- `.planning/PROJECT.md` — v3.0 constraints inferred from the current project context; backend synchronization and replacing Canvas remain out of scope (HIGH confidence).
+**Dependency:** Phase 1 (shake presets, element burst).
+
+### Phase 5: HUD Screen/Scene Alignment Verification
+
+**Goal:** Verify HUD alignment for screens not being adjusted in v12.0.
+
+1. **Audit all 27 scenes** — confirm HUD (`UI.HUD()`) renders correctly on unaffected scenes (title, ashram, party, equipment, forge, alchemy, bazaar, farm, fishing, journey, questLog, achievements, spiritBeast, punarjanma, settings, tournament, trials, encounterScene, welcome, characterCreate, authScene, debug)
+2. **Verify responsive rects** at 400×720, 540×900, 720×400, 1024×768, 1440×900 per AGENTS.md
+3. **Verify `Scene.toastLane()` alignment** — toasts don't overlap HUD or scene content
+4. **Tests:** `tests/layout_harness.test.js`, `tests/responsive_screen_matrix.test.js`
+
+**Dependency:** All phases complete (ensures no regressions from FX changes).
+
+---
+
+## 5. Architecture Constraints to Preserve
+
+| Constraint | Source | Enforcement |
+|------------|--------|-------------|
+| **Zero per-frame allocation** | Project philosophy, v11.0 DMG-01/02 | All new particle data uses existing circular buffers (`R.damageNumbers` cap 50, `R.elementBurstSlots` cap 60). No `push`, `new object`, or array creation in `update`/`render` paths. |
+| **R.reducedMotion() gating** | v11.0 DMG-05, accessibility | Every new animation path checks `R.reducedMotion()` and falls back to static/instant. Applies to trails, sparks, shake, burst patterns. |
+| **Save compatibility** | Project constraints | All new fields are transient renderer state. No new `G.state` keys. No save migration needed. |
+| **No new element types** | v12.0 constraints | All FX use existing `R.colors.elements` keys (fire/ice/lightning/dark/holy/default). |
+| **No WebGL** | v12.0 constraints | Canvas 2D only. All drawing via `R.rect`, `R.roundRect`, `ctx.arc`, `ctx.fillText`. |
+| **Vanilla JS globals** | Project architecture | No ES modules, no bundler, no framework. Extend `R` object and existing scene files. |
+| **Script-order dependencies** | `index.html` contract | New renderer code goes in `renderer.js` (loaded before scenes). New scene code follows existing load order. |
+| **Logical 400×720 Canvas** | Game engine contract | All coordinates use `G.W`/`G.H` logical units. DPR handled by `fitGame()`. |
+| **Scene lifecycle** | `Scene.create` pattern | New/modified scenes implement `enter`/`update`/`render`/`leave`. `leave()` must clean up timers and button arrays. |
+| **Modal guard** | Scenes codemap | `if (UI.Modal.active) { UI.Modal.handleInput(); return; }` at top of `update()`. |
+| **Toast/cap limits** | LAY-05 | `Notify.queue` capped at 3. Feedback toasts capped at 3/system. New FX toasts respect these caps. |
+
+---
+
+## 6. Risk Assessment
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| Circular buffer overflow (60 burst slots exhausted during intense combat) | Medium | Low | Buffer auto-recycles oldest slots via `active` flag reuse. Visual degradation only, no crash. |
+| `R.damageNumbers` buffer overflow (50 floaters) | Low | Low | `filterInPlace` removes expired each frame. 50 capacity is generous for combat pace. |
+| New particle drawing increases frame time | Medium | Medium | All new `ctx` calls are within existing loops. Profile with `?probe` before shipping. |
+| Save compatibility regression | Low | High | Zero `G.state` changes — impossible to break saves. Verify with `tests/save_coherence.test.js`. |
+| Reduced-motion regression | Medium | High | All new motion gated identically to existing FX. Test with `G.state.reduceMotion = true`. |
+
+---
+
+## 7. Files to Create / Modify
+
+### Modify (no new files):
+
+1. `src/engine/renderer.js` — `R.shakePresets`, `R.elementBurst` shape/pattern, `R.damageNumber` trail/spark, `R.renderEffects`, `R.renderElementBursts`, `R.updateElementBursts`
+2. `src/scenes/combatScene.js` — new hit sites at signature combo, beast skills, ally heals
+3. `src/data/zone_variants.js` — new `lz_` variants
+4. `src/systems/zone_rewards.js` — milestone FX callbacks (optional)
+5. `src/systems/landmarks.js` — discovery FX (optional)
+
+### Create (optional, only if needed):
+
+6. `src/systems/zone_content_fx.js` — zone milestone FX coordinator (only if >3 call sites)
+7. `tests/combat_fx_integration.test.js` — new test file
+
+### Verify (no changes):
+
+8. `tests/damage_burst.test.js` — extend for shape/pattern
+9. `tests/damage_floater.test.js` — extend for trail/spark
+10. `tests/living_zones_variants.test.js` — extend for new variants
+11. `tests/layout_harness.test.js` — HUD alignment verification
+
+---
+
+## 8. Confidence Assessment
+
+| Area | Confidence | Reason |
+|------|------------|--------|
+| Stack | HIGH | All existing systems verified against source code (renderer.js, combatScene.js, zone_variants.js, etc.) |
+| Features | HIGH | v12.0 target features map cleanly to existing integration points |
+| Architecture | HIGH | Codemaps (root, scenes, systems, UI, engine) all read and consistent |
+| Pitfalls | MEDIUM | Buffer overflow and frame-time risks identified but low probability |
+
+---
+
+## 9. Roadmap Implications
+
+**Suggested phase structure:**
+
+1. **Phase 1: Renderer Primitives** — `R.shakePresets`, burst shapes, damage floater trails/sparks. Foundation for all FX.
+2. **Phase 2: Combat FX Hit Sites** — Wire new FX into combatScene player/enemy hits, signature combos, beast skills.
+3. **Phase 3: Zone Content Data** — New `lz_` variants + landmarks in existing zones.
+4. **Phase 4: Zone Milestone FX** — Screen shake + burst on zone completion and landmark discovery.
+5. **Phase 5: HUD Alignment Verification** — Audit unaffected scenes at all viewport sizes.
+
+**Phase ordering rationale:** Phase 1 has no dependencies and enables everything else. Phase 2 depends on Phase 1 primitives. Phase 3 is data-only and can run in parallel with Phase 1-2. Phase 4 depends on Phase 1 (shake presets). Phase 5 validates no regressions after all changes.
+
+**Research flags:**
+- Phase 2: Verify `setTimeout` runId guards prevent FX after scene transition (existing pattern, extend to new hit sites)
+- Phase 4: Verify `R.screenShake`/`R.elementBurst` are mocked in zone_rewards tests to avoid renderer dependency
+- Phase 5: All 27 scenes must be checked; combatScene and travelMap are most likely to regress from FX changes
