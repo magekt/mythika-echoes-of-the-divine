@@ -1,52 +1,77 @@
-# Requirements: Mythika — v11.0 Combat Damage FX
+# Requirements: Mythika — v12.0 Visual Polish & Combat FX
 
-**Defined:** 2026-10-15
-**Milestone:** v11.0 — Combat Damage FX
-**Source:** Winning sketch `.planning/sketches/combat-damages/variant-c-rich.html` + CONCERNS.md zero-allocation constraint
+**Defined:** 2026-10-22
+**Milestone:** v12.0 — Visual Polish & Combat FX
 **Core Value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
+**Source:** Research SUMMARY.md (Stack, Features, Architecture, Pitfalls); PROJECT.md v12.0 milestone goals
 
 ## Goal
 
-Upgrade combat damage feedback from the flat `R.damageNumber` (text-only circular buffer) to a spring-driven, element-aware damage floater system — consistent with the v10.0 `UI.Component` + mixin foundation and the project's zero-per-frame-allocation constraint.
+Verify HUD screen/scene alignment across all viewport sizes after v11.0 combat FX changes, ensuring unaffected screens keep correct HUD alignment while combat FX (damage floaters, element bursts, screen shake) never displace or obscure HUD/UI layers.
 
-## v11.0 Requirements
+## v12.0 Requirements
 
-### Damage Floater Foundation
+### HUD Alignment
 
-- [ ] **DMG-01**: `R.damageFloaters` buffer gains `element` + `crit` + pre-allocated `spring` state per floater; `R.damageNumber(ctx, x, y, value, color, opts)` extended with `opts.element` and `opts.crit` without breaking existing call sites
-- [ ] **DMG-02**: Floater render applies spring-driven vertical offset + scale-in/out (using `R.springConfigs` from Phase 51) with zero per-frame object allocation — spring state allocated once at spawn, mutated in place
-- [ ] **DMG-03**: Element-aware visual treatment: fire/water/wind/earth tint + icon chip matching `R.colors` element tokens; heal type shows `+` prefix in green
-- [ ] **DMG-04**: Crit floaters render larger (scaled up) with a gold emphasis ring, distinguishing from normal hits at a glance
-- [ ] **DMG-05**: `R.reducedMotion()` path — floaters render without spring bounce (instant appear + fade only) when reduced motion is on, preserving accessibility
+- [ ] **HUD-01**: All HUD elements (health, mana, status, currency) maintain correct position and visibility at 400×720 base canvas size
+- [ ] **HUD-02**: All HUD elements maintain correct position and visibility at 540×900 tall portrait viewport
+- [ ] **HUD-03**: All HUD elements maintain correct position and visibility at 720×400 landscape viewport
+- [ ] **HUD-04**: All HUD elements maintain correct position and visibility at 1024×768 desktop card viewport
+- [ ] **HUD-05**: All HUD elements maintain correct position and visibility at 1440×900 desktop viewport
+- [ ] **HUD-06**: Screen shake never displaces HUD/UI layers — shake `ctx.translate` scoped to game loop render region only; HUD/Notify/Fade/toast render after `ctx.restore()`
+- [ ] **HUD-07**: Combat FX (damage numbers, element bursts, shake) never obscure or overlap critical HUD information at any viewport size
+- [ ] **HUD-08**: Layout harness tests pass at all 5 viewport sizes (400×720, 540×900, 720×400, 1024×768, 1440×900) after all FX changes
+- [ ] **HUD-09**: `check_ui_invariants.sh` reports clean after HUD alignment changes
+- [ ] **HUD-10**: All ~27 scenes maintain HUD alignment; combatScene and travelMap verified most likely to regress from FX changes
 
-### Element Burst Particles
+## Future Requirements (deferred)
 
-- [ ] **DMG-06**: On hit, spawn a small element-colored particle burst (6 particles radial) from impact point; particle state pre-allocated per burst, mutated in place
-- [ ] **DMG-07**: Particle burst respects `R.reducedMotion()` — suppressed entirely when reduced motion is active
+### Particles
 
-### Combat Integration
+Deferred — particle variety (element-aware `R.elementBurst` shapes, `R.ambientParticles` per-zone emitter) scoped to future milestone.
 
-- [ ] **DMG-08**: `combatScene.js` hit sites (target hit, enemy hit, counter) pass `element` + `isCrit` + impact coords to the upgraded `R.damageNumber`; no new global allocation in hot paths
-- [ ] **DMG-09**: `damageFlash` screen shake preserved and gated behind reduced-motion; existing log band + `UI.Feedback.Toast` flow unchanged
-- [ ] **DMG-10**: New floater + burst behavior covered by a dedicated test file (`tests/damage_fx.test.js`); full suite green
+### Screen Shake
 
-### Out of Scope for v11.0
+Deferred — directional shake presets, decay profiles, crit-emphasis shake scoped to future milestone.
+
+### Combat FX
+
+Deferred — heal floaters, buff/debuff bursts, block/parry/counter FX, projectile impact bursts scoped to future milestone.
+
+### Zone Content
+
+Deferred — landmarks and variants within existing zone IDs scoped to future milestone.
+
+## Out of Scope
 
 | Item | Reason |
 |------|--------|
-| New element types beyond fire/water/wind/earth | Element set is fixed by existing `R.colors` tokens |
-| Per-element VFX shader effects | Immediate-mode Canvas 2D only — no WebGL |
-| Combo / kill-streak FX beyond crit emphasis | Deferred — combo already in play layer; this milestone is damage-feedback visuals only |
+| New element types beyond existing 6 (`R.colors.elements`) | v12.0 constraint — no new element types |
+| WebGL particle rendering | v12.0 constraint — Canvas 2D only |
+| New zone IDs or realm geography | v12.0 constraint — deepen existing zones only |
+| Per-frame object allocation in particle systems | Zero-per-frame-allocation contract — circular buffers only |
+| Frontend framework / bundler / ES modules | Project architecture constraint — vanilla JS, script-order |
+| Backend / cloud sync / Firebase auth | Offline-first PWA; optional, does not block core play |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DMG-01..05 | Phase 54 | Planned |
-| DMG-06..07 | Phase 55 | Planned |
-| DMG-08..10 | Phase 56 | Planned |
+| HUD-01 | Phase [N] | Pending |
+| HUD-02 | Phase [N] | Pending |
+| HUD-03 | Phase [N] | Pending |
+| HUD-04 | Phase [N] | Pending |
+| HUD-05 | Phase [N] | Pending |
+| HUD-06 | Phase [N] | Pending |
+| HUD-07 | Phase [N] | Pending |
+| HUD-08 | Phase [N] | Pending |
+| HUD-09 | Phase [N] | Pending |
+| HUD-10 | Phase [N] | Pending |
 
-**Coverage:** 10 requirements, 3 phases, no orphans.
+**Coverage:**
+- v1 requirements: 10 total
+- Mapped to phases: 0 (filled by roadmap)
+- Unmapped: 10 ⚠️
 
 ---
-*Defined 2026-10-15 for v11.0*
+*Defined 2026-10-22 for v12.0*
