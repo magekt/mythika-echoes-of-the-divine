@@ -46,13 +46,19 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 
 **Date:** 2026-10-14
 
-## Milestone v11.0 — Combat Damage FX
+## Milestone v11.0 — Combat Damage FX — Shipped 2026-10-22
 
-**Goal:** Upgrade combat damage feedback from the flat `R.damageNumber` text buffer to a spring-driven, element-aware damage floater system — consistent with the v10.0 `UI.Component` + mixin foundation and the project's zero-per-frame-allocation constraint.
+**Goal (achieved):** Upgrade combat damage feedback from the flat `R.damageNumber` text buffer to a spring-driven, element-aware damage floater system — consistent with the v10.0 `UI.Component` + mixin foundation and the project's zero-per-frame-allocation constraint.
 
-**Direction:** Damage floaters gain element tint/icon, crit emphasis, and spring bounce (Phases 54); a pre-allocated element particle burst on hit (Phase 55); full combat-scene integration + tests (Phase 56). All FX respect `R.reducedMotion()`. Built on Phase 50/51/52 foundations. No new element types, no WebGL, no gameplay-rule changes.
+**Delivered:** `R.damageNumber` extended with `opts = {element, crit, heal}` with pre-allocated spring state per floater; element-aware tint + icon chip; crit floaters with gold emphasis ring and longer life; `R.reducedMotion()` instant snap path; `R.elementBurst(x, y, element, crit)` pre-allocated 60-slot circular particle buffer; `R.colors.elements` token map; `combatScene.js` hit sites wired to both floaters and bursts with ailment-derived element keys; `tests/damage_fx.test.js` (11 tests). All FX respect `R.reducedMotion()`. Built on Phase 50/51/52 foundations. No new element types, no WebGL, no gameplay-rule changes.
 
-**Date:** In progress — started 2026-10-15
+**Date:** 2026-10-22
+
+**Validated requirements:** DMG-01 through DMG-10 (10/10). Final audit reports contract-level green (628/629 tests + UI invariants).
+
+## Next Milestone Goals
+
+**Candidate v12.0:** Continue building on the v10.0 + v11.0 foundations. Focus areas to be defined in `/gsd-new-milestone` — questioning → research → requirements → roadmap. Likely candidates: additional visual polish (particle variety, screen shake), expanded combat FX integration, or new realm/zone content. No new element types or WebGL planned.
 
 ## Shipped Milestone v10.0 — Shared Library Foundations
 
