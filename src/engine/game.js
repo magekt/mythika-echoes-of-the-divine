@@ -133,14 +133,20 @@ const Fade = {
   pendingScene: null,
   update: function(dt) {
     if (this.alpha !== this.target) {
+      let dir;
       const rm = R.reducedMotion && R.reducedMotion();
       if (rm) {
         this.alpha = this.target;
       } else {
-        const dir = this.target > this.alpha ? 1 : -1;
+        dir = this.target > this.alpha ? 1 : -1;
         this.alpha += dir * this.speed * dt;
       }
-      if (this.alpha === this.target) {
+      // Float accumulation (alpha += speed * dt) can overshoot the target,
+      // so strict equality (alpha === target) never holds — use reached-or
+      // passed instead (restores pre-5cd716c3 behavior). Under reduced
+      // motion alpha is snapped to target exactly, so the rm short-circuit
+      // keeps that path working (dir is never read when rm is true).
+      if (rm || (dir > 0 && this.alpha >= this.target) || (dir < 0 && this.alpha <= this.target)) {
         this.alpha = this.target;
         if (this.pendingScene) {
           const pending = this.pendingScene;
