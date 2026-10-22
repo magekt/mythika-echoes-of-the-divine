@@ -1,33 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v11.0
-milestone_name: Combat Damage FX
-status: shipped
-last_updated: "2026-10-22T13:15:00+05:30"
-last_activity: 2026-10-22 -- Completed quick task 261022-j7j: Audit existing call sites, enforce R.reducedMotion() as the single source of truth
+milestone: v12.0
+milestone_name: Visual Polish & Combat FX
+status: planning
+last_updated: "2026-10-22T14:00:00+05:30"
+last_activity: "2026-10-22 -- Milestone v12.0 started"
 progress:
-  total_phases: 31
-  completed_phases: 31
-  total_plans: 53
-  completed_plans: 64
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-10-15)
+See: `.planning/PROJECT.md` (updated 2026-10-22)
 
 **Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Phase 048 — panel-modal-nested-shells
+**Current focus:** Defining requirements (v12.0)
 
 ## Current Position
 
-Phase: 056 (combat-integration-tests) — SHIPPED
-Plan: 1 of 1
-Status: Milestone v11.0 shipped — PR #4
-Last activity: 2026-10-22 -- Milestone v11.0 shipped — PR #4
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-10-22 -- Milestone v12.0 started
 
 ## Accumulated Context
 
@@ -52,4 +52,4 @@ Last activity: 2026-10-22 -- Milestone v11.0 shipped — PR #4
 
 ## Next Action
 
-- Milestone v11.0 complete. Milestone archived at `.planning/milestones/v11.0-ROADMAP.md`, `.planning/milestones/v11.0-REQUIREMENTS.md`, `.planning/milestones/v11.0-phases/`. Ready for v12.0 milestone planning.
+- Milestone v12.0 started. Requirements definition in progress via `/gsd-new-milestone`. Next: `/gsd-discuss-phase [N]` or `/gsd-plan-phase [N]` after roadmap approval.

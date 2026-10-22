@@ -56,9 +56,17 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 
 **Validated requirements:** DMG-01 through DMG-10 (10/10). Final audit reports contract-level green (628/629 tests + UI invariants).
 
-## Next Milestone Goals
+## Current Milestone: v12.0 — Visual Polish & Combat FX
 
-**Candidate v12.0:** Continue building on the v10.0 + v11.0 foundations. Focus areas to be defined in `/gsd-new-milestone` — questioning → research → requirements → roadmap. Likely candidates: additional visual polish (particle variety, screen shake), expanded combat FX integration, or new realm/zone content. No new element types or WebGL planned.
+**Goal:** Build on the v10.0 + v11.0 foundations with additional visual polish (particle variety, screen shake), expanded combat FX integration, and/or new realm/zone content — while verifying HUD screen/scene alignment for screens not being adjusted in this milestone.
+
+**Target features:**
+- Additional visual polish (particle variety, screen shake)
+- Expanded combat FX integration
+- New realm/zone content (no new element types, no WebGL)
+- HUD screen/scene alignment verification for unaffected screens
+
+**Key context:** No new element types or WebGL; preserve vanilla JavaScript, immediate-mode Canvas, localStorage, and PWA architecture; verify HUD alignment for screens and Scenes not being adjusted.
 
 ## Shipped Milestone v10.0 — Shared Library Foundations
 
@@ -233,4 +241,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-21 — Phase 046 Renderer Primitives Foundation complete (v9.0)*
+*Last updated: 2026-10-22 — Milestone v12.0 started (Visual Polish & Combat FX)*
