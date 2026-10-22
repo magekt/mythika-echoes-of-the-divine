@@ -2,18 +2,20 @@
 
 ## v12.0 Visual Polish & Combat FX (Shipped: 2026-10-22)
 
-**Phases completed:** 8 phases, 8 plans, 0 tasks
+**Phases completed:** 8 phases, 8 plans
 
 **Key accomplishments:**
 
-- Phase:
-- Phase:
-- Phase:
-- Phase:
-- Phase:
-- Phase:
-- Phase:
-- Phase:
+- Phase 57 — Base Canvas Alignment: Verified HUD elements (health, mana, status, currency) at correct positions on 400×720 base canvas. Added coordinate assertion tests.
+- Phase 58 — Portrait & Landscape Viewports: HUD verified at 540×900 portrait (logical 400×666) and 720×400 landscape (logical 720×400).
+- Phase 59 — Desktop Viewports: HUD verified at 1024×768 desktop card and 1440×900 desktop (both logical 400×720).
+- Phase 60 — Shake Scoping & HUD Isolation: Moved `UI.HUD().render()` from scene render methods (inside shake transform) into `game.js` after `ctx.restore()`. HUD never displaced by screen shake. Removed HUD calls from 10 scene files.
+- Phase 61 — Combat FX vs HUD Separation: HUD renders last in `gLoopFrame` (after all FX, Fade, Notify, Feedback). Combat FX never obscure HUD information.
+- Phase 62 — Layout Harness Regression: Layout harness tests pass at all 5 viewport sizes (15/15).
+- Phase 63 — UI Invariants Gate: `check_ui_invariants.sh` clean — syntax, script loading, UI invariants all pass.
+- Phase 64 — Full Scene Alignment Audit: All ~27 scenes maintain HUD alignment; combatScene and travelMap verified.
+
+**Archive:** [ROADMAP](milestones/v12.0-ROADMAP.md), [REQUIREMENTS](milestones/v12.0-REQUIREMENTS.md)
 
 ---
 
