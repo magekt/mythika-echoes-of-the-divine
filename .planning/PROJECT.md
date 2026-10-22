@@ -56,17 +56,16 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 
 **Validated requirements:** DMG-01 through DMG-10 (10/10). Final audit reports contract-level green (628/629 tests + UI invariants).
 
-## Current Milestone: v12.0 — Visual Polish & Combat FX
+## Current Milestone: v13.0 — Screen-by-Scene Audit & Firebase Removal
 
-**Goal:** Build on the v10.0 + v11.0 foundations with additional visual polish (particle variety, screen shake), expanded combat FX integration, and/or new realm/zone content — while verifying HUD screen/scene alignment for screens not being adjusted in this milestone.
+**Goal:** Audit every screen/scene one by one for outdated details (version numbers on each scene, all other details), update everything across all screens, and remove all Firebase instances — leaving a save-compatible, Firebase-free vanilla Canvas game with consistent screen details.
 
 **Target features:**
-- Additional visual polish (particle variety, screen shake)
-- Expanded combat FX integration
-- New realm/zone content (no new element types, no WebGL)
-- HUD screen/scene alignment verification for unaffected screens
+- Scene-by-scene audit and detail updates (starting with version numbers on each scene)
+- Remove all Firebase instances from codebase
+- Verify each screen one-by-one after updates
 
-**Key context:** No new element types or WebGL; preserve vanilla JavaScript, immediate-mode Canvas, localStorage, and PWA architecture; verify HUD alignment for screens and Scenes not being adjusted.
+**Key context:** Preserve vanilla JavaScript, immediate-mode Canvas, localStorage, and PWA architecture; save-compatible; no new zones/element types; Firebase fully removed; every screen verified individually.
 
 ## Shipped Milestone v10.0 — Shared Library Foundations
 
@@ -196,6 +195,7 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 - **Architecture**: Preserve vanilla JavaScript, global namespace conventions, script-order dependencies, and immediate-mode Canvas rendering.
 - **Content**: Use existing zones and add landmarks within them; do not create new zones.
 - **Persistence**: All world state remains local and save-compatible; malformed or legacy state must fail safe.
+- **Firebase Removal**: Remove all Firebase instances from the codebase; no Firebase SDK, config, auth, or cloud references remain; localStorage/PWA is the sole persistence.
 - **Interaction**: Design for touch first, with readable targets and coherent desktop behavior.
 - **Performance**: The map must render smoothly on mid-range phones without unbounded effects, event records, or scene-local leaks.
 - **Accessibility**: Respect `R.reducedMotion()` and existing semantic color/radius conventions.
@@ -241,4 +241,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-22 — Milestone v12.0 started (Visual Polish & Combat FX)*
+*Last updated: 2026-10-23 — Milestone v13.0 started (Screen-by-Scene Audit & Firebase Removal)*

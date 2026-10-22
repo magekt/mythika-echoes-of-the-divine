@@ -1,15 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v12.0
-milestone_name: milestone
-status: v12.0 milestone complete
-last_updated: "2026-10-22T19:43:35.095Z"
+milestone: v13.0
+milestone_name: Screen-by-Scene Audit & Firebase Removal
+status: planning
+last_updated: "2026-10-22T21:58:36.105Z"
+last_activity: 2026-10-22
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Mythika v12.0
@@ -26,22 +27,10 @@ progress:
 
 ## Current Position
 
-**Milestone**: v12.0 — HUD Alignment Verification
-**Phase**: 57 (Base Canvas Alignment) — Not started
-**Plan**: TBD — Awaiting roadmap approval
-**Status**: Not started
-**Progress**: 0/8 phases complete
-
-| Phase | Status |
-|-------|--------|
-| 57 - Base Canvas Alignment | Not started |
-| 58 - Portrait & Landscape Viewports | Not started |
-| 59 - Desktop Viewports | Not started |
-| 60 - Shake Scoping & HUD Isolation | Not started |
-| 61 - Combat FX vs HUD Separation | Not started |
-| 62 - Layout Harness Regression | Not started |
-| 63 - UI Invariants Gate | Not started |
-| 64 - Full Scene Alignment Audit | Not started |
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-10-22 — Milestone v13.0 started
 
 ## Performance Metrics
 
