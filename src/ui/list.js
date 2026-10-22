@@ -67,7 +67,7 @@ UI.ScrollList = function(x, y, w, h, opts) {
     let yPos = l.y + l.padding - l.scrollY;
     const endY = l.y + l.h;
     const bt = l._builtAt;
-    const fade = (!bt || (G.state && G.state.reduceMotion)) ? 1 : Math.min(1, (performance.now() - bt) / 90);
+    const fade = (!bt || R.reducedMotion()) ? 1 : Math.min(1, (performance.now() - bt) / 90);
 
     for (let i = 0; i < l.items.length; i++) {
       const item = l.items[i];

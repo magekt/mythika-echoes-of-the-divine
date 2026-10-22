@@ -529,13 +529,13 @@ R.damageNumber = function(ctx, x, y, value, color, opts) {
     // Spring scale: 0 → 1 (crit overshoots slightly via target tuning)
     scale: 0,
     _spring: springState,
-    _reduced: G.state.reduceMotion
+    _reduced: R.reducedMotion()
   });
 };
 
 R.screenShake = function(intensity, duration) {
   // Reduce Motion: keep the hit feedback in damage numbers/log, drop the shake.
-  if (G.state.reduceMotion) return;
+  if (R.reducedMotion()) return;
   R.shakeX = 0;
   R.shakeY = 0;
   R.shakeTimer = duration || 0.3;
@@ -546,7 +546,7 @@ R.screenShake = function(intensity, duration) {
 R.deathBursts = createCircularBuffer(30);
 
 R.deathBurst = function(x, y, color) {
-  if (G.state.reduceMotion) return;
+  if (R.reducedMotion()) return;
   R.deathBursts.add({ x: x, y: y, life: 0.6, maxLife: 0.6, color: color || R.colors.red });
 };
 
@@ -664,7 +664,7 @@ R.elementBurstCount = 0;
 R.elementBurstWriteIdx = 0;
 
 R.elementBurst = function(x, y, element, crit) {
-  if (G.state.reduceMotion) return;
+  if (R.reducedMotion()) return;
   var el = R.colors.elements[element] || R.colors.elements.default;
   var count = crit ? 10 : 6;
   for (var i = 0; i < count; i++) {
@@ -895,7 +895,7 @@ R.drawEncounterTimer = function(ctx, x, y, remaining, total) {
 R.drawCultivationAura = function(ctx, x, y, time) {
   // Reduce Motion: hold the rings at their resting size (still signals an
   // active aura, without the continuous pulse).
-  const rm = !!G.state.reduceMotion;
+  const rm = R.reducedMotion();
   const radius = rm ? 20 : 20 + Math.sin(time * 2) * 5;
   ctx.strokeStyle = 'rgba(200, 160, 80, 0.3)';
   ctx.lineWidth = 2;
@@ -1027,7 +1027,7 @@ R.renderLevelUp = function(ctx) {
 R.renderEnlightenmentAura = function(ctx, dt) {
   // Reduce Motion: the full-screen breathing glow is decorative — skip it.
   // The ENLIGHTENED timer chip remains the functional buff indicator.
-  if (G.state.reduceMotion) return;
+  if (R.reducedMotion()) return;
   if (G.state.enlightenmentTimer > 0 && G.state.enlightenmentBuff) {
     R.enlightenmentAura += dt * 2;
     const pulse = 0.3 + Math.sin(R.enlightenmentAura) * 0.15;
