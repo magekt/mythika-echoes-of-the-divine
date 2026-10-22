@@ -4,7 +4,7 @@ milestone: v11.0
 milestone_name: Combat Damage FX
 status: shipped
 last_updated: "2026-10-22T13:15:00+05:30"
-last_activity: 2026-10-22 -- Milestone v11.0 shipped — PR #4
+last_activity: 2026-10-22 -- Completed quick task 261022-j7j: Audit existing call sites, enforce R.reducedMotion() as the single source of truth
 progress:
   total_phases: 31
   completed_phases: 31
@@ -43,6 +43,12 @@ Last activity: 2026-10-22 -- Milestone v11.0 shipped — PR #4
 
 - Zero per-frame allocation: floater + burst spring/particle state must be allocated once at spawn and mutated in place (CONCERNS.md critical item from v10.0 review).
 - `R.reducedMotion()` must gate both spring bounce and particle burst.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 261022-j7j | Audit existing call sites, enforce R.reducedMotion() as the single source of truth | 2026-10-22 | 4964b8a | [261022-j7j-audit-existing-call-sites-enforce-r-redu](./quick/261022-j7j-audit-existing-call-sites-enforce-r-redu/) |
 
 ## Next Action
 
