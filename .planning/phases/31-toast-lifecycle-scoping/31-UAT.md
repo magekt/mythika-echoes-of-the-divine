@@ -46,7 +46,7 @@ blocked: 0
 ## Gaps
 
 - truth: "Tutorial and regular toasts draw inside their lane and never overlap action buttons or other text"
-  status: resolved
+status: complete
   reason: "User reported: when I click recruit, new hero, the toast still has previous screen of the initially selected hero visible."
   severity: major
   test: 5
