@@ -116,7 +116,7 @@ const titleScene = Scene.create({
     // Title is pre-game — HUD (gold/level) belongs to in-game scenes only
     // (ashram, exploration, etc.). Removed to prevent overlap with wordmark.
 
-    const ver = UI.TextDim(G.W / 2, G.H - 20, 'v1.0 - A Mythic Idle RPG');
+    const ver = UI.TextDim(G.W / 2, G.H - 20, 'v13.0 - A Mythic Idle RPG');
     ver.render(ctx);
   }
 });

@@ -13,7 +13,7 @@ Use this guide when **Mythika: Echoes of the Divine** does not start, input or a
    ```
 
 3. Open the browser developer tools and reload the page.
-4. Check **Console** for the first error and **Network** for failed `.js`, Firebase CDN, or asset requests.
+4. Check **Console** for the first error and **Network** for failed `.js` or asset requests.
 5. Before clearing site data, use **Settings → Export Save to File** and keep the downloaded `mythika-save.json` somewhere safe.
 
 ## The game does not start or shows an inert canvas
@@ -124,44 +124,6 @@ When loading a save, elapsed time is clamped to a maximum of 28,800 seconds (8 h
 - Do not expect more than eight hours of cultivation or prana from one offline interval.
 - If no notification appears after a short absence, wait more than one minute before testing again.
 - Farm processing still runs during load, but its results depend on the saved plot state.
-
-## Sign-in or cloud save does not work
-
-Authentication and cloud saves require Firebase scripts from `gstatic.com`, a valid `window.FIREBASE_CONFIG`, network access, and the relevant sign-in provider being enabled for the Firebase project. Offline play does not require authentication.
-
-### “Auth not initialized” or Firebase initialization failure
-
-- Check the Console for `[Mythika] Firebase init failed:` and inspect the accompanying message.
-- Confirm `src/engine/firebase-config.js` loads before the Firebase initialization module.
-- For a new environment, copy `src/engine/firebase-config.template.js` to `src/engine/firebase-config.js` and replace every placeholder with that environment's Firebase web-app configuration.
-- Confirm the browser can load the Firebase SDK URLs referenced by `index.html`; content blockers, restrictive networks, or offline mode may block them.
-- Never paste private credentials into a bug report or commit environment-specific secrets accidentally.
-
-### Email or Google sign-in fails
-
-- Verify the email and password are valid and inspect the on-screen Firebase error.
-- Allow pop-ups for Google sign-in.
-- Confirm the chosen provider is enabled in the Firebase project and the current host is an authorized domain. <!-- VERIFY: Firebase Authentication providers and authorized domains are configured for the current deployment. -->
-- Retry on a normal browser tab if private browsing blocks storage or pop-ups.
-
-### Phone verification fails
-
-Phone sign-in needs reCAPTCHA initialization before sending a code. If the game reports `Recaptcha not initialized`, `RecaptchaVerifier not loaded`, or rejects the code:
-
-- Ensure the Firebase authentication SDK loaded successfully.
-- Disable blockers that prevent reCAPTCHA from loading.
-- Enter a complete international-format phone number and the latest verification code.
-- Request a new code if the previous reCAPTCHA session or code expired.
-- Confirm Phone authentication is enabled for the Firebase project. <!-- VERIFY: Phone authentication and its required deployment configuration are enabled. -->
-
-### Cloud progress is unexpected
-
-On successful authentication, `Auth.loadAfterAuth()` loads cloud state and gives it precedence over the current in-memory state for cross-device synchronization. Therefore:
-
-1. Export the local save before signing in on a device with progress you want to preserve.
-2. Sign in and inspect the loaded character before saving again.
-3. Use **Settings → Save to Cloud** only when the current state is the version you want stored remotely.
-4. If cloud save reports an error, keep playing locally and preserve a file export until connectivity or Firebase permissions are fixed. <!-- VERIFY: Firestore rules allow each authenticated user to read and write only their intended cloud-save document. -->
 
 ## The installed PWA is stale or offline mode is incomplete
 

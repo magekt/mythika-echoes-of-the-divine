@@ -18,8 +18,8 @@ You need all three of the following:
     alternative below)
 
 There is no `package.json`, no `.nvmrc`, no Dockerfile, and no `.env` file to
-set up. Firebase is optional — offline play with local saves is the default
-and needs no account or network access beyond the first page load.
+set up. Offline play with local saves is the default and needs no account or
+network access beyond the first page load.
 
 ## Installation steps
 
@@ -67,8 +67,7 @@ Open the local URL printed by `serve`.
 
 1. **Title screen** — tap `New Game` to start fresh. (`Continue` only appears
    when a previous local save exists; it loads the save and jumps straight to
-   the ashram.) If you land on the `Authentication` screen instead, choose
-   `Continue offline` to keep playing without a Firebase account.
+   the ashram.)
 2. **Step 1 — Path** (`Choose your spiritual path`) — pick one of three
    spiritual paths (see `src/data/classes.js`):
    - **Kshatriya** — Path of the Warrior. Physical damage, high HP, tanking
@@ -132,11 +131,6 @@ Open the local URL printed by `serve`.
   network-first). In devtools, unregister the service worker, clear Cache
   Storage, and reload. Do not clear Local Storage unless you have exported
   your save — local progress lives under the `mythika_save` key.
-- **Firebase sign-in or cloud save fails.** Confirm you are online and the
-  browser can load the Firebase SDK from `gstatic.com`. You can always keep
-  playing locally by choosing `Continue offline`; export your save from
-  Settings before signing in on a device that already holds progress, since
-  cloud state takes precedence after authentication.
 
 For deeper diagnostics, append `?probe` to the URL for FPS/script timing, or
 `?probe&selftest` for the input-chain self-test (the self-test navigates

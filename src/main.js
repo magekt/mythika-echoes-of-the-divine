@@ -59,8 +59,7 @@
     ['equipment', typeof equipmentScene !== 'undefined' ? equipmentScene : null],
     ['welcome', typeof welcomeScene !== 'undefined' ? welcomeScene : null],
     ['debug', (typeof debugScene !== 'undefined' && /debug/.test(window.location.search)) ? debugScene : null],
-    ['journeyScene', typeof journeyScene !== 'undefined' ? journeyScene : null],
-    ['authScene', typeof authScene !== 'undefined' ? authScene : null]
+    ['journeyScene', typeof journeyScene !== 'undefined' ? journeyScene : null]
   ];
   SCENE_TABLE.forEach(function(pair) {
     try {
@@ -105,9 +104,6 @@
     }
     enterCurrent();
     if (bootProbe) console.log('[Mythika] boot-phase scene-enter=' + (performance.now() - bootStarted).toFixed(1) + 'ms');
-    if (window.firebaseReady && typeof Auth !== 'undefined' && !Auth.auth) {
-      Auth.init(window.firebaseApp, window.firebaseAuth, window.firebaseDb);
-    }
     // gInit (canvas, input, audio, rAF loop) lives in game.js.
     if (typeof gInit === 'function') gInit();
     if (bootProbe) console.log('[Mythika] boot-phase gInit=' + (performance.now() - bootStarted).toFixed(1) + 'ms');
@@ -122,9 +118,6 @@
       } catch (e) {}
     }, 3000);
   }
-  document.addEventListener('firebase-ready', function() {
-    if (typeof Auth !== 'undefined' && !Auth.auth) Auth.init(window.firebaseApp, window.firebaseAuth, window.firebaseDb);
-  });
   window.addEventListener('load', function() { bootGame(); });
   bootGame();
 })();

@@ -256,12 +256,9 @@ SaveSystem.hasSave = function() {
 };
 
 SaveSystem.startAutoSave = function() {
+  // Local auto-save only — Firebase cloud save removed in v13.0
   this.stopAutoSave();
   this._timer = setInterval(() => this.save(), this.autoSaveInterval);
-  // Also sync to cloud on first auto-save if user is signed in
-  if (typeof Auth !== 'undefined' && Auth.user && window.firebaseAuth && window.firebaseDb) {
-    Auth.saveToCloud(G.state).catch(function() {});
-  }
 };
 
 SaveSystem.stopAutoSave = function() {
@@ -289,32 +286,9 @@ SaveSystem.getSaveInfo = function() {
 };
 
 SaveSystem.cloudSave = async function() {
-  if (typeof Auth !== 'undefined' && Auth.user && window.firebaseAuth && window.firebaseDb) {
-    try {
-      const result = await Auth.saveToCloud(G.state);
-      if (result.success) {
-        Notify.show('Saved to cloud', 2, R.colors.green);
-      } else {
-        Notify.show('Cloud save failed: ' + result.error, 3, R.colors.red);
-      }
-    } catch (e) {
-      Notify.show('Cloud save failed: ' + e.message, 3, R.colors.red);
-    }
-  }
+  Notify.show('Cloud save unavailable (offline mode)', 2, R.colors.textDim);
 };
 
 SaveSystem.cloudLoad = async function() {
-  if (typeof Auth !== 'undefined' && Auth.user && window.firebaseAuth && window.firebaseDb) {
-    try {
-      const result = await Auth.loadFromCloud();
-      if (result.data) {
-        if (!this.hydrate(result.data)) return false;
-        Notify.show('Cloud save loaded', 2, R.colors.green);
-        return true;
-      }
-    } catch (e) {
-      Notify.show('Cloud load failed: ' + e.message, 3, R.colors.red);
-    }
-  }
   return false;
 };

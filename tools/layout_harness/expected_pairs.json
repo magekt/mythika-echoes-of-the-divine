@@ -30,7 +30,7 @@
     },
     "clip": 6,
     "fillText": 37,
-    "localScripts": 101,
+    "localScripts": 98,
     "translate": 27
   },
   "expectedViolations": [
@@ -114,8 +114,7 @@
       "equipment",
       "welcome",
       "debug",
-      "journeyScene",
-      "authScene"
+      "journeyScene"
     ],
     "subsetNote": "checked set = 20 core scenes per LAY criterion; sweep adds combatScene-1v1/combatScene-5v3, zoneExploration-encounter, bazaar-buy/bazaar-sell and modal-open variants",
     "sweepVariants": [
@@ -127,6 +126,6 @@
       "bazaar-sell",
       "modal-open"
     ],
-    "totalRegistry": 25
+    "totalRegistry": 24
   }
 }

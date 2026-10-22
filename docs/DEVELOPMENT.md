@@ -18,15 +18,7 @@ Development setup is identical to player setup plus dev-only validation tooling.
 
 2. Confirm the working tree root contains `index.html`, `src/`, `styles/`, `manifest.json`, and `sw.js`. If those are present, setup is complete — do not run `npm install` (there is nothing to install).
 
-3. (Optional, cloud-save work only) Copy the Firebase template to the gitignored local config:
-
-   ```bash
-   cp src/engine/firebase-config.template.js src/engine/firebase-config.js
-   ```
-
-   Fill in your own development project credentials. `src/engine/firebase-config.js` is gitignored and must never be committed. Offline `localStorage` play needs no Firebase config at all.
-
-4. Start a static server from the repository root (serving the root matters — paths like `src/main.js` and `styles/game.css` only resolve from there):
+3. Start a static server from the repository root (serving the root matters — paths like `src/main.js` and `styles/game.css` only resolve from there):
 
    ```bash
    python3 -m http.server 3000
@@ -57,7 +49,6 @@ There is no `package.json` and therefore no `scripts` field, no bundler, and no 
 | `node --test tests/*.test.js` | Run the full Node suite (62 test files in `tests/`). |
 | `tools/check_ui_invariants.sh` | Pre-deploy gate: `node --check` over every `src/**/*.js`, forbids raw unanchored spring back-translate patterns (`translate(-bw/2`, `translate(-bh/2`, `translate(-this.w/2`, `translate(-this.h/2`), and verifies each `src/systems/*.js` file is loaded exactly once in `index.html`. |
 | `python3 tools/verify_matrix.py --budget 6000` | Real browser boot matrix across desktop, phone, and phone-landscape viewports. Requires Chrome, Chromium, or Edge; `MYTHIKA_CHROME` selects a specific binary. |
-| `cp src/engine/firebase-config.template.js src/engine/firebase-config.js` | One-time local Firebase config setup for cloud-save development. Not a build step. |
 
 There is intentionally no `lint`, `format`, `build`, `dev`, `serve`, or `test:watch` script. Validation is `node --check` + `git diff --check` + the Node suite + `tools/check_ui_invariants.sh` + the browser boot matrix.
 

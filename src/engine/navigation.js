@@ -22,7 +22,6 @@ const Navigation = (function() {
     'title': 'title',
     'characterCreate': 'characterCreate',
     'welcome': 'welcome',
-    'authScene': 'authScene',
     'bazaar': 'bazaar',
     'forge': 'forge',
     'alchemyScene': 'alchemyScene',

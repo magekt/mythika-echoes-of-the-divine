@@ -76,7 +76,7 @@
   }, true);
 </script>
 <script>
-  // Classic script tags below execute before the Firebase module resolves.
+  // Classic script tags below execute synchronously for the global Canvas runtime.
   // Keep the opt-in probe available during that gap as well as afterwards.
   window.__mythikaProbeGroup = window.__mythikaProbeGroup || function(name, phase) {
     if (!/[?&]probe(?:&|$)/.test(location.search)) return;
@@ -113,8 +113,6 @@
   <div id="status-bar"></div>
 </div>
 
-<script src="src/engine/firebase-config.js"></script>
-<script src="src/engine/auth.js"></script>
 <script>__mythikaProbeGroup('engine','start')</script>
 <script src="src/engine/viewport.js"></script>
 <script src="src/engine/game.js"></script>
@@ -217,7 +215,6 @@
 <script src="src/scenes/welcome.js"></script>
 <script src="src/scenes/journeyScene.js"></script>
 <script src="src/scenes/encounterScene.js"></script>
-<script src="src/scenes/authScene.js"></script>
 <script>__mythikaProbeGroup('scenes','end'); __mythikaProbeGroup('boot','start'); __mythikaLoadTracker.step(5)</script>
 <script src="src/main.js"></script>
 <script>__mythikaProbeGroup('boot','end'); __mythikaLoadTracker.step(6)</script>
@@ -230,58 +227,5 @@
   }
 </script>
 <script>__mythikaProbeScriptResources();</script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, RecaptchaVerifier, signInWithPhoneNumber, signOut as firebaseSignOut, PhoneAuthProvider, signInWithCredential } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-
-  // Make Firebase functions available globally for auth.js
-  window.firebaseAuth = null;
-  window.firebaseDb = null;
-  window.firebaseSignOut = firebaseSignOut;
-  window.signOut = firebaseSignOut;
-  window.firebaseSignUpEmail = createUserWithEmailAndPassword;
-  window.firebaseSignInEmail = signInWithEmailAndPassword;
-  window.firebaseSignInPopup = signInWithPopup;
-  window.firebaseGoogleProvider = new GoogleAuthProvider();
-  window.firebaseRecaptchaVerifier = RecaptchaVerifier;
-  window.firebaseSignInPhone = signInWithPhoneNumber;
-  window.signInWithPhoneNumber = signInWithPhoneNumber;
-  window.signInWithCredential = signInWithCredential;
-  window.PhoneAuthProvider = PhoneAuthProvider;
-  window.firebaseOnAuthStateChanged = onAuthStateChanged;
-  window.firebaseDoc = doc;
-  window.firebaseSetDoc = setDoc;
-  window.firebaseGetDoc = getDoc;
-  window.firebaseServerTimestamp = serverTimestamp;
-  // auth.js is a classic script and intentionally consumes these names as
-  // globals. Keep the single modular SDK bridge compatible with that API.
-  window.onAuthStateChanged = onAuthStateChanged;
-  window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-  window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-  window.signInWithPopup = signInWithPopup;
-  window.GoogleAuthProvider = GoogleAuthProvider;
-  window.RecaptchaVerifier = RecaptchaVerifier;
-  window.doc = doc;
-  window.setDoc = setDoc;
-  window.getDoc = getDoc;
-  window.serverTimestamp = serverTimestamp;
-
-  try {
-    const app = initializeApp(window.FIREBASE_CONFIG);
-    window.firebaseApp = app;
-    window.firebaseAuth = getAuth(app);
-    window.firebaseDb = getFirestore(app);
-    console.log('[Mythika] Firebase initialized');
-    // Signal Firebase is ready
-    window.firebaseReady = true;
-    document.dispatchEvent(new Event('firebase-ready'));
-  } catch (e) {
-    if (/[?&]probe(?:&|$)/.test(location.search)) {
-      console.warn('[Mythika] Firebase init failed:', e.message);
-    }
-    window.firebaseReady = false;
-  }
-</script>
 </body>
 </html>

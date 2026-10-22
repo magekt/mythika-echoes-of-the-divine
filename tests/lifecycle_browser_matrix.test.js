@@ -29,7 +29,7 @@ const VIEWPORTS = ['400x720', '540x900', '720x400', '1024x768', '1440x900'];
 const INPUTS = ['touch', 'mouse', 'keyboard'];
 const CORE = ['ashram', 'travelMap', 'zoneExploration', 'combatScene', 'party'];
 const MIGRATED = ['equipment', 'cultivationScene', 'forge'];
-const UNTOUCHED = ['settings', 'debug', 'authScene', 'welcome', 'achievementsScene', 'bazaar', 'farm', 'fishing', 'tournament', 'trials', 'spiritBeast', 'punarjanma', 'journeyScene', 'questLog', 'encounterScene', 'alchemyScene', 'characterCreate', 'title'];
+const UNTOUCHED = ['settings', 'debug', 'welcome', 'achievementsScene', 'bazaar', 'farm', 'fishing', 'tournament', 'trials', 'spiritBeast', 'punarjanma', 'journeyScene', 'questLog', 'encounterScene', 'alchemyScene', 'characterCreate', 'title'];
 
 test('matrix names 5 viewports and 3 input modes', () => {
   assert.deepEqual(VIEWPORTS, ['400x720', '540x900', '720x400', '1024x768', '1440x900']);

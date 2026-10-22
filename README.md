@@ -134,28 +134,6 @@ Useful runtime diagnostics:
 - Add `?probe&selftest` to run the input-chain self-test.
 - Enable the operating system's reduced-motion setting, or set `G.state.reduceMotion = true` in the browser console, to test reduced-motion behavior.
 
-## Firebase Setup (Optional)
-
-Offline play does not require Firebase. To enable account-based cloud saves:
-
-1. Create a Firebase project.
-2. Enable the desired Authentication providers; the game includes email/password, Google, and phone-auth flows.
-3. Create a Firestore database and secure the `game_saves/{userId}` documents so users can access only their own save.
-4. Copy `src/engine/firebase-config.template.js` to `src/engine/firebase-config.js`.
-5. Replace every placeholder in `window.FIREBASE_CONFIG` with the web-app configuration from the Firebase project.
-
-`src/engine/firebase-config.js` is ignored by Git and must not be committed. For GitHub Pages deployment, the workflow generates it from these repository secrets:
-
-- `FIREBASE_API_KEY`
-- `FIREBASE_AUTH_DOMAIN`
-- `FIREBASE_PROJECT_ID`
-- `FIREBASE_STORAGE_BUCKET`
-- `FIREBASE_MESSAGING_SENDER_ID`
-- `FIREBASE_APP_ID`
-- `FIREBASE_MEASUREMENT_ID` (optional)
-
-The GitHub Pages workflow verifies the game across the responsive matrix (390×844, 844×390, 400×720, 540×900, 720×400, 1024×768, 1440×900) before publishing the static repository root.
-
 ## Project Structure
 
 ```text

@@ -7,8 +7,6 @@
 const CACHE = 'mythika-v11';
 
 const ASSETS = [
-'src/engine/firebase-config.js',
-'src/engine/auth.js',
 'src/engine/viewport.js',
 'src/engine/game.js',
   'src/engine/lifecycle.js',
@@ -106,7 +104,6 @@ const ASSETS = [
   'src/scenes/debug.js',
   'src/scenes/welcome.js',
   'src/scenes/journeyScene.js',
-  'src/scenes/authScene.js',
   'src/main.js',
   'styles/game.css',
   'manifest.json',

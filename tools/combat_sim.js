@@ -12,9 +12,6 @@
  * across the ~94 classic script tags without refactoring game code.
  *
  * SKIPS (logged to stderr, recorded in provenance):
- *   - src/engine/firebase-config.js + src/engine/auth.js (network/auth
- *     surface the sim must not touch; the inline Firebase module bridge is
- *     never picked up because only src="src/..." tags are parsed);
  *   - src/main.js (boot IIFE: would call bootGame/gInit and enter scenes;
  *     the sim needs systems + data, never the boot wiring);
  *   - src/systems/bond.js (defines BOTH BondSystem and BeastBond; kept
@@ -56,8 +53,6 @@ const ROOT = path.resolve(__dirname, '..');
 const INDEX_PATH = path.join(ROOT, 'index.html');
 
 const SKIP_FILES = new Set([
-  'src/engine/firebase-config.js',
-  'src/engine/auth.js',
   'src/main.js',
   'src/systems/bond.js'
 ]);

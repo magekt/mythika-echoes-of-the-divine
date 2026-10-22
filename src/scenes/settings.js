@@ -110,33 +110,18 @@ const settingsScene = Scene.create({
     this.data.buttons.push(rmBtn);
     y += 44;
 
-    // --- Account Section ---
+    // Account section — offline mode only (Firebase removed in v13.0)
     const hasSave = SaveSystem.hasSave();
 
-    // Determine account status
     let accountText, accountBtn, signoutBtn;
 
-    if (typeof Auth !== 'undefined' && Auth.user) {
-      accountText = 'Signed in as: ' + Auth.user.email || Auth.user.uid;
-      accountBtn = UI.Button(20, y, G.W - 40, 38, 'Save to Cloud');
-      accountBtn.onClick = async function() {
-        await SaveSystem.cloudSave();
-        settingsScene.buildButtons();
-      };
-      signoutBtn = UI.Button(20, y + 44, G.W - 40, 38, 'Sign Out');
-      signoutBtn.onClick = async function() {
-        await Auth.signOut();
-        Notify.show('Signed out', 2, R.colors.green);
-        settingsScene.buildButtons();
-      };
-    } else {
-      accountText = 'Not signed in — offline mode';
-      accountBtn = UI.Button(20, y, G.W - 40, 38, 'Sign In / Sign Up');
-      accountBtn.onClick = function() {
-        Scene.goTo('auth');
-      };
-      signoutBtn = null;
-    }
+    accountText = 'Offline mode — local saves';
+    accountBtn = UI.Button(20, y, G.W - 40, 38, 'Save to Local');
+    accountBtn.onClick = function() {
+      SaveSystem.save();
+      settingsScene.buildButtons();
+    };
+    signoutBtn = null;
 
     // --- Save/Load Section ---
     // Save Game button - primary CTA, 38px minimum height

@@ -13,8 +13,6 @@ To run the game locally, you need:
   - Python 3
   - Node.js with `npx` (optional alternative)
 
-Firebase is not required for offline play. An internet connection is needed when using Firebase authentication or cloud-save features because the Firebase SDK is loaded from Google's CDN.
-
 ## Install the Project
 
 1. Clone the repository:
@@ -78,14 +76,6 @@ The repository includes `manifest.json`, application icons, and `sw.js` for prog
 4. Launch Mythika from the installed app icon.
 
 The first online load populates the service-worker cache. Revisit the game after that initial load to verify that cached game assets remain available offline.
-
-## Optional Firebase Features
-
-Firebase Authentication and Firestore cloud saves are optional. The checked-in browser configuration is loaded from `src/engine/firebase-config.js`, while the Firebase browser SDK is requested by `index.html` from Google's CDN.
-
-For ordinary local play, no Firebase setup is required: select **Continue offline**. If maintaining a separate Firebase deployment, replace the browser configuration with values for that Firebase project and configure the authentication providers and Firestore access outside this repository. <!-- VERIFY: Firebase console authentication-provider settings and production Firestore security rules must be confirmed for the target deployment. -->
-
-Do not put private server credentials or service-account keys in browser JavaScript. Firebase web configuration is client-visible by design; access control must be enforced by Firebase Authentication and Firestore Security Rules.
 
 ## Verify the Installation
 

@@ -95,17 +95,6 @@ The CI `verify` job runs steps 2 and 3. Step 1 is a developer gate — keep it g
 - **Config:** Portrait orientation, standalone display, `#e8a030` theme color, `#0a0a1a` background
 - **Icons:** `icon-192.png` (192×192), `icon-512.png` (512×512 maskable)
 
-## Firebase Configuration (Cloud Saves)
-
-Cloud saves are optional — offline `localStorage` play is the default and requires no Firebase setup.
-
-For cloud saves, the deployed `src/engine/firebase-config.js` is generated from repository secrets at deploy time. The Firebase SDKs are loaded from pinned CDN imports in `index.html:47-49`:
-- `firebase-app.js` (v12.18.0)
-- `firebase-auth.js` (v12.18.0)
-- `firebase-firestore.js` (v12.18.0)
-
-Firestore collection: `game_saves/{uid}` (one document per user, secured by auth).
-
 ## Rollback
 
 To rollback a deployment:
@@ -127,15 +116,12 @@ The deployment workflow is unchanged — GitHub Pages handles the custom domain 
 | Issue | Resolution |
 |-------|------------|
 | `verify` job fails on boot matrix | Run `python3 tools/verify_matrix.py --budget 6000` locally with Chrome installed; check `tools/shots/` screenshots |
-| Firebase config generation fails | Verify all 6 required `FIREBASE_*` secrets are set in repository settings |
 | Service worker serves stale assets | Increment cache name in `sw.js:7` (e.g., `mythika-v12`) |
 | PWA not installable | Verify `manifest.json` and icons are accessible; serve over HTTPS (required for service workers) |
-| Cloud saves not working | Check Firestore rules allow `game_saves/{uid}` read/write by authenticated user only |
 
 ## Security Notes
 
-- No secrets in the repository — all Firebase config injected at deploy time from GitHub secrets
-- `src/engine/firebase-config.js` is gitignored and never committed
+- No secrets in the repository
 - GitHub Pages deployment uses OIDC token (`id-token: write`) for authentication
 - Workflow permissions scoped to `contents: read`, `pages: write`, `id-token: write`
 
