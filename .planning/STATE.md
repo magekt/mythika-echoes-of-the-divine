@@ -2,65 +2,62 @@
 gsd_state_version: 1.0
 milestone: v13.0
 milestone_name: Screen-by-Scene Audit & Firebase Removal
-status: planning
-last_updated: "2026-10-22T21:58:36.105Z"
-last_activity: 2026-10-22
+status: complete
+last_updated: "2026-10-23"
+last_activity: 2026-10-23
 progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 7
+  completed_phases: 7
+  total_plans: 7
+  completed_plans: 7
+  percent: 100
 ---
 
-# State: Mythika v12.0
+# State: Mythika v13.0
 
 ## Project Reference
 
 **Core Value**: Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
 
-**Current Focus**: v12.0 — HUD Alignment verification (Phases 57–64). Verify HUD screen/scene alignment across all 5 viewport sizes after v11.0 combat FX changes.
+**Current Focus**: v13.0 — Screen-by-Scene Audit & Firebase Removal (complete). Audited all 26 scenes one-by-one, updated outdated details (title version v1.0 → v13.0), removed all Firebase instances.
 
-**Architecture**: Vanilla JavaScript, immediate-mode Canvas 2D, localStorage, PWA. No frameworks, bundlers, WebGL, or ES modules.
+**Architecture**: Vanilla JavaScript, immediate-mode Canvas 2D, localStorage, PWA. No frameworks, bundlers, WebGL, or ES modules. Firebase fully removed.
 
-**Constraints**: Zero per-frame allocation, R.reducedMotion() gating, save-compatible, no new element types, no new zone IDs, shake scoped to game loop only.
+**Constraints**: Zero per-frame allocation, R.reducedMotion() gating, save-compatible, no new element types, no new zone IDs, shake scoped to game loop only, no Firebase.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Complete (all 7 phases 65–71)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-10-22 — Milestone v13.0 started
+Status: Complete
+Last activity: 2026-10-23 — Milestone v13.0 shipped
 
 ## Performance Metrics
 
-**Tests**: 628/629 pass (1 pre-existing skip) — from v11.0 baseline
-**UI Invariants**: Clean — from v11.0 baseline
-**Viewport Matrix**: 5 sizes to verify (400×720, 540×900, 720×400, 1024×768, 1440×900)
-**Scenes**: ~27 scenes to audit; combatScene and travelMap highest regression risk
+**Tests**: 647 pass / 0 fail / 1 pre-existing skip
+**UI Invariants**: Clean — check_ui_invariants.sh all checks passed
+**Browser boot matrix**: All 3 profiles clean (desktop, phone, phone-land)
+**Scenes**: 26 audited; title version v1.0 → v13.0; authScene removed
 
 ## Accumulated Context
 
 ### Decisions
 
-- v12.0 scope is HUD Alignment verification only (particles, shake features, combat FX features, zone content deferred to future milestones)
-- HUD-06 and HUD-07 are verification of existing v11.0 shake/FX not breaking HUD — not new FX feature development
-- Fine granularity (8 phases) per config.json
-- Phase numbering continues from v11.0 (ended at Phase 56)
+- v13.0 scope: screen-by-scene audit + Firebase removal only (no new zones/element types, no gameplay-rule changes)
+- Firebase removed entirely; localStorage remains the canonical persistence; authScene sign-in UI removed
+- Phase numbering continues from v12.0 (ended at Phase 64) → v13.0 phases 65–71
+- Title version number v1.0 → v13.0 (the only stale version display across all 26 scenes)
 
 ### Todos
 
-- Approve ROADMAP.md
-- Plan Phase 57
-- Execute Phase 57
-- Execute remaining phases 58–64
+- None (all complete)
 
 ### Blockers
 
-- Roadmap not yet approved (awaiting user feedback)
+- None
 
 ## Session Continuity
 
-**Last Action**: Phase 57 context gathered via /gsd-discuss-phase 57 — verification method decided (Both: layout harness + coordinate assertions)
-**Next Action**: `/gsd-plan-phase 57`
-**Files**: .planning/ROADMAP.md, .planning/STATE.md, .planning/REQUIREMENTS.md, .planning/phases/57-base-canvas-alignment/57-CONTEXT.md, .planning/phases/57-base-canvas-alignment/57-DISCUSSION-LOG.md
+**Last Action**: Phase 71 Verification — Node suite green, browser boot matrix clean, UI invariants clean
+**Next Action**: Milestone v13.0 complete — run /gsd-discuss-phase for the next milestone
+**Files**: .planning/ROADMAP.md, .planning/STATE.md, .planning/REQUIREMENTS.md, .planning/v13.0-MILESTONE-AUDIT.md

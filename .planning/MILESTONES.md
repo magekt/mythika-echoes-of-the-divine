@@ -1,5 +1,22 @@
 # Milestones
 
+## v13.0 Screen-by-Scene Audit & Firebase Removal (Shipped: 2026-10-23)
+
+**Phases completed:** 7 phases, 7 plans
+
+**Key accomplishments:**
+
+- Phase 65 — Firebase Removal — Core: Removed Firebase SDK CDN imports and init module from index.html, Firebase auth integration from src/engine/auth.js (offline stub), authScene sign-in UI + its navigation route, src/engine/firebase-config.js and firebase-config.template.js; updated consumers (main.js, navigation.js, save.js, settings.js).
+- Phase 66 — Firebase Removal — Infra & Docs: Removed firebase-config.js/auth.js from sw.js precache, Firebase config generation steps + FIREBASE_* secrets from .github/workflows/pages.yml, Firebase setup instructions from INSTALL.md/README.md/DEPLOYMENT.md/DEVELOPMENT.md/GETTING-STARTED.md/TROUBLESHOOTING.md, deleted tools/write_firebase_config.py; grep-clean confirmed no Firebase references remain in game code.
+- Phase 67–70 — Scene Audit Groups 1–4: Audited all 26 scenes one-by-one for outdated details; updated title scene version number `v1.0` → `v13.0` (the only stale version display); confirmed no other scene displays a version or references Firebase/auth. achievementsScene and alchemyScene also verified clean.
+- Phase 71 — Verification: Game boots and loads saves via localStorage without Firebase; no scene retains an outdated version; full Node suite 647/0 pass + UI invariants clean; browser boot matrix all 3 profiles clean; R.reducedMotion() and shake-scoping contracts hold.
+
+**Date:** 2026-10-23
+
+**Archive:** [ROADMAP](milestones/v13.0-ROADMAP.md), [REQUIREMENTS](milestones/v13.0-REQUIREMENTS.md)
+
+---
+
 ## v12.0 Visual Polish & Combat FX (Shipped: 2026-10-22)
 
 **Phases completed:** 8 phases, 8 plans
