@@ -1,55 +1,60 @@
----
-gsd_state_version: 1.0
-milestone: v12.0
-milestone_name: Visual Polish & Combat FX
-status: planning
-last_updated: "2026-10-22T14:00:00+05:30"
-last_activity: "2026-10-22 -- Milestone v12.0 started"
-progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
----
-
-# Project State
+# State: Mythika v12.0
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-10-22)
+**Core Value**: Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
 
-**Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Defining requirements (v12.0)
+**Current Focus**: v12.0 — HUD Alignment verification (Phases 57–64). Verify HUD screen/scene alignment across all 5 viewport sizes after v11.0 combat FX changes.
+
+**Architecture**: Vanilla JavaScript, immediate-mode Canvas 2D, localStorage, PWA. No frameworks, bundlers, WebGL, or ES modules.
+
+**Constraints**: Zero per-frame allocation, R.reducedMotion() gating, save-compatible, no new element types, no new zone IDs, shake scoped to game loop only.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-10-22 -- Milestone v12.0 started
+**Milestone**: v12.0 — HUD Alignment Verification
+**Phase**: 57 (Base Canvas Alignment) — Not started
+**Plan**: TBD — Awaiting roadmap approval
+**Status**: Not started
+**Progress**: 0/8 phases complete
+
+| Phase | Status |
+|-------|--------|
+| 57 - Base Canvas Alignment | Not started |
+| 58 - Portrait & Landscape Viewports | Not started |
+| 59 - Desktop Viewports | Not started |
+| 60 - Shake Scoping & HUD Isolation | Not started |
+| 61 - Combat FX vs HUD Separation | Not started |
+| 62 - Layout Harness Regression | Not started |
+| 63 - UI Invariants Gate | Not started |
+| 64 - Full Scene Alignment Audit | Not started |
+
+## Performance Metrics
+
+**Tests**: 628/629 pass (1 pre-existing skip) — from v11.0 baseline
+**UI Invariants**: Clean — from v11.0 baseline
+**Viewport Matrix**: 5 sizes to verify (400×720, 540×900, 720×400, 1024×768, 1440×900)
+**Scenes**: ~27 scenes to audit; combatScene and travelMap highest regression risk
 
 ## Accumulated Context
 
 ### Decisions
+- v12.0 scope is HUD Alignment verification only (particles, shake features, combat FX features, zone content deferred to future milestones)
+- HUD-06 and HUD-07 are verification of existing v11.0 shake/FX not breaking HUD — not new FX feature development
+- Fine granularity (8 phases) per config.json
+- Phase numbering continues from v11.0 (ended at Phase 56)
 
-- v10.0 shipped 2026-10-14 (Phases 50–53): UI.Component factory + mixins, R.springConfigs, renderer hardening; 25/25 requirements, 579 tests green.
-- v11.0 scope: combat damage FX built on the winning variant-c-rich sketch (spring bounce + element burst + reduced-motion). Grounded in the v10.0 foundation; no new elements, no WebGL.
-- Phase 54 (Damage Floater Foundation) completed — upgraded `R.damageNumber` with element/crit opts and spring-driven rendering.
-- Phase 55 (Element Burst Particles) completed — pre-allocated 60-slot circular buffer, 6-particle normal / 10-particle crit, reduced-motion gated.
-- Phase 56 (Combat Integration + Tests) completed — `combatScene.js` hit sites wired to `R.elementBurst`; `tests/damage_fx.test.js` added; 605/606 suite green.
+### Todos
+- Approve ROADMAP.md
+- Plan Phase 57
+- Execute Phase 57
+- Execute remaining phases 58–64
 
-### Concerns
+### Blockers
+- Roadmap not yet approved (awaiting user feedback)
 
-- Zero per-frame allocation: floater + burst spring/particle state must be allocated once at spawn and mutated in place (CONCERNS.md critical item from v10.0 review).
-- `R.reducedMotion()` must gate both spring bounce and particle burst.
+## Session Continuity
 
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 261022-j7j | Audit existing call sites, enforce R.reducedMotion() as the single source of truth | 2026-10-22 | 4964b8a | [261022-j7j-audit-existing-call-sites-enforce-r-redu](./quick/261022-j7j-audit-existing-call-sites-enforce-r-redu/) |
-
-## Next Action
-
-- Milestone v12.0 started. Requirements definition in progress via `/gsd-new-milestone`. Next: `/gsd-discuss-phase [N]` or `/gsd-plan-phase [N]` after roadmap approval.
+**Last Action**: Created v12.0 roadmap (Phases 57–64) — awaiting approval
+**Next Action**: User approval of roadmap, then `/gsd-plan-phase 57`
+**Files**: .planning/ROADMAP.md, .planning/STATE.md, .planning/REQUIREMENTS.md (traceability updated)

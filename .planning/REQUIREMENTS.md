@@ -57,21 +57,21 @@ Deferred — landmarks and variants within existing zone IDs scoped to future mi
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HUD-01 | Phase [N] | Pending |
-| HUD-02 | Phase [N] | Pending |
-| HUD-03 | Phase [N] | Pending |
-| HUD-04 | Phase [N] | Pending |
-| HUD-05 | Phase [N] | Pending |
-| HUD-06 | Phase [N] | Pending |
-| HUD-07 | Phase [N] | Pending |
-| HUD-08 | Phase [N] | Pending |
-| HUD-09 | Phase [N] | Pending |
-| HUD-10 | Phase [N] | Pending |
+| HUD-01 | Phase 57 | Pending |
+| HUD-02 | Phase 58 | Pending |
+| HUD-03 | Phase 58 | Pending |
+| HUD-04 | Phase 59 | Pending |
+| HUD-05 | Phase 59 | Pending |
+| HUD-06 | Phase 60 | Pending |
+| HUD-07 | Phase 61 | Pending |
+| HUD-08 | Phase 62 | Pending |
+| HUD-09 | Phase 63 | Pending |
+| HUD-10 | Phase 64 | Pending |
 
 **Coverage:**
 - v1 requirements: 10 total
-- Mapped to phases: 0 (filled by roadmap)
-- Unmapped: 10 ⚠️
+- Mapped to phases: 10 (filled by roadmap)
+- Unmapped: 0 ✓
 
 ---
 *Defined 2026-10-22 for v12.0*
