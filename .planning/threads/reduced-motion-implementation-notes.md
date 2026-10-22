@@ -1,7 +1,7 @@
 ---
 slug: reduced-motion-implementation-notes
 title: Reduced-motion implementation notes
-status: in_progress
+status: resolved
 created: 2026-10-15
 updated: 2026-10-15
 ---
