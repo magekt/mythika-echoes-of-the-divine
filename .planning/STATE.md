@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v11.0
 milestone_name: Combat Damage FX
-status: executing
-last_updated: "2026-10-21T15:59:44.773Z"
-last_activity: 2026-10-21 -- Phase 048 execution started
+status: complete
+last_updated: "2026-10-22T13:00:00+05:30"
+last_activity: 2026-10-22 -- Milestone v11.0 complete (Phases 54-56 shipped)
 progress:
   total_phases: 31
-  completed_phases: 28
+  completed_phases: 31
   total_plans: 53
-  completed_plans: 61
-  percent: 90
+  completed_plans: 64
+  percent: 100
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-15)
 
 ## Current Position
 
-Phase: 048 (panel-modal-nested-shells) — EXECUTING
+Phase: 056 (combat-integration-tests) — COMPLETE
 Plan: 1 of 1
-Status: Executing Phase 048
-Last activity: 2026-10-21 -- Phase 048 execution started
+Status: Milestone v11.0 complete (Phases 54-56 shipped)
+Last activity: 2026-10-22 -- Milestone v11.0 audit passed (10/10 requirements)
 
 ## Accumulated Context
 
@@ -46,4 +46,4 @@ Last activity: 2026-10-21 -- Phase 048 execution started
 
 ## Next Action
 
-- Milestone v11.0 complete. Ready for v12.0 milestone planning.
+- Milestone v11.0 complete. Milestone archived at `.planning/milestones/v11.0-ROADMAP.md`, `.planning/milestones/v11.0-REQUIREMENTS.md`, `.planning/milestones/v11.0-phases/`. Ready for v12.0 milestone planning.
