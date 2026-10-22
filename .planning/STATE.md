@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v11.0
 milestone_name: Combat Damage FX
-status: "v11.0 in progress — Phase 55 planning"
-stopped_at: Phase 54 complete; Phase 55 drafted (ROADMAP-v11.md)
-last_updated: "2026-10-15T09:30:00.000Z"
-last_activity: 2026-10-15
+status: shipped
+last_updated: "2026-10-22T13:15:00+05:30"
+last_activity: 2026-10-22 -- Completed quick task 261022-j7j: Audit existing call sites, enforce R.reducedMotion() as the single source of truth
 progress:
-  total_phases: 3
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 33
+  total_phases: 31
+  completed_phases: 31
+  total_plans: 53
+  completed_plans: 64
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-10-15)
 
 **Core value:** Every play session should feel like a meaningful cultivation journey: the player understands their next path, makes consequential choices, sees those choices reshape the world, and trusts that the resulting state persists.
-**Current focus:** Milestone v11.0 — Combat Damage FX
+**Current focus:** Phase 048 — panel-modal-nested-shells
 
 ## Current Position
 
-Phase: Phase 55 — Element Burst Particles (drafted)
-Plan: —
-Status: v11.0 in progress — Phase 54 complete, Phase 55 ready for planning
-Last activity: 2026-10-15
+Phase: 056 (combat-integration-tests) — SHIPPED
+Plan: 1 of 1
+Status: Milestone v11.0 shipped — PR #4
+Last activity: 2026-10-22 -- Milestone v11.0 shipped — PR #4
 
 ## Accumulated Context
 
@@ -37,12 +36,20 @@ Last activity: 2026-10-15
 - v10.0 shipped 2026-10-14 (Phases 50–53): UI.Component factory + mixins, R.springConfigs, renderer hardening; 25/25 requirements, 579 tests green.
 - v11.0 scope: combat damage FX built on the winning variant-c-rich sketch (spring bounce + element burst + reduced-motion). Grounded in the v10.0 foundation; no new elements, no WebGL.
 - Phase 54 (Damage Floater Foundation) completed — upgraded `R.damageNumber` with element/crit opts and spring-driven rendering.
+- Phase 55 (Element Burst Particles) completed — pre-allocated 60-slot circular buffer, 6-particle normal / 10-particle crit, reduced-motion gated.
+- Phase 56 (Combat Integration + Tests) completed — `combatScene.js` hit sites wired to `R.elementBurst`; `tests/damage_fx.test.js` added; 605/606 suite green.
 
 ### Concerns
 
 - Zero per-frame allocation: floater + burst spring/particle state must be allocated once at spawn and mutated in place (CONCERNS.md critical item from v10.0 review).
 - `R.reducedMotion()` must gate both spring bounce and particle burst.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 261022-j7j | Audit existing call sites, enforce R.reducedMotion() as the single source of truth | 2026-10-22 | 4964b8a | [261022-j7j-audit-existing-call-sites-enforce-r-redu](./quick/261022-j7j-audit-existing-call-sites-enforce-r-redu/) |
+
 ## Next Action
 
-- `/gsd-plan-phase 55` — plan the Element Burst Particles phase.
+- Milestone v11.0 complete. Milestone archived at `.planning/milestones/v11.0-ROADMAP.md`, `.planning/milestones/v11.0-REQUIREMENTS.md`, `.planning/milestones/v11.0-phases/`. Ready for v12.0 milestone planning.

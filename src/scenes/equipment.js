@@ -293,7 +293,7 @@ const equipmentScene = Scene.create({
 
     // Content crossfade on tab switch (chrome above stays anchored).
     const bt = this.data._builtAt;
-    const fade = (!bt || G.state.reduceMotion) ? 1 : Math.min(1, (performance.now() - bt) / 90);
+    const fade = (!bt || R.reducedMotion()) ? 1 : Math.min(1, (performance.now() - bt) / 90);
     ctx.globalAlpha = ctx.globalAlpha * fade;
     for (const b of Scene.cullButtons(this.data.buttons, this.data.scrollY, this.getContentHeight())) b.render(ctx);
     Scene.drawStatic(ctx, this.data.staticDraws);

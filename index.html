@@ -45,12 +45,11 @@
       if (!barEl) return;
       var group = GROUPS[currentGroup];
       if (!group) return;
-      var pct = Math.round((group.cumDone / TOTAL) * 100);
+      var doneGroup = GROUPS[currentGroup - 1];
+      var pct = Math.round(((doneGroup ? doneGroup.cumDone : 0) / TOTAL) * 100);
       barEl.style.width = pct + '%';
       if (labelEl) {
-        var stage = currentGroup < GROUPS.length - 1
-          ? 'Loading ' + GROUPS[currentGroup + 1].name
-          : 'Booting game';
+        var stage = 'Loading ' + group.name;
         labelEl.textContent = pct + '%  ' + stage;
       }
     }

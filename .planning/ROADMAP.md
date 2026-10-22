@@ -11,7 +11,7 @@
 - ✅ **v7.0 Adaptive Viewport** — Phase 42 (shipped 2026-10-13)
 - ✅ **v9.0 Premium UI/UX Foundations** — Phases 46-49 (shipped 2026-10-14)
 - ✅ **v10.0 Shared Library Foundations** — Phases 50-53 (shipped 2026-10-14)
-- 🚧 **v11.0 Combat Damage FX** — Phases 54-56 (in progress, Phase 54 shipped 2026-10-15)
+- ✅ **v11.0 Combat Damage FX** — Phases 54-56 (shipped 2026-10-22)
 
 ## Completed Milestones
 
@@ -563,6 +563,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 43. Loading Overlay and Progress Reporting | v8.0 | 1/1 | Complete | 2026-10-13 |
 | 44. Input Guarding | v8.0 | 1/1 | Complete | 2026-10-13 |
+| 45. Performance Optimizations | v8.0 | 1/1 | Complete   | 2026-10-21 |
 
 ## Coverage (v7.0)
 
@@ -578,8 +579,12 @@ Plans:
 |-------------|----------------|-----------|
 | INPUT-01 — No user input processed during boot | Phase 44 | v8.0 |
 | INPUT-05 — Input._ready checked at UI consumer side | Phase 44 | v8.0 |
+| PERF-01 — Brotli compression (hosting-layer) | Phase 45 | v8.0 |
+| PERF-02 — Preconnect to Firebase CDN | Phase 45 | v8.0 |
+| PERF-03 — Firebase module at end of body | Phase 45 | v8.0 |
+| PERF-04 — ?probe boot duration + per-group timings | Phase 45 | v8.0 |
 
-**v8.0 Coverage:** 2/2 requirements mapped exactly once; no orphans or duplicates.
+**v8.0 Coverage:** 6/6 requirements mapped exactly once; no orphans or duplicates.
 
 ## Dependency Graph (v7.0)
 
@@ -625,15 +630,15 @@ Phase 44 (Input Guarding) — standalone, no dependencies
 - [x] **Phase 52:** Renderer Primitive Hardening (1/1 plan)
 - [x] **Phase 53:** Component Factory Migration (1/1 plan)
 
-## v11.0 — Combat Damage FX 🚧 IN PROGRESS (2026-10-15)
+## v11.0 — Combat Damage FX ✅ SHIPPED (2026-10-22)
 
-**Goal:** Upgrade combat damage feedback from the flat `R.damageNumber` text buffer to a spring-driven, element-aware damage floater system — consistent with the v10.0 `UI.Component` + mixin foundation and the project's zero-per-frame-allocation constraint.
+**Goal (achieved):** Upgrade combat damage feedback from the flat `R.damageNumber` text buffer to a spring-driven, element-aware damage floater system — consistent with the v10.0 `UI.Component` + mixin foundation and the zero-per-frame-allocation constraint.
 
-*Full details: [ROADMAP-v11.md](ROADMAP-v11.md)*
+*Full details: [milestones/v11.0-ROADMAP.md](milestones/v11.0-ROADMAP.md)*
 
 - [x] **Phase 54:** Damage Floater Foundation (1/1 plan)
-- [ ] **Phase 55:** Element Burst Particles (0/1 plan)
-- [ ] **Phase 56:** Combat Integration + Tests (0/1 plan)
+- [x] **Phase 55:** Element Burst Particles (1/1 plan)
+- [x] **Phase 56:** Combat Integration + Tests (1/1 plan)
 
 ---
 
@@ -644,7 +649,7 @@ Phases tracked in milestone-specific roadmap files (not duplicated in this file)
 - v8.0 (Phases 43-45): [ROADMAP-v8.md](ROADMAP-v8.md)
 - v9.0 (Phases 46-49): [milestones/v9.0-ROADMAP.md](milestones/v9.0-ROADMAP.md)
 - v10.0 (Phases 50-53): [milestones/v10.0-ROADMAP.md](milestones/v10.0-ROADMAP.md)
-- v11.0 (Phases 54-56): [ROADMAP-v11.md](ROADMAP-v11.md)
+- v11.0 (Phases 54-56): [milestones/v11.0-ROADMAP.md](milestones/v11.0-ROADMAP.md)
 
 ---
-*Roadmap reorganized 2026-10-10 at v5.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md. v6.0 section appended 2026-10-10. v8.0 section added 2026-10-13. v10.0 archived 2026-10-15.*
+*Roadmap reorganized 2026-10-10 at v5.0 close. Detail archives: milestones/v2.0-ROADMAP.md, milestones/v3.0-ROADMAP.md, milestones/v4.0-ROADMAP.md. v6.0 section appended 2026-10-10. v8.0 section added 2026-10-13. v10.0 archived 2026-10-15. v11.0 archived 2026-10-22.*

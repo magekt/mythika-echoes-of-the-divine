@@ -117,6 +117,9 @@ UI.Button = function(x, y, w, h, text, color, hoverColor, textColor) {
 
   // Render hook: draws button with spring scale transform
   btn._renderHook = function(ctx, b) {
+    // Null-safe: a missing context must never crash the render loop
+    // (threat model T-047-01: Button render with null ctx).
+    if (!ctx) return;
     // Held press-down state: mirror the live pointer position (touch OR
     // mouse) so touch users see the same feedback hover gives desktop.
     // Screen-space pointer y maps into build-space via this.scrollY.
@@ -515,6 +518,9 @@ UI.MagneticBtn = function(x, y, w, h, label, opts = {}) {
 
   // Render hook: draws variant-appropriate button with spring scale
   btn._renderHook = function(ctx, b) {
+    // Null-safe: a missing context must never crash the render loop
+    // (threat model T-047-01: Button render with null ctx).
+    if (!ctx) return;
     const reduceMotion = R.reducedMotion && R.reducedMotion();
     const bx = b.x, by = b.y, bw = b.w, bh = b.h;
 

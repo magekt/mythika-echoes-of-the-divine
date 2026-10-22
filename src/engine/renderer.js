@@ -42,6 +42,15 @@ const R = {
     success: 'rgba(76,200,48,0.9)',
     warning: 'rgba(232,160,48,0.9)',
     danger: 'rgba(200,48,48,0.9)',
+    // Phase 55: element color tokens for burst + floater tint
+    elements: {
+      fire:      { primary: '#ff6020', secondary: '#ff9040' },
+      ice:       { primary: '#a0e0ff', secondary: '#d0f0ff' },
+      lightning: { primary: '#c0c0ff', secondary: '#ffffff' },
+      dark:      { primary: '#8040ff', secondary: '#402060' },
+      holy:      { primary: '#e8e0d0', secondary: '#f0c060' },
+      default:   { primary: '#e8a030', secondary: '#f0c060' }
+    }
   },
   // Corner-radius scale (Shape Consistency Lock): xs=3 chips/ticks, s=5
   // buttons/small bars, m=8 panels/headers, l=10 large cards. New UI adopts
@@ -477,17 +486,56 @@ R.shakeX = 0;
 R.shakeY = 0;
 R.shakeTimer = 0;
 
-R.damageNumber = function(ctx, x, y, value, color) {
+// ── Phase 54: spring-driven, element-aware damage floaters ─────────────
+// Pre-allocated circular buffer with spring state attached to each floater.
+// Spring state is allocated once at spawn (DMG-01/02) and stepped in place
+// during update — zero per-frame object allocation.
+//
+//  R.damageNumber(ctx, x, y, value, color, opts?)
+//  opts = { element: 'fire'|'ice'|'lightning'|'dark'|'holy'|'default',
+//           crit:    boolean,
+//           heal:    boolean }
+//
+//  DMG-03: element tint + icon chip from R.colors.elements tokens
+//  DMG-04: crit renders larger (scale-in boost) with gold emphasis ring
+//  DMG-05: reducedMotion → no spring bounce (instant appear + fade only)
+
+var FLOATER_SPRING = R.spring({ stiffness: 180, damping: 18, target: 1 });
+
+R.damageNumber = function(ctx, x, y, value, color, opts) {
+  var o = opts || {};
+  var element = o.element || 'default';
+  var isCrit  = !!o.crit;
+  var isHeal  = !!o.heal;
+  var el      = R.colors.elements[element] || R.colors.elements.default;
+
+  // Pre-allocate spring state once; springFn stored on the floater object
+  // so updateEffects can step it in place without re-creating it.
+  var springState = { value: 0, velocity: 0, _springFn: FLOATER_SPRING };
+
   R.damageNumbers.add({
-    x: x, y: y, value: value,
-    color: color || R.colors.red,
-    vy: -40, life: 1, maxLife: 1
+    x: x,
+    y: y,
+    value: value,
+    color: color || el.primary,
+    elPrimary: el.primary,
+    elSecondary: el.secondary,
+    element: element,
+    crit: isCrit,
+    heal: isHeal,
+    vy: -40,
+    life: isCrit ? 1.4 : 1,
+    maxLife: isCrit ? 1.4 : 1,
+    // Spring scale: 0 → 1 (crit overshoots slightly via target tuning)
+    scale: 0,
+    _spring: springState,
+    _reduced: R.reducedMotion()
   });
 };
 
 R.screenShake = function(intensity, duration) {
   // Reduce Motion: keep the hit feedback in damage numbers/log, drop the shake.
-  if (G.state.reduceMotion) return;
+  if (R.reducedMotion()) return;
   R.shakeX = 0;
   R.shakeY = 0;
   R.shakeTimer = duration || 0.3;
@@ -498,13 +546,21 @@ R.screenShake = function(intensity, duration) {
 R.deathBursts = createCircularBuffer(30);
 
 R.deathBurst = function(x, y, color) {
-  if (G.state.reduceMotion) return;
+  if (R.reducedMotion()) return;
   R.deathBursts.add({ x: x, y: y, life: 0.6, maxLife: 0.6, color: color || R.colors.red });
 };
 
 R.updateEffects = function(dt) {
-  // Damage numbers - filter out expired
+  // Damage numbers — advance spring + filter out expired (DMG-01/02/05)
   R.damageNumbers.filterInPlace(d => {
+    if (!d._reduced) {
+      // Normal path: spring-driven scale-in, vertical float
+      R.spring.step(d._spring, dt);
+      d.scale = d._spring.value;
+    } else {
+      // DMG-05: reduced-motion — no bounce, instant appear + fade
+      d.scale = 1;
+    }
     d.y += d.vy * dt;
     d.life -= dt;
     return d.life > 0;
@@ -527,11 +583,52 @@ R.updateEffects = function(dt) {
 
 R.renderEffects = function(ctx) {
   R.damageNumbers.forEach(d => {
-    const alpha = Math.max(0, d.life / d.maxLife);
+    var alpha = Math.max(0, d.life / d.maxLife);
+    var scale = d.scale !== undefined ? d.scale : 1;
+    var isCrit = !!d.crit;
+    var isHeal = !!d.heal;
+    var elPrimary = d.elPrimary || d.color || R.colors.red;
+    var elSecondary = d.elSecondary || R.colors.red;
+    var dispX = d.x + R.shakeX;
+    var dispY = d.y + R.shakeY;
+
     ctx.globalAlpha = alpha;
-    R.textCenter(ctx, d.value.toString(), d.x + R.shakeX, d.y + R.shakeY, d.color, R.fonts.lg);
+
+    // DMG-03: element icon chip — small rounded rect left of the number
+    if (d.element && d.element !== 'default') {
+      var chipW = 8, chipH = 8;
+      var chipX = dispX - (isCrit ? 22 : 16) - chipW / 2;
+      var chipY = dispY - chipH / 2;
+      ctx.fillStyle = elSecondary;
+      ctx.beginPath();
+      ctx.arc(chipX, chipY, chipW / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = elPrimary;
+      ctx.beginPath();
+      ctx.arc(chipX, chipY, chipW / 2 - 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // DMG-04: crit — gold emphasis ring around the number
+    if (isCrit) {
+      ctx.strokeStyle = R.colors.gold;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(dispX, dispY, 14 * scale, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // DMG-03/04: element tint + scale-driven size; heal shows + prefix in green
+    var fontBase = isCrit ? '20px "Geist", -apple-system, BlinkMacSystemFont, sans-serif' : R.fonts.lg;
+    ctx.font = fontBase;
+    ctx.textAlign = 'center';
+    var label = isHeal ? '+' + d.value : d.value.toString();
+    var textColor = isHeal ? R.colors.green : elPrimary;
+    ctx.fillStyle = textColor;
+    ctx.fillText(label, dispX, dispY + R.shakeY * 0);
+    ctx.textAlign = 'left';
   });
-  
+
   R.deathBursts.forEach(b => {
     const t = 1 - b.life / b.maxLife;
     const alpha = b.life / b.maxLife;
@@ -557,6 +654,69 @@ R.renderEffects = function(ctx) {
     ctx.fillRect(0, 0, G.W, G.H);
     ctx.globalAlpha = 1;
   }
+};
+
+// ── Phase 55: Element burst particles ─────────────────────────────────
+// Pre-allocated circular buffer. No per-frame object allocation.
+// crit bursts spawn 10 particles, normal bursts spawn 6.
+R.elementBurstSlots = new Array(60);
+R.elementBurstCount = 0;
+R.elementBurstWriteIdx = 0;
+
+R.elementBurst = function(x, y, element, crit) {
+  if (R.reducedMotion()) return;
+  var el = R.colors.elements[element] || R.colors.elements.default;
+  var count = crit ? 10 : 6;
+  for (var i = 0; i < count; i++) {
+    var wIdx = R.elementBurstWriteIdx;
+    var angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+    var speed = crit ? 60 : 40;
+    var life = crit ? 0.5 : 0.35;
+    var size = crit ? 4 : 2.5;
+    var color = i % 2 ? el.secondary : el.primary;
+    var slot = R.elementBurstSlots[wIdx];
+    if (slot) {
+      slot.x = x; slot.y = y;
+      slot.vx = Math.cos(angle) * speed;
+      slot.vy = Math.sin(angle) * speed;
+      slot.life = life; slot.maxLife = life;
+      slot.size = size; slot.color = color;
+      slot.active = true;
+    } else {
+      R.elementBurstSlots[wIdx] = {
+        x: x, y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: life, maxLife: life,
+        size: size, color: color,
+        active: true
+      };
+    }
+    R.elementBurstWriteIdx = (wIdx + 1) % 60;
+    if (R.elementBurstCount < 60) R.elementBurstCount++;
+  }
+};
+
+R.updateElementBursts = function(dt) {
+  for (var i = 0; i < 60; i++) {
+    var p = R.elementBurstSlots[i];
+    if (!p || !p.active) continue;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.life -= dt;
+    if (p.life <= 0) p.active = false;
+  }
+};
+
+R.renderElementBursts = function(ctx) {
+  var sx = R.shakeX, sy = R.shakeY;
+  for (var i = 0; i < 60; i++) {
+    var p = R.elementBurstSlots[i];
+    if (!p || !p.active) continue;
+    ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+    R.rect(ctx, p.x + sx - p.size / 2, p.y + sy - p.size / 2, p.size, p.size, p.color);
+  }
+  ctx.globalAlpha = 1;
 };
 
 // ── Click-outcome micro-FX ────────────────────────────────────────────
@@ -735,7 +895,7 @@ R.drawEncounterTimer = function(ctx, x, y, remaining, total) {
 R.drawCultivationAura = function(ctx, x, y, time) {
   // Reduce Motion: hold the rings at their resting size (still signals an
   // active aura, without the continuous pulse).
-  const rm = !!G.state.reduceMotion;
+  const rm = R.reducedMotion();
   const radius = rm ? 20 : 20 + Math.sin(time * 2) * 5;
   ctx.strokeStyle = 'rgba(200, 160, 80, 0.3)';
   ctx.lineWidth = 2;
@@ -867,7 +1027,7 @@ R.renderLevelUp = function(ctx) {
 R.renderEnlightenmentAura = function(ctx, dt) {
   // Reduce Motion: the full-screen breathing glow is decorative — skip it.
   // The ENLIGHTENED timer chip remains the functional buff indicator.
-  if (G.state.reduceMotion) return;
+  if (R.reducedMotion()) return;
   if (G.state.enlightenmentTimer > 0 && G.state.enlightenmentBuff) {
     R.enlightenmentAura += dt * 2;
     const pulse = 0.3 + Math.sin(R.enlightenmentAura) * 0.15;

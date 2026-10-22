@@ -105,6 +105,7 @@ UI.Modal._updateHook = function(dt, m) {
 
 // Render hook: shared painter for overlay + panel + content
 UI.Modal._renderHook = function(ctx, m) {
+  if (!ctx) return;
   if (typeof window !== 'undefined' && window.__layoutHarness) window.__layoutHarness.overlay = true;
   try {
     const reduceMotion = R.reducedMotion();
@@ -230,6 +231,7 @@ UI.Modal.render = function(ctx) {
 
 // Shared painter for overlay + panel + content (used by ghost and active)
 UI.Modal._paint = function(ctx, m) {
+  if (!ctx) return;
   ctx.save();
   // Phase 48 — PAN-02: overlay backdrop alpha interpolates (not instant).
   const overlayAlpha = m._overlayProgress !== undefined ? m._overlayProgress : 1;

@@ -52,7 +52,7 @@ const titleScene = Scene.create({
   update: function(dt) {
     // Ease-out settle: fast arrival, soft landing — 1.6s cinematic on the
     // first-ever visit, 900ms afterwards. Instant under Reduce Motion.
-    if (G.state.reduceMotion) {
+    if (R.reducedMotion()) {
       this.data.titleY = 60;
       G.state.flags.titleSeen = true;
     } else {
@@ -64,7 +64,7 @@ const titleScene = Scene.create({
       if (ep >= 1) G.state.flags.titleSeen = true;
     }
     // Reduce Motion: particles render as a static starfield (no drift loop).
-    if (!G.state.reduceMotion) {
+    if (!R.reducedMotion()) {
       for (const p of this.data.particles) {
         p.x += p.vx; p.y += p.vy;
         if (p.y < -10) { p.y = G.H + 10; p.x = Math.random() * G.W; }

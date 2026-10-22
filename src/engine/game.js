@@ -64,7 +64,7 @@ const Notify = {
   render: function(ctx) {
     if (typeof window !== 'undefined' && window.__layoutHarness) window.__layoutHarness.overlay = true;
     try {
-    const reduceMotion = !!G.state.reduceMotion;
+    const reduceMotion = R.reducedMotion();
     const toastLaneTop = Scene.toastLane().y;
     let ty = toastLaneTop - 50; // start above lane with margin
     const count = Math.min(this.queue.length, 3);
@@ -98,7 +98,7 @@ const Notify = {
       if (alpha <= 0) continue;
       // Slide-in mirrors the toast family: drops 12px while blooming in.
       const enterP = a.phase === 'in' ? Math.min(1, a.progress || 0) : 1;
-      const y = 140 + ai * 68 - (G.state.reduceMotion ? 0 : (1 - enterP) * 12);
+      const y = 140 + ai * 68 - (R.reducedMotion() ? 0 : (1 - enterP) * 12);
       ctx.globalAlpha = alpha;
       R.roundRect(ctx, 50, y, 300, 60, 8, 'rgba(10,10,26,0.95)');
       R.roundRect(ctx, 50, y, 300, 60, 8, 'rgba(232,160,48,0.3)');
@@ -133,14 +133,20 @@ const Fade = {
   pendingScene: null,
   update: function(dt) {
     if (this.alpha !== this.target) {
+      let dir;
       const rm = R.reducedMotion && R.reducedMotion();
       if (rm) {
         this.alpha = this.target;
       } else {
-        const dir = this.target > this.alpha ? 1 : -1;
+        dir = this.target > this.alpha ? 1 : -1;
         this.alpha += dir * this.speed * dt;
       }
-      if (this.alpha === this.target) {
+      // Float accumulation (alpha += speed * dt) can overshoot the target,
+      // so strict equality (alpha === target) never holds — use reached-or
+      // passed instead (restores pre-5cd716c3 behavior). Under reduced
+      // motion alpha is snapped to target exactly, so the rm short-circuit
+      // keeps that path working (dir is never read when rm is true).
+      if (rm || (dir > 0 && this.alpha >= this.target) || (dir < 0 && this.alpha <= this.target)) {
         this.alpha = this.target;
         if (this.pendingScene) {
           const pending = this.pendingScene;
@@ -490,7 +496,7 @@ function gLoopFrame(time) {
     const fps = Math.round((G.frameCount - G._perfN) * 1000 / (time - G._perfT));
     G._perfT = time;
     G._perfN = G.frameCount;
-    if (!G.state.rmAutoDone && !G.state.rmUserSet && !G.state.reduceMotion && G.frameCount > 60) {
+    if (!G.state.rmAutoDone && !G.state.rmUserSet && !R.reducedMotion() && G.frameCount > 60) {
       if (fps < 30) {
         G._lowStreak = (G._lowStreak || 0) + 1;
         if (G._lowStreak >= 2) {

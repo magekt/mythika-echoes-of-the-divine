@@ -60,6 +60,7 @@ UI.Panel = function(x, y, w, h, color, borderColor) {
   // Render hook: double-bezel shell with eased alpha, title, children at full opacity
   panel._renderHook = function(ctx, p) {
     if (!p.visible) return;
+    if (!ctx) return;
     // Phase 48 — outer shell + inset-highlight inner core (Doppelrand).
     const alpha = R.easePremium(p.enterProgress);
     ctx.globalAlpha = alpha;
