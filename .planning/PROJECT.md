@@ -137,6 +137,13 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 
 - ✓ LAY-08 — Adaptive fill viewport: adaptive logical dims (400×866 portrait, 866×400 landscape, 400×720 desktop card), visualViewport/DPR refit, G.H-anchored scenes with landscape responsive rects, 7-size matrix contract green (Phase 42)
 
+### Validated — v13.0
+
+- ✓ SCR-01 through SCR-24 — Scene-by-scene audit of all 26 scenes; updated title version number `v1.0` → `v13.0` (Phases 67–70)
+- ✓ FBX-01 through FBX-08 — Firebase fully removed: SDK imports/init, auth.js integration, authScene UI + route, firebase-config files, sw.js precache, .github workflows, docs (Phases 65–66)
+- ✓ VFY-01 through VFY-05 — Verification: game boots/loads via localStorage without Firebase; no stale versions; Node suite 647/0; UI invariants clean; browser boot matrix clean (Phase 71)
+
+
 ### Shipped Milestone v4.0 — Deep Companions & Living Zones
 
 **Goal (achieved):** Make familiar zones play differently through companion bonds, without new geography.
@@ -189,6 +196,7 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 - Existing zone progress, journey, encounter, quest, achievement, and economy APIs remain the canonical sources of player actions and rewards.
 - Root and folder `codemap.md` files document scene, system, data, UI, and engine boundaries.
 - Browser-evidence debt now spans v2.0 + v3.0 and should be scheduled early next milestone rather than re-deferred.
+- Firebase fully removed in v13.0: no Firebase SDK, config, auth, authScene, or cloud references remain; localStorage/PWA is the sole persistence. `tools/write_firebase_config.py` deleted; `.github/workflows/pages.yml` Firebase config steps removed.
 
 ## Constraints
 
@@ -222,6 +230,7 @@ Accepted remaining evidence debt: v2.0 worker/cache activation, legacy-save boot
 | Single-authority companion state (BondSystem + BeastBond, no parallel stores) | Companion depth must extend existing heroes/beasts/saves, not fork them | Encounter exactly-once ledger shared, economy ownership intact, combat clones only — ✓ Good |
 | Commit signature-duo scope by readability verdict, not ambition | Tier-3 fantasy payoff must not regress combat readability | COMMIT-ALL-FIVE verdict recorded in Phase 25; all five heroes ship combos ✓ Good |
 | Accept browser-evidence deferral a third time (v2/v3 precedent) | Phase 21 harness green; human journey matrix still the bottleneck | v4.0 shipped gaps_found with EVD-01 journey rows pending; debt now spans three milestones — ⚠️ Revisit (schedule owned browser slot next milestone) |
+| Remove Firebase entirely (v13.0) | Offline/localStorage is the canonical persistence; Firebase auth + cloud-save added complexity without benefit | All Firebase SDK, config, authScene, docs, workflow steps removed; grep clean; save-compatible ✓ Good |
 
 ## Evolution
 
@@ -241,4 +250,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-23 — Milestone v13.0 started (Screen-by-Scene Audit & Firebase Removal)*
+*Last updated: 2026-10-23 — Milestone v13.0 complete (Screen-by-Scene Audit & Firebase Removal)*

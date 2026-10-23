@@ -2,6 +2,16 @@
 
 ## v13.0 Screen-by-Scene Audit & Firebase Removal (Shipped: 2026-10-23)
 
+**Phases completed:** 0 phases, 0 plans, 0 tasks
+
+**Key accomplishments:**
+
+- (none recorded)
+
+---
+
+## v13.0 Screen-by-Scene Audit & Firebase Removal (Shipped: 2026-10-23)
+
 **Phases completed:** 7 phases, 7 plans
 
 **Key accomplishments:**

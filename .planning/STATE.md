@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v13.0
 milestone_name: Screen-by-Scene Audit & Firebase Removal
-status: complete
-last_updated: "2026-10-23"
-last_activity: 2026-10-23
+status: Awaiting next milestone
+last_updated: "2026-10-23T07:11:31.101Z"
+last_activity: 2026-10-23 — Milestone v13.0 completed and archived
 progress:
   total_phases: 7
   completed_phases: 7
@@ -27,10 +27,10 @@ progress:
 
 ## Current Position
 
-Phase: Complete (all 7 phases 65–71)
+Phase: Milestone v13.0 complete
 Plan: —
-Status: Complete
-Last activity: 2026-10-23 — Milestone v13.0 shipped
+Status: Awaiting next milestone
+Last activity: 2026-10-23 — Milestone v13.0 completed and archived
 
 ## Performance Metrics
 
@@ -56,8 +56,20 @@ Last activity: 2026-10-23 — Milestone v13.0 shipped
 
 - None
 
+## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-10-23:
+
+| Category | Item | Status |
+|----------|------|--------|
+| quick_task | 261022-j7j-audit-existing-call-sites-enforce-r-redu | missing |
+
 ## Session Continuity
 
 **Last Action**: Phase 71 Verification — Node suite green, browser boot matrix clean, UI invariants clean
 **Next Action**: Milestone v13.0 complete — run /gsd-discuss-phase for the next milestone
 **Files**: .planning/ROADMAP.md, .planning/STATE.md, .planning/REQUIREMENTS.md, .planning/v13.0-MILESTONE-AUDIT.md
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
